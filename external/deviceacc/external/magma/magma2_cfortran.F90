@@ -82,6 +82,17 @@ interface
         type(c_ptr),    value  :: queue
     end subroutine
 
+    subroutine magma_cgemm_batched_strided(transA, transB, m, n, k, alpha, dA, lda, strideA, &
+                                   dB, ldb, strideB, beta, dC, ldc, strideC, batchCount, queue) &
+    bind(C, name="magmablas_cgemm_batched_strided")
+        import
+        integer(c_int),             value :: transA, transB, m, n, k, lda, ldb, ldc, batchCount
+        integer(c_int),             value :: strideA, strideB, strideC
+        complex(c_float_complex),   value :: alpha, beta
+        type(c_ptr),                value :: dA, dB, dC
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
     !! -------------------------------------------------------------------------
     !! BLAS (matrices in GPU memory)
     subroutine magma_caxpy( &
@@ -92,10 +103,44 @@ interface
     bind(C, name="magma_caxpy")
         import
         integer(c_int),             value :: n, incx, incy
-        complex(c_float_complex),  value :: alpha
+        complex(c_float_complex),   value :: alpha
         type(c_ptr),                value :: dx, dy
         type(c_ptr),                value :: queue  !! queue_t
     end subroutine
+
+    subroutine magma_cgeru(m, n, alpha, dx, incx, dy, incy, da, ldda, queue ) &
+    bind(C, name="magma_cgeru")
+        import
+        integer(c_int),             value :: m, n, incx, incy, ldda
+        complex(c_float_complex),   value :: alpha
+        type(c_ptr),                value :: dx, dy, da
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    subroutine magma_cgerc(m, n, alpha, dx, incx, dy, incy, da, ldda, queue ) &
+        bind(C, name="magma_cgerc")
+            import
+            integer(c_int),             value :: m, n, incx, incy, ldda
+            complex(c_float_complex),   value :: alpha
+            type(c_ptr),                value :: dx, dy, da
+            type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    complex(c_float_complex) function magma_cdotc( &
+        n, dx, incx, dy, incy, queue) bind(C, name="magma_cdotc")
+        import
+        integer(c_int),             value :: n, incx, incy
+        type(c_ptr),                value :: dx, dy
+        type(c_ptr),                value :: queue  !! queue_t
+    end function magma_cdotc
+
+    complex(c_float_complex) function magma_cdotu( &
+        n, dx, incx, dy, incy, queue) bind(C, name="magma_cdotu")
+        import
+        integer(c_int),             value :: n, incx, incy
+        type(c_ptr),                value :: dx, dy
+        type(c_ptr),                value :: queue  !! queue_t
+    end function magma_cdotu
 
     subroutine magma_cgemv( &
         transA, m, n, &
@@ -122,6 +167,38 @@ interface
         integer(c_int),             value :: transA, transB, m, n, k, lda, ldb, ldc
         complex(c_float_complex),  value :: alpha, beta
         type(c_ptr),                value :: dA, dB, dC
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    subroutine magma_chemm( &
+        side, uplo, m, n,   &
+        alpha, dA, lda, &
+               dB, ldb, &
+        beta,  dC, ldc, &
+        queue ) &
+    bind(C, name="magma_chemm")
+        import
+        integer(c_int),             value :: side, uplo, m, n, lda, ldb, ldc
+        complex(c_float_complex),   value :: alpha, beta
+        type(c_ptr),                value :: dA, dB, dC
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    subroutine magmablas_cgeadd2(m, n, alpha, dA, lda, beta, dB, ldb, queue) &
+    bind(C, name="magmablas_cgeadd2")
+        import
+        integer(c_int),             value :: m, n, lda, ldb
+        complex(c_float_complex),   value :: alpha, beta
+        type(c_ptr),                value :: dA, dB
+        type(c_ptr),                value :: queue  !! queue_t
+    end subroutine
+
+    subroutine magma_chemv(uplo, n, alpha, dA, lda, dx, incx, beta, dy, incy, queue ) &
+    bind(C, name="magma_chemv")
+        import
+        integer(c_int),             value :: uplo, n, lda, incx, incy
+        complex(c_float_complex),   value :: alpha, beta
+        type(c_ptr),                value :: dA, dx, dy
         type(c_ptr),                value :: queue  !! queue_t
     end subroutine
 
@@ -188,5 +265,19 @@ contains
                 __FILE__ // c_null_char, &
                 __LINE__ )
     end subroutine
+
+    !! -----------------------------------------------------------------------------
+    !! Copy
+    subroutine magma_ccopyvector_async(n, dx_src, incx, dy_dst, incy, queue)
+        integer(c_int), value :: n, incx, incy
+        type(c_ptr), value :: dx_src, dy_dst, queue
+
+        call magma_copyvector_async_internal(n, int(sizeof_complex), dx_src, incx, &
+                                             dy_dst, incy, queue, &
+                                             "magma_ccopyvector_async" // c_null_char, &
+                                              __FILE__ // c_null_char, &
+                                              __LINE__ )
+
+    end subroutine magma_ccopyvector_async
 
 end module

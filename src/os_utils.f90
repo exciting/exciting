@@ -43,12 +43,9 @@ contains
     !> system specific error code, 0 on success
     integer :: ierr
 
-#ifdef __INTEL_COMPILER
-    integer, external :: system
-    ierr = system(trim(cmd))
-#else
-    call system(trim(cmd), status=ierr)
-#endif
+    ! Synchronous execution of cmd
+    call execute_command_line(trim(cmd), wait=.true., cmdstat=ierr)
+
   end function system_cmd
 
   !> create new directory (if not yet existent)

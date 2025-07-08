@@ -5,7 +5,7 @@ import re
 import warnings
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Iterator, List, Type, Union
+from typing import Any, Dict, Iterator, Type, TypeVar, Union
 from xml.etree import ElementTree
 
 import numpy as np
@@ -13,10 +13,11 @@ import numpy as np
 from excitingtools.exciting_dict_parsers.input_parser import parse_element_xml
 from excitingtools.utils import valid_attributes as all_valid_attributes
 from excitingtools.utils.dict_utils import check_valid_keys
-from excitingtools.utils.jobflow_utils import special_serialization_attrs
+from excitingtools.utils.serialization_utils import deserialize_object, special_serialization_attrs
 from excitingtools.utils.utils import flatten_list, list_to_str
 
 path_type = Union[str, Path]
+ExcitingInputType = TypeVar("ExcitingInputType", bound="AbstractExcitingInput")
 
 
 class AbstractExcitingInput(ABC):
@@ -30,6 +31,12 @@ class AbstractExcitingInput(ABC):
     @abstractmethod
     def __init__(self, **kwargs): ...
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__module__}.{self.__class__.__name__}({self.to_xml_str()})"
+
+    def __str__(self) -> str:
+        return self.to_xml_str()
+
     @abstractmethod
     def to_xml(self) -> ElementTree:
         """Convert class attributes to XML ElementTree."""
@@ -41,10 +48,11 @@ class AbstractExcitingInput(ABC):
     def as_dict(self) -> dict:
         """Convert attributes to dictionary."""
         serialise_attrs = special_serialization_attrs(self)
-        return {**serialise_attrs, "xml_string": self.to_xml_str()}
+        inp_d = parse_element_xml(self.to_xml())
+        return {**serialise_attrs, **inp_d}
 
     @classmethod
-    def from_xml(cls, xml_string: path_type):
+    def from_xml(cls: Type[ExcitingInputType], xml_string: path_type) -> ExcitingInputType:
         """Initialise class instance from XML-formatted string.
 
         Example Usage
@@ -54,13 +62,16 @@ class AbstractExcitingInput(ABC):
         return cls(**parse_element_xml(xml_string, tag=cls.name))
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls: Type[ExcitingInputType], d: dict) -> ExcitingInputType:
         """Recreates class instance from dictionary."""
-        return cls.from_xml(d["xml_string"])
+        # Keep backward compatibility with version 1.7.x and prior
+        if "xml_string" in d:
+            return cls.from_xml(d["xml_string"])
+        return deserialize_object(cls, d)
 
 
 class ExcitingXMLInput(AbstractExcitingInput, ABC):
-    """Base class for exciting inputs, with exceptions being title, plan, qpointset and kstlist,
+    """Base class for exciting inputs, with exceptions being title, plan, qpointset, kstlist and etCoeffComponents,
     because they are not passed as a dictionary."""
 
     # Convert python data to string, formatted specifically for exciting
@@ -94,8 +105,7 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
         check_valid_keys(kwargs.keys(), valid_attributes | set(valid_subtrees), self.name)
 
         # initialise the subtrees
-        class_list = self._class_list_excitingtools()
-        subtree_class_map = {cls.name: cls for cls in class_list}
+        subtree_class_map = self._class_dict_excitingtools()
         subtrees = set(kwargs.keys()) - valid_attributes
         single_subtrees = subtrees - multiple_children
         multiple_subtrees = subtrees - single_subtrees
@@ -105,18 +115,40 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
             kwargs[subtree] = [
                 self._initialise_subelement_attribute(subtree_class_map[subtree], x) for x in kwargs[subtree]
             ]
+        # check attribute types
+        attributes = set(kwargs.keys()) - subtrees
+        for attribute in attributes:
+            self._check_attribute_type(attribute, kwargs[attribute])
 
         # Set attributes from kwargs
         self.__dict__.update(kwargs)
 
-    def __setattr__(self, name: str, value):
+    def __setattr__(self, name: str, value: Any):
         """Overload the attribute setting in python with instance.attr = value to check for validity in the schema.
 
         :param name: name of the attribute
         :param value: new value, can be anything
         """
-        valid_attributes, valid_subtrees, _, _ = self.get_valid_attributes()
+        valid_attributes, valid_subtrees, _, multiple_children = self.get_valid_attributes()
         check_valid_keys({name}, valid_attributes | set(valid_subtrees), self.name)
+        subtree_class_map = self._class_dict_excitingtools()
+
+        # check attribute type
+        if name in valid_attributes:
+            self._check_attribute_type(name, value)
+        # If value is a dictionary, we convert it to the expected input class
+        elif isinstance(value, dict):
+            value = subtree_class_map[name](**value)
+        # Handle subtrees that can occur multiple times
+        elif isinstance(value, list) and name in multiple_children:
+            value = [self._initialise_subelement_attribute(subtree_class_map[name], x) for x in value]
+        # if we enter this branch, we expect a valid ExcitingElementInput object
+        elif not isinstance(value, subtree_class_map[name]):
+            raise TypeError(
+                f"Expected {subtree_class_map[name]} for {name}, but got {type(value)}!\n"
+                f"Alternatively you can pass a (possible empty) dictionary."
+            )
+
         super().__setattr__(name, value)
 
     def __delattr__(self, name: str):
@@ -132,18 +164,19 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
 
         :return: valid attributes, valid subtrees, mandatory attributes and multiple children
         """
-        yield set(getattr(all_valid_attributes, f"{self.name}_valid_attributes", set()))
+        yield set(getattr(all_valid_attributes, f"{self.name}_attribute_types", set()))
         yield getattr(all_valid_attributes, f"{self.name}_valid_subtrees", [])
         yield set(getattr(all_valid_attributes, f"{self.name}_mandatory_attributes", set()))
         yield set(getattr(all_valid_attributes, f"{self.name}_multiple_children", set()))
 
     @staticmethod
-    def _class_list_excitingtools() -> List[Type[AbstractExcitingInput]]:
-        """Find all exciting input classes in own module and excitingtools."""
+    def _class_dict_excitingtools() -> Dict[str, Type[AbstractExcitingInput]]:
+        """Find all exciting input classes in own module and excitingtools. Return dict with name and class."""
         excitingtools_namespace_content = importlib.import_module("excitingtools").__dict__
         input_class_namespace_content = importlib.import_module("excitingtools.input.input_classes").__dict__
         all_contents = {**excitingtools_namespace_content, **input_class_namespace_content}.values()
-        return [cls for cls in all_contents if isinstance(cls, type) and issubclass(cls, AbstractExcitingInput)]
+        class_list = [cls for cls in all_contents if isinstance(cls, type) and issubclass(cls, AbstractExcitingInput)]
+        return {cls.name: cls for cls in class_list}
 
     @staticmethod
     def _initialise_subelement_attribute(xml_class, element):
@@ -158,6 +191,49 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
             return xml_class(**element)
         # Assume the element type is valid for the class constructor
         return xml_class(element)
+
+    def get_attribute_types(self) -> Dict:
+        """Extract the expected types of the valid attributes from the parsed schema.
+
+        :return: dictionary associating the attribute name with its expected type and number of expected values or its
+        valid choices.
+        """
+        return getattr(all_valid_attributes, f"{self.name}_attribute_types", {})
+
+    def _check_attribute_type(self, name: str, value: Any):
+        """Check if the given attribute name and value are compatible. Raises TypeError or ValueError if a mismatch is
+        detected.
+
+        :param name: name of the attribute
+        :param value: value, which should be assigned to the attribute
+        """
+        expected_type, further_info = self.get_attribute_types()[name]
+        if expected_type is float:
+            # if we expect a float, we also expect int
+            expected_type = (int, float, np.integer, np.floating)
+        elif expected_type is int:
+            expected_type = (int, np.integer)
+        if isinstance(further_info, int) and further_info > 1 and not isinstance(value, (list, tuple, np.ndarray)):
+            raise TypeError(f"Expected a list, tuple or ndarray for attribute {name} but got {type(value)}!")
+        if isinstance(value, (list, tuple, np.ndarray)):
+            if not (isinstance(further_info, int) and further_info > 1):
+                raise TypeError(f"Expected a single value for attribute {name}, but found a list or tuple!")
+            if len(value) != further_info:
+                raise ValueError(
+                    f"Expected a list of length {further_info} for attribute {name} but got one of length {len(value)}!"
+                )
+            for i, v in enumerate(value):
+                if not isinstance(v, expected_type):
+                    raise TypeError(
+                        f"Expected all elements of the list to be of type {expected_type} but found {type(v)}"
+                        f" at index {i}!"
+                    )
+            # if all asserts passes we are done and the list value is valid
+            return
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Expected value for {name} to be of type {expected_type} but found {type(value)}!")
+        if isinstance(further_info, list) and value not in further_info:
+            raise ValueError(f"{value} is not a valid choice for {name}!\nValid choices are: {', '.join(further_info)}")
 
     def to_xml(self) -> ElementTree:
         """Put class attributes into an XML tree, with the element given by self.name.

@@ -1,0 +1,12 @@
+{
+  "bandstructure-qp.xml": {
+    "eval": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "distance": {
+      "tol": 1e-08,
+      "unit": "Bohr^-1"
+    }
+  }
+}

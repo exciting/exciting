@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>Bulk Silicon: Plot example</title>
+  <structure speciespath=".">
+    <crystal>
+      <basevect>   5.131106835       5.131106835       0.000000000</basevect>
+      <basevect>   5.131106835       0.000000000       5.131106835</basevect>
+      <basevect>   0.000000000       5.131106835       5.131106835</basevect>
+    </crystal>
+    <species speciesfile="Si.xml" rmt="2.1107">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+      <atom coord="0.2500000000      0.2500000000      0.2500000000"/>
+    </species>
+  </structure>
+</input>

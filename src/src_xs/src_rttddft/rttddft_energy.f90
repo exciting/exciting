@@ -61,9 +61,18 @@
 !> </li>
 !> </ol>
 module rttddft_Energy
+  use asserts, only: assert
+  use constants, only: real_zero
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
-  use precision, only: dp
+  use modinput, only: input
+  use mod_atoms, only: idxas, natoms, spzn, spnst, nspecies, spcore, spocc
+  use mod_corestate, only: evalcr
+  use mod_eigensystem, only: nmatmax, nmat
+  use mod_potential_and_density, only: rhomt, rhoir, vclmt, vclir, vxcmt, &
+    vxcir, exmt, exir, ecmt, ecir, vmad  
+  use precision, only: dp, i32
+  use rttddft_Wavefunction, only: wavefunction_set
   use vector_multiplication, only: dot_multiply
 
   implicit none
@@ -76,24 +85,24 @@ module rttddft_Energy
   !> The following terms account for each different contribution
   type :: TotalEnergy
     !> Exchange \( E_X \)
-    real(dp)  :: exchange
+    real(dp) :: exchange
     !> Correlation \( E_C \)
-    real(dp)  :: correlation
+    real(dp) :: correlation
     !> Hartree \( E_{vcl} \)
-    real(dp)  :: Coulomb
+    real(dp) :: Coulomb
     !> XC potential \( \int n(\mathbf{r})v_{XC}(\mathbf{r}) d\mathbf{r} \)
-    real(dp)  :: integral_vxc_times_density
+    real(dp) :: integral_vxc_times_density
     !> Eigenvalues of core states
-    real(dp)  :: eigenvalues_core
+    real(dp) :: eigenvalues_core
     !> Madelung
-    real(dp)  :: madelung
+    real(dp) :: madelung
     !> Hamiltonian. This corresponds to what in groundstate calculations would
     !> be the contribution from the valence eigenvalues (for RT-TDDFT, 
     !> eigenvalues of the hamiltonian do not have the same meaning as in the 
     !> groundstate)
-    real(dp)  :: hamiltonian
+    real(dp) :: hamiltonian
     !> The total energy itself
-    real(dp)  :: total_energy
+    real(dp) :: total_energy
 
     contains
       !> total_energy is evaluated from its components
@@ -117,46 +126,46 @@ contains
 
   !> Subroutine that calculates the total energy for RT-TDDFT calculations
   !> Adapted from `src/energy.f90`
-  subroutine obtain_energy_rttddft(first_kpt, last_kpt, ham, evec, mpi_env, &
-      & rt_tddft_energy )
-    use modinput, only: input
-    use mod_kpoint, only: wkpt
-    use mod_eigenvalue_occupancy, only: occsv, nstfv
-    use mod_eigensystem, only: nmatmax, nmat
-    use mod_atoms, only: idxas, natoms, spzn, spnst, nspecies, spcore, spocc
-    use mod_potential_and_density, &
-      only: rhomt,rhoir,vclmt,vclir,vxcmt,vxcir,exmt,exir,ecmt,ecir, vmad
-    use modmpi
-    use constants, only: zzero, zone
-    use mod_corestate, only: evalcr
+  subroutine obtain_energy_rttddft(first_kpt, ham, psi, occupations, initial_ks_energies, &
+      mpi_env, kpt_weights, rt_tddft_energy )
 
     implicit none
 
     !> index of the first `k-point` to be considered in the sum appearing in 
     !> \( E_{ham} \)
-    integer,intent(in)        :: first_kpt
-    !> index of the last `k-point` considered
-    integer,intent(in)        :: last_kpt
+    integer,intent(in) :: first_kpt
     !> Hamiltonian matrix at time \( t \). 
     !> Dimensions: `nmatmax`, `nmatmax`, `first_kpt:last_kpt`
-    complex(dp), intent(in)         :: ham(:, :, first_kpt:)
-    !> Coefficients of the KS-wavefunctions at time \( t \).
-    !> Dimensions: `nmatmax`, `nstfv`, `first_kpt:last_kpt`
-    complex(dp), intent(in)         :: evec(:, :, first_kpt:)
+    complex(dp), intent(in) :: ham(:, :, :)
+    !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \)
+    class(wavefunction_set), intent(in) :: psi
+    !> Initial occupations array
+    real(dp), intent(in) :: occupations(:, :)
+    !> Initial KS energies array
+    real(dp), intent(in) :: initial_ks_energies(:, :)
     !> MPI environment
-    type(mpiinfo), intent(in)       :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
+    !> k points weights array
+    real(dp), intent(in) :: kpt_weights(:)
     !> Type with the total energy and its components
-    type(TotalEnergy), intent(out)  :: rt_tddft_energy
+    type(TotalEnergy), intent(out) :: rt_tddft_energy
 
 
-    integer                         :: ik, ist, is, ia, ias, nmatp
-    real(dp), allocatable           :: aux(:)
-    real(dp)                        :: rfinp
-    complex(dp)                     :: acc(nstfv)
-    complex(dp),allocatable         :: scratch(:,:),occcmplx(:)
+    integer(i32) :: ik, ist, is, ia, ias, nmatp, real_kpt, n_kpt, first_active, n_states, n_basis, n_frozen
+    real(dp), allocatable :: aux(:)
+    real(dp) :: rfinp
+    complex(dp), allocatable :: acc(:), scratch(:, :), occcmplx(:)
 
+    n_kpt = psi%n_kpts()
+    n_states = psi%n_active()
+    n_basis = psi%n_basis()
+    first_active = psi%first_active()
+    n_frozen = psi%n_frozen()
 
-    allocate(scratch(nmatmax,nstfv))
+    call assert( n_kpt == size( occupations, 2 ), 'psi and occupations have different nkpts' )
+
+    allocate( scratch(n_basis, n_states) )
+    allocate( acc(n_states) )
 
     ! contribution of XC and Coulomb potentials, \( v_H \) and \( v_{XC} \), respectively
     rt_tddft_energy%Coulomb = rfinp (1, rhomt, vclmt, rhoir, vclir)
@@ -169,10 +178,10 @@ contains
     ! contribution from core eigenvalues
     rt_tddft_energy%eigenvalues_core = 0._dp
     do is = 1, nspecies
-      do ia = 1, natoms (is)
-        ias = idxas (ia, is)
-          do ist = 1, spnst (is)
-            if (spcore(ist, is)) rt_tddft_energy%eigenvalues_core = rt_tddft_energy%eigenvalues_core + spocc (ist, is) &
+      do ia = 1, natoms(is)
+        ias = idxas(ia, is)
+          do ist = 1, spnst(is)
+            if ( spcore(ist, is) ) rt_tddft_energy%eigenvalues_core = rt_tddft_energy%eigenvalues_core + spocc(ist, is) &
             & * evalcr (ist, ias)
           end do
        end do
@@ -181,42 +190,45 @@ contains
     ! Contribution from the eigenvalues (valence)
     ! They are obtained as the average value of the hamiltonian matrix
     rt_tddft_energy%hamiltonian = 0._dp
-    allocate(aux(first_kpt:last_kpt))
-    allocate(occcmplx(nstfv))
-    aux(:) = 0._dp
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE), &
-!$OMP& PRIVATE(ik, ist, occcmplx, scratch, acc, nmatp), &
-!$OMP& SHARED(first_kpt,last_kpt,aux,nmatmax,nstfv,nmat,ham,evec,occsv,wkpt,input)
-!$OMP DO
-#endif
-    do ik = first_kpt, last_kpt
-      nmatp = nmat(1,ik)
-      call hermitian_matrix_multiply( ham(:, :, ik), evec(:, :, ik), scratch, side='L', uplo='U' )
+    allocate( aux(n_kpt), source = real_zero )
+    allocate( occcmplx(n_states) )
+    !$omp parallel default(none), &
+    !$omp private(ik, ist, occcmplx, scratch, acc, nmatp, real_kpt), &
+    !$omp shared(first_kpt, aux, first_active, nmat, ham, psi, occupations, &
+    !$omp kpt_weights, input, n_kpt, n_states, initial_ks_energies, n_frozen)
+    !$omp do
+    do ik = 1, n_kpt
+      real_kpt = ik + first_kpt - 1
+      if ( psi%expanded_in_lapwlo() ) then
+        nmatp = nmat(1, real_kpt)
+      else
+        nmatp = psi%n_basis()
+      end if
+      call hermitian_matrix_multiply( ham(:, :, ik), psi%active(:, :, ik), scratch, side='L', uplo='U' )
 
-      do ist = 1, nstfv
+      do ist = 1, n_states
         ! If the occupation is small, we assume that the current and
         ! all other states with higher "ist" will be unoccupied
-        if ( occsv(ist,ik) <= input%groundstate%epsocc ) exit
-        acc(ist) = dot_multiply( evec(1:nmatp, ist, ik), scratch(1:nmatp,ist), conjg_a=.true. )
+        if ( occupations(n_frozen + ist, ik) <= input%groundstate%epsocc ) exit
+        acc(ist) = dot_multiply( psi%active(1:nmatp, ist, ik), scratch(1:nmatp, ist), conjg_a=.true. )
       end do
-      occcmplx(:) = occsv(:,ik)
-      aux(ik) = dble( wkpt(ik)*dot_multiply(occcmplx(1:ist-1), acc(1:ist-1), conjg_a=.true.) )
+      occcmplx = occupations(first_active : n_frozen + n_states, ik)
+      aux(ik) = kpt_weights(ik) * real( dot_multiply( occcmplx(1:ist - 1), acc(1:ist - 1) ), dp )
+      if ( psi%has_frozen() ) aux(ik) = aux(ik) + kpt_weights(ik) * &
+        dot_multiply( occupations(1 : n_frozen, ik), initial_ks_energies(1 : n_frozen, ik) )
     end do
-#ifdef USEOMP
-!$OMP END DO NOWAIT
-!$OMP END PARALLEL
-#endif
-    rt_tddft_energy%hamiltonian = sum(aux)
+    !$omp end parallel
+    rt_tddft_energy%hamiltonian = sum( aux )
+
     call xmpi_allreduce( rt_tddft_energy%hamiltonian, mpi_env )
 
     ! Madelung energy
     rt_tddft_energy%madelung = 0._dp
     do is = 1, nspecies
       ! compute the bare nucleus potential at the origin
-      do ia = 1, natoms (is)
-        ias = idxas (ia, is)
-        rt_tddft_energy%madelung = rt_tddft_energy%madelung + 0.5d0 * spzn (is) * vmad(ias)
+      do ia = 1, natoms(is)
+        ias = idxas(ia, is)
+        rt_tddft_energy%madelung = rt_tddft_energy%madelung + 0.5_dp * spzn(is) * vmad(ias)
       end do
     end do
 

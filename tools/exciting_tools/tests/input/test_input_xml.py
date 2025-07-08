@@ -13,7 +13,13 @@ be fine.
 import numpy as np
 import pytest
 
-from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingKeywordsInput, ExcitingXSInput
+from excitingtools.input.input_classes import (  # pylint: disable=E0611
+    ExcitingBSEInput,
+    ExcitingGroundStateInput,
+    ExcitingKeywordsInput,
+    ExcitingLibxcInput,
+    ExcitingXSInput,
+)
 from excitingtools.input.input_xml import ExcitingInputXML
 from excitingtools.input.structure import ExcitingStructure
 
@@ -27,8 +33,18 @@ def exciting_structure() -> ExcitingStructure:
         {"species": "Li", "position": [1.0, 0.0, 0.0]},
         {"species": "F", "position": [2.0, 0.0, 0.0]},
     ]
+    crystal_properties = {"stretch": [0.6, 0.7, 0.8]}
+    species_properties = {
+        "Li": {
+            "rmt": 1.2,
+            "LDAplusU": {"J": 0.4, "U": 1.3, "l": -2},
+            "dfthalfparam": {"ampl": 1.2, "shell": [{"number": 2}, {"number": 3}, {"number": 4}]},
+        }
+    }
 
-    return ExcitingStructure(arbitrary_atoms, cubic_lattice, ".")
+    return ExcitingStructure(
+        arbitrary_atoms, cubic_lattice, ".", crystal_properties, species_properties, autormtscaling=0.9
+    )
 
 
 @pytest.fixture
@@ -90,7 +106,7 @@ def test_exciting_input_xml_structure_and_gs_and_xs(exciting_input_xml: Exciting
 
     structure_xml = subelements[1]
     assert structure_xml.tag == "structure"
-    assert structure_xml.keys() == ["speciespath"]
+    assert structure_xml.keys() == ["speciespath", "autormtscaling"]
     assert len(list(structure_xml)) == 3
 
     groundstate_xml = subelements[2]
@@ -194,25 +210,64 @@ def test_attribute_modification(exciting_input_xml: ExcitingInputXML):
     assert energywindow_xml.get("points") == "4000"
 
 
+ref_dict = {
+    "groundstate": {
+        "do": "fromscratch",
+        "ngridk": [6, 6, 6],
+        "nosource": False,
+        "rgkmax": 8.0,
+        "tforce": True,
+        "vkloff": [0, 0, 0],
+        "xctype": "GGA_PBE_SOL",
+    },
+    "keywords": "keyword1 keyword2 keyword3",
+    "sharedfs": True,
+    "structure": {
+        "atoms": [
+            {"position": [0.0, 0.0, 0.0], "species": "Li"},
+            {"position": [1.0, 0.0, 0.0], "species": "Li"},
+            {"position": [2.0, 0.0, 0.0], "species": "F"},
+        ],
+        "autormtscaling": 0.9,
+        "crystal_properties": {"stretch": [0.6, 0.7, 0.8]},
+        "lattice": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+        "species_path": ".",
+        "species_properties": {
+            "F": {},
+            "Li": {
+                "LDAplusU": {"J": 0.4, "U": 1.3, "l": -2},
+                "dfthalfparam": {"ampl": 1.2, "shell": [{"number": 2}, {"number": 3}, {"number": 4}]},
+                "rmt": 1.2,
+            },
+        },
+    },
+    "title": "Test Case",
+    "xs": {
+        "BSE": {"bsetype": "singlet", "xas": True},
+        "broad": 0.32,
+        "energywindow": {"intv": [5.8, 8.3], "points": 5000},
+        "ngridk": [8, 8, 8],
+        "plan": ["screen", "bse"],
+        "qpointset": [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]],
+        "screening": {"nempty": 15, "screentype": "full"},
+        "xstype": "BSE",
+    },
+}
+
+
 @pytest.mark.usefixtures("mock_env_jobflow_missing")
 def test_as_dict(exciting_input_xml: ExcitingInputXML):
     dict_representation = exciting_input_xml.as_dict()
-    assert set(dict_representation.keys()) == {"xml_string"}
-    # check only that the xml string starts with the correct first lines:
-    assert dict_representation["xml_string"].startswith(
-        '<?xml version="1.0" ?>\n<input sharedfs="true">\n\t<title>Test Case</title>\n\t<structure'
-    )
+    assert set(dict_representation.keys()) == {"groundstate", "structure", "sharedfs", "keywords", "xs", "title"}
+    assert dict_representation == ref_dict
 
 
 @pytest.mark.usefixtures("mock_env_jobflow")
 def test_as_dict_jobflow(exciting_input_xml: ExcitingInputXML):
     dict_representation = exciting_input_xml.as_dict()
-    xml_string = dict_representation.pop("xml_string")
-    assert dict_representation == {"@class": "ExcitingInputXML", "@module": "excitingtools.input.input_xml"}
-    # check only that the xml string starts with the correct first lines:
-    assert xml_string.startswith(
-        '<?xml version="1.0" ?>\n<input sharedfs="true">\n\t<title>Test Case</title>\n\t<structure'
-    )
+    assert dict_representation.pop("@class") == "ExcitingInputXML"
+    assert dict_representation.pop("@module") == "excitingtools.input.input_xml"
+    assert dict_representation == ref_dict
 
 
 @pytest.mark.usefixtures("mock_env_jobflow_missing")
@@ -276,3 +331,98 @@ def test_from_xml():
     assert input_xml.groundstate.maxscl == 200
     assert input_xml.groundstate.do == "fromscratch"
     assert input_xml.groundstate.xctype == "GGA_PBE"
+
+
+def test_dict_assignment(exciting_input_xml):
+    # test simple dict assignment
+    groundstate = exciting_input_xml.groundstate
+    assert not hasattr(groundstate, "libxc")
+    groundstate.libxc = {"exchange": "XC_GGA_X_PBE", "correlation": "XC_GGA_C_PBE"}
+    assert hasattr(groundstate, "libxc")
+    assert isinstance(groundstate.libxc, ExcitingLibxcInput)
+
+    # test nested dict assignment
+    del exciting_input_xml.xs
+    assert not hasattr(exciting_input_xml, "xs")
+    exciting_input_xml.xs = {"xstype": "BSE", "BSE": {"bsetype": "singlet", "xas": True}}
+    assert hasattr(exciting_input_xml, "xs")
+    assert isinstance(exciting_input_xml.xs, ExcitingXSInput)
+    assert hasattr(exciting_input_xml.xs, "BSE")
+    assert isinstance(exciting_input_xml.xs.BSE, ExcitingBSEInput)
+    assert exciting_input_xml.xs.BSE.bsetype == "singlet"
+    assert exciting_input_xml.xs.BSE.xas
+
+    # test assignment to list of subtrees
+    li_properties = exciting_input_xml.structure.species_properties["Li"]
+    li_properties.dfthalfparam = {"cut": 0, "shell": [{"number": 1}, {"number": 2}]}
+    assert hasattr(li_properties, "dfthalfparam")
+    assert li_properties.dfthalfparam.name == "dfthalfparam"
+    assert li_properties.dfthalfparam.cut == 0
+    assert hasattr(li_properties.dfthalfparam, "shell")
+    shell = li_properties.dfthalfparam.shell
+    assert isinstance(shell, list)
+    assert len(shell) == 2
+    assert shell[0].name == "shell"
+    assert shell[0].number == 1
+    assert shell[1].name == "shell"
+    assert shell[1].number == 2
+
+
+def test_input_validation(exciting_input_xml):
+    groundstate = exciting_input_xml.groundstate
+    # check if we can assign different type of lists to ngridk
+    groundstate._check_attribute_type("ngridk", [10, 10, 10])
+    groundstate._check_attribute_type("ngridk", (10, 10, 10))
+    groundstate._check_attribute_type("ngridk", np.array([10, 10, 10]))
+    # check floating point value accepts integers
+    groundstate._check_attribute_type("vkloff", [10, 10, 10])
+    groundstate._check_attribute_type("vkloff", [10, 10.0, 10])
+    groundstate._check_attribute_type("vkloff", (10, 10, 10))
+    groundstate._check_attribute_type("vkloff", np.array([10, 10, 10]))
+    # check TypeErrors are thrown
+    with pytest.raises(
+        TypeError, match="Expected a list, tuple or ndarray for attribute ngridk but got <class 'int'>!"
+    ):
+        groundstate._check_attribute_type("ngridk", 10)
+    with pytest.raises(
+        TypeError,
+        match=r"Expected all elements of the list to be of type \(<class 'int'>, <class 'numpy.integer'>\) but found "
+        r"<class 'numpy.float64'> at index 0!",
+    ):
+        groundstate._check_attribute_type("ngridk", np.array([10.0, 10, 10]))
+    with pytest.raises(
+        TypeError,
+        match=r"Expected all elements of the list to be of type \(<class 'int'>, <class 'numpy.integer'>\) but found "
+        r"<class 'float'> at index 0!",
+    ):
+        groundstate._check_attribute_type("ngridk", [10.0, 10, 10])
+    with pytest.raises(
+        TypeError, match="Expected value for xctype to be of type <class 'str'> but found <class 'int'>!"
+    ):
+        groundstate._check_attribute_type("xctype", 10)
+    with pytest.raises(TypeError, match="Expected a single value for attribute xctype, but found a list or tuple!"):
+        groundstate._check_attribute_type("xctype", [10, 10, 10])
+    # check ValueError is thrown if list has wrong length
+    with pytest.raises(ValueError, match="Expected a list of length 3 for attribute ngridk but got one of length 2!"):
+        groundstate._check_attribute_type("ngridk", [10, 10])
+    # check ValueError is thrown if wrong choice is used
+    with pytest.raises(ValueError, match=r"LDA_PBE is not a valid choice for xctype!\nValid choices are: (\w+(, )?)+"):
+        groundstate._check_attribute_type("xctype", "LDA_PBE")
+    # check boolean values
+    groundstate._check_attribute_type("ExplicitKineticEnergy", True)
+    groundstate._check_attribute_type("ExplicitKineticEnergy", False)
+    with pytest.raises(
+        TypeError,
+        match="Expected value for ExplicitKineticEnergy to be of type <class 'bool'> but found <class 'str'>!",
+    ):
+        groundstate._check_attribute_type("ExplicitKineticEnergy", "true")
+
+    # check assignment to element
+    groundstate.libxc = {"exchange": "XC_GGA_X_PBE"}
+    groundstate.libxc = ExcitingLibxcInput(exchange="XC_GGA_X_PBE")
+    with pytest.raises(
+        TypeError,
+        match="Expected <class 'excitingtools.input.input_classes.ExcitingLibxcInput'> for libxc, "
+        "but got <class 'str'>!",
+    ):
+        groundstate.libxc = "foo"

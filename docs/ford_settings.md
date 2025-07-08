@@ -13,7 +13,8 @@ graph: false
 warn: false  
 search: false  
 proc_internals: false  
-src_dir: ../src/src_gw  
+src_dir: ../src/
+         ../src/src_gw  
          ../src/src_hybrids
          ../src/input
          ../src/testframework
@@ -44,6 +45,7 @@ src_dir: ../src/src_gw
          ../src/src_xs/fastBSE/
          ../src/src_xs/fastBSE/BSH/
          ../src/src_xs/fastBSE/utils/
+         ../src/kinetic_energy_density
 
 [//]: # "Note, ford commands can not be separated by whitelines."  
 [//]: # "More information on ford's project file options can be found at:"  

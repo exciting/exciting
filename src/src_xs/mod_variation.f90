@@ -2,7 +2,6 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-!BOP
 ! !MODULE: modxas
 ! !DESCRIPTION:
 !   Contains additional global variables required for XAS calculations within the BSE EXCITING code.
@@ -10,114 +9,66 @@
 ! !REVISION HISTORY:
 !
 !   Created JUNE 2015 by Christian Vorwerk
-!EOP   
-!BOC
 module mod_variation
   implicit none
     
 contains
-!--------------------------------------------------------------------------------
   subroutine variation_multiplication(A,B,C,X,dimA,dimB,startA,startB)
-  ! performs multiplication 
-  !$$ X_{ij}=\sum_{k=1}^{nstfv}\sum_{l=1}^{nstfv} A_{ki}^{\circ}B_{kl}C_{l,j}+\sum_{k=nstfv+1}^{nstsv}\sum_{l=nstfv+1}^{nstsv} A_{ki}^{\circ}B_{k-nstfv,l-nstfv}C_{l,j}$$
-  use m_ematqk, only: emat_ccket
-  use constants, only: zi, zone, zzero
-  use mod_eigenvalue_occupancy, only: nstfv, nstsv 
-  implicit none
-  integer, intent (in):: dimA, dimB, startA, startB
-  Complex (8), intent (in) :: A(nstsv, nstsv), B(nstfv, nstfv), C(nstsv, nstsv)
-  Complex (8), intent (out) :: X(dimA, dimB)
-    ! local variables
-    Complex (8), dimension(nstfv,dimA) :: inter1, inter3
-    Complex (8), dimension(nstfv,dimB) :: inter2, inter4
-    Complex (8), dimension(nstfv,dimB) :: xinter
-    Integer :: i, j
-    Integer :: k, l, ispn, ist, jst
-    Complex(8) :: zt, zv
-    ! Fill temporary matrices
-    if (.not. emat_ccket) then
-      do i=1, nstfv
-        do j=1, dimA
-          inter1(i,j)=A(i,j+startA-1)
-          inter3(i,j)=A(i+nstfv,j+startA-1)
-        end do
-        do j=1, dimB
-          inter2(i,j)=C(i,j+startB-1)
-          inter4(i,j)=C(i+nstfv,j+startB-1)
-        end do
-      end do
-    else
-      do i=1, nstfv
-        do j=1, dimA
-          inter1(i,j)=A(i,j+startA-1)
-          inter3(i,j)=A(i+nstfv,j+startA-1)
-        end do
-        do j=1, dimB
-          inter2(i,j)=zi*conjg(C(i+nstfv,j+startB-1))
-          inter4(i,j)=-zi*conjg(C(i,j+startB-1))
-        end do
-      end do
-    end if
-    
-    call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
-               'N', &           ! TRANSB = 'N'  op( B ) = B.
-               nstfv, &        ! M ... rows of op( A ) = rows of C
-               dimB, &         ! N ... cols of op( B ) = cols of C
-               nstfv, &        ! K ... cols of op( A ) = rows of op( B )
-               zone, &          ! alpha
-               B, &         ! A
-               nstfv, &          ! LDA ... leading dimension of A
-               inter2, &             ! B
-               nstfv,&           ! LDB ... leading dimension of B
-               zzero, &          ! beta
-               xinter, &  ! C
-               nstfv & ! LDC ... leading dimension of C
-               )
-    call zgemm('C', &           ! TRANSA = 'H'  op( A ) = H.
-               'N', &           ! TRANSB = 'N'  op( B ) = B.
-               dimA, &        ! M ... rows of op( A ) = rows of C
-               dimB, &         ! N ... cols of op( B ) = cols of C
-               nstfv, &        ! K ... cols of op( A ) = rows of op( B )
-               zone, &          ! alpha
-               inter1, &         ! A
-               nstfv, &          ! LDA ... leading dimension of A
-               xinter, &             ! B
-               nstfv,&           ! LDB ... leading dimension of B
-               zzero, &          ! beta
-               X, &  ! C
-               dimA & ! LDC ... leading dimension of C
-               )
-    call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
-               'N', &           ! TRANSB = 'N'  op( B ) = B.
-               nstfv, &        ! M ... rows of op( A ) = rows of C
-               dimB, &         ! N ... cols of op( B ) = cols of C
-               nstfv, &        ! K ... cols of op( A ) = rows of op( B )
-               zone, &          ! alpha
-               B, &         ! A
-               nstfv, &          ! LDA ... leading dimension of A
-               inter4, &             ! B
-               nstfv,&           ! LDB ... leading dimension of B
-               zzero, &          ! beta
-               xinter, &  ! C
-               nstfv & ! LDC ... leading dimension of C
-               )
-    call zgemm('C', &           ! TRANSA = 'H'  op( A ) = H.
-               'N', &           ! TRANSB = 'N'  op( B ) = B.
-               dimA, &        ! M ... rows of op( A ) = rows of C
-               dimB, &         ! N ... cols of op( B ) = cols of C
-               nstfv, &        ! K ... cols of op( A ) = rows of op( B )
-               zone, &          ! alpha
-               inter3, &         ! A
-               nstfv, &          ! LDA ... leading dimension of A
-               xinter, &             ! B
-               nstfv,&           ! LDB ... leading dimension of B
-               zone, &          ! beta
-               X, &  ! C
-               dimA & ! LDC ... leading dimension of C
-               )
-    return
-  end subroutine  
+!> This subroutine is a wrapper for [[matrix_contraction/contract_A_and_C_with_B_complex_dp]].
+!> It configures the slices of the matrices A and C based on user-provided 
+!> offsets (startA, startB) and dimensions (dimA, dimB), and then calls
+!> contract_A_and_C_with_B_complex_dp with either normal or conjugated C,
+!> depending on the global `emat_ccket`.
+!>
+!> - A is (nstsv x nstsv), potentially containing second-variational states.
+!> - B is a matrix with dimension (:,:) containing first-variational momentum matrix elements.
+!> - C is (nstsv x nstsv), also second-variational states.
+!> - X is the output sub-block of size (dimA x dimB).
+!>
+!> If `emat_ccket` is true, we conjugate C and apply factor_a=zi, factor_b=-zi.
+!> Otherwise, we do a normal call with default factors = 1.0.
 
+    use m_ematqk,                only: emat_ccket
+    use constants,               only: zi
+    use precision, only: dp
+    use mod_eigenvalue_occupancy, only: nstsv
+    use svlo, only: get_num_of_basis_functions_sv
+    use matrix_contraction,           only: contract_A_and_C_with_B_complex_dp
+    implicit none
+
+    integer, intent(in) :: dimA, dimB, startA, startB
+    complex(dp), intent(in)  :: A(nstsv, nstsv)
+    complex(dp), intent(in)  :: B(:,:)
+    complex(dp), intent(in)  :: C(nstsv, nstsv)
+    complex(dp), intent(out) :: X(dimA, dimB)
+
+    integer :: endA, endB
+    integer :: n_bf_sv
+    integer :: i, j 
+    
+    n_bf_sv = get_num_of_basis_functions_sv()
+
+    ! Determine slice boundaries
+    endA = startA + dimA - 1
+    endB = startB + dimB - 1
+    
+    ! emat_ccket-based case separation
+    if (.not. emat_ccket) then
+       call contract_A_and_C_with_B_complex_dp( &
+            A(:, startA:endA),   &
+            B,                   &
+            C(:, startB:endB),   &
+            X                    )
+    else
+       call contract_A_and_C_with_B_complex_dp( &
+            A(:, startA:endA),             &
+            B,                             &
+            conjg(C(:, startB:endB)),      &
+            X,                             &
+            factor_a = zi,                &
+            factor_b = -zi                )
+     end if
+   end subroutine variation_multiplication 
 !--------------------------------------------------------------------------------
   subroutine getdiffocc(iq, ik, ikq, l1, u1, docc1, docc2)
     ! xssave0 has to be called in advance.
@@ -156,48 +107,65 @@ contains
       Deallocate (o0, o)
   end subroutine
  !--------------------------------------------------------------------------------
+ !> This subroutine:
+ !>  - Finds the ik+q point via \c ikmapikq_ptr
+ !>  - Sets up the band ranges for first-variational states
+ !>  - Calls \c ematqk to get first-variational matrix elements
+ !>  - Retrieves second-variational eigenstates using \c getevecsv0, \c getevecsv1
+ !>  - Multiplies them using \c contract_A_and_C_with_B_complex_dp to produce 
+ !>    second-variational matrix elements in \a emat
+subroutine ematqk_sv(iq, ik, emat, bc)
+  use mod_eigenvalue_occupancy, only: nstfv, nstsv
+  use modxs, only: bcbs, ngq
+  use precision, only: dp
+  use mod_ematptr, only: ikmapikq_ptr
+  use m_ematqk, only: ematqk,emat_ccket
+  use constants, only :zi, zone, zzero
+  use m_ematqk, only: ematqk,emat_ccket
+  use constants, only :zi, zone, zzero
+  use m_getgrst, only: getevecsv0, getevecsv1
+  use svlo, only: get_num_of_basis_functions_sv
+  use matrix_contraction, only: contract_A_and_C_with_B_complex_dp
+  use modinput, only: issvlo
+  implicit none
 
-    subroutine ematqk_sv(iq, ik, emat, bc)
-      use mod_eigenvalue_occupancy, only: nstfv, nstsv
-      use modxs, only: bcbs, ngq
-      use mod_ematptr, only: ikmapikq_ptr
-      use m_ematqk, only: ematqk
-      use m_getgrst, only: getevecsv0, getevecsv1
-      implicit none
-          
-      ! Arguments
-      integer, intent(in) :: iq, ik
-      type(bcbs), intent(in) :: bc
-      complex(8), intent(inout) :: emat(:,:,:)
-      ! local variables
-      type(bcbs) :: bc_
-      complex(8), allocatable :: emat_(:,:,:)
-      complex(8) :: evecsvt0(nstsv,nstsv), evecsvt1(nstsv,nstsv)
-      integer :: igq, ikq
-      
-      ! Find ikq point
-      ikq = ikmapikq_ptr(ik, iq)
-      
-      ! Set intermediate bands to calculate all combinations
-      bc_%n1=nstfv
-      bc_%il1=1
-      bc_%iu1=nstfv
-      bc_%n2=nstfv
-      bc_%il2=1
-      bc_%iu2=nstfv
-      !Calculate all first-variational matrix elements
-      allocate(emat_(nstfv,nstfv,ngq(iq)))
-      call ematqk(iq,ik, emat_, bc_)
-      ! Get 2nd variational eigenstates
-      Call getevecsv0 (ik, evecsvt0)
-      Call getevecsv1 (ikq, evecsvt1)
-      ! Calculate 2nd variational matrix elements
-      Do igq=1,ngq(iq)
+  integer, intent(in) :: iq, ik
+  type(bcbs), intent(in) :: bc
+  complex(dp), intent(inout) :: emat(:,:,:)  ! final 2nd var results
+
+  type(bcbs) :: bc_
+  complex(dp), allocatable :: emat_(:,:,:)
+  complex(dp) :: evecsvt0(nstsv,nstsv), evecsvt1(nstsv,nstsv)
+  integer :: igq, ikq, num_of_basis_functions_sv
+  integer :: endA, endB
+
+  ! find ik+q
+  ikq = ikmapikq_ptr(ik, iq)
+
+  num_of_basis_functions_sv = get_num_of_basis_functions_sv()
+
+  ! first var band range
+  bc_%n1 = nstfv
+  bc_%il1=1
+  bc_%iu1=nstfv
+  bc_%n2 = nstfv
+  bc_%il2=1
+  bc_%iu2=nstfv
+
+  ! allocate
+  allocate(emat_(num_of_basis_functions_sv,num_of_basis_functions_sv,ngq(iq)),source=zzero)
+  call ematqk(iq, ik, emat_, bc_, issvlo())
+
+  ! second variational eigenstates
+  call getevecsv0(ik, evecsvt0)
+  call getevecsv1(ikq, evecsvt1)
+
+  ! loop over igq
+  Do igq=1,ngq(iq)
         call variation_multiplication(evecsvt0,emat_(:,:,igq),evecsvt1,emat(:,:,igq),&
-          & bc%n1, bc%n2, bc%il1, bc%il2)
-      End Do
+        & bc%n1, bc%n2, bc%il1, bc%il2)
+  end Do
       deallocate(emat_)
-    end subroutine ematqk_sv
+end subroutine ematqk_sv
  !--------------------------------------------------------------------------------
-    
 end module

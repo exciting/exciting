@@ -20,7 +20,9 @@ program test_fft
     use iso_c_binding
     use m_device_world_t,        only: device_world_t
     use m_fft_device,            only: fft_device_t
+#if defined(DEVICEOFFLOAD)
     use mpi
+#endif
 
     implicit none
 
@@ -33,11 +35,11 @@ program test_fft
     complex(r64), target :: a(m,n) 
     type(c_ptr) :: da 
 
-
+#if defined(DEVICEOFFLOAD)
     ! Init MPI world
     call mpi_init(err)
     mpi_world = MPI_COMM_WORLD
-    
+#endif
     ! Init GPU stuff
     call device_world%init(mpi_world)
 
@@ -66,7 +68,9 @@ program test_fft
     ! End device and MPI, the register destructor frees all device memory and deassociates it from the host 
     ! so individual calls to deassoc and remove is not necessary
     call device_world%finish()
+#if defined(DEVICEOFFLOAD)
     call mpi_finalize(err)
+#endif
 
     ! Check results
     write(*,*) '[TEST : fft]' 

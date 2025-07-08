@@ -1,28 +1,39 @@
 /*
  Copyright (C) 2006-2007 M.A.L. Marques
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
-  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-  
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
 #include <math.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <xc.h>
+#include <util.h>
 
-typedef struct {
+void printVar(int nspin, int nn, const char *cvar, double *dvar)
+{
+  const char *format = "%3d: %20s[%2d] = %#19.12E\n";
+  static int n =0;
+  int ii;
+
+  printf(format, n++, cvar, 0, dvar[0]);
+  if(nspin == XC_UNPOLARIZED)
+    return;
+
+  for(ii=1; ii<nn; ii++)
+    printf(format, n++, cvar, ii, dvar[ii]);
+}
+
+/*----------------------------------------------------------*/
+int main(int argc, char *argv[])
+{
+  xc_func_type func;
+  const xc_func_info_type *info;
+
   int functional;
   int nspin;
 
@@ -32,240 +43,236 @@ typedef struct {
   double lapl[2];        /* lapla, laplb */
   double tau[2];         /* taua, taub */
 
-  /* Energy */
-  double zk;             /* energy density per unit particle */
-
-  /* First derivatives */
-  double vrho[2];        /* vrhoa, vrhob */
-  double vsigma[3];      /* vsigmaaa, vsigmaab, vsigmabb */
-  double vlapl[2];       /* vlapla, vlaplb */
-  double vtau[2];        /* vtaua, vtaub */
-
-  /* Second derivatives */
-  double v2rho2[3];      /* v2rhoa2, v2rhoab, v2rhob2 */
-  double v2rhosigma[6];  /* v2rhoasigmaaa, v2rhoasigmaab, v2rhoasigmabb
-			    v2rhobsigmaaa, v2rhobsigmaab, v2rhobsigmabb */
-  double v2rholapl[3];   /* */
-  double v2rhotau[3];    /* */
-  double v2sigma2[6];    /* v2sigmaaa2, v2sigmaaaab, v2sigmaaabb
-			    v2sigmaab2, v2sigmaabbb, v2sigmabb2 */
-  double v2sigmalapl[6]; /* v2sigmaaalapla, v2sigmaaalaplb,
-			    v2sigmaablapla, v2sigmaablaplb,
-			    v2sigmabblapla, v2sigmabblaplb */
-  double v2sigmatau[6];  /* v2sigmaaataua, v2sigmaaataub, 
-			    v2sigmaabtaua, v2sigmaabtaub,
-			    v2sigmabbtaua, v2sigmabbtaub */
-  double v2lapl2[3];     /* v2lapla2, v2laplab, v2laplb2 */
-  double v2lapltau[3];   /* */
-  double v2tau2[3];      /* v2taua2, v2tauab, v2taub2 */
-
-  /* Third derivatives */
-  double v3rho3[4];      /* v3rhoaaa, v3rhoaab, v3rhoabb, v3rhobbb */
-
-} xc_values_type;
-
-/*----------------------------------------------------------*/
-void init_values(xc_values_type *xc_values, char *argv[])
-{
-  int i;
-
-  xc_values->functional = atoi(argv[1]);
-  xc_values->nspin      = atoi(argv[2]);
-  xc_values->rho[0]     = atof(argv[3]);
-  xc_values->rho[1]     = atof(argv[4]);
-  xc_values->sigma[0]   = atof(argv[5]);
-  xc_values->sigma[1]   = atof(argv[6]);
-  xc_values->sigma[2]   = atof(argv[7]);
-  xc_values->lapl[0]    = atof(argv[8]);
-  xc_values->lapl[1]    = atof(argv[9]);
-  xc_values->tau[0]     = atof(argv[10]);
-  xc_values->tau[1]     = atof(argv[11]);
-
-  xc_values->zk = 0;
-
-  for(i=0; i<2; i++){
-    xc_values->vrho[i]  = 0;
-    xc_values->vlapl[i] = 0;
-    xc_values->vtau[i]  = 0;
-  }
-
-  for(i=0; i<3; i++){
-    xc_values->vsigma[i]    = 0;
-    xc_values->v2rho2[i]    = 0;
-    xc_values->v2lapl2[i]   = 0;
-    xc_values->v2tau2[i]    = 0;
-    xc_values->v2rholapl[i] = 0;
-    xc_values->v2rhotau[i]  = 0;
-    xc_values->v2lapltau[i] = 0;
-  }
-
-  for(i=0; i<4; i++){
-    xc_values->v3rho3[i]  = 0;
-  }
-
-  for(i=0; i<6; i++){
-    xc_values->v2rhosigma[i]  = 0;
-    xc_values->v2sigma2[i]    = 0;
-    xc_values->v2sigmalapl[i] = 0;
-    xc_values->v2sigmatau[i]  = 0;
-  }
-}
-
-
-/*----------------------------------------------------------*/
-void print_values(xc_values_type *xc)
-{
-  //int family = xc_family_from_id(xc->functional, NULL, NULL);
-
-  printf(" rhoa= %#0.2E rhob= %#0.2E sigmaaa= %#0.2E sigmaab= %#0.2E sigmabb= %#0.2E lapla= %#0.2E laplb= %#0.2E taua= %#0.2E taub= %#0.2E\n\n",
-	 xc->rho[0], xc->rho[1],
-	 xc->sigma[0], xc->sigma[1], xc->sigma[2],
-	 xc->lapl[0], xc->lapl[1],
-	 xc->tau[0], xc->tau[1]);
-  printf(" zk            = %#19.12E\n\n",
-	 xc->zk);
-  printf(" vrhoa         = %#19.12E\n"
-	 " vrhob         = %#19.12E\n"
-	 " vsigmaaa      = %#19.12E\n"
-	 " vsigmaab      = %#19.12E\n"
-	 " vsigmabb      = %#19.12E\n"
-	 " vlapla        = %#19.12E\n"
-	 " vlaplb        = %#19.12E\n"
-	 " vtaua         = %#19.12E\n"
-	 " vtaub         = %#19.12E\n\n",
-	 xc->vrho[0], xc->vrho[1],
-	 xc->vsigma[0], xc->vsigma[1], xc->vsigma[2],
-	 xc->vlapl[0], xc->vlapl[1],
-	 xc->vtau[0], xc->vtau[1]);
-
-  printf(" v2rhoa2       = %#19.12E\n"
-	 " v2rhoab       = %#19.12E\n"
-	 " v2rhob2       = %#19.12E\n"
-	 " v2rhoasigmaaa = %#19.12E\n"
-	 " v2rhoasigmaab = %#19.12E\n"
-	 " v2rhoasigmabb = %#19.12E\n"
-	 " v2rhobsigmaaa = %#19.12E\n"
-	 " v2rhobsigmaab = %#19.12E\n"
-	 " v2rhobsigmabb = %#19.12E\n"
-	 " v2sigmaaa2    = %#19.12E\n"
-	 " v2sigmaaaab   = %#19.12E\n"
-	 " v2sigmaaabb   = %#19.12E\n"
-	 " v2sigmaab2    = %#19.12E\n"
-	 " v2sigmaabbb   = %#19.12E\n"
-	 " v2sigmabb2    = %#19.12E\n\n",
-	 xc->v2rho2[0], xc->v2rho2[1], xc->v2rho2[2],
-	 xc->v2rhosigma[0], xc->v2rhosigma[1], xc->v2rhosigma[2],
-	 xc->v2rhosigma[3], xc->v2rhosigma[4], xc->v2rhosigma[5],
-	 xc->v2sigma2[0], xc->v2sigma2[1], xc->v2sigma2[2],
-	 xc->v2sigma2[3], xc->v2sigma2[4], xc->v2sigma2[5]
-	 );
-  printf(" v3rhoa3  = %#19.12E\n"
-	 " v2rhoaab = %#19.12E\n"
-	 " v2rhoabb = %#19.12E\n"
-	 " v2rhob3  = %#19.12E\n\n",
-	 xc->v3rho3[0], xc->v3rho3[1], xc->v3rho3[2], xc->v3rho3[3]
-	 );
-
-}
-
-
-/*----------------------------------------------------------*/
-int main(int argc, char *argv[])
-{
-  xc_values_type xc;
-  xc_func_type func;
-  const xc_func_info_type *info;
-
-  FLOAT *pzk          = NULL;
-  FLOAT *pvrho        = NULL;
-  FLOAT *pvsigma      = NULL;
-  FLOAT *pvlapl       = NULL;
-  FLOAT *pvtau        = NULL;
-  FLOAT *pv2rho2      = NULL;
-  FLOAT *pv2rhosigma  = NULL;
-  FLOAT *pv2rholapl   = NULL;
-  FLOAT *pv2rhotau    = NULL;
-  FLOAT *pv2sigma2    = NULL;
-  FLOAT *pv2sigmalapl = NULL;
-  FLOAT *pv2sigmatau  = NULL;
-  FLOAT *pv2lapl2     = NULL;
-  FLOAT *pv2lapltau   = NULL;
-  FLOAT *pv2tau2      = NULL;
-  FLOAT *pv3rho3      = NULL;
+  /* Output */
+  double *zk MGGA_OUT_PARAMS_NO_EXC(XC_COMMA *, );
 
   if(argc != 12){
     printf("Usage:\n%s funct pol rhoa rhob sigmaaa sigmaab sigmabb lapla laplb taua taub\n", argv[0]);
     return 1;
   }
 
-  init_values(&xc, argv);
+  /* Is functional defined by a string constant? */
+  if(isalpha(argv[1][0]))
+    functional = xc_functional_get_number(argv[1]);
+  else
+    functional = atoi(argv[1]);
 
-  if(xc.nspin == 1){
-    xc.rho[0]   += xc.rho[1];
-    xc.sigma[0] += 2.0*xc.sigma[1] + xc.sigma[2];
-    xc.lapl[0]  += xc.lapl[1];
-    xc.tau[0]   += xc.tau[1];
+  nspin      = atoi(argv[2]);
+  if(nspin == XC_UNPOLARIZED)
+    printf("Unpolarized calculation\n");
+  else if(nspin == XC_POLARIZED)
+    printf("Polarized calculation\n");
+  else {
+    printf("Invalid value for pol input.\n");
+    exit(1);
   }
 
-  if(xc_func_init(&func, xc.functional, xc.nspin) != 0){
-    fprintf(stderr, "Functional '%d' not found\n", xc.functional);
-    exit(1);  
+
+  rho[0]     = atof(argv[3]);
+  rho[1]     = atof(argv[4]);
+  sigma[0]   = atof(argv[5]);
+  sigma[1]   = atof(argv[6]);
+  sigma[2]   = atof(argv[7]);
+  lapl[0]    = atof(argv[8]);
+  lapl[1]    = atof(argv[9]);
+  tau[0]     = atof(argv[10]);
+  tau[1]     = atof(argv[11]);
+
+  if(nspin == 1){
+    rho[0]   += rho[1];
+    sigma[0] += 2.0*sigma[1] + sigma[2];
+    lapl[0]  += lapl[1];
+    tau[0]   += tau[1];
+  }
+
+  if(xc_func_init(&func, functional, nspin) != 0){
+    fprintf(stderr, "Functional '%d' not found\n", functional);
+    exit(1);
   }
   info = func.info;
 
-  if(info->flags & XC_FLAGS_HAVE_EXC){
-    pzk = &xc.zk;
-  }
-  if(info->flags & XC_FLAGS_HAVE_VXC){
-    pvrho   = xc.vrho;
-    pvsigma = xc.vsigma;
-    pvlapl  = xc.vlapl;
-    pvtau   = xc.vtau;
-  }
-  if(info->flags & XC_FLAGS_HAVE_FXC){
-    pv2rho2      = xc.v2rho2;
-    pv2rhosigma  = xc.v2rhosigma;
-    pv2rholapl   = xc.v2rholapl;
-    pv2rhotau    = xc.v2rhotau;
-    pv2sigma2    = xc.v2sigma2;
-    pv2sigmalapl = xc.v2sigmalapl;
-    pv2sigmatau  = xc.v2sigmatau;
-    pv2lapl2     = xc.v2lapl2;
-    pv2lapltau   = xc.v2lapltau;
-    pv2tau2      = xc.v2tau2;
-  }
-  if(info->flags & XC_FLAGS_HAVE_KXC){
-    pv3rho3 = xc.v3rho3;
+  /* allocate buffers */
+  zk MGGA_OUT_PARAMS_NO_EXC(=, ) = NULL;
+  xc_mgga_vars_allocate_all(info->family, 1, &(func.dim),
+                            1, 1, 1, 1, 1,
+                            &zk MGGA_OUT_PARAMS_NO_EXC(XC_COMMA &, ));
+
+  xc_mgga_evaluate_functional(&func, 1, rho, sigma, lapl, tau,
+                              zk MGGA_OUT_PARAMS_NO_EXC(XC_COMMA, ));
+
+  /* transform to energy per volume */
+  if(nspin == XC_UNPOLARIZED){
+    zk[0] *= rho[0];
+  }else{
+    zk[0] *= rho[0] + rho[1];
   }
 
-  switch(func.info->family)
-    {
-    case XC_FAMILY_LDA:
-      xc_lda(&func, 1, xc.rho, pzk, pvrho, pv2rho2, pv3rho3);
-      break;
-    case XC_FAMILY_GGA:
-    case XC_FAMILY_HYB_GGA:
-      xc_gga(&func, 1, xc.rho, xc.sigma,
-	     pzk, pvrho, pvsigma, pv2rho2, pv2rhosigma, pv2sigma2);
-      break;
-    case XC_FAMILY_MGGA:
-      xc_mgga(&func, 1, xc.rho, xc.sigma, xc.lapl, xc.tau,
-	      pzk, pvrho, pvsigma, pvlapl, pvtau,
-	      pv2rho2, pv2sigma2, pv2lapl2, pv2tau2, pv2rhosigma, pv2rholapl, pv2rhotau, pv2sigmalapl, pv2sigmatau, pv2lapltau);
-      break;
+  printf(" rhoa= %#0.2E", rho[0]);
+  if(nspin == XC_POLARIZED) printf(" rhob= %#0.2E", rho[1]);
+  if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+    printf(" sigmaaa= %#0.2E", sigma[0]);
+    if(nspin == XC_POLARIZED) printf(" sigmaab= %#0.2E", sigma[1]);
+    if(nspin == XC_POLARIZED) printf(" sigmabb= %#0.2E", sigma[2]);
+  }
+  if(info->family == XC_FAMILY_MGGA){
+    printf(" lapla= %#0.2E", lapl[0]);
+    if(nspin == XC_POLARIZED) printf(" laplb= %#0.2E",  lapl[1]);
+    printf(" taua= %#0.2E", tau[0]);
+    if(nspin == XC_POLARIZED) printf(" taub= %#0.2E", tau[1]);
+  }
+  printf("\n\n");
+
+  if(info->flags & XC_FLAGS_HAVE_EXC){
+    printVar(nspin, func.dim.zk, "zk", zk);
+    printf("\n");
+  }
+
+  if(info->flags & XC_FLAGS_HAVE_VXC){
+    printVar(nspin, func.dim.vrho, "vrho", vrho);
+
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.vsigma, "vsigma", vsigma);
     }
 
-  xc_func_end(&func);
-
-  if(xc.nspin == 1){
-    xc.zk *= xc.rho[0];
-  }else{
-    xc.zk *= (xc.rho[0] + xc.rho[1]);
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.vlapl, "vlapl", vlapl);
+      printVar(nspin, func.dim.vtau, "vtau", vtau);
+    }
+    printf("\n");
   }
 
+  if(info->flags & XC_FLAGS_HAVE_FXC){
+    printVar(nspin, func.dim.v2rho2, "v2rho2", v2rho2);
 
-  print_values(&xc);
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v2rhosigma, "v2rhosigma", v2rhosigma);
+    }
+
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v2rholapl, "v2rholapl", v2rholapl);
+      printVar(nspin, func.dim.v2rhotau, "v2rhotau", v2rhotau);
+    }
+
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v2sigma2, "v2sigma2", v2sigma2);
+    }
+
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v2sigmalapl, "v2sigmalapl", v2sigmalapl);
+      printVar(nspin, func.dim.v2sigmatau, "v2sigmatau", v2sigmatau);
+      printVar(nspin, func.dim.v2lapl2, "v2lapl2", v2lapl2);
+      printVar(nspin, func.dim.v2lapltau, "v2lapltau", v2lapltau);
+      printVar(nspin, func.dim.v2tau2, "v2tau2", v2tau2);
+     }
+    printf("\n");
+  }
+
+  if(info->flags & XC_FLAGS_HAVE_KXC){
+    printVar(nspin, func.dim.v3rho3, "v3rho3", v3rho3);
+
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v3rho2sigma, "v3rho2sigma", v3rho2sigma);
+    }
+
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v3rho2lapl, "v3rho2lapl", v3rho2lapl);
+      printVar(nspin, func.dim.v3rho2tau, "v3rho2tau", v3rho2tau);
+    }
+
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v3rhosigma2, "v3rhosigma2", v3rhosigma2);
+    }
+
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v3rhosigmalapl, "v3rhosigmalapl", v3rhosigmalapl);
+      printVar(nspin, func.dim.v3rhosigmatau, "v3rhosigmatau", v3rhosigmatau);
+      printVar(nspin, func.dim.v3rholapl2, "v3rholapl2", v3rholapl2);
+      printVar(nspin, func.dim.v3rholapltau, "v3rholapltau", v3rholapltau);
+      printVar(nspin, func.dim.v3rhotau2, "v3rhotau2", v3rhotau2);
+    }
+
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v3sigma3, "v3sigma3", v3sigma3);
+    }
+
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v3sigma2lapl, "v3sigma2lapl", v3sigma2lapl);
+      printVar(nspin, func.dim.v3sigma2tau, "v3sigma2tau", v3sigma2tau);
+      printVar(nspin, func.dim.v3sigmalapl2, "v3sigmalapl2", v3sigmalapl2);
+      printVar(nspin, func.dim.v3sigmalapltau, "v3sigmalapltau", v3sigmalapltau);
+      printVar(nspin, func.dim.v3sigmatau2, "v3sigmatau2", v3sigmatau2);
+      printVar(nspin, func.dim.v3lapl3, "v3lapl3", v3lapl3);
+      printVar(nspin, func.dim.v3lapl2tau, "v3lapl2tau", v3lapl2tau);
+      printVar(nspin, func.dim.v3lapltau2, "v3lapltau2", v3lapltau2);
+      printVar(nspin, func.dim.v3tau3, "v3tau3", v3tau3);
+    }
+    printf("\n");
+  }
+
+  if(info->flags & XC_FLAGS_HAVE_LXC){
+    printVar(nspin, func.dim.v4rho4, "v4rho4", v4rho4);
+
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v4rho3sigma, "v4rho3sigma", v4rho3sigma);
+    }
+
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v4rho3lapl, "v4rho3lapl", v4rho3lapl);
+      printVar(nspin, func.dim.v4rho3tau, "v4rho3tau", v4rho3tau);
+    }
+
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v4rho2sigma2, "v4rho2sigma2", v4rho2sigma2);
+    }
+
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v4rho2sigmalapl, "v4rho2sigmalapl", v4rho2sigmalapl);
+      printVar(nspin, func.dim.v4rho2sigmatau, "v4rho2sigmatau", v4rho2sigmatau);
+      printVar(nspin, func.dim.v4rho2lapl2, "v4rho2lapl2", v4rho2lapl2);
+      printVar(nspin, func.dim.v4rho2lapltau, "v4rho2lapltau", v4rho2lapltau);
+      printVar(nspin, func.dim.v4rho2tau2, "v4rho2tau2", v4rho2tau2);
+    }
+
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v4rhosigma3, "v4rhosigma3", v4rhosigma3);
+    }
+
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v4rhosigma2lapl, "v4rhosigma2lapl", v4rhosigma2lapl);
+      printVar(nspin, func.dim.v4rhosigma2tau, "v4rhosigma2tau", v4rhosigma2tau);
+      printVar(nspin, func.dim.v4rhosigmalapl2, "v4rhosigmalapl2", v4rhosigmalapl2);
+      printVar(nspin, func.dim.v4rhosigmalapltau, "v4rhosigmalapltau", v4rhosigmalapltau);
+      printVar(nspin, func.dim.v4rhosigmatau2, "v4rhosigmatau2", v4rhosigmatau2);
+      printVar(nspin, func.dim.v4rholapl3, "v4rholapl3", v4rholapl3);
+      printVar(nspin, func.dim.v4rholapl2tau, "v4rholapl2tau", v4rholapl2tau);
+      printVar(nspin, func.dim.v4rholapltau2, "v4rholapltau2", v4rholapltau2);
+      printVar(nspin, func.dim.v4rhotau3, "v4rhotau3", v4rhotau3);
+    }
+
+    if(info->family == XC_FAMILY_GGA || info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v4sigma4, "v4sigma4", v4sigma4);
+    }
+
+    if(info->family == XC_FAMILY_MGGA){
+      printVar(nspin, func.dim.v4sigma3lapl, "v4sigma3lapl", v4sigma3lapl);
+      printVar(nspin, func.dim.v4sigma3tau, "v4sigma3tau", v4sigma3tau);
+      printVar(nspin, func.dim.v4sigma2lapl2, "v4sigma2lapl2", v4sigma2lapl2);
+      printVar(nspin, func.dim.v4sigma2lapltau, "v4sigma2lapltau", v4sigma2lapltau);
+      printVar(nspin, func.dim.v4sigma2tau2, "v4sigma2tau2", v4sigma2tau2);
+      printVar(nspin, func.dim.v4sigmalapl3, "v4sigmalapl3", v4sigmalapl3);
+      printVar(nspin, func.dim.v4sigmalapl2tau, "v4sigmalapl2tau", v4sigmalapl2tau);
+      printVar(nspin, func.dim.v4sigmalapltau2, "v4sigmalapltau2", v4sigmalapltau2);
+      printVar(nspin, func.dim.v4sigmatau3, "v4sigmatau3", v4sigmatau3);
+      printVar(nspin, func.dim.v4lapl4, "v4lapl4", v4lapl4);
+      printVar(nspin, func.dim.v4lapl3tau, "v4lapl3tau", v4lapl3tau);
+      printVar(nspin, func.dim.v4lapl2tau2, "v4lapl2tau2", v4lapl2tau2);
+      printVar(nspin, func.dim.v4lapltau3, "v4lapltau3", v4lapltau3);
+      printVar(nspin, func.dim.v4tau4, "v4tau4", v4tau4);
+    }
+  }
+
+  xc_mgga_vars_free_all(zk MGGA_OUT_PARAMS_NO_EXC(XC_COMMA, ));
+  xc_func_end(&func);
 
   return 0;
 }
-

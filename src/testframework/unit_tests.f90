@@ -20,6 +20,7 @@ module unit_tests
       logical :: advanced = .false.
       logical :: eigensystem = .false.
       logical :: fermisurfdx = .false.
+      logical :: groundstate = .false.
       logical :: gw = .false.
       logical :: hybrids = .false.
       logical :: LDAU = .false.
@@ -29,6 +30,7 @@ module unit_tests
       logical :: phonon = .false.
       logical :: raman = .false.
       logical :: rdmft = .false.
+      logical :: rttddft = .false.
       logical :: stm = .false.
       logical :: sym = .false.
       logical :: vdw = .false.
@@ -115,6 +117,8 @@ contains
          run%eigensystem = .true.
       case ('fermisurfdx')
          run%fermisurfdx = .true.
+      case ('groundstate')
+         run%groundstate = .true.
       case ('gw')
          run%gw = .true.
       case ('hybrids')
@@ -133,6 +137,8 @@ contains
          run%raman = .true.
       case ('rdmft')
          run%rdmft = .true.
+      case ('rttddft')
+          run%rttddft = .true.
       case ('stm')
          run%stm = .true.
       case ('sym')

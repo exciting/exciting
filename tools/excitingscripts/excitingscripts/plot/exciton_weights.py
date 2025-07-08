@@ -1,3 +1,15 @@
+"""Visualize energy-vs-strain curves.
+
+Located at `excitingscripts/plot/exciton_weights.py`. 
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.exciton_weights structure_name file_name energy_min energy_max exciton_weights_size
+```
+Where <code>structure_name</code> is the name of the structure, <code>file_name</code> is the name of the file containing data needed for exciton visualization, <code>energy_min</code> and <code>energy_max</code> are the minimum and maximum energy values for setting plot axis limits, and <code>exciton_weights_size</code> is the size of excitonic weights.
+"""
+
 import pathlib
 from argparse import ArgumentParser
 from pathlib import Path
@@ -94,7 +106,7 @@ def plot_exciton_weights(structure_name: str, exciton_file : Union[str, pathlib.
     # Fermi energy
     ax1.plot([vertices[0], vertices[-1]], [band_data.e_fermi, band_data.e_fermi], 'k', lw=3.0, ls='-')
     ax2.set_ylim(ax1.get_ylim())
-    ax2.set_yticks([band_data.e_fermi], labels=['$\mathregular{E_F}$'])
+    ax2.set_yticks([band_data.e_fermi], labels=[r'$\mathregular{E_F}$'])
 
 def main() -> None:
     parser = ArgumentParser(description="Plot excitonic weights along a band structure path.")

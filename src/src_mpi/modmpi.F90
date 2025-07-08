@@ -42,7 +42,7 @@ module modmpi
   ! to avoid a circular dependency (as this module is far too large)
   use sirius, only: sirius_initialize, sirius_finalize, sirius_print_timers
 #endif
-  use exciting_mpi, only: mpiinfo
+  use mod_mpi_env, only: mpiinfo
   implicit none
 
   ! TODO(Alex) Issue #23. Type for refactoring

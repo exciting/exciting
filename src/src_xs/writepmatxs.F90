@@ -7,7 +7,7 @@
 ! !INTERFACE:
 subroutine writepmatxs
 ! !USES:
-  use modinput, only: input
+  use modinput, only: input, issvlo
   use modmpi, only: procs, rank, firstofset, lastofset, barrier
   use mod_misc, only: task, filext
   use mod_kpoint, only: nkpt, vkl
@@ -224,8 +224,13 @@ subroutine writepmatxs
       if((input%xs%bse%xas .or. input%xs%bse%xes) .and. (task .le. 400)) then
         call genpmatcorxs(ik, ngk(1, ik), apwalmt, evecfvt, evecsvt, pmat)
       else
-        call genpmatxs(ngk(1, ik), igkig(1, 1, ik),&
-         & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat)
+         if (issvlo()) then
+            call genpmatxs_svlo(ngk(1, ik), igkig(1, 1, ik),&
+            & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat)
+         else
+            call genpmatxs(ngk(1, ik), igkig(1, 1, ik),&
+            & vgkc(1, 1, 1, ik), evecfvt, evecsvt, pmat)
+         end if
       end if
 
     else

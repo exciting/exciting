@@ -9,6 +9,9 @@
 !> Potential and density variables 
 Module mod_potential_and_density
       Use modinput
+      use mod_rhoir, only: genrhoir
+      use mod_rhovalk, only: rhovalk
+      use mod_eigenvalue_occupancy, only: occsv
       implicit none 
 ! exchange-correlation functional type
  	integer::xctype(3)
@@ -324,9 +327,9 @@ Contains
            ! add to the density and magnetisation
            call Gendmatmt( ik, evecfv, evecsv )
          else
-           call Rhovalk (ik, evecfv, evecsv )
+           call Rhovalk (ik, evecfv, occsv(:, ik), rhomt, magmt, evecsv )
          end if
-         call Genrhoir (ik, evecfv, evecsv )
+         call Genrhoir (ik, evecfv, occsv(:, ik), rhoir, magir, evecsv )
          call timesec( ts1 )
          timerho = timerho + ts1 - ts0
        end do ! ik

@@ -1,11 +1,21 @@
 
 module mod_xsf_format
-  use modinput
+  use asserts, only: assert
+  use mod_rgrid, only: rgrid
+  use modinput, only: input
   use modmain, only : natmtot, nspecies, natoms, atposc, spzn
+  use precision, only: dp
+  
   implicit none
 
   real(8), parameter :: bohr2ang = 0.529177d0
-  private bohr2ang
+  private 
+  public :: write_structure_xsf, &
+            write_supercell_xsf, &
+            write_2d_xsf, &
+            write_3d_xsf, &
+            write_real_function_xsf, &
+            add_xsf_extension
 
 contains
 
@@ -99,7 +109,7 @@ contains
       call r3mv(input%structure%crystal%basevect, boxl(i,:), boxc(i,:))
     end do
 
-    open(80,file=trim(fname),status='Unknown',action='Write',access='Append')
+    open(80,file=trim(fname),status='Unknown',action='Write',position='Append')
     write(80,*) 'BEGIN_BLOCK_DATAGRID_2D'
     write(80,*) trim(label)
     write(80,*) 'BEGIN_DATAGRID_2D'
@@ -136,7 +146,7 @@ contains
       call r3mv(input%structure%crystal%basevect, boxl(i,:), boxc(i,:))
     end do
 
-    open(80,file=trim(fname),status='Unknown',action='Write',access='Append')
+    open(80,file=trim(fname),status='Unknown',action='Write',position='Append')
     write(80,*) 'BEGIN_BLOCK_DATAGRID_3D'
     write(80,*) trim(label)
     write(80,*) 'BEGIN_DATAGRID_3D'
@@ -155,5 +165,31 @@ contains
   
     return
   end subroutine
+
+  !> Write real-valued coordinate-space-defined 3d function in xsf file
+  subroutine write_real_function_xsf( grid, function_rgrid, label, file_name )
+    !> Pre-generated grid
+    type(rgrid), intent(in) :: grid
+    !> Real-valued function on the grid (grid%npt)
+    real(dp), contiguous, intent(in) :: function_rgrid(:)
+    !> User-defined function label (e.g. observable name)
+    character(len = *), intent(in) :: label
+    !> Output name
+    character(len = *), intent(in) :: file_name
+    
+    call assert( size(function_rgrid) == grid%npt, "function_rgrid must have grid%npt elements" )
+    call write_structure_xsf( file_name )
+    call write_3d_xsf( file_name, label, grid%boxl(1 : 4, :), grid%ngrid, grid%npt, function_rgrid )
+  end subroutine
   
+  !> Add the `.xsf` extension to the base file name
+  pure function add_xsf_extension( file_name ) result(name)
+    !> base file name
+    character(len=*), intent(in)  :: file_name
+    !> file name with default extension
+    character(len=:), allocatable :: name
+    
+    character(len=*), parameter :: xsf_extension = ".xsf"
+    name = trim(file_name) // xsf_extension
+  end function
 end module

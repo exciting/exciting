@@ -7,7 +7,6 @@ REQUIREMENTS. Parser function must:
  b) return a dictionary.
 """
 
-import warnings
 from fnmatch import fnmatch
 from pathlib import Path
 from typing import Callable, Union
@@ -23,15 +22,19 @@ from excitingtools.exciting_dict_parsers import (
     gw_vxc_parser,
     hdf5_parser,
     input_parser,
+    phonon_parser,
     properties_parser,
     species_parser,
     state_parser,
 )
 
+path_type = Union[Path, str]
+
 # Map file name to parser function
 # Note: more specific names should be higher, as the search will go through this map top-down
 _file_to_parser = {
     "INFO.OUT": groundstate_parser.parse_info_out,
+    "INFO_CDFT.OUT": groundstate_parser.parse_info_out,
     "info.xml": groundstate_parser.parse_info_xml,
     "input.xml": input_parser.parse_input_xml,
     "species.xml": species_parser.parse_species_xml,
@@ -48,6 +51,7 @@ _file_to_parser = {
     "expiqr.xml": properties_parser.parse_expiqr,
     "effmass.xml": properties_parser.parse_effmass,
     "bandstructure.xml": properties_parser.parse_bandstructure_depreciated,
+    "bandstructure-qp.xml": properties_parser.parse_bandstructure_depreciated,
     "dos.xml": properties_parser.parse_dos,
     "KERR.OUT": properties_parser.parse_kerr,
     "EPSILON_??.OUT": properties_parser.parse_epsilon,
@@ -88,27 +92,31 @@ _file_to_parser = {
     "EPSW2.OUT": gw_taskgroup_parser.parse_epsilon,
     "INVERSE-EPS*": gw_taskgroup_parser.parse_inverse_epsilon,
     "SIGMAC_K*": gw_taskgroup_parser.parse_sigmac,
+    "SIGMAX_K*": gw_taskgroup_parser.parse_sigmax,
     "POLARIZABILITY_FACTOR_Q*": gw_taskgroup_parser.parse_polarizability_factor,
-    "JIND.OUT": RT_TDDFT_parser.parse_jind,
-    "NEXC.OUT": RT_TDDFT_parser.parse_nexc,
-    "ETOT_RTTDDFT.OUT": RT_TDDFT_parser.parse_etot,
+    "CURRENT.OUT": RT_TDDFT_parser.parse_jind,
+    "N_EXCITATIONS.OUT": RT_TDDFT_parser.parse_nexc,
+    "TOTENERGY_RTTDDFT.OUT": RT_TDDFT_parser.parse_etot,
     "EIGVAL_*": RT_TDDFT_parser.parse_eigval_screenshots,
-    "PROJ_*": RT_TDDFT_parser.parse_proj_screenshots,
+    "PROJECTION_COEFFS_*": RT_TDDFT_parser.parse_proj_screenshots,
+    "OCCSV_TXT_*.OUT": RT_TDDFT_parser.parse_occupations,
     "ATOM_*": RT_TDDFT_parser.parse_atom_position_velocity_force,
     "FCR_*": RT_TDDFT_parser.parse_force,
     "FEXT_*": RT_TDDFT_parser.parse_force,
     "FHF_*": RT_TDDFT_parser.parse_force,
     "FVAL_*": RT_TDDFT_parser.parse_force,
+    "DELTARHO3D_*.xsf": properties_parser.parse_wf3d,
     "STATE.OUT": state_parser.parse_state_out,
     "bse_output.h5": hdf5_parser.parse_hdf5_file_as_dict,
     "fastBSE_output.h5": hdf5_parser.parse_hdf5_file_as_dict,
     "fastBSE_absorption_spectrum.out": bse_parser.parse_fastBSE_absorption_spectrum_out,
     "fastBSE_exciton_energies.out": bse_parser.parse_fastBSE_exciton_energies_out,
     "fastBSE_oscillator_strengths.out": bse_parser.parse_fastBSE_oscillator_strength_out,
+    "PHONON.OUT": phonon_parser.parse_phonon_out,
 }
 
 
-def parse(full_file_name: str) -> dict:
+def parse(full_file_name: path_type) -> dict:
     """Selects parser according to the name of the input file then returns the result of the parser.
 
     REQUIREMENTS. Parser function must:
@@ -119,34 +127,18 @@ def parse(full_file_name: str) -> dict:
     :return: parsed data
     """
 
-    full_file_path = Path(full_file_name.rstrip())
+    full_file_path = Path(full_file_name.rstrip()) if isinstance(full_file_name, str) else full_file_name
     if not full_file_path.exists():
         raise FileNotFoundError(f"File not found: {full_file_path}")
 
     file_name = full_file_path.name
 
     parser: Union[Callable[[str], dict], None] = None
-    for pattern in _file_to_parser:
+    for pattern, parser in _file_to_parser.items():
         if fnmatch(file_name, pattern):
-            parser = _file_to_parser[pattern]
             break
 
     if not parser:
         raise KeyError(f"File does not have a parser: {file_name}")
 
-    return parser(full_file_path.as_posix())
-
-
-def parser_chooser(full_file_name: str) -> dict:
-    """Old API. Selects parser according to the name of the input file then returns the result of the parser.
-
-    :param full_file_name: file name prepended by full path
-    :return: parsed data
-    """
-    warnings.warn(
-        "Deprecated API. Use 'excitingtools.parse' instead. "
-        "Support for this API will be removed in excitingtools 1.8.0",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return parse(full_file_name)
+    return parser(full_file_path)

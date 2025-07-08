@@ -3,21 +3,35 @@ Provides functionality to read in a species file, add high energy local orbitals
 write the updated XML structures back to file.
 """
 
-import copy
-import warnings
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, Set, Tuple, Union
+from typing import Callable, Dict, List, Set, Tuple, Union
 from xml.etree import ElementTree
 
+from excitingtools.base import ECTObject
 from excitingtools.exciting_dict_parsers.species_parser import parse_species_xml
 from excitingtools.input.xml_utils import xml_tree_to_pretty_str
-from excitingtools.utils.jobflow_utils import special_serialization_attrs
+
+
+@dataclass(frozen=True)
+class LocalOrbital(ECTObject):
+    """A local orbital. Defined by a state and a matching order."""
+
+    species: str
+    l_value: int
+    n_values: Tuple[int, int]
+    matching_orders: Tuple[int, int]
+
+
+LocalOrbitals = List[LocalOrbital]
+
+QuantumNumberMapping = Dict[int, set]
 
 
 @dataclass
-class SpeciesFile:
+class SpeciesFile(ECTObject):
     """Holds a species file."""
 
     species: dict
@@ -42,24 +56,7 @@ class SpeciesFile:
         """
         return cls(**parse_species_xml(file))
 
-    def as_dict(self) -> dict:
-        """Returns a dictionary representing the current object for later recreation.
-        The serialise attributes are required for recognition by monty and jobflow.
-        """
-        serialise_attrs = special_serialization_attrs(self)
-        return {**serialise_attrs, **self.__dict__}
-
-    @classmethod
-    def from_dict(cls, d: dict):
-        my_dict = copy.deepcopy(d)
-        # Remove key value pairs needed for workflow programs
-        # call function on class to get only the keys (values not needed)
-        serialise_keys = special_serialization_attrs(cls)
-        for key in serialise_keys:
-            my_dict.pop(key, None)
-        return cls(**my_dict)
-
-    def get_first_helo_n(self, l: int) -> int:
+    def get_first_helo_n(self, l: int, skip_lin_dep: bool = True) -> int:
         """Returns the first principle quantum number 'n' for which additional High Energy Local
         Orbitals (HELOs) can be added, for a given angular momentum quantum number 'l'.
         The 'n' value determination is based on:
@@ -72,6 +69,7 @@ class SpeciesFile:
             has principle quantum number 'n = l + 1' .
 
         :param l: angular momentum quantum number 'l'
+        :param skip_lin_dep: If set to True and matchingOrder > 1 for HELO l and n, skip n+1 HELO
         :return: first possible principle quantum number 'n' for a HELO for the given 'l'-channel
         """
         atomicstate_ns_per_l, lo_ns_per_l = self.get_atomicstates_ns_per_l(), self.get_lo_ns_per_l()
@@ -79,13 +77,13 @@ class SpeciesFile:
 
         # If matchingOrder > 1 for the same l and highest n, skip n+1 HELO.
         ns_per_l_with_mO_over_1 = self.check_matching_orders()
-        if ns_per_l_with_mO_over_1.get(l) and max_n_for_specified_l in ns_per_l_with_mO_over_1[l]:
-            warnings.warn(f"HELO skipped for l: {l} and n: {max_n_for_specified_l + 1}")
+        if skip_lin_dep and ns_per_l_with_mO_over_1.get(l) and max_n_for_specified_l in ns_per_l_with_mO_over_1[l]:
+            logging.info(f"HELO skipped for l: {l} and n: {max_n_for_specified_l + 1}")
             return max_n_for_specified_l + 2
 
         return max_n_for_specified_l + 1
 
-    def get_atomicstates_ns_per_l(self, cond: Callable[[dict], bool] = lambda _: True) -> Dict[int, set]:
+    def get_atomicstates_ns_per_l(self, cond: Callable[[dict], bool] = lambda _: True) -> QuantumNumberMapping:
         """Generates a dictionary mapping each 'l' channel present in the atomic states their corresponding 'n' values.
 
         :param cond: condition for choosing specific atomic states
@@ -127,7 +125,7 @@ class SpeciesFile:
 
         return valence_and_semicore_states
 
-    def get_lo_ns_per_l(self) -> Dict[int, set]:
+    def get_lo_ns_per_l(self) -> QuantumNumberMapping:
         """Generates a dictionary mapping each 'l' channel present in the local orbitals to their corresponding 'n'
         values. Only includes local orbitals with a defined 'n' value. Local orbitals only defined through the
         attribute 'trialEnergy' are ignored.
@@ -142,7 +140,39 @@ class SpeciesFile:
 
         return lo_ns_per_l
 
-    def get_helos_from_species(self) -> Dict[int, set]:
+    def get_los_from_species_file(self) -> LocalOrbitals:
+        """
+        Generates a list of local orbitals in the species file. Each local orbital is represented by a set of the form
+        (l, [n1, n2], [mO1, mO2]). Local orbitals added to the species file in a custom apw+lo element are not
+        cosidered.
+
+        :return: List of local orbitals
+        """
+        los = []
+        for lo in self.basis["lo"]:
+            ns, mOs = [], []
+            for wf in lo["wf"]:
+                ns.append(wf["n"])
+                mOs.append(wf["matchingOrder"])
+            los.append(LocalOrbital(self.species["chemicalSymbol"], lo["l"], tuple(ns), tuple(mOs)))
+
+        return los
+
+    def get_custom_los_from_species_file(self) -> LocalOrbitals:
+        """
+        Generates a list of local orbitals in the species file as a custom apw+lo element.
+        Each local orbital is represented by a set of the form (l, [n1, n2], [mO1, mO2]).
+
+        :return: List of local orbitals
+        """
+
+        return [
+            LocalOrbital(self.species["chemicalSymbol"], custom["l"], (custom["n"], custom["n"]), (0, 1))
+            for custom in self.basis["custom"]
+            if custom["type"] == "apw+lo"
+        ]
+
+    def get_helos_from_species(self) -> QuantumNumberMapping:
         """Generates a dictionary mapping each 'l' channel to a list of principle quantum numbers 'n' unique to high
         energy/local orbitals (HELOs). This is achieved by comparing 'n' values in local orbitals against those
         in atomic states for each 'l' channel, extracting those exclusive to HELOs.
@@ -158,35 +188,37 @@ class SpeciesFile:
 
         return helo_ns_per_l
 
-    def check_matching_orders(self) -> Dict[int, list]:
+    def check_matching_orders(self) -> QuantumNumberMapping:
         """Creates a dictionary that lists principle quantum numbers 'n' for each angular momentum quantum number 'l',
         where the 'n' values are associated with a matchingOrder greater than 1 in the local orbitals.
 
         :return: Dictionary with 'l' channels as keys and lists of 'n' values that have matchingOrder > 1 as values.
         """
-        ns_per_l_with_mO_over_1 = defaultdict(list)
+        ns_per_l_with_mO_over_1 = defaultdict(set)
+
         for lo in self.basis["lo"]:
             for wf in lo["wf"]:
                 if wf.get("n") and wf["matchingOrder"] > 1:
-                    ns_per_l_with_mO_over_1[lo["l"]].append(wf["n"])
+                    ns_per_l_with_mO_over_1[lo["l"]].add(wf["n"])
 
         return ns_per_l_with_mO_over_1
 
-    def add_number_los_for_all_valence_semicore_states(self, number_lo: int):
+    def add_number_los_for_all_valence_semicore_states(self, number_lo: int, *, search_e: bool = False):
         """Adds a certain number `number_lo` of local orbitals with increasing matching order for every valence and
         semicore state to the basis `self.basis[lo]`. Here the local orbital always consists of 2 wave function
         elements.
 
         :param number_lo: number of local orbitals added for every valence and semicore state
+        :param search_e: if True, the linearization energy is searched for
         """
         valence_semicore_states = self.get_atomicstates_ns_per_l(lambda x: not x["core"])
 
         for l, ns in valence_semicore_states.items():
             for n in ns:
                 for _ in range(number_lo):
-                    self.add_lo_higher_matching_order(l, n)
+                    self.add_lo_higher_matching_order(l, n, search_e=search_e)
 
-    def add_basic_lo_all_semicore_states(self):
+    def add_basic_lo_all_semicore_states(self, *, search_e: bool = False):
         """Adds one local orbital for every semicore state present in the atomic states.
 
         Moving a state from core to valence requires the addition of at least one local orbital to accurately
@@ -194,37 +226,42 @@ class SpeciesFile:
         The local orbital consists of two radial functions at matchingOrder 0:
             - one at the same principal quantum number 'n' of the (L)APW  for the given angular momentum ('l') channel.
             - the other at the principal quantum number 'n' of the semi core state.
+
+        :param search_e: if True, the linearization energy is searched for
         """
         valence_and_semicore_states = self.get_valence_and_semicore_atomicstate_ns_per_l()
         semicore_states = {l: data["semicore"] for l, data in valence_and_semicore_states.items()}
 
         for l, ns in semicore_states.items():
             for n in ns:
-                self.add_lo(l, (n + 1, n), (0, 0))
+                self.add_lo(l, (n + 1, n), (0, 0), search_e=search_e)
 
-    def add_custom_for_all_valence_states(self, custom_type: str):
+    def add_custom_for_all_valence_states(self, custom_type: str, *, search_e: bool = False):
         """Adds a custom element to the basis for every valence state present in the atomic states.
 
         :param custom_type: Type of the custom basis function. It can be either `apw`, `lapw`, or `apw+lo`.
+        :param search_e: if True, the linearization energy is searched for
         """
         valence_and_semicore_states = self.get_valence_and_semicore_atomicstate_ns_per_l()
         valence_states = {l: data["valence"] for l, data in valence_and_semicore_states.items()}
 
         for l, ns in valence_states.items():
             for n in ns:
-                self.basis["custom"].append({"l": l, "type": custom_type, "n": n, "searchE": False})
+                self.basis["custom"].append({"l": l, "type": custom_type, "n": n, "searchE": search_e})
 
-    def add_helos(self, l: int, number: int):
+    def add_helos(self, l: int, number: int, skip_lin_dep: bool = True, *, search_e: bool = False):
         """Adds a specific 'number' of High Energy Local Orbitals (HELOs) to the basis
         for a given angular momentum channel 'l'.
 
         :param l: angular momentum number l
         :param number: the number of HELOs to be added to the l-channel
+        :param skip_lin_dep: If set to True and matchingOrder > 1 for HELO l and n, skip n+1 HELO
+        :param search_e: if True, the linearization energy is searched for
         """
-        first_helo_n_for_l = self.get_first_helo_n(l)
+        first_helo_n_for_l = self.get_first_helo_n(l, skip_lin_dep)
 
         for nr_lo in range(number):
-            self.add_lo(l, (first_helo_n_for_l + nr_lo,) * 2, [0, 1])
+            self.add_lo(l, (first_helo_n_for_l + nr_lo,) * 2, [0, 1], search_e=search_e)
 
     def find_highest_matching_order_for_state(self, l: int, n: int) -> int:
         """Returns the highest matching order for a specific state, defined by principal quantum numner 'n' and
@@ -240,36 +277,53 @@ class SpeciesFile:
 
         return max(mOs, default=0)
 
-    def add_lo_higher_matching_order(self, l: int, n: int):
+    def add_lo_higher_matching_order(
+        self, l: int, n: int, *, raise_exception: bool = True, search_e: bool = False
+    ) -> None:
         """Adds a Local Orbital with the next highest matching order for a state defined by angular momentum 'l'
         and principal quantum number 'n'.
 
         :param l: angular momentum number
         :param n: principal quantum number
+        :param raise_exception: if true, raises an expection if maximum matching order reached
+        :param search_e: if True, the linearization energy is searched for
         """
         mO = self.find_highest_matching_order_for_state(l, n)
-        self.add_lo(l, (n, n), (mO, mO + 1))
+        self.add_lo(l, (n, n), (mO, mO + 1), raise_exception=raise_exception, search_e=search_e)
 
-    def add_lo(self, l: int, ns: Tuple[int, int], matching_orders: Tuple[int, int]):
+    def add_lo(
+        self,
+        l: int,
+        ns: Tuple[int, int],
+        matching_orders: Tuple[int, int],
+        *,
+        raise_exception: bool = True,
+        search_e: bool = False,
+    ) -> None:
         """Adds a single local orbital to the basis for a given angular momentum channel 'l',
         with tuples of principal quantum number 'n' and corresponding 'matching_orders'.
 
         :param l: angular momentum number l
         :param ns: tuple of principal quantum number n
         :param matching_orders: tuple of matching orders
+        :param raise_exception: if true, raises an expection if maximum matching order reached
+        :param search_e: if True, the linearization energy is searched for
         """
-        assert len(ns) == len(
-            matching_orders
-        ), "Number of principal quantum numbers n must equal the number of given matching orders."
+        assert len(ns) == len(matching_orders), (
+            "Number of principal quantum numbers n must equal the number of given matching orders."
+        )
 
         if matching_orders[0] >= 3:
-            warnings.warn("Maximum matchingOrder reached; cannot add new local orbital.")
+            if raise_exception:
+                raise ValueError("Maximum matchingOrder reached; cannot add new local orbital.")
             return
 
-        wf = [{"matchingOrder": mO, "searchE": False, "n": n} for mO, n in zip(matching_orders, ns)]
+        wf = [{"matchingOrder": mO, "searchE": search_e, "n": n} for mO, n in zip(matching_orders, ns)]
         self.basis["lo"].append({"l": l, "wf": wf})
 
-    def remove_lo(self, l: int, ns: Tuple[int, int], matching_orders: Tuple[int, int]) -> bool:
+    def remove_lo(
+        self, l: int, ns: Tuple[int, int], matching_orders: Tuple[int, int], *, raise_exception: bool = True
+    ) -> None:
         """Removes a single local orbital from the basis for a given angular momentum channel 'l',
         based on a list of tuples, each containing a principal quantum number 'n' and its corresponding matching order.
         If a local orbital with the specified 'n' and matching orders is present in the basis, it is removed.
@@ -277,40 +331,94 @@ class SpeciesFile:
         :param l: Angular momentum number l.
         :param ns: tuple of principal quantum number n
         :param matching_orders: tuple of matching orders
-        :return removed: Boolean indicating if the local orbital was present and removed.
+        :param raise_exception: if true, raises an expection if it is not possible to remove the local orbital
         """
-
-        removed = False
-
         for lo in self.basis["lo"]:
             ns_mOs_lo = sorted([(wf["n"], wf["matchingOrder"]) for wf in lo["wf"] if wf.get("n")])
             if lo["l"] == l and sorted(zip(ns, matching_orders)) == ns_mOs_lo:
-                removed = True
                 self.basis["lo"].remove(lo)
-                break
+                return
 
-        return removed
+        if raise_exception:
+            raise ValueError("Could not remove local orbital.")
 
-    def remove_lo_highest_matching_order(self, l: int, n: int) -> bool:
-        """Removes the Local Orbital from the basis for a given angular momentum channel 'l' and
-         principal quantum number 'n' that contains the wave function with the highest matching order.
-         If the local orbital to be removed is present in the basis, the returned boolean is set to True.
-
-        :param l: angular momentum number l
-        :param n: principal quantum number n
-        :return removed: states if the given local orbital was present in the basis
-        """
-        mO = self.find_highest_matching_order_for_state(l, n)
-
-        return self.remove_lo(l, (n, n), (mO - 1, mO))
-
-    def add_default(self, trial_energy: float, default_type: str):
+    def add_default(self, trial_energy: float, default_type: str, *, search_e: bool = False) -> None:
         """Adds the default element with a given trial energy and type to the basis.
 
         :param trial_energy: trial energy used in the default element
         :param default_type: type of the default basis functions. Can be either `apw`, `lapw`, or `apw+lo`.
+        :param search_e: if True, the linearization energy is searched for
         """
-        self.basis["default"].append({"type": default_type, "trialEnergy": trial_energy, "searchE": False})
+        self.basis["default"].append({"type": default_type, "trialEnergy": trial_energy, "searchE": search_e})
+
+    def add_custom_for_high_l(self, highest_valence_l: int, n_high_l: int, *, search_e: bool = False) -> None:
+        """Add custom elements of type "LAPW" for a number of unoccupied l-channels to species file.
+
+        :param highest_valence_l: the highest valence l value
+        :param n_high_l: number of unoccupied l-channels for which custom LAPWs are added
+        :param search_e: if True, the linearization energy is searched for
+        """
+        for i in range(n_high_l):
+            new_l = highest_valence_l + 1 + i
+            self.basis["custom"].append({"l": new_l, "type": "lapw", "n": new_l + 1, "searchE": search_e})
+
+    def add_lo_for_high_l(
+        self,
+        highest_valence_l: int,
+        n_high_l: int,
+        n_high_n: int,
+        highest_mO: int,
+        skip_lin_dep: bool = True,
+        *,
+        search_e: bool = False,
+    ) -> None:
+        """Add local orbitals for a number of unoccupied l-channels and n-channels. They are added up to a highest
+        matching order.
+
+        :param highest_valence_l: the highest valence l value
+        :param n_high_l: number of unoccupied l-channels for which local orbitals are added
+        :param n_high_n: number of n values per unoccupied l-channel for which local orbitals are added
+        :param highest_mO: highest matching order up to which local orbitals are added.
+        :param skip_lin_dep: If set to True and matchingOrder > 1 for HELO l and n, skip n+1 HELO
+        :param search_e: if True, the linearization energy is searched for
+        """
+        for li in range(n_high_l):
+            l_val = highest_valence_l + li + 1
+            first_helo_n_for_l = self.get_first_helo_n(l_val, skip_lin_dep)
+            for nr_lo in range(n_high_n):
+                if (first_helo_n_for_l + nr_lo) != l_val + 1:
+                    self.add_lo(
+                        l_val, (first_helo_n_for_l + nr_lo - 1, first_helo_n_for_l + nr_lo), (0, 0), search_e=search_e
+                    )
+                for mO in range(highest_mO):
+                    self.add_lo(l_val, (first_helo_n_for_l + nr_lo,) * 2, (mO, mO + 1), search_e=search_e)
+
+    def add_high_n_lo_for_all_valence_states(
+        self,
+        highest_valence_l: int,
+        n_high_n: int,
+        highest_mO: int,
+        skip_lin_dep: bool = True,
+        *,
+        search_e: bool = False,
+    ) -> None:
+        """Add high-n local orbitals for all occupied l-channels. They are added up to a highest
+        matching order.
+
+        :param highest_valence_l: the highest valence l_val value
+        :param n_high_n: number of n values (above valence n) for which local orbitals are added.
+        :param highest_mO: highest matching order up to which local orbitals are added.
+        :param skip_lin_dep: If set to True and matchingOrder > 1 for HELO l and n, skip n+1 HELO
+        :param search_e: if True, the linearization energy is searched for
+        """
+        for l_val in range(highest_valence_l + 1):
+            first_helo_n_for_l = self.get_first_helo_n(l_val, skip_lin_dep)
+            for nr_lo in range(n_high_n):
+                self.add_lo(
+                    l_val, (first_helo_n_for_l + nr_lo - 1, first_helo_n_for_l + nr_lo), (0, 0), search_e=search_e
+                )
+                for mO in range(highest_mO):
+                    self.add_lo(l_val, (first_helo_n_for_l + nr_lo,) * 2, (mO, mO + 1), search_e=search_e)
 
     def to_xml(self) -> ElementTree.Element:
         """Converts the class attributes into an XML structure using ElementTree.

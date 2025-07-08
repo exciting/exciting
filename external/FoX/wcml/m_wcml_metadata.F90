@@ -27,7 +27,7 @@ contains
     call xml_AddAttribute(xf, "name", name)
     call xml_AddAttribute(xf, name="content", value=content  )
     if (present(dictref)) call xml_AddAttribute(xf, "dictRef", dictref)
-    if (present(id)) call xml_AddAttribute(xf, "id", title)
+    if (present(id)) call xml_AddAttribute(xf, "id", trim(id))
     if (present(title)) call xml_AddAttribute(xf, "title", title)
     if (present(convention)) call xml_AddAttribute(xf, "convention", convention)
     call xml_EndElement(xf, "metadata")

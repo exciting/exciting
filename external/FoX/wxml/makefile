@@ -7,6 +7,8 @@ OBJFILES= m_wxml_escape.$(OBJEXT) m_wxml_core.$(OBJEXT) \
 LIBRARY=libFoX_wxml.$(LIBEXT)
 INCFLAGS=$(MOD_PREFIX)../objs/finclude
 #
+.m4.F90:
+	m4 -I ../m4 $< > $@
 #
 include ../arch.make
 #
@@ -20,11 +22,12 @@ install: $(OBJFILES)
 	  $(CP) $$i $(MOD_DIR); done
 #
 check:
-	(cd test; make) | tee -a ../check.out
+	(cd test; make) | tee -a ../wxml_lib_check.out
 #
 clean:
 	rm -f *.$(OBJEXT) *.$(MOD_EXT) $(LIBRARY)
 
+m_wxml_overloads.F90: m_wxml_overloads.m4
 # DO NOT DELETE THIS LINE - used by make depend
 FoX_wxml.$(OBJEXT): m_wxml_core.$(OBJEXT) m_wxml_overloads.$(OBJEXT)
 m_wxml_core.$(OBJEXT): m_wxml_escape.$(OBJEXT)

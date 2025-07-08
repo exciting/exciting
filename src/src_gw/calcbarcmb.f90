@@ -11,28 +11,29 @@ subroutine calcbarcmb(iq)
 !This subroutine calculates the matrix of the bare coulomb potential
 !
 !!USES:
+    use mod_coulomb_potential
     use modinput
     use modgw
-    use mod_coulomb_potential
-    use mod_mpi_gw, only: myrank
     use modmain
-
+    use modmpi, only: rank
+    use precision, only: i32, dp, str_256
+#include "offload.fpp"
 !!INPUT PARAMETERS:
     implicit none
-    integer, intent(in) :: iq ! index of the q-point
+    integer(i32), intent(in) :: iq ! index of the q-point
 
 !!LOCAL VARIABLES:
-    integer :: imix, jmix, igq, jgq
-    real(8) :: tstart, tend, t0, t1
-    character(len=256) :: filename
-    complex(8), allocatable :: barc_lr(:,:)
+    integer(i32) :: imix, jmix, igq, jgq
+    real(dp) :: tstart, tend, t0, t1
+    character(str_256) :: filename
+    complex(dp), allocatable :: barc_lr(:,:)
     ! for diagonalization subroutine
-    real(8) :: vl, vu, abstol
+    real(dp) :: vl, vu, abstol
     integer :: il, iu, neval, lwork, info, lrwork, liwork
-    complex(8), allocatable :: work(:)
-    real(8),    allocatable :: rwork(:)
-    integer,    allocatable :: iwork(:), ifail(:), isuppz(:)
-    real(8), external :: dlamch
+    complex(dp), allocatable :: work(:)
+    real(dp),    allocatable :: rwork(:)
+    integer(i32),    allocatable :: iwork(:), ifail(:), isuppz(:)
+    real(dp), external :: dlamch
 
 !!REVISION HISTORY:
 !
@@ -46,9 +47,11 @@ subroutine calcbarcmb(iq)
 ! Setup the bare Coulomb potential matrix in MB representation
 !===============================================================================
 
-    if (allocated(barc)) deallocate(barc)
-    allocate(barc(matsiz,matsiz))
-    barc(:,:) = 0.d0
+    if (allocated(barc)) then
+        OMP_OFFLOAD target exit data map(delete: barc)
+        deallocate(barc)
+    end if
+    allocate(barc(matsiz,matsiz), source = zzero)
 
     select case (trim(input%gw%barecoul%basis))
 
@@ -105,9 +108,7 @@ subroutine calcbarcmb(iq)
 !===============================================================================
 
     if (allocated(vmat)) deallocate(vmat)
-    allocate(vmat(matsiz,matsiz))
-    vmat(:,:) = barc(:,:)
-    deallocate(barc)
+    call move_alloc(barc, vmat)
 
     if (allocated(barcev)) deallocate(barcev)
     allocate(barcev(matsiz))
@@ -138,7 +139,7 @@ subroutine calcbarcmb(iq)
 
     if (input%gw%debug) then
       msize = sizeof(barcev)*b2mb+sizeof(vmat)*b2mb
-      write(fdebug,'("calcbarcmb: rank, size(Coulomb potential) (Mb):",i4,f12.2)') myrank, msize
+      write(fdebug,'("calcbarcmb: rank, size(Coulomb potential) (Mb):",i4,f12.2)') rank, msize
       write(fdebug,*) "### barcev ###"
       do imix = 1, matsiz
         write(fdebug,'(i5,e16.6)') imix, barcev(imix)

@@ -1,0 +1,36 @@
+# GNU with OpenMP build and tests.
+
+build:fedora-buster-gnu-smp:
+   image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
+   stage: build
+   tags:
+     - docker
+   script:
+     - mkdir build-cmake && cd build-cmake
+     - ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=OFF -DOPENBLAS=ON ..
+     - make -j 4 -l 4
+     - make install
+   artifacts:
+     paths:
+       - install/lib
+       - install/bin/exciting_smp
+       - src/version.inc
+     expire_in: 5 hrs
+
+test-fedora-buster-gnu-smp:
+   image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
+   stage: test
+   dependencies:
+     - build:fedora-buster-gnu-smp
+     - python:regressionframework-python3
+   tags:
+     - docker
+   before_script:
+     - pip3 install numpy termcolor pytest pyyaml
+   script:
+    # Run exciting unit tests
+     - export OMP_NUM_THREADS=2 && install/bin/exciting_smp -run-unit-tests -kill-on-failure
+    # Install test framework parsers
+     - pip3 install -e tools/exciting_tools
+    # Run exciting app tests
+     - cd test/ && export OMP_NUM_THREADS=2 && export OPENBLAS_NUM_THREADS=1 && python3 runtest.py -bp $PWD/../install/bin/ -e exciting_smp -repeat-tests 2

@@ -11,6 +11,11 @@ module m_common_io
   integer, save :: io_eor
   integer, save :: io_eof
   integer, save :: io_err
+  logical, save :: io_init=.false.
+
+  interface  setup_io
+      module procedure setup_io_scratch, setup_io_with_data
+  end interface setup_io
 
   public :: io_eor
   public :: io_eof
@@ -20,9 +25,23 @@ module m_common_io
 
 contains
 
-  subroutine setup_io()
+  subroutine setup_io_scratch()
+    if (io_init) return 
     call find_eor_eof(io_eor, io_eof)
-  end subroutine setup_io
+    io_init = .true. 
+  end subroutine setup_io_scratch
+
+  subroutine setup_io_with_data(err_code, eor_code, eof_code)
+     implicit none
+     integer,intent(in)  :: err_code, eor_code, eof_code
+     if (io_init) return 
+     io_err = err_code
+     io_eor  = eor_code
+     io_eof  = eof_code
+     io_init = .true.
+   end subroutine setup_io_with_data 
+
+  
 
 
   subroutine get_unit(lun,iostat)

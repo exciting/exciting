@@ -36,14 +36,21 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
       Integer :: ifail
       Real (8) :: sreduction, dmixm
       Real (8), External :: dnrm2
+      integer :: iscl_temp
 !
 !
       noldsteps = noldstepsin_file
       sreduction = 1.2
-!      write(*,*) iscl
-      If (iscl .Le. input%groundstate%PrelimLinSteps) Then
-!
-         If (iscl .Ge. 0) Then
+
+      if ( associated(input%groundstate%mgga) ) then 
+            iscl_temp = iscl - 1
+      else 
+            iscl_temp = iscl 
+      end if 
+
+      if ((iscl_temp .Le. (input%groundstate%PrelimLinSteps))) Then
+
+      If (iscl_temp .Ge. 0) Then
 !          if (iscl.eq.0) last_outputp=0d0
             residual(1:n) = potential - last_outputp(1:n)
             Call write_current_to_broyden_file (n, iscl, potential, &
@@ -53,7 +60,7 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
         & input%groundstate%betainc, input%groundstate%betadec, n, &
         & potential, last_outputp, work3, work2, residualnorm)
          last_outputp(1:n) = potential
-         If (iscl .Eq. input%groundstate%PrelimLinSteps .And. allocated(work2) .And. allocated(work3)) &
+         If (iscl_temp .Eq. input%groundstate%PrelimLinSteps .And. allocated(work2) .And. allocated(work3)) &
         & deallocate (work2, work3)
       Else
          Allocate (S(n, noldstepsmax), Y(n, noldstepsmax))

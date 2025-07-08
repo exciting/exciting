@@ -65,9 +65,9 @@ while test $# -gt 0; do
     --dom)
         MODULES="$MODULES dom sax wxml common utils fsys"
         ;;
-#    --wkml)
-#        MODULES="$MODULES wxml common utils fsys"
-#        ;;
+    --wkml)
+        MODULES="$MODULES wkml wxml common utils fsys"
+        ;;
 
     *)
 	usage
@@ -78,8 +78,8 @@ while test $# -gt 0; do
 done
 
 if [ "x$MODULES" = x ]; then
-  MODULES="dom sax wcml wxml common utils fsys"
-#  MODULES="dom sax wkml wcml wxml common utils fsys"
+#  MODULES="dom sax wcml wxml common utils fsys"
+  MODULES="dom sax wkml wcml wxml common utils fsys"
 fi
 
 case $MODULES in *fsys*)
@@ -110,20 +110,21 @@ case $MODULES in *dom*)
   LIBS="$libdir/libFoX_dom.@LIBEXT@ $LIBS"
   ;;
 esac
-#case $MODULES in *wkml*)
-#  LIBS="$libdir/libFoX_wkml.@LIBEXT@ $LIBS"
-#  ;;
-#esac
+case $MODULES in *wkml*)
+  LIBS="$libdir/libFoX_wkml.@LIBEXT@ $LIBS"
+  ;;
+esac
+
 
 case $FLAGS in
   FC)
-    echo @FC_MOD_FLAG@"$moddir"
+    echo @FC_MODINC@"$moddir"
     ;;
   LD)
     echo $LIBS
     ;;
   both)
-    echo @FC_MOD_FLAG@"$moddir" $LIBS
+    echo @FC_MODINC@"$moddir" $LIBS
 esac 
 
 exit 0

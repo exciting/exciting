@@ -105,7 +105,6 @@ contains
     integer, allocatable :: mesh(:)
 
     integer :: i, spacing_local, dx, N
-    external :: sign
 
     spacing_local = 1
     if (present(spacing)) spacing_local = spacing

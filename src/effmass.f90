@@ -11,6 +11,7 @@ Subroutine effmass
       Use modinput
       Use Fox_wxml
       use constants, only : zzero
+      use secular_equation, only: seceqn
       Implicit None
 ! local variables
       Integer, Parameter :: lwork = 10

@@ -11,11 +11,6 @@ import re
 import pytest
 
 from excitingtools.exciting_dict_parsers.input_parser import parse_element_xml
-from excitingtools.input.bandstructure import (
-    band_structure_input_from_ase_atoms_obj,
-    band_structure_input_from_cell_or_bandpath,
-    get_bandstructure_input_from_exciting_structure,
-)
 from excitingtools.input.input_classes import ExcitingGroundStateInput, ExcitingPropertiesInput
 from excitingtools.input.input_xml import ExcitingInputXML
 from excitingtools.input.structure import ExcitingStructure
@@ -63,8 +58,9 @@ def test_bs_from_ase(ase_ag):
     points is correct. We also check the high symmetry point names are
     correct.
     """
+    bandstructure_module = pytest.importorskip("excitingtools.input.bandstructure")
     ase_ag.set_cell(ase_ag.cell * 3)
-    bs = band_structure_input_from_ase_atoms_obj(ase_ag)
+    bs = bandstructure_module.band_structure_input_from_ase_atoms_obj(ase_ag)
     properties_input = ExcitingPropertiesInput(bandstructure=bs)
     bs_xml_string = properties_input.to_xml_str()
     # Get the high symmetry path.
@@ -93,9 +89,10 @@ def test_bs_from_ase(ase_ag):
 
 def test_bs_input(ase_ag):
     """Test writing exciting full input xml file with bandstructure property."""
+    bandstructure_module = pytest.importorskip("excitingtools.input.bandstructure")
     gs = ExcitingGroundStateInput(rgkmax=5.0)
     struct = ExcitingStructure(ase_ag)
-    bs = band_structure_input_from_ase_atoms_obj(ase_ag)
+    bs = bandstructure_module.band_structure_input_from_ase_atoms_obj(ase_ag)
     properties_input = ExcitingPropertiesInput(bandstructure=bs)
     input_xml = ExcitingInputXML(
         structure=struct, groundstate=gs, title="BS exciting", properties=properties_input
@@ -126,8 +123,9 @@ def test_bs_input(ase_ag):
 
 
 def test_get_bandstructure_input_from_exciting_structure(ase_ag):
+    bandstructure_module = pytest.importorskip("excitingtools.input.bandstructure")
     structure = ExcitingStructure(ase_ag)
-    bs_xml = get_bandstructure_input_from_exciting_structure(structure).to_xml()
+    bs_xml = bandstructure_module.get_bandstructure_input_from_exciting_structure(structure).to_xml()
     points = bs_xml.find("plot1d").find("path").findall("point")
     assert len(points) == 12
     assert points[0].get("coord") == "0.0 0.0 0.0"
@@ -135,9 +133,10 @@ def test_get_bandstructure_input_from_exciting_structure(ase_ag):
 
 
 def test_get_bandstructure_input_from_exciting_structure_stretch(ase_ag):
+    bandstructure_module = pytest.importorskip("excitingtools.input.bandstructure")
     structure = ExcitingStructure(ase_ag)
     structure.crystal_properties.stretch = [2, 1, 1]
-    bs_xml = get_bandstructure_input_from_exciting_structure(structure).to_xml()
+    bs_xml = bandstructure_module.get_bandstructure_input_from_exciting_structure(structure).to_xml()
     points = bs_xml.find("plot1d").find("path").findall("point")
     assert len(points) == 13
     assert points[0].get("coord") == "0.0 0.0 0.0"
@@ -152,8 +151,9 @@ def test_get_bandstructure_input_from_ase_bandpath(ase_ag):
     e.g., 'Kpt0Kpt1,GMX,XZ'.
     """
     ase = pytest.importorskip("ase")
+    bandstructure_module = pytest.importorskip("excitingtools.input.bandstructure")
     bandpath = ase.dft.kpoints.bandpath(cell=ase_ag.cell, path=[(0, 0, 0), (0.1, 0.2, 0.1), (0, 0, 0)])
-    bandstructure = band_structure_input_from_cell_or_bandpath(bandpath)
+    bandstructure = bandstructure_module.band_structure_input_from_cell_or_bandpath(bandpath)
     bs_xml = bandstructure.to_xml()
     assert bs_xml.tag == "bandstructure", 'Root tag should be "bandstructure"'
     plot1d_xml = bs_xml.find("plot1d")
@@ -190,3 +190,15 @@ def test_class_ExcitingKstlistInput():
     assert pointstatepair[0].items() == []
     assert pointstatepair[0].text == "1 4"
     assert pointstatepair[1].text == "2 5"
+
+
+def test_class_ExcitingEtCoeffComponentsInput():
+    properties = {"boltzequ": {"etCoeffComponents": [[1, 1], [2, 2]]}}
+    properties_input = ExcitingPropertiesInput(**properties)
+    properties_tree = properties_input.to_xml()
+    boltzequ = properties_tree.find("boltzequ")
+    etcoeffcomponents = boltzequ.findall("etCoeffComponents")
+
+    assert len(etcoeffcomponents) == 2
+    assert etcoeffcomponents[0].text == "1 1"
+    assert etcoeffcomponents[1].text == "2 2"

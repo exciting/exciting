@@ -1,10 +1,11 @@
 subroutine task_band_specfunc()
 
-    use modinput
+    use modinput, only: input
     use modmain
     use modgw
-    use mod_vxc, only: vxcnn, read_vxcnn
+    use mod_vxc, only: vxcnn, read_vxcnn, deallocate_vxcnn
     use mod_frequency
+    use mod_bands, only: evalfv, bandstructure_analysis
 
     implicit none
     integer(4) :: ik, ib, ib0, ik_path
@@ -34,7 +35,6 @@ subroutine task_band_specfunc()
                            input%gw%freqgrid%freqmin, &
                            input%gw%freqgrid%freqmax)
 
-    allocate(vxcnn(ibgw:nbgw,kset%nkpt))
     call init_selfenergy(ibgw,nbgw,kset%nkpt)
 
     ! real frequency grid
@@ -55,7 +55,7 @@ subroutine task_band_specfunc()
     if (allocated(evalfv)) deallocate(evalfv)
     allocate(evalfv(ibgw:nbgw,kset%nkpt))
     evalfv(:,:) = evalks(:,:)
-    call read_vxcnn()
+    call read_vxcnn('binary')
     call readselfx()
     call readselfc()
 
@@ -66,8 +66,8 @@ subroutine task_band_specfunc()
     &                   kset%ntet, kset%tnodes, kset%wtet,kset%tvol, &
     &                   efermi, egap, fermidos)
     call bandstructure_analysis('KS', &
-                                ibgw, nbgw, kset%nkpt, &
-                                evalks(ibgw:nbgw,:), efermi)
+                                ibgw, &
+                                evalks(ibgw:nbgw,:), efermi, .true.)
 
     ! non-reduced k-points
     call generate_k_vectors(ksetnr, &
@@ -112,7 +112,7 @@ subroutine task_band_specfunc()
             w = freq_selfc%freqs(iw)
             ! compute spectral function
             do ib = ibgw, nbgw
-                sxc = selfex(ib,ik) + selfec(ib,iw,ik) - vxcnn(ib,ik)
+                sxc = selfex(ib,ik) + selfec(ib,iw,ik) - vxcnn%diag_elements(ib,ik)
                 sRe = dble(sxc)
                 sIm = aimag(sxc) + input%gw%selfenergy%swidth
                 div = (w-evalfv(ib,ik_path)-sRe)**2 + sIm**2
@@ -126,6 +126,7 @@ subroutine task_band_specfunc()
     close(70)
 
     call delete_k_vectors(ksetnr)
+    call deallocate_vxcnn
 
 contains
 

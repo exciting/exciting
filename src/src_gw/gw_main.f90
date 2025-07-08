@@ -1,17 +1,20 @@
 
 subroutine gw_main()
-    use gw_io, only: fgw, open_gwinfo
+    use gw_info, only: fgw, open_gwinfo
     use modinput
     use modmain
     use modgw
     use modmpi
     use mod_mpi_gw
+    use mod_vxc, only: calcvxcnn, write_vxcnn
     use m_getunit
     use mod_hdf5
     use mod_aaa_approximant
+    use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
     use task_group, only: execute_task_group
 
     implicit none
+    
     real(8) :: tstart, tend
 
     !--------------------------------------------
@@ -33,11 +36,6 @@ subroutine gw_main()
             open(fdebug, File='debug.info', Action='Write')
         end if
     end if
-
-    !----------------------------------------------
-    ! initialize GW MPI environment
-    !----------------------------------------------
-    call init_mpi_gw
 
     !-----------------------------------------------------------
     ! Parse and check the validity of some GW input parameters
@@ -65,11 +63,6 @@ subroutine gw_main()
         ! Calculate the macroscopic dielectric function
         case('emac')
             call task_emac()
-
-        ! Calculate diagonal matrix elements of the exchange-correlation potential
-        case('vxc')
-            call init_gw()
-            call calcvxcnn()
 
         ! Calculate matrix elements of the momentum operator
         case('pmat')

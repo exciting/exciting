@@ -11,150 +11,363 @@
 !> //TODO(Ronaldo): Refactor to reduce the number of global variables
 module rttddft_HamiltonianOverlap
   use asserts, only: assert
-  use constants, only: fourpi, zi
+  use constants, only: fourpi, zi, zone, zzero
   use mod_APW_LO, only: apword, nlorb, lorbl
-  use mod_atoms, only: nspecies, natoms, idxas, natmtot, atposc
-  use mod_eigensystem, only: nmat, nmatmax, hloloij, idxlo, h1aa, h1loa, h1lolo, &
-    oalo, ololo, MTHamiltonianList, MTInitAll, MTNullify, MTRelease
-  use mod_eigenvalue_occupancy, only: nstfv
+  use mod_atoms, only: nspecies, natoms, idxas, atposc
+  use mod_eigensystem, only: nmat, idxlo, h1aa, h1loa, h1lolo, &
+    oalo, ololo, MTHamiltonianList, MTInitAll, MTNullify, MaxAPWs
   use mod_gkvector, only: ngk, vgkc, igkig
   use mod_gvector, only: ivg, ivgig, cfunig, ngvec
-  use mod_kpoint, only: nkpt
   use mod_lattice, only: omega
   use mod_muffin_tin, only: idxlm, rmt
-  use mod_potential_and_density, only: veffig, meffig, m2effig
+  use mod_potential_and_density, only: veffig, meffig, m2effig, veffmt
   use modinput, only: input
-  use modmpi
-  use physical_constants, only: c
-  use precision, only: dp
-  use rttddft_GlobalVariables, only: ham_time, ham_past, overlap, mathcalH, apwalm, &
-    & atot, pmat, pmatmt, evecfv_time
-  use rttddft_pmat, only: Obtain_Pmat_LAPWLOBasis
+  use physical_constants, only: alpha, c
+  use precision, only: dp, i32
+  use rttddft_GlobalMDVariables, only: mathcalH, mathcalB
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_hamiltonian, &
     Timing_Ehrenfest, timesec_RTTDDFT
-  
+  use rttddft_VectorPotential, only: Vector_Potential_Field
+  use mod_kpointset, only: Gk_set
+  use matrix_elements, only: me_mt_alloc, me_mt_prepare, me_mt_mat, me_ir_mat
+
   implicit none
 
   private
-  public :: UpdateHam
-
-  real(dp)              :: fact
+  public :: update_hamiltonian_without_pa_term_lapw, update_overlap_lapw, &
+    add_external_coupling_berry_phase, update_hamiltonian_without_pa_term_ks, &
+    add_external_coupling_velocity_gauge
+    
+  real(dp) :: fact, atot(3)
   type(MTHamiltonianList) :: mt_h
 
 contains
 
-  !> In UpdateHam, we obtain the hamiltonian (and if requested, the overlap) at 
-  !> time \( t \).
-  subroutine UpdateHam( predcorr, calculateOverlap, forcePmatHermitian, printTimings, t_ham, t_MD, &
-    & update_mathcalH, update_mathcalB, update_pmat )
-    !> tells if we are in the loop of the predictor-Corrector scheme    
-    logical, intent(in)               :: predcorr
-    !> tells if we need to calculate the overlap
-    logical, intent(in)               :: calculateOverlap
-    !> if `.true.`, force pmat to be hermitian
-    logical, intent(in)               :: forcePmatHermitian
-    !> Object that packs information about printing of timings [[Print_Timings]]
+  !> In `update_overlap_lapw`, we obtain the overlap of the (L)APWs at time \( t \).
+  subroutine update_overlap_lapw( first_kpt, a_tot, overlap, apwalm, pmatmt, printTimings, &
+    t_ham, t_MD, update_mathcalH, update_mathcalB )
+    !> The first \( \mathbf{k} \) point
+    integer(i32), intent(in) :: first_kpt
+    !> Total vector potential
+    type(Vector_Potential_Field), intent(in) :: a_tot
+    !> Overlap matrix (of basis functions) (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(out) :: overlap(:, :, first_kpt :)
+    !> Matching coefficients of the (L)APWs
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    !> Muffin-tin part of the Momentum matrix
+    !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
+    complex(dp), contiguous, optional, intent(inout) :: pmatmt(:, :, :, :, first_kpt :)
+    !> Object that packs information about printing of timings
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the Hamiltonian
     type(Timing_RTTDDFT_hamiltonian), optional, intent(out) :: t_ham
     !> Object that packs information about timings related to MD
     type(Timing_Ehrenfest), optional, intent(out) :: t_MD
     !> if `.True.`, update `mathcalH`
-    logical, intent(in), optional     :: update_mathcalH
+    logical, intent(in), optional :: update_mathcalH
     !> if `.True.`, update `mathcalB`
-    logical, intent(in), optional     :: update_mathcalB
-    !> if `.True.`, update `pmat`
-    logical, intent(in), optional     :: update_pmat
+    logical, intent(in), optional :: update_mathcalB
 
-    integer               :: ik, nmatp, first_kpt, last_kpt
-    real(dp)              :: ti, tf, tStart
-    logical               :: tGen, tDetail
-    logical               :: get_mathcalH, get_mathcalB, get_pmat
+    integer(i32) :: ik, last_kpt
+    real(dp) :: ti, tf
+    logical :: timings_general, timings_detailed, get_mathcalH, get_mathcalB
 
-    ! factor that multiplies the overlap matrix (when we compute the hamiltonian)
-    fact = dot_product( atot, atot )/(2._dp * c**2)
-    
+    ! factor that is used in overlapsetup through the module
+    atot = a_tot%components
+    fact = dot_product( atot, atot ) / (2._dp * c**2)
+
+    last_kpt = ubound( overlap, 3 )
 
     ! Check optional arguments
-    tGen = .False.
-    tDetail = .False.
-    if ( present(printTimings) ) then
-      call printTimings%get( tGen, tDetail )
-    end if
+    timings_general = .False.
+    timings_detailed = .False.
+    if ( present( printTimings ) ) call printTimings%get( timings_general, timings_detailed )
+
     get_mathcalH = .False.
     if( present( update_mathcalH ) ) get_mathcalH = update_mathcalH
     get_mathcalB = .False.
     if( present( update_mathcalB ) ) get_mathcalB = update_mathcalB
-    get_pmat = .False.
-    if( present( update_pmat ) ) get_pmat = update_pmat
 
     ! sanity checks
-    if( get_mathcalH ) call assert( calculateOverlap , 'The overlap matrix is needed to update mathcalH' )
-    if( tGen ) call assert( present(t_ham) .or. present(t_MD), &
+    if( timings_general ) call assert( present( t_ham ) .or. present( t_MD ), &
       't_ham or t_MD must be present when general timing is desired' )
-    if( tDetail ) call assert( tGen, 'tGen must be true if tDetail is true')
+    if( timings_detailed ) call assert( timings_general, 'timings_general must be true if timings_detailed is true')
 
-    if( tGen ) then 
+    if( timings_general ) call timesec( ti ) 
+
+    !$omp parallel default(none), private(ik), &
+    !$omp& shared(first_kpt, last_kpt, apwalm, pmatmt), &
+    !$omp& shared(overlap, nmat, get_mathcalH, get_mathcalB)
+    !$omp do
+    do ik = first_kpt, last_kpt
+      
+      if ( get_mathcalB .or. get_mathcalH ) then
+        call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
+          nmat(1, ik), get_mathcalB, get_mathcalH, pmatmt(:, :, :, :, ik) )
+      else
+        call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
+          nmat(1, ik), get_mathcalB, get_mathcalH )
+      end if
+
+    end do
+    !$omp end parallel
+
+    if( timings_general ) then
+      call timesec( tf )
+      if( present( t_ham ) ) t_ham%total = t_ham%total + tf - ti
+      if( timings_detailed .and. present( t_ham ) ) t_ham%overlap = tf - ti
+      if( timings_detailed .and. present( t_MD ) ) t_MD%hamoverl = tf - ti
+    end if
+
+  end subroutine update_overlap_lapw
+
+  !> In `update_hamiltonian_without_pa_term_lapw`, we obtain the explicitly 
+  !> field-free hamiltonian at time \( t \) in the LAPW+lo basis.
+  subroutine update_hamiltonian_without_pa_term_lapw( first_kpt, a_tot, ham_time, apwalm, &
+    printTimings, t_ham, t_MD, update_mathcalH )
+    !> The first \( \mathbf{k} \) point
+    integer(i32), intent(in) :: first_kpt
+    !> Total vector potential
+    type(Vector_Potential_Field), intent(in) :: a_tot
+    !> Hamiltonian matrix at current time \(t\) (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(inout) :: ham_time(:, :, first_kpt :)
+    !> Matching coefficients of the (L)APWs
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    !> Object that packs information about printing of timings
+    type(Print_Timings), optional, intent(in) :: printTimings
+    !> Object that packs information about timings to update the Hamiltonian
+    type(Timing_RTTDDFT_hamiltonian), optional, intent(out) :: t_ham
+    !> Object that packs information about timings related to MD
+    type(Timing_Ehrenfest), optional, intent(out) :: t_MD
+    !> if `.True.`, update `mathcalH`
+    logical, intent(in), optional :: update_mathcalH
+
+    integer(i32) :: ik, last_kpt
+    real(dp) :: ti, tf, tStart
+    logical :: timings_general, timings_detailed, get_mathcalH
+
+    last_kpt = ubound( ham_time, 3 )
+  
+    ! atot and fact are used in `obtain_interstitial_contribution_mathcalH` through the module
+    atot = a_tot%components
+    fact = dot_product( atot, atot ) / (2._dp * c**2)
+
+    ! Check optional arguments
+    timings_general = .False.
+    timings_detailed = .False.
+    if ( present( printTimings ) ) call printTimings%get( timings_general, timings_detailed )
+
+    get_mathcalH = .False.
+    if( present( update_mathcalH ) ) get_mathcalH = update_mathcalH
+
+    ! sanity checks
+    if( timings_general ) call assert( present( t_ham ) .or. present( t_MD ), &
+      't_ham or t_MD must be present when general timing is desired' )
+    if( timings_detailed ) call assert( timings_general, 'timings_general must be true if timings_detailed is true')
+
+    if( timings_general ) then 
       call timesec( ti )
       tStart = ti
     end if
 
-    if( get_pmat ) then
-      call Obtain_Pmat_LAPWLOBasis( forcePmatHermitian, allocated(pmatmt) )
-      if( tDetail .and. present(t_MD) ) call timesec_RTTDDFT( ti, t_MD%pmat )
-    end if
-
-    call MTNullify(mt_h)
-    call MTInitAll(mt_h)
-    call hmlint(mt_h)
-
-    if ( tDetail .and. present(t_ham) ) call timesec_RTTDDFT( ti, t_ham%hmlint )
-
-    if ( .not. predcorr ) ham_past(:,:,:) = ham_time(:,:,:)
-
-    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
- 
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik,nmatp), &
-!$OMP& SHARED(first_kpt,last_kpt,calculateOverlap,nkpt,natmtot,natoms), &
-!$OMP& SHARED(nspecies,rmt,omega,atposc,idxas,apwalm,fact,atot,pmat,ham_time), &
-!$OMP& SHARED(overlap,ngk,nmat,vgkc,igkig,input, get_mathcalH, get_mathcalB), &
-!$OMP& SHARED(nmatmax)
-!$OMP DO
-#endif
-    do ik = first_kpt, last_kpt
-      nmatp = nmat(1,ik)
-      call hamsetup( ik, nmatp, get_mathcalH )
-      if ( calculateOverlap ) then
-        call overlapsetup( ik, nmatp, get_mathcalB, get_mathcalH )
-      end if
-
-      ! Include the part of the vector potential in the hamiltonian
-      ham_time(1:nmatp,1:nmatp,ik) = ham_time(1:nmatp,1:nmatp,ik) + &
-                                fact*overlap(1:nmatp,1:nmatp,ik) + &
-                                (atot(1)/c)*pmat(1:nmatp,1:nmatp,1,ik) + &
-                                (atot(2)/c)*pmat(1:nmatp,1:nmatp,2,ik) + &
-                                (atot(3)/c)*pmat(1:nmatp,1:nmatp,3,ik)
-    end do
-
-#ifdef USEOMP
-!$OMP END DO NOWAIT
-!$OMP END PARALLEL
-#endif
-    
     call mt_h%release()
+    call MTNullify( mt_h )
+    call MTInitAll( mt_h )
+    call hmlint( mt_h )
+    if ( timings_detailed .and. present( t_ham ) ) call timesec_RTTDDFT( ti, t_ham%hmlint )
+
+    !$omp parallel default(none), private(ik), &
+    !$omp& shared(first_kpt, last_kpt, ham_time, apwalm, nmat, get_mathcalH)
+    !$omp do
+    do ik = first_kpt, last_kpt
+      call hamsetup( ik, ham_time(:, :, ik), apwalm(:, :, :, :, ik), nmat(1, ik), get_mathcalH )
+    end do
+    !$omp end do 
+    !$omp end parallel
 
     if ( get_mathcalH ) call obtain_interstitial_contribution_mathcalH( &
       & first_kpt, last_kpt )
 
-    if( tGen ) then
+    if( timings_general ) then
       call timesec( tf )
-      if( present(t_ham) ) t_ham%total = tf - tStart
-      if( tDetail .and. present(t_ham) ) t_ham%rest = tf - ti
-      if( tDetail .and. present(t_MD) ) t_MD%hamoverl = tf - ti
+      if( present( t_ham ) ) t_ham%total = t_ham%total + tf - tStart
+      if( timings_detailed .and. present( t_ham ) ) t_ham%rest = tf - ti
+      if( timings_detailed .and. present( t_MD ) ) t_MD%hamoverl = t_MD%hamoverl + tf - ti
     end if
 
-end subroutine UpdateHam
+  end subroutine update_hamiltonian_without_pa_term_lapw
+
+  !> In `update_hamiltonian_without_pa_term_ks`, we obtain the explicitly field-independent 
+  !> Hamiltonian \( H(t) \) in the KS basis as follows:
+  !> \[
+  !> H(t) = H_{\rm init} + V_{\rm eff}(t) - V_{\rm eff}(t = 0), 
+  !> \]
+  !> where
+  !> \[ 
+  !> H_{\rm init} = \frac{{\bf p}^2}{2} + V_{\rm nucl} + V_{\rm eff}(t = 0)
+  !> \]
+  !> is time-independent. \( V_{\rm eff}(t) \) is time-dependent through the 
+  !> time-dependent charge density.
+  subroutine update_hamiltonian_without_pa_term_ks( first_kpt, lmaxvr, ham_time, apwalm, &
+      ks_lapwlo_transition_matrix, effective_potential_init, ham_init, Gkset, printTimings, t_ham )
+    !> The first \( \mathbf{k} \) point
+    integer(i32), intent(in) :: first_kpt
+    !> Maximal value of l in spherical harmonics expansion of DFT potential
+    integer(i32), intent(in) :: lmaxvr
+    !> Field-free Hamiltonian matrix \( H(t) \) (nmatmax, nmatmax, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(out) :: ham_time(:, :, first_kpt :)
+    !> Matching coefficients of the (L)APWs
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    !> KS-LAPW+lo transition matrix (nmatmax, n_basis_ks, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: ks_lapwlo_transition_matrix(:, :, first_kpt :)
+    !> Initial effective potential \( V_{\rm eff}(t = 0) \) (n_basis, n_basis, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: effective_potential_init(:, :, first_kpt :)
+    !> Hamiltonian matrix \( H_{\rm init} \) obtained at time \(t = 0 \)
+    complex(dp), contiguous, intent(in) :: ham_init(:, :, first_kpt :)
+    !> Set of G+k vectors for LAPW expansion
+    type(Gk_set), intent(in) :: Gkset
+    !> Object that packs information about printing of timings
+    type(Print_Timings), optional, intent(in) :: printTimings
+    !> Object that packs information about timings to update the Hamiltonian
+    type(Timing_RTTDDFT_hamiltonian), optional, intent(out) :: t_ham
+
+    integer :: ik, nmatp, last_kpt, apwordmax, lmmaxapw, &
+      n_basis, n_frozen, is, ia, ias, ngp
+    complex (dp), allocatable :: local_effective_potential(:, :), mt_contribution(:, :, :)
+    logical :: timings_general, timings_detailed
+    real(dp) :: ti
+
+    last_kpt = ubound( ham_time, 3 )
+    apwordmax = size( apwalm, 2 )
+    lmmaxapw = size( apwalm, 3 )
+    n_basis = size( ham_time, 1 )
+
+    timings_general = .False.
+    timings_detailed = .False.
+    if ( present( printTimings ) ) call printTimings%get( timings_general, timings_detailed )
+    if( timings_general ) call assert( present( t_ham ), &
+      't_ham must be present when general timing is desired' )
+    if( timings_detailed ) call assert( timings_general, 'timings_general must be true if timings_detailed is true')
+
+    if( timings_general ) call timesec( ti )
+
+    call me_mt_alloc( mt_contribution )
+    allocate( local_effective_potential(n_basis, n_basis), source = zzero )
+    
+    do is = 1, nspecies
+      do ia = 1, natoms(is)
+        ias = idxas(ia, is)
+        ! computes gaunts times radial integrals
+        call me_mt_prepare( is, ias, lmaxvr, zone, veffmt(:, :, ias), zzero, &
+        mt_contribution(:, :, ias) )
+      end do ! natoms
+    end do ! nspecies
+
+    do ik = first_kpt, last_kpt
+      ngp = ngk(1, ik)
+      nmatp = nmat(1, ik)
+      
+      local_effective_potential = zzero
+
+      ! mt contribution
+      do is = 1, nspecies
+        do ia = 1, natoms(is)
+
+          ias = idxas(ia, is)
+               
+          call me_mt_mat( is, ias, ngp, ngp, apwalm(1 : ngp, :, :, ias, ik), &
+            apwalm(1 : ngp, :, :, ias, ik), ks_lapwlo_transition_matrix(1 : nmatp, :, ik), &
+            ks_lapwlo_transition_matrix(1 : nmatp, :, ik), zone, mt_contribution(:, :, ias), &
+            zone, local_effective_potential )
+
+        end do ! natoms
+      end do ! nspecies
+
+      ! ir contribution
+      call me_ir_mat( Gkset, ik, Gkset, ik, ks_lapwlo_transition_matrix(1 : nmatp, :, ik), &
+        ks_lapwlo_transition_matrix(1 : nmatp, :, ik), zone, veffig, zone, local_effective_potential )
+
+      ham_time(:, :, ik) = ham_init(:, :, ik) + local_effective_potential - effective_potential_init(:, :, ik)
+
+    end do ! ik
+
+    if( timings_general ) call timesec_RTTDDFT( ti, t_ham%total )
+
+  end subroutine
+  
+  !> Add the pre-calculated length gauge interaction term to the Hamiltonian
+  subroutine add_external_coupling_berry_phase( external_coupling_length_gauge, ham_time, dims )
+    !> Length gauge interaction matrix (n_basis, n_basis, n_kpts)
+    complex(dp), contiguous, intent(in) :: external_coupling_length_gauge(:, :, :)
+    !> Hamiltonian matrix at current time \(t\) (n_basis, n_basis, n_kpts)
+    complex(dp), contiguous, intent(inout) :: ham_time(:, :, :)
+    !> Used dimensions of `external_coupling_length_gauge` and `ham_time` matrices
+    integer(i32), intent(in) :: dims(:)
+
+    integer(i32) :: ik
+
+    call assert( all( shape( external_coupling_length_gauge ) == shape( ham_time ) ), &
+      'external_coupling_length_gauge and ham_time have incompatible dimensions' )
+
+    !$omp parallel default(none), private(ik), &
+    !$omp& shared(ham_time, external_coupling_length_gauge, dims)
+    !$omp do
+    do ik = 1, size( ham_time, 3 )
+      ham_time(1 : dims(ik), 1 : dims(ik), ik) = ham_time(1 : dims(ik), 1 : dims(ik), ik) + &
+        external_coupling_length_gauge(1 : dims(ik), 1 : dims(ik), ik)
+    end do
+    !$omp end parallel
+
+  end subroutine
+
+  !> Add the velocity gauge interaction term \( {\bf p} \cdot {\bf A}(t) / c \) to 
+  !> the Hamiltonian at time \( t \).
+  ! TODO: is the space-uniform A^2 term needed here?
+  subroutine add_external_coupling_velocity_gauge( a_tot, overlap, ham_time, pmat, dims )
+    !> Total vector potential
+    type(Vector_Potential_Field), intent(in) :: a_tot
+    !> Overlap matrix (of basis functions) (n_basis, n_basis, n_kpts)
+    complex(dp), contiguous, intent(in) :: overlap(:, :, :)
+    !> Hamiltonian matrix at current time \(t\) (n_basis, n_basis, n_kpts_kpt)
+    complex(dp), contiguous, intent(inout) :: ham_time(:, :, :)
+    !> Momentum matrix elements (n_basis, n_basis, 3, n_kpts)
+    complex(dp), contiguous, intent(in) :: pmat(:, :, :, :)
+    !> Used dimensions of `overlap` and `ham_time` matrices
+    integer(i32), intent(in) :: dims(:)
+
+    real(dp), parameter :: interaction_tol = 1.e-14_dp
+    integer(i32) :: ik, n_kpts, i
+    real(dp) :: a_scaled(3)
+
+    a_scaled = a_tot%components / c
+    fact = 0.5_dp * dot_product( a_scaled, a_scaled )
+    if ( fact < interaction_tol ) return
+    n_kpts = size( ham_time, 3 )
+
+    call assert( size( dims, 1 ) == n_kpts, "dims and ham_time have different n_kpts" )
+    call assert( size( overlap, 3 ) == n_kpts, "overlap and ham_time have different n_kpts" )
+    call assert( size( pmat, 4 ) == n_kpts, "pmat and ham_time have different n_kpts" )
+
+    !$omp parallel default(none), private(ik, i), &
+    !$omp& shared(fact, a_scaled, pmat, ham_time, n_kpts, overlap, dims)
+    !$omp do
+    do ik = 1, n_kpts
+
+      ham_time(1 : dims(ik), 1 : dims(ik), ik) = ham_time(1 : dims(ik), 1 : dims(ik), ik) + &
+        fact * overlap(1 : dims(ik), 1 : dims(ik), ik)
+      do i = 1, 3
+        ham_time(1 : dims(ik), 1 : dims(ik), ik) = ham_time(1 : dims(ik), 1 : dims(ik), ik) + &
+        a_scaled(i) * pmat(1 : dims(ik), 1 : dims(ik), i, ik)
+      end do
+
+    end do
+    !$omp end parallel
+
+  end subroutine
+
   !> Subroutine to calculate the interstitial contribution to `mathcalH` (used to
   !> obtain the forces on the ions in Ehrenfest Dynamics)
   subroutine obtain_interstitial_contribution_mathcalH( first_kpt, last_kpt )
@@ -164,14 +377,11 @@ end subroutine UpdateHam
     real(dp)    :: t1, t2, t3, t4, g(3)
     complex(dp) :: t5
 
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik,ngp,is,ia,ias,ig,igl,g,t1,t2,t3,t4,t5), &
-!$OMP& SHARED(first_kpt,last_kpt,natoms), &
-!$OMP& SHARED(nspecies,rmt,omega,atposc,idxas,apwalm,atot,pmat,ham_time), &
-!$OMP& SHARED(ngk,nmat,vgkc,igkig,mathcalH), &
-!$OMP& SHARED(nmatmax)
-!$OMP DO
-#endif    
+    !$omp parallel default(none), private(ik,ngp,is,ia,ias,ig,igl,g,t1,t2,t3,t4,t5), &
+    !$omp& shared(first_kpt,last_kpt,natoms), &
+    !$omp& shared(nspecies,rmt,omega,atposc,idxas,atot), &
+    !$omp& shared(ngk,nmat,vgkc,igkig,mathcalH)
+    !$omp do
     do ik = first_kpt, last_kpt
       ngp = ngk(1,ik)
       ! Loop over atoms
@@ -200,29 +410,27 @@ end subroutine UpdateHam
         end do ! do ia = 1, natoms(is)
       end do ! do is = 1, nspecies
     end do
-#ifdef USEOMP
-!$OMP END DO NOWAIT
-!$OMP END PARALLEL
-#endif
+    !$omp end do 
+    !$omp end parallel
   end subroutine obtain_interstitial_contribution_mathcalH
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Subroutine to calculate the hamiltonian matrix for a given k-point
-!> ik: the index of the k-point considered
-!> nmatp:  the dimension of the matrix for this k-point (nmatp x nmatp)
-!> calculate_mathcalH: if it is required to calculate the MT contributions 
-!>                     to the auxiliary matrix mathcalH
-  subroutine hamsetup( ik, nmatp, calculate_mathcalH )
-    use constants, only: zzero, zone, zi
-    use rttddft_GlobalVariables, only: mathcalH
+  !> Subroutine to calculate the Hamiltonian matrix in the LAPW+lo basis for a given k-point
+  subroutine hamsetup( ik, ham_time, apwalm, nmatp, calculate_mathcalH )
 
-    implicit none
     !> ik: the index of the k-point considered
-    integer, intent(in)       :: ik
+    integer, intent(in) :: ik
+    !> Hamiltonian matrix at current time \(t\) at the current k-point (nmatmax, nmatmax)
+    complex(dp), intent(out) :: ham_time(:, :)
+    !> Matching coefficients of the (L)APWs at the current k-point
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot)
+    complex(dp), intent(in) :: apwalm(:, :, :, :)
     !> `nmatp` is the dimension of the matrix for this `k-point` 
     !> (`nmatp` \( \times \) `nmatp`)
-    integer, intent(in)       :: nmatp
-    logical, intent(in)       :: calculate_mathcalH
+    integer, intent(in) :: nmatp
+    !> Is it required to calculate the MT contributions to the auxiliary matrix mathcalH
+    logical, intent(in) :: calculate_mathcalH
+    ! TODO: calling hamsetup with calculate_mathcalH = .true. without 
+    ! calling overlapsetup in advance makes no sense, add check
 
     integer                   :: i, j, is, ia, ias, if3, ig, igl, io2
     integer                   :: j1, l3, m3, lm3, j3, maxnlo, maxaa
@@ -231,9 +439,7 @@ end subroutine UpdateHam
     real (dp)                 :: t1
     complex (dp)              :: zt
     complex (dp), allocatable :: hamcopy(:, :), aux(:, :)
-    complex (dp), allocatable :: apwi(:, :), zm(:, :)
-
-    if ( calculate_mathcalH ) mathcalH(:,:,:,:,ik) = zzero
+    complex (dp), allocatable :: apwi(:, :), zm(:, :), aux_mathcalh(:, :, :)
 
     ! auxiliary variables
     ngp = ngk(1,ik)
@@ -244,9 +450,11 @@ end subroutine UpdateHam
     allocate( zm(maxaa, ngp) )
     allocate( hamcopy(nmatp, nmatp) )
     hamcopy(:,:) = zzero
+    if ( calculate_mathcalH ) allocate( aux_mathcalh(nmatp, nmatp, 3) )
     do is = 1, nspecies
       do ia = 1, natoms(is)
-    ! APW-APW part
+        if ( calculate_mathcalH ) aux_mathcalh = zzero
+        ! APW-APW part
         ias = idxas (ia, is)
         apwi = zzero
         if3 = 0
@@ -255,7 +463,7 @@ end subroutine UpdateHam
           lm3 = idxlm (l3, m3)
             do io2 = 1, apword (l3, is)
               if3 = if3 + 1
-              apwi(if3,1:ngp) = apwalm(1:ngp,io2,lm3,ias,ik)
+              apwi(if3,1:ngp) = apwalm(1:ngp,io2,lm3,ias)
             end do
           end do
         end do
@@ -271,8 +479,8 @@ end subroutine UpdateHam
         if ( calculate_mathcalH ) then
           do ig = 1, ngp
             do igl = 1, ngp
-              mathcalH(igl,ig,1:3,ias,ik) = &
-                & zi*( vgkc(1:3,ig,1,ik)-vgkc(1:3,igl,1,ik) )*aux(igl,ig)
+              aux_mathcalh(igl, ig, 1 : 3) = zi*( vgkc(1:3,ig,1,ik)-vgkc(1:3,igl,1,ik) )*aux(igl,ig)
+              mathcalH(igl,ig,1:3,ias,ik) = mathcalH(igl,ig,1:3,ias,ik) + aux_mathcalh(igl, ig, 1 : 3) 
             end do
           end do
         end if
@@ -291,7 +499,8 @@ end subroutine UpdateHam
           if ( calculate_mathcalH ) then
             do ig = 1, ngp
               do j = 1, 3
-                mathcalH(j1:j3,ig,j,ias,ik) = zi*(vgkc(j,ig,1,ik))*aux(j1:j3,ig)
+                aux_mathcalh(j1:j3, ig, j) = zi*(vgkc(j,ig,1,ik))*aux(j1:j3,ig)
+                mathcalH(j1:j3,ig,j,ias,ik) = mathcalH(j1:j3,ig,j,ias,ik) + aux_mathcalh(j1:j3, ig, j)                  
               end do
             end do
           end if
@@ -299,7 +508,7 @@ end subroutine UpdateHam
             hamcopy(1:ngp,i)=conjg(hamcopy(i,1:ngp))
             if ( calculate_mathcalH ) then
               do j = 1, 3
-                mathcalH(1:ngp,i,j,ias,ik) = conjg(mathcalH(i,1:ngp,j,ias,ik))
+                mathcalH(1:ngp,i,j,ias,ik) = mathcalH(1:ngp,i,j,ias,ik) + conjg(aux_mathcalh(i,1:ngp,j))
               end do
             end if
           enddo
@@ -339,21 +548,21 @@ end subroutine UpdateHam
       end do ! do j = 1, ngp
     endif
 
-    ham_time(1:nmatp,1:nmatp,ik) = hamcopy(1:nmatp,1:nmatp)
+    ham_time(1 : nmatp, 1 : nmatp) = hamcopy(1 : nmatp, 1 : nmatp)
     
   end subroutine hamsetup
 
   !> Subroutine to calculate the overlap matrix for a given k-point.
   !> Based on `src/src_eigensystem/overlapsetup.f90`. 
-  subroutine overlapsetup( ik, nmatp, calculate_mathcalB, calculate_mathcalH )
-    use constants, only: zzero, zone, zi
-    use physical_constants, only: alpha
-    use rttddft_GlobalVariables, only: mathcalB, mathcalH, pmatmt
-
-    implicit none
-
+  subroutine overlapsetup( ik, overlap, apwalm, nmatp, calculate_mathcalB, calculate_mathcalH, pmatmt )
     !> ik: the index of the k-point considered
     integer, intent(in)       :: ik
+    !> Overlap matrix (of basis functions) at the current k-point
+    !> (nmatmax, nmatmax)
+    complex(dp), intent(out) :: overlap(:, :)
+    !> Matching coefficients of the (L)APWs at the current k-point
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot)
+    complex(dp), intent(in) :: apwalm(:, :, :, :)
     !> `nmatp` is the dimension of the matrix for this `k-point` 
     !> (`nmatp` \( \times \) `nmatp`)
     integer, intent(in)       :: nmatp
@@ -363,30 +572,34 @@ end subroutine UpdateHam
     !>                     to the auxiliary matrix mathcalH
     logical, intent(in)       :: calculate_mathcalB
     logical, intent(in)       :: calculate_mathcalH
+    !> Muffin-tin part of the Momentum matrix
+    !> (nmatmax, nmatmax, 3, natmtot)
+    complex(dp), intent(in), optional :: pmatmt(:, :, :, :)
 
     integer                   :: i, is, ia, ias, if3, ig, j, j1, j2, igprime
     integer                   :: l, lm1, lm2, l3, m3, lm3
-    integer                   :: io, io1, io2, maxaa, maxnlo, ilo, ilo1, ilo2
-    integer                   :: ngp, iv(3)
+    integer                   :: io, io1, io2, maxaa, ilo, ilo1, ilo2
+    integer                   :: nmatmax, ngp, iv(3)
     real (dp)                 :: t1
     real (dp), parameter      :: a2=0.5_dp*alpha**2
     complex (dp)              :: zt
     complex (dp), allocatable :: overlcopy(:, :), aux(:, :)
     complex (dp), allocatable :: apwi(:,:), zm(:,:), apwi2(:,:)
 
-    if ( calculate_mathcalB ) mathcalB(:,:,:,:,ik) = -zi*pmatmt(:,:,:,:,ik)
+    if ( calculate_mathcalB .or. calculate_mathcalH ) call assert( present(pmatmt), 'pmatmt must be passed as argument')
+    if ( calculate_mathcalH ) mathcalH(:,:,:,:,ik) = zzero
+    if ( calculate_mathcalB ) mathcalB(:,:,:,:,ik) = -zi*pmatmt(:,:,:,:)
 
     ngp = ngk(1,ik)
-    maxaa = mt_h%maxaa
-    maxnlo = mt_h%maxnlo
+    maxaa = MaxAPWs()
     allocate(apwi(maxaa,ngp))
     allocate(apwi2(ngp, maxaa) )
-    allocate( overlcopy(nmatp, nmatp) )
+    allocate( overlcopy(nmatp, nmatp), source=zzero )
     allocate( aux(nmatp, nmatp) )
-    overlcopy(:,:) = zzero
+    overlap = zzero
     do is = 1, nspecies
       do ia = 1, natoms(is)
-  ! APW-APW part
+        ! APW-APW part
         ias = idxas (ia, is)
         apwi = zzero
         if3 = 0
@@ -395,7 +608,7 @@ end subroutine UpdateHam
           lm3 = idxlm (l3, m3)
             do io2 = 1, apword (l3, is)
               if3 = if3+1
-              apwi(if3,1:ngp) = apwalm(1:ngp, io2, lm3, ias, ik)
+              apwi(if3,1:ngp) = apwalm(1:ngp, io2, lm3, ias)
             end do
           end do
         end do
@@ -435,17 +648,17 @@ end subroutine UpdateHam
               mathcalH(igprime,ig,1:3,ias,ik) = mathcalH(igprime,ig,1:3,ias,ik) + &
                 & zi*( vgkc(1:3,ig,1,ik)-vgkc(1:3,igprime,1,ik) )*( &
                 & fact*aux(igprime,ig) + (1/c)*( &
-                & atot(1)*pmatmt(igprime,ig,1,ias,ik) + &
-                & atot(2)*pmatmt(igprime,ig,2,ias,ik) + &
-                & atot(3)*pmatmt(igprime,ig,3,ias,ik) ) )
+                & atot(1)*pmatmt(igprime,ig,1,ias) + &
+                & atot(2)*pmatmt(igprime,ig,2,ias) + &
+                & atot(3)*pmatmt(igprime,ig,3,ias) ) )
             end do
           end do
         end if
         deallocate( zm )
 
-  !What if it is, say, LAPW calculation without any local orbitals?
+        !What if it is, say, LAPW calculation without any local orbitals?
         if ( nlorb(is) /= 0 ) then
-  ! APW-LO part
+          ! APW-LO part
           !--Overlap--
           do ilo = 1, nlorb(is)
             l = lorbl(ilo, is)
@@ -456,7 +669,7 @@ end subroutine UpdateHam
             aux(1:ngp,j1:j2) = zzero
             do io = 1, apword(l, is)
               aux(1:ngp,j1:j2) = aux(1:ngp,j1:j2) + &
-                & conjg( apwalm(1:ngp,io,lm1:lm2,ias,ik) * &
+                & conjg( apwalm(1:ngp,io,lm1:lm2,ias) * &
                 & ( oalo(io, ilo, ias) + h1loa(io, ilo, ias) ) )
             end do
             overlcopy(1:ngp,j1:j2) = overlcopy(1:ngp,j1:j2) + aux(1:ngp,j1:j2)
@@ -473,14 +686,14 @@ end subroutine UpdateHam
                 do j = j1, j2
                   mathcalH(ig,j,1:3,ias,ik) = mathcalH(ig,j,1:3,ias,ik) + &
                     & -zi*vgkc(1:3,ig,1,ik)*( aux(ig,j)*fact + (1/c)*( &
-                    & atot(1)*pmatmt(ig,j,1,ias,ik) + &
-                    & atot(2)*pmatmt(ig,j,2,ias,ik) + &
-                    & atot(3)*pmatmt(ig,j,3,ias,ik) ) )
+                    & atot(1)*pmatmt(ig,j,1,ias) + &
+                    & atot(2)*pmatmt(ig,j,2,ias) + &
+                    & atot(3)*pmatmt(ig,j,3,ias) ) )
                   mathcalH(j,ig,1:3,ias,ik) = mathcalH(j,ig,1:3,ias,ik) + &
                     & zi*vgkc(1:3,ig,1,ik)*( conjg(aux(ig,j))*fact + (1/c)*( &
-                    & atot(1)*pmatmt(j,ig,1,ias,ik) + &
-                    & atot(2)*pmatmt(j,ig,2,ias,ik) + &
-                    & atot(3)*pmatmt(j,ig,3,ias,ik) ) )
+                    & atot(1)*pmatmt(j,ig,1,ias) + &
+                    & atot(2)*pmatmt(j,ig,2,ias) + &
+                    & atot(3)*pmatmt(j,ig,3,ias) ) )
                 end do
               end do
             end if
@@ -488,7 +701,7 @@ end subroutine UpdateHam
               overlcopy(j, 1:ngp)=conjg( overlcopy(1:ngp, j) )
             end do
           end do
-  ! LO-LO part
+          ! LO-LO part
           !--Overlap--
           do ilo1 = 1, nlorb(is)
             l = lorbl(ilo1,is)
@@ -509,7 +722,7 @@ end subroutine UpdateHam
       end do ! do ia = 1, natoms(is)
     end do ! do is = 1, nspecies
 
-  ! interstitial contributions
+    ! interstitial contributions
     if (input%groundstate%ValenceRelativity /= "none") then
       do j = 1, ngp
         do i = 1, j
@@ -542,10 +755,13 @@ end subroutine UpdateHam
       end do ! do j = 1, ngp
     endif
 
-    overlap(1:nmatp,1:nmatp,ik) = overlcopy(1:nmatp,1:nmatp)
-    deallocate(apwi,apwi2)
+    nmatmax = size( overlap, 1 )
+    overlap(1:nmatp, 1:nmatp) = overlcopy(1:nmatp, 1:nmatp)
+    ! Fill other elements, so that the rest of overlap is the identity matrix
+    do concurrent( i = nmatp+1:nmatmax )
+      overlap(i, i) = zone
+    end do
 
   end subroutine overlapsetup
-
 
 end module rttddft_HamiltonianOverlap

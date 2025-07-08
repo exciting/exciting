@@ -6,7 +6,7 @@
 module modxcifc
 use libxcifc
 use asserts, only: assert
-
+use precision, only: dp, long_int
 !Use scl_xml_out_Module
 
 contains
@@ -19,8 +19,8 @@ contains
 ! g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2, &
 ! dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
 subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
- g3up,g3dn,grho2,gup2,gdn2,gupdn,ex,ec,exsr,vx,vc,vxsr,vxsrup,vxsrdn,v2xsr,v2xsrup,v2xsrdn,vxup,vxdn,vcup,vcdn,dxdg2,&
- dxdgu2,dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2,dcdgud)
+ g3up,g3dn,grho2,gup2,gdn2,gupdn,tau,tauup,taudn,ex,ec,exsr,vx,vc,vxsr,vxsrup,vxsrdn,v2xsr,v2xsrup,v2xsrdn,vxup,vxdn,vcup,vcdn,dxdg2,&
+ dxdgu2,dxdgd2,dxdgud,dxdl,dxdlup,dxdldn,dxdtau,dxdtauup,dxdtaudn,dcdg2,dcdgu2,dcdgd2,dcdgud,dcdl,dcdlup,dcdldn,dcdtau,dcdtauup,dcdtaudn)
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype : type of exchange-correlation functional (in,integer(3))
 !   n      : number of density points (in,integer)
@@ -71,57 +71,72 @@ implicit none
 integer, intent(in) :: xctype(3)
 integer, intent(in) :: n
 ! optional arguments
-real(8), optional, intent(in) :: rho(:)
-real(8), optional, intent(in) :: rhoup(:)
-real(8), optional, intent(in) :: rhodn(:)
-real(8), optional, intent(in) :: grho(:)
-real(8), optional, intent(in) :: gup(:)
-real(8), optional, intent(in) :: gdn(:)
-real(8), optional, intent(in) :: g2rho(:)
-real(8), optional, intent(in) :: g2up(:)
-real(8), optional, intent(in) :: g2dn(:)
-real(8), optional, intent(in) :: g3rho(:)
-real(8), optional, intent(in) :: g3up(:)
-real(8), optional, intent(in) :: g3dn(:)
-real(8), optional, intent(in) :: grho2(:)
-real(8), optional, intent(in) :: gup2(:)
-real(8), optional, intent(in) :: gdn2(:)
-real(8), optional, intent(in) :: gupdn(:)
-real(8), optional, intent(out) :: ex(:)
-real(8), optional, intent(out) :: ec(:)
-real(8), optional, intent(out) :: vx(:)
-real(8), optional, intent(out) :: vc(:)
-real(8), optional, intent(out) :: exsr(:)
-real(8), optional, intent(out) :: vxsr(:)
-real(8), optional, intent(out) :: vxsrup(:)
-real(8), optional, intent(out) :: vxsrdn(:)
-real(8), optional, intent(out) :: v2xsr(:)
-real(8), optional, intent(out) :: v2xsrup(:)
-real(8), optional, intent(out) :: v2xsrdn(:)
-real(8), optional, intent(out) :: vxup(:)
-real(8), optional, intent(out) :: vxdn(:)
-real(8), optional, intent(out) :: vcup(:)
-real(8), optional, intent(out) :: vcdn(:)
-real(8), optional, intent(out) :: dxdg2(:)
-real(8), optional, intent(out) :: dxdgu2(:)
-real(8), optional, intent(out) :: dxdgd2(:)
-real(8), optional, intent(out) :: dxdgud(:)
-real(8), optional, intent(out) :: dcdg2(:)
-real(8), optional, intent(out) :: dcdgu2(:)
-real(8), optional, intent(out) :: dcdgd2(:)
-real(8), optional, intent(out) :: dcdgud(:)
+real(dp), optional, intent(in) :: rho(:)
+real(dp), optional, intent(in) :: rhoup(:)
+real(dp), optional, intent(in) :: rhodn(:)
+real(dp), optional, intent(in) :: grho(:)
+real(dp), optional, intent(in) :: gup(:)
+real(dp), optional, intent(in) :: gdn(:)
+real(dp), optional, intent(in) :: g2rho(:)
+real(dp), optional, intent(in) :: g2up(:)
+real(dp), optional, intent(in) :: g2dn(:)
+real(dp), optional, intent(in) :: g3rho(:)
+real(dp), optional, intent(in) :: g3up(:)
+real(dp), optional, intent(in) :: g3dn(:)
+real(dp), optional, intent(in) :: grho2(:)
+real(dp), optional, intent(in) :: gup2(:)
+real(dp), optional, intent(in) :: gdn2(:)
+real(dp), optional, intent(in) :: gupdn(:)
+real(dp), optional, intent(in) :: tau(:)
+real(dp), optional, intent(in) :: tauup(:)
+real(dp), optional, intent(in) :: taudn(:)
+real(dp), optional, intent(out) :: ex(:)
+real(dp), optional, intent(out) :: ec(:)
+real(dp), optional, intent(out) :: vx(:)
+real(dp), optional, intent(out) :: vc(:)
+real(dp), optional, intent(out) :: exsr(:)
+real(dp), optional, intent(out) :: vxsr(:)
+real(dp), optional, intent(out) :: vxsrup(:)
+real(dp), optional, intent(out) :: vxsrdn(:)
+real(dp), optional, intent(out) :: v2xsr(:)
+real(dp), optional, intent(out) :: v2xsrup(:)
+real(dp), optional, intent(out) :: v2xsrdn(:)
+real(dp), optional, intent(out) :: vxup(:)
+real(dp), optional, intent(out) :: vxdn(:)
+real(dp), optional, intent(out) :: vcup(:)
+real(dp), optional, intent(out) :: vcdn(:)
+real(dp), optional, intent(out) :: dxdg2(:)
+real(dp), optional, intent(out) :: dxdgu2(:)
+real(dp), optional, intent(out) :: dxdgd2(:)
+real(dp), optional, intent(out) :: dxdgud(:)
+real(dp), optional, intent(out) :: dxdl(:)
+real(dp), optional, intent(out) :: dxdlup(:)
+real(dp), optional, intent(out) :: dxdldn(:)
+real(dp), optional, intent(out) :: dxdtau(:)
+real(dp), optional, intent(out) :: dxdtauup(:)
+real(dp), optional, intent(out) :: dxdtaudn(:)
+real(dp), optional, intent(out) :: dcdg2(:)
+real(dp), optional, intent(out) :: dcdgu2(:)
+real(dp), optional, intent(out) :: dcdgd2(:)
+real(dp), optional, intent(out) :: dcdgud(:)
+real(dp), optional, intent(out) :: dcdl(:)
+real(dp), optional, intent(out) :: dcdlup(:)
+real(dp), optional, intent(out) :: dcdldn(:)
+real(dp), optional, intent(out) :: dcdtau(:)
+real(dp), optional, intent(out) :: dcdtauup(:)
+real(dp), optional, intent(out) :: dcdtaudn(:)
 ! local variables
-real(8) kappa,mu,beta
+real(dp) kappa,mu,beta
 ! local variable for PBE short-range (hybrid HSE)
-real(8) omega_hyb
+real(dp) omega_hyb
 ! automatic arrays
-real(8), allocatable :: ra(:,:)
+real(dp), allocatable :: ra(:,:)
 ! test variables
-real(8) :: rho1, grho1, ex1, vx1, v2xsr1
+real(dp) :: rho1, grho1, ex1, vx1, v2xsr1
 integer :: iflag, i
 !variable for HSE
-real(8), allocatable:: exsrup(:), exsrdn(:)
-real(8) :: t1
+real(dp), allocatable:: exsrup(:), exsrdn(:)
+real(dp) :: t1
 ! exchange id
 integer :: exchange_id
 ! correlation id
@@ -131,8 +146,8 @@ if (allocated(exsrup)) deallocate(exsrup)
 allocate(exsrup(n))
 if (allocated(exsrdn)) deallocate(exsrdn)
 allocate(exsrdn(n))
-exsrup(1:n)=0.d0
-exsrup(1:n)=0.d0
+exsrup(1:n)=0._dp
+exsrup(1:n)=0._dp
 if (n.le.0) then
   write(*,*)
   write(*,'("Error(xcifc): n <= 0 : ",I8)') n
@@ -145,21 +160,21 @@ write(*,*)"(xcifc)xctype:", xctype
 select case(abs(xctype(1)))
 case(1)
 ! No density-derived exchange-correlation energy or potential
-  if (present(ex)) ex(1:n)=0.d0
-  if (present(ec)) ec(1:n)=0.d0
-  if (present(vx)) vx(1:n)=0.d0
-  if (present(vc)) vc(1:n)=0.d0
-  if (present(exsr)) exsr(1:n)=0.d0
-  if (present(vxsr)) vxsr(1:n)=0.d0
-  if (present(vxsrup)) vxup(1:n)=0.d0
-  if (present(vxsrdn)) vxdn(1:n)=0.d0
-  if (present(v2xsr)) v2xsr(1:n)=0.d0
-  if (present(v2xsrup)) v2xsrup(1:n)=0.d0
-  if (present(v2xsrdn)) v2xsrdn(1:n)=0.d0
-  if (present(vxup)) vxup(1:n)=0.d0
-  if (present(vxdn)) vxdn(1:n)=0.d0
-  if (present(vcup)) vcup(1:n)=0.d0
-  if (present(vcdn)) vcdn(1:n)=0.d0
+  if (present(ex)) ex(1:n)=0._dp
+  if (present(ec)) ec(1:n)=0._dp
+  if (present(vx)) vx(1:n)=0._dp
+  if (present(vc)) vc(1:n)=0._dp
+  if (present(exsr)) exsr(1:n)=0._dp
+  if (present(vxsr)) vxsr(1:n)=0._dp
+  if (present(vxsrup)) vxup(1:n)=0._dp
+  if (present(vxsrdn)) vxdn(1:n)=0._dp
+  if (present(v2xsr)) v2xsr(1:n)=0._dp
+  if (present(v2xsrup)) v2xsrup(1:n)=0._dp
+  if (present(v2xsrdn)) v2xsrdn(1:n)=0._dp
+  if (present(vxup)) vxup(1:n)=0._dp
+  if (present(vxdn)) vxdn(1:n)=0._dp
+  if (present(vcup)) vcup(1:n)=0._dp
+  if (present(vcdn)) vcdn(1:n)=0._dp
 case(2)
 ! Perdew-Zunger parameterisation of Ceperley-Alder electron gas
 ! J. Perdew and A. Zunger, Phys. Rev. B 23, 5048 (1981)
@@ -183,7 +198,7 @@ case(3,407)
    .and.present(vc)) then
 ! divide spin-unpolarised density into up and down
     allocate(ra(n,1))
-    ra(1:n,1)=0.5d0*rho(1:n)
+    ra(1:n,1)=0.5_dp*rho(1:n)
     call xc_pwca(n,ra(:,1),ra(:,1),ex,ec,vx,vx,vc,vc)
     deallocate(ra)
   else
@@ -196,8 +211,8 @@ case(4)
    .and.present(vc)) then
     call xc_xalpha(n,rho,ex,vx)
 ! set correlation energy and potential to zero
-    ec(1:n)=0.d0
-    vc(1:n)=0.d0
+    ec(1:n)=0._dp
+    vc(1:n)=0._dp
   else
     goto 10
   end if
@@ -213,7 +228,7 @@ case(5)
    .and.present(vc)) then
 ! divide spin-unpolarised density into up and down
     allocate(ra(n,1))
-    ra(1:n,1)=0.5d0*rho(1:n)
+    ra(1:n,1)=0.5_dp*rho(1:n)
     call xc_vbh(n,ra(:,1),ra(:,1),ex,ec,vx,vx,vc,vc)
     deallocate(ra)
   else
@@ -221,22 +236,22 @@ case(5)
   end if
 case(20,21,22,300,406,408,23)
 ! original PBE kappa
-  kappa=0.804d0
+  kappa=0.804_dp
   if (xctype(1).eq.21) then
 ! Zhang-Yang kappa
-    kappa=1.245d0
+    kappa=1.245_dp
   end if
 ! original PBE mu and beta
-  mu=0.2195149727645171d0
-  beta=0.06672455060314922d0
+  mu=0.2195149727645171_dp
+  beta=0.06672455060314922_dp
   if (xctype(1).eq.22) then
 ! PBEsol parameters
-    mu=10.d0/81.d0
-    beta=0.046d0
+    mu=10._dp/81._dp
+    beta=0.046_dp
   end if
   if (xctype(1).eq.300) then
 ! beta for acPBE
-    mu=0.249d0 
+    mu=0.249_dp 
   end if
 ! Perdew-Burke-Ernzerhof generalised gradient approximation
 ! Phys. Rev. Lett. 77, 3865 (1996); 78, 1396(E) (1997)
@@ -248,7 +263,7 @@ case(20,21,22,300,406,408,23)
    .and.present(vxup).and.present(vxdn).and.present(vcup) &
    .and.present(vcdn)) then
     if (xctype(1)==23) then
-       omega_hyb=0.000001d0 !Test to verify that PBE_SR for small value of omega is equal to PBE
+       omega_hyb=0.000001_dp !Test to verify that PBE_SR for small value of omega is equal to PBE
        call gga_x_wpbeh_spin(n,rhoup,gup,exsrup,vxsrup,v2xsrup,omega_hyb)
        call gga_x_wpbeh_spin(n,rhodn,gdn,exsrdn,vxsrdn,v2xsrdn,omega_hyb)
        call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
@@ -256,13 +271,13 @@ case(20,21,22,300,406,408,23)
        do i=1,n
          t1=rhoup(i)+rhodn(i)
          exsr(i)=(exsrup(i)*rhoup(i)+exsrdn(i)*rhodn(i))/t1 
-         !exsr(i)=0.5d0*(exsrup(i)+exsrdn(i))
+         !exsr(i)=0.5_dp*(exsrup(i)+exsrdn(i))
        enddo
-       !v2xsrup(1:n)=2.d0*v2xsrup(1:n)
-       !v2xsrdn(1:n)=2.d0*v2xsrdn(1:n)
-       ex(1:n)=0.d0
-       vxup(1:n)=0.d0
-       vxdn(1:n)=0.d0
+       !v2xsrup(1:n)=2._dp*v2xsrup(1:n)
+       !v2xsrdn(1:n)=2._dp*v2xsrdn(1:n)
+       ex(1:n)=0._dp
+       vxup(1:n)=0._dp
+       vxdn(1:n)=0._dp
     else if (xctype(1)==408) then
        omega_hyb=input%groundstate%Hybrid%omega
        call gga_x_wpbeh_spin(n,rhoup,gup,exsrup,vxsrup,v2xsrup,omega_hyb)
@@ -282,35 +297,35 @@ case(20,21,22,300,406,408,23)
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
     if (xctype(1)==23) then
-       omega_hyb=0.000001d0 !Test to verify that PBE_SR for small value of omega is equal to PBE
+       omega_hyb=0.000001_dp !Test to verify that PBE_SR for small value of omega is equal to PBE
        call gga_x_wpbeh(n,rho,grho,exsr,vxsr,v2xsr,omega_hyb)
        allocate(ra(n,6))
-       ra(1:n,1)=0.5d0*rho(1:n)
-       ra(1:n,2)=0.5d0*grho(1:n)
-       ra(1:n,3)=0.5d0*g2rho(1:n)
-       ra(1:n,4)=0.25d0*g3rho(1:n)
+       ra(1:n,1)=0.5_dp*rho(1:n)
+       ra(1:n,2)=0.5_dp*grho(1:n)
+       ra(1:n,3)=0.5_dp*g2rho(1:n)
+       ra(1:n,4)=0.25_dp*g3rho(1:n)
        call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
        ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
-       ex(1:n)=0.d0
-       vx(1:n)=0.d0
+       ex(1:n)=0._dp
+       vx(1:n)=0._dp
        deallocate(ra)
     else if (xctype(1)==408) then
        omega_hyb=input%groundstate%Hybrid%omega
        call gga_x_wpbeh(n,rho,grho,exsr,vxsr,v2xsr,omega_hyb)
        allocate(ra(n,6))
-       ra(1:n,1)=0.5d0*rho(1:n)
-       ra(1:n,2)=0.5d0*grho(1:n)
-       ra(1:n,3)=0.5d0*g2rho(1:n)
-       ra(1:n,4)=0.25d0*g3rho(1:n)
+       ra(1:n,1)=0.5_dp*rho(1:n)
+       ra(1:n,2)=0.5_dp*grho(1:n)
+       ra(1:n,3)=0.5_dp*g2rho(1:n)
+       ra(1:n,4)=0.25_dp*g3rho(1:n)
        call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
        ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
        deallocate(ra)
     else
        allocate(ra(n,6))
-       ra(1:n,1)=0.5d0*rho(1:n)
-       ra(1:n,2)=0.5d0*grho(1:n)
-       ra(1:n,3)=0.5d0*g2rho(1:n)
-       ra(1:n,4)=0.25d0*g3rho(1:n)
+       ra(1:n,1)=0.5_dp*rho(1:n)
+       ra(1:n,2)=0.5_dp*grho(1:n)
+       ra(1:n,3)=0.5_dp*g2rho(1:n)
+       ra(1:n,4)=0.25_dp*g3rho(1:n)
        call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
        ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,ra(:,5),vc,ra(:,6))
        deallocate(ra)
@@ -351,26 +366,37 @@ case(100)
     .and.present(vxdn).and.present(vcup).and.present(vcdn).and.present(dxdgu2) &
     .and.present(dxdgd2).and.present(dxdgud).and.present(dcdgu2) &
     .and.present(dcdgd2).and.present(dcdgd2).and.present(dcdgud)) then
-    call libxc_gga_potential(exchange_id, n, rhoup, rhodn, gup2, gdn2, &
+    call libxc_gga_potential(exchange_id, int(n, long_int), rhoup, rhodn, gup2, gdn2, &
                             gupdn, ex, vxup, vxdn, dxdgu2, dxdgd2, dxdgud)
-    call libxc_gga_potential(correlation_id, n, rhoup, rhodn, gup2, gdn2, &
+    call libxc_gga_potential(correlation_id, int(n, long_int), rhoup, rhodn, gup2, gdn2, &
                             gupdn, ec, vcup, vcdn, dcdgu2, dcdgd2, dcdgud)
   ! libxc spin-polarised LDA potential
   else if (present(rhoup).and.present(rhodn).and.present(ex).and.present(ec) &
     .and.present(vxup).and.present(vxdn).and.present(vcup) &
     .and.present(vcdn)) then
-    call libxc_lda_potential(exchange_id, n, rhoup, rhodn, ex, vxup, vxdn)
-    call libxc_lda_potential(correlation_id, n, rhoup, rhodn, ec, vcup, vcdn)
+    call libxc_lda_potential(exchange_id, int(n, long_int), rhoup, rhodn, ex, vxup, vxdn)
+    call libxc_lda_potential(correlation_id, int(n, long_int), rhoup, rhodn, ec, vcup, vcdn)
+  ! libxc spin-unpolarised mGGA potential
+  else if (present(rho).and.present(grho2).and.present(g2rho).and.present(tau).and.present(ex).and.present(ec) &
+    .and.present(vx).and.present(vc).and.present(dxdg2).and.present(dcdg2) & 
+    .and.present(dxdl).and.present(dcdl).and.present(dxdtau).and.present(dcdtau)) then 
+    call libxc_mgga_potential(exchange_id, int(n, long_int), rho, grho2, g2rho, tau, ex, vx, dxdg2, dxdl, dxdtau) 
+    call libxc_mgga_potential(correlation_id, int(n, long_int), rho, grho2, g2rho, tau, ec, vc, dcdg2, dcdl, dcdtau)
+  ! libxc spin-unpolarised TASK functional
+  else if (present(rho).and.present(grho2).and.present(g2rho).and.present(tau).and.present(ex).and.present(ec) &
+    .and.present(vx).and.present(vc).and.present(dxdg2).and.present(dxdl).and.present(dxdtau)) then  
+    call libxc_mgga_potential(exchange_id, int(n, long_int), rho, grho2, g2rho, tau, ex, vx, dxdg2, dxdl, dxdtau) 
+    call libxc_lda_potential(correlation_id, int(n, long_int), rho, ec, vc)
   ! libxc spin-unpolarised GGA potential
   else if (present(rho).and.present(grho2).and.present(ex).and.present(ec) &
     .and.present(vx).and.present(vc).and.present(dxdg2).and.present(dcdg2)) then
-    call libxc_gga_potential(exchange_id, n, rho, grho2, ex, vx, dxdg2)
-    call libxc_gga_potential(correlation_id, n, rho, grho2, ec, vc, dcdg2)
+    call libxc_gga_potential(exchange_id, int(n, long_int), rho, grho2, ex, vx, dxdg2)
+    call libxc_gga_potential(correlation_id, int(n, long_int), rho, grho2, ec, vc, dcdg2)
   ! libxc spin-unpolarised LDA potential
   else if (present(rho).and.present(ex).and.present(ec).and.present(vx) &
     .and.present(vc)) then
-    call libxc_lda_potential(exchange_id, n, rho, ex, vx)
-    call libxc_lda_potential(correlation_id, n, rho, ec, vc)
+    call libxc_lda_potential(exchange_id, int(n, long_int), rho, ex, vx)
+    call libxc_lda_potential(correlation_id, int(n, long_int), rho, ec, vc)
   else
     goto 10
   end if
@@ -382,9 +408,9 @@ case default
 end select
 ! set exchange potential to zero for EXX
 if (xctype(1).le.-2) then
-  if (present(vx)) vx(1:n)=0.d0
-  if (present(vxup)) vxup(1:n)=0.d0
-  if (present(vxdn)) vxdn(1:n)=0.d0
+  if (present(vx)) vx(1:n)=0._dp
+  if (present(vxup)) vxup(1:n)=0._dp
+  if (present(vxdn)) vxdn(1:n)=0._dp
 end if
 return
 10 continue
@@ -423,7 +449,7 @@ integer, intent(in) :: xctype(3)
 character(512), intent(out) :: xcdescr
 integer, intent(out) :: xcspin
 integer, intent(out) :: xcgrad
-real(8), intent(out) :: ex_coef
+real(dp), intent(out) :: ex_coef
 select case(abs(xctype(1)))
 case(1)
   xcdescr='No density-derived exchange-correlation energy or potential'

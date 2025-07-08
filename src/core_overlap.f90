@@ -26,6 +26,7 @@ Subroutine core_overlap
   Use mod_spin, only: nspnfv
   Use modxas, only: preml, ucore, ecore, mj2ml, spj, mj, ncg
   Use mod_hdf5
+  use secular_equation, only: seceqn
 
   ! !DESCRIPTION:
   ! Calculates the overlap between a selected group of core states and the 

@@ -349,7 +349,12 @@ contains
     subroutine expand_epsilon(gq_set_uc, q_set_uc, gq_set_sc, q_set_sc, &
                               reciprocal_lattice, &
                               supercell, eps_uc, eps_sc)
-
+#if _CRAYFTN
+! In Cray compiler 17.0.1 and 18.0.1  the optimizer of the compiler
+! crashes for this function. The following is a compiler directive
+! telling the compiler not to optimize this procedure.
+!DIR$ OPTIMIZE(-O0)
+#endif
         use grid_utils, only: index_column_vector_in_array
         use constants, only: zzero
         use math_utils, only: identity_complex_dp

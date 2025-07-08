@@ -1,50 +1,45 @@
 
 module modgw
-    use gw_io, only: fgw
+    use gw_info, only: fgw
     use mod_core_states
-    use mod_product_basis
-    use mod_gaunt_coefficients
-    use mod_misc_gw
-    use mod_bands
-    use mod_kpointset
-    use mod_frequency
     use mod_dielectric_function
+    use mod_frequency
+    use mod_gaunt_coefficients
+    use mod_kpointset
+    use mod_kqpts       ! original definitions, should be completely replaced by mod_kpointset
+    use mod_misc_gw
+    use mod_product_basis
     use mod_selfenergy
-
-
-    use mod_kqpts       ! original definitions, should be completely replaced by 
-                        ! mod_kpointset
+    use precision, only: dp, i32, str_128
     
-    !use mod_bzintw
-
     implicit none
 
     ! debug info
-    integer(4) :: fdebug
+    integer(i32) :: fdebug
     ! gw results file name
-    character(128) :: fgwh5
-    character(128) :: path, cik
+    character(str_128) :: fgwh5
+    character(str_128) :: path, cik
 
     !-----------------------------------
     ! variables for e-ph coupling calc  
     !-----------------------------------
-    integer(4) :: ibeph 
-    integer(4) :: nbeph 
-    integer(4) :: ibsumeph 
-    integer(4) :: nbsumeph 
-    integer(4) :: nomegeph 
-    integer(4) :: ngridkqtot
-    real   (8) :: efnew, cbm
-    real   (8), allocatable :: g2eph (:) 
+    integer(i32) :: ibeph 
+    integer(i32) :: nbeph 
+    integer(i32) :: ibsumeph 
+    integer(i32) :: nbsumeph 
+    integer(i32) :: nomegeph 
+    integer(i32) :: ngridkqtot
+    real(dp) :: efnew, cbm
+    real(dp), allocatable :: g2eph (:) 
 
     ! Lower band index for GW output
-    integer(4) :: ibgw
+    integer(i32) :: ibgw
     ! Upper band index for GW output
-    integer(4) :: nbgw
+    integer(i32) :: nbgw
     ! Number of bands for gw output      
-    integer(4) :: nbandsgw
+    integer(i32) :: nbandsgw
     ! Number of electrons used in GW
-    real(8)    :: nvelgw   
+    real(dp)     :: nvelgw   
     
     !----------------------------!
     ! frequency grid         !
@@ -64,109 +59,110 @@ module modgw
     !--------------------------------!
     ! BZ integration weights
     !--------------------------------!
-    real(8), allocatable :: ciw(:,:)
-    real(8), allocatable :: kiw(:,:)
-    real(8), allocatable :: kwfer(:,:)
+    real(dp), allocatable :: ciw(:, :)
+    real(dp), allocatable :: kiw(:, :)
+    real(dp), allocatable :: kwfer(:, :)
     
-    complex(8), allocatable :: fnm(:,:,:,:)
-    complex(8), allocatable :: unw(:,:,:,:,:)   
-    complex(8), allocatable :: kcw(:,:,:,:)
+    complex(dp), allocatable, target :: fnm_sum(:, :, :) 
+    complex(dp), allocatable, target :: fnm_tet(:, :, :, :)
+    complex(dp), pointer, contiguous :: fnm(:, :, :)
+    complex(dp), allocatable :: unw(:, :, :, :, :)   
+    complex(dp), allocatable :: kcw(:, :, :, :)
     
     
     !------------------------------------
     ! Memory size of large global arrays
     !------------------------------------
-    real(8) :: msize
+    real(dp) :: msize
     ! byte to Mbyte converter factor 
-    real(8), parameter :: b2mb = 1.d0/1024/1024
+    real(dp), parameter :: b2mb = 1._dp/1024/1024
     
     !--------------------
     ! Matrix block size 
     !--------------------
-    integer(4) :: mblksiz
+    integer(i32) :: mblksiz
     
     !---------!
     ! Timing
     !---------!
-    real(8) :: time_total
-    real(8) :: time_io
+    real(dp) :: time_total
+    real(dp) :: time_io
     
-    real(8) :: time_initgw
-    real(8) :: time_initscf
-    real(8) :: time_initkpt
-    real(8) :: time_initfreq
-    real(8) :: time_initeval
-    real(8) :: time_initmb
+    real(dp) :: time_initgw
+    real(dp) :: time_initscf
+    real(dp) :: time_initkpt
+    real(dp) :: time_initfreq
+    real(dp) :: time_initeval
+    real(dp) :: time_initmb
 
-    real(8) :: time_pmat
-    real(8) :: time_barcmb
-    real(8) :: time_vxc
-    real(8) :: time_bzinit
+    real(dp) :: time_pmat
+    real(dp) :: time_barcmb
+    real(dp) :: time_vxc
+    real(dp) :: time_bzinit
     
-    real(8) :: time_df
-    real(8) :: time_dfhead
-    real(8) :: time_dfwing
-    real(8) :: time_dfbody
-    real(8) :: time_dfinv
+    real(dp) :: time_df
+    real(dp) :: time_dfhead
+    real(dp) :: time_dfwing
+    real(dp) :: time_dfbody
+    real(dp) :: time_dfinv
     
-    real(8) :: time_eprod
-    real(8) :: time_diagsgi
-    real(8) :: time_mpwipw
-    real(8) :: time_micm
-    real(8) :: time_minc
-    real(8) :: time_minm
+    real(dp) :: time_eprod
+    real(dp) :: time_diagsgi
+    real(dp) :: time_mpwipw
+    real(dp) :: time_micm
+    real(dp) :: time_minc
+    real(dp) :: time_minm
     
-    real(8) :: time_selfx
-    real(8) :: time_selfc
+    real(dp) :: time_selfx
+    real(dp) :: time_selfc
     
-    real(8) :: time_rotmb
+    real(dp) :: time_rotmb
       
 contains
 
 !-------------------------------------------------------------------------------      
 
-    subroutine init_timing
-        implicit none
-        time_total = 0.d0
+    subroutine init_timing()
+        time_total = 0._dp
         
-        time_io = 0.d0
+        time_io = 0._dp
         
-        time_initgw = 0.d0
-        time_initscf = 0.d0
-        time_initkpt = 0.d0
-        time_initeval = 0.d0
-        time_initfreq = 0.d0
-        time_initmb = 0.d0
+        time_initgw = 0._dp
+        time_initscf = 0._dp
+        time_initkpt = 0._dp
+        time_initeval = 0._dp
+        time_initfreq = 0._dp
+        time_initmb = 0._dp
         
-        time_pmat = 0.d0
-        time_barcmb = 0.d0
-        time_vxc = 0.d0
-        time_bzinit = 0.d0
+        time_pmat = 0._dp
+        time_barcmb = 0._dp
+        time_vxc = 0._dp
+        time_bzinit = 0._dp
         
-        time_df = 0.d0
-        time_dfhead = 0.d0
-        time_dfwing = 0.d0
-        time_dfbody = 0.d0
-        time_dfinv = 0.d0
+        time_df = 0._dp
+        time_dfhead = 0._dp
+        time_dfwing = 0._dp
+        time_dfbody = 0._dp
+        time_dfinv = 0._dp
         
-        time_eprod = 0.d0
-        time_diagsgi = 0.d0
-        time_mpwipw = 0.d0
-        time_micm = 0.d0
-        time_minc = 0.d0
-        time_minm = 0.d0
+        time_eprod = 0._dp
+        time_diagsgi = 0._dp
+        time_mpwipw = 0._dp
+        time_micm = 0._dp
+        time_minc = 0._dp
+        time_minm = 0._dp
         
-        time_selfx = 0.d0
-        time_selfc = 0.d0
+        time_selfx = 0._dp
+        time_selfc = 0._dp
         
-        time_rotmb = 0.d0
+        time_rotmb = 0._dp
         
     end subroutine
 
 !-------------------------------------------------------------------------------      
     subroutine print_timing
       use modmpi, only: rank
-      implicit none
+
       if (rank==0) then
         call boxmsg(fgw,'=','GW timing info (seconds)') 
 
@@ -197,9 +193,7 @@ contains
         write(fgw, '("     - calcminc", T45,": ", F12.2)') time_minc
         write(fgw, '("     - calcminm", T45,": ", F12.2)') time_minm
         
-        if (input%gw%reduceq) then
-          write(fgw, '("     - genmbrotmat", T45,": ", F12.2)') time_rotmb
-        end if
+        write(fgw, '("     - symmetry", T45,": ", F12.2)') time_rotmb
         
         write(fgw, '("     Self-energy", T45,": ", F12.2)') &
         &  time_selfx+time_selfc

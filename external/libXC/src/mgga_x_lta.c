@@ -1,59 +1,82 @@
 /*
  Copyright (C) 2006-2008 M.A.L. Marques
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
-  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-  
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include <stdlib.h>
-#include <assert.h>
 #include "util.h"
 
-/* Local tau approximation */
-
 #define XC_MGGA_X_LTA          201 /* Local tau approximation of Ernzerhof & Scuseria */
+#define XC_MGGA_X_TLDA         685 /* LDA-type exchange with tau-dependent potential */
+#define XC_MGGA_X_HLTA         698 /* Half-and-half by Lehtola and Marques */
 
-static void 
-func(const XC(func_type) *pt, XC(mgga_work_x_t) *r)
+typedef struct{
+  double ltafrac;
+} mgga_x_lta_params;
+
+static void
+mgga_x_lta_init(xc_func_type *p)
 {
-  /* POW(10.0/(3.0*POW(6.0*M_PI*M_PI, 2.0/3.0)), 4.0/5.0) = (2/C_F)^(4/5) */
-  const FLOAT a1 = 0.297163728291293581339216378935;
-  FLOAT t;
-
-  t  = r->t; /* we use a different definition of t */
-  r->f = a1*POW(t, 4.0/5.0);
-
-  if(r->order < 1) return;
-  
-  r->dfdt = (t > 1e-10) ? a1*4.0/5.0*POW(t, -1.0/5.0) : 0.0;
-
-  if(r->order < 2) return;
-  
-  r->d2fdt2 = (t > 1e-10) ? -a1*4.0/25.0*POW(t, -6.0/5.0) : 0.0;
+  assert(p!=NULL && p->params == NULL);
+  p->params = libxc_malloc(sizeof(mgga_x_lta_params));
 }
 
-#include "work_mgga_x.c"
+#define LTA_N_PAR 1
+static const char  *lta_names[LTA_N_PAR]   = {"_ltafrac"};
+static const char  *lta_desc[LTA_N_PAR]    = {"Fraction of LTA density"};
+static const double lta_values[LTA_N_PAR]  = {1.0};
+static const double tlda_values[LTA_N_PAR] = {0.25};
+static const double hlta_values[LTA_N_PAR] = {0.5};
 
-const XC(func_info_type) XC(func_info_mgga_x_lta) = {
+#include "maple2c/mgga_exc/mgga_x_lta.c"
+#include "work_mgga.c"
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_mgga_x_lta = {
   XC_MGGA_X_LTA,
   XC_EXCHANGE,
   "Local tau approximation",
   XC_FAMILY_MGGA,
-  "M Ernzerhof and G Scuseria, J. Chem. Phys. 111, 911 (1999)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  MIN_DENS, MIN_GRAD, MIN_TAU, MIN_ZETA,
-  NULL, NULL,
-  NULL, NULL,        /* this is not an LDA                   */
-  work_mgga_x,
+  {&xc_ref_Ernzerhof1999_911, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | XC_FLAGS_NEEDS_TAU | MAPLE2C_FLAGS,
+  1e-15,
+  {LTA_N_PAR, lta_names, lta_desc, lta_values, set_ext_params_cpy},
+  mgga_x_lta_init, NULL,
+  NULL, NULL, &work_mgga,
+};
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_mgga_x_tlda = {
+  XC_MGGA_X_TLDA,
+  XC_EXCHANGE,
+  "LDA-type exchange with tau-dependent potential",
+  XC_FAMILY_MGGA,
+  {&xc_ref_Eich2014_224107, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | XC_FLAGS_NEEDS_TAU | MAPLE2C_FLAGS,
+  1e-15,
+  {LTA_N_PAR, lta_names, lta_desc, tlda_values, set_ext_params_cpy},
+  mgga_x_lta_init, NULL,
+  NULL, NULL, &work_mgga,
+};
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_mgga_x_hlta = {
+  XC_MGGA_X_HLTA,
+  XC_EXCHANGE,
+  "Half-and-half meta-LDAized LDA exchange by Lehtola and Marques",
+  XC_FAMILY_MGGA,
+  {&xc_ref_Lehtola2021_943, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | XC_FLAGS_NEEDS_TAU | MAPLE2C_FLAGS,
+  1e-15,
+  {LTA_N_PAR, lta_names, lta_desc, hlta_values, set_ext_params_cpy},
+  mgga_x_lta_init, NULL,
+  NULL, NULL, &work_mgga,
 };

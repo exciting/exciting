@@ -13,12 +13,15 @@
 ! permissions and limitations under the License.
 
 !> @file
-!> This file contains a type to perform FFT using device accelearted
+!> This file contains a type to perform FFT using device accelerated
 !> routines. The user does not need to take care of the device vendor
-!> Supported vendors include NVIDIA, and AMD
+!> Supported vendors include NVIDIA, and AMD. This is the host backend.
 module m_fft_device
     
-    use iso_c_binding
+    use iso_c_binding,    only: c_int, c_ptr, c_null_ptr, c_double_complex, c_float_complex, &
+                                c_int32_t, c_intptr_t, c_double, c_float, c_funptr, c_size_t, &
+                                c_f_pointer, c_char
+                        
     use iso_fortran_env,  only: i32=>int32, r32=>real32, r64=>real64
     use m_device_world_t, only: device_world_t
 
@@ -67,7 +70,6 @@ contains
         logical, intent(in)                         :: is_double 
         type(device_world_t), target, intent(inout) :: world 
 
-        integer(c_int) :: error
         complex(c_double_complex), pointer :: fortran_df_double(:)
         complex(c_float_complex),  pointer :: fortran_df_single(:)
 
@@ -89,7 +91,7 @@ contains
                         n=this%dims, &
                         in=fortran_df_double, &
                         out=fortran_df_double, &
-                        fft_sign=this%fft_sign, &
+                        sign=this%fft_sign, &
                         flags=FFTW_ESTIMATE)
             nullify(fortran_df_double)
         else
@@ -99,7 +101,7 @@ contains
                     n=this%dims, &
                     in=fortran_df_single, &
                     out=fortran_df_single, &
-                    fft_sign=this%fft_sign, &
+                    sign=this%fft_sign, &
                     flags=FFTW_ESTIMATE)
             nullify(fortran_df_single)
         end if
@@ -110,22 +112,25 @@ contains
     !> @param[in,out]      this - the fft_device_t for which to execute the plan
     !> @param[in,out]  df   - the data over which to perform the plan (host ptr). In exit contains the result.
     !> @param[in]      rescale_forward - rescale the FFT in case of forward FFT
-    !> @param[in]      syncronize - force syncronization after the execution of the plan
-    subroutine execute(this, df, rescale_forward, syncronize)
+    !> @param[in]      synchronize - force syncronization after the execution of the plan
+    subroutine execute(this, df, rescale_forward, synchronize)
 
         class(fft_device_t), intent(in)      :: this
         type(c_ptr), intent(inout)           :: df
         logical, optional, intent(in)        :: rescale_forward
-        logical, optional, intent(in)        :: syncronize 
+        logical, optional, intent(in)        :: synchronize 
 
-        logical   :: rescale_forward_local, syncronize_local
-        integer   :: i, df_size 
+        logical   :: rescale_forward_local, synchronize_local
+        integer   :: df_size 
         real(r64) :: norm_cnt
         complex(c_double_complex), pointer :: fortran_df_double(:)
         complex(c_float_complex),  pointer :: fortran_df_single(:)
 
         rescale_forward_local = .true.
-        syncronize_local      = .true.
+        synchronize_local     = .true.
+
+        if (present(rescale_forward)) rescale_forward_local = rescale_forward
+        if (present(synchronize)) synchronize_local = synchronize
 
         df_size  = product(this%dims)
         norm_cnt = 1.0_r64 / df_size

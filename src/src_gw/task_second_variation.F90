@@ -1,8 +1,8 @@
 
 subroutine task_second_variation()
-
+    use mod_bands,   only: evalfv, bandstructure_analysis
     use modmain
-    use modgw,       only: evalqp, evalks, evalfv, ibgw, nbgw, kset, kqset, Gkset, Gkqset, &
+    use modgw,       only: evalqp, evalks, ibgw, nbgw, kset, kqset, Gkset, Gkqset, &
                            eferks, eferqp
     use mod_hybrids, only: hybridhf
     use modmpi,      only: rank
@@ -32,7 +32,7 @@ subroutine task_second_variation()
     allocate(evalks(nstfv,kset%nkpt))
     call readevalqp('EVALQP.OUT', kset, 1, nstfv, evalks, eferks, evalqp, eferqp)
     deallocate(evalks)
-    ! call bandstructure_analysis('QP FV', 1, nstfv, kset%nkpt, evalqp, eferqp)
+    ! call bandstructure_analysis('QP FV', 1, nstfv, kset%nkpt, evalqp, eferqp, .true.)
 
     !---------------------
     ! Read KS SV energies
@@ -49,7 +49,7 @@ subroutine task_second_variation()
                         nstsv, kset%nkpt, evalks, &
                         kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
                         eferks, egap, fermidos)
-    call bandstructure_analysis('KS+SO band structure', 1, nstsv, kset%nkpt, evalks, eferks)
+    call bandstructure_analysis('KS+SO band structure', 1, evalks, eferks, .true.)
 
     !------------------------------------
     ! Solve second-variational problem
@@ -120,7 +120,7 @@ subroutine task_second_variation()
                         nst, kset%nkpt, evalqp(1:nst,:), &
                         kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
                         eferqp, egap, fermidos)
-    call bandstructure_analysis('G0W0+SO band structure', 1, nst, kset%nkpt, evalqp(1:nst,:), eferqp)
+    call bandstructure_analysis('G0W0+SO band structure', 1, evalqp(1:nst,:), eferqp, .true.)
     call putevalqp('EVALQPSV.OUT', kset, 1, nstsv, evalks, eferks, evalqp, eferqp)
 
     ! Calculate state occupation numbers

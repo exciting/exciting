@@ -18,6 +18,7 @@ Defaults = namedtuple('Defaults', ['max_time',        # Time after which a test 
                                    'binary_purempi',  # Exciting executable with mpi parallelisation
                                    'binary_smp',      # Exciting executable with smp parallelisation
                                    'binary_serial',   # Serial exciting executable
+                                   'mpi_command',     # Command used to launch MPI processes (e.g., mpirun)
                                    'default_np',      # Dict of default MPI processes per executable
                                    'default_threads', # Dict of default threads per executable
                                    'exe_ref',         # Executable for running the reference calculations
@@ -39,7 +40,7 @@ settings = Defaults(max_time       = 1800,
                     input_file     = 'input.xml',
                     run_dir        = 'run',
                     ref_dir        = 'ref',
-                    exe_dir        =  os.path.normpath(os.path.join(os.getcwd(), '../bin')),
+                    exe_dir        =  os.path.normpath(os.path.join(os.getcwd(), '../install/bin')),
                     ignored_output = ['STATE.OUT', 'OCC', 'EVEC', 'EVALSV', 'EVALFV', 'APWCMT', 'SYM',
                                       'PMAT', 'FERMISURF', 'RMSDVEFF', 'LOCMT', 'EXCLI', 'SCCLI'],
                     binary_names    = _binary_names,
@@ -47,6 +48,7 @@ settings = Defaults(max_time       = 1800,
                     binary_purempi  = BuildType.purempi,
                     binary_smp      = BuildType.smp,
                     binary_serial   = BuildType.serial,
+                    mpi_command     = "mpirun",
                     default_np      = _default_np,
                     default_threads = _default_threads,
                     exe_ref         = BuildType.serial,

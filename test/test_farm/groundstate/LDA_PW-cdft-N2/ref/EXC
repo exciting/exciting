@@ -1,0 +1,5 @@
+4 !Number of non-zero transitions (next lines: iv, ic, ik, a^lambda_vck)
+4 7 1 0.5  0.0
+4 6 1 0.5  0.0
+5 6 1 0.5  0.0
+5 7 1 0.5  0.0

@@ -2,25 +2,15 @@
 
 ## Copyright (C) 2002 M. Marques, A. Castro, A. Rubio, G. Bertsch
 ##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 2, or (at your option)
-## any later version.
+## This Source Code Form is subject to the terms of the Mozilla Public
+## License, v. 2.0. If a copy of the MPL was not distributed with this
+## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-##
-## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-## 02111-1307, USA.
-##
-## $Id$
 
-noinst_PROGRAMS = xc-get_data xc-consistency xc-regression
-dist_noinst_SCRIPTS = xc-run_testsuite xc-reference.pl
+SUBDIRS = pytest
+
+noinst_PROGRAMS = xc-get_data xc-consistency xc-regression xc-error
+dist_noinst_SCRIPTS = xc-run_testsuite
 TESTS = xc-run_testsuite
 TESTS_ENVIRONMENT = buildir=$(top_builddir)/testsuite
 
@@ -36,6 +26,19 @@ xc_regression_SOURCES = xc-regression.c
 xc_regression_LDADD = -L../src/ -lxc -lm
 xc_regression_CPPFLAGS = -I$(srcdir)/../src/ -I$(top_builddir)/src
 
-dist_noinst_DATA = $(srcdir)/df_repo/*.data $(srcdir)/regression/*.data.bz2
+xc_error_SOURCES = xc-error.c
+xc_error_LDADD = -lm
+xc_error_CPPFLAGS = -I$(srcdir)/../src/ -I$(top_builddir)/src
+
+dist_noinst_DATA = CMakeLists.txt $(srcdir)/df_repo/*.data $(srcdir)/regression/*/*.bz2 $(srcdir)/input/*
+
+# Delete temporary working directories from testsuite runs, if they are older than MINTIME (in minutes)
+MINTIME=600
+# note: beginning line with '-' means ignore the exit status of the command
+clean-local:
+	-if test "x$$tmpdir" == "x"; then tmpdir=/tmp; fi; \
+	find $$tmpdir -name 'libxc*' -type d -mmin +$(MINTIME) -exec rm -rf {} \; 2> /dev/null
 
 CLEANFILES = *~ *.bak
+
+.PHONY: clean clean-local

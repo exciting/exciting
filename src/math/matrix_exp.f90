@@ -1,11 +1,13 @@
-!> Module for advanced matrix operations
+!> Module computing the matrix exponential
 module matrix_exp
   use asserts, only: assert
   use constants, only: zone, zzero
   use math_utils, only: is_hermitian, is_positive_definite
   use general_matrix_multiplication, only: matrix_multiply
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
-  use precision, only: dp
+  use linear_system_positive_definite, only: positive_definite_solve
+  use precision, only: dp, i32
+  use xlapack, only: solve_generalized_hermitian_eigenproblem
 
   implicit none
 
@@ -18,69 +20,56 @@ module matrix_exp
   real(dp), parameter :: tol_default = 1e-6_dp
 
 contains
-  !> This subroutine obtains the exponential \( \exp(\alpha \hat{H}) \) applied
-  !> to a set of vectors: \( \exp(\alpha \hat{H})| v_{j} \rangle \).
-  !> The operator \( \hat{H} \) **must** be hermitian. \( \alpha \)
-  !> is a complex prefactor. The vectors \( | v_{j} \rangle \)
-  !> are described through the expansion coefficients \( C_{j\mu} \)
-  !> in terms of the (L)APW+lo basis.
+  !> Obtain the action of the exponential \( \exp(\alpha \hat{H}) \) operator on
+  !> a set of vectors, yielding \( \exp(\alpha \hat{H})| v_{j} \rangle \), 
+  !> for \(j=1,\ldots, N\). Here, \( \hat{H} \) is a hermitian operator, and \( \alpha \)
+  !> is a complex pre-factor. The vectors \( | v_{j} \rangle \)
+  !> are represented in terms of expansion coefficients \( C_{j\mu} \)
+  !> with respect to a non-orthonormal basis:
   !> \[
   !>    | v_{j} \rangle = \sum_\mu
   !>    C_{j\mu} | \phi_{\mu} \rangle
   !> \]
-  !> Since the basis is not orthonormal, we have
+  !> Given the overlap matrix \( S \), the exponential operation is expressed as: 
   !> \[
-  !>    \exp [ \alpha \hat{H} ]
-  !>    | v_{j} \rangle =
-  !>    \exp [ \alpha S^{-1}H ] \;
-  !>    C_{j} = \sum_{n=0}^{M} \frac{1}{n!}
-  !>    (\alpha S^{-1}H)^n C_{j}
+  !>    \exp [ \alpha \hat{H} ] | v_{j} \rangle =
+  !>    \exp [ \alpha S^{-1}H ] \; C_{j} = \sum_{n=0}^{M} \frac{1}{n!}
+  !>    (\alpha S^{-1}H)^n C_{j}, \quad j=1,\ldots, N
   !> \]
-  !> The exponential here is approximated by a Taylor expansion
-  !> up to the order defined by \( M \) (`order_taylor`)
+  !> Here, the matrix exponential is approximated using a Taylor expansion
+  !> up to the order defined by \( M \) ([[order_taylor]])
   subroutine exp_hermitian_matrix_times_vectors( order_taylor, alpha, &
     & H, S, vectors, tol )
-    !> The order of the Taylor expansion
-    integer, intent(in)           :: order_taylor
-    !> Complex prefactor
-    complex(dp), intent(in)       :: alpha
+    !> The order \( M \) of the Taylor expansion
+    integer(i32), intent(in)       :: order_taylor
+    !> Complex prefactor \( \alpha \)
+    complex(dp), intent(in)        :: alpha
     !> Hermitian matrix \( H \)
-    complex(dp),intent(in)        :: H(:, :)
+    complex(dp),intent(in)         :: H(:, :)
     !> Overlap matrix \( S \): must be positive definite
-    complex(dp),intent(in)        :: S(:, :)
-    !> On entry: the expansion coefficients of
-    !> \( | v_{j} \rangle \) in terms of (L)APW+lo.
-    !> On exit: \( \exp [ \alpha S_{\mathbf{k}}^{-1}H_{\mathbf{k}} ] \;
-    !>    C_{j}\)
-    complex(dp),intent(inout)     :: vectors(:, :)
+    complex(dp),intent(in)         :: S(:, :)
+    !> On entry: the expansion coefficients \( C_{j} \).
+    !> On exit: \( \exp [ \alpha S^{-1}H ] \; C_{j}\).
+    complex(dp),intent(inout)      :: vectors(:, :)
     !> Tolerance to check if matrices are hermitian and positive definite
-    real(dp), intent(in), optional:: tol
-    integer                       :: it, info
-    integer                       :: dim, n_vectors
-    complex(dp), allocatable      :: x(:, :), y(:, :), S_copy(:, :)
+    real(dp), intent(in), optional :: tol
+
+    integer(i32)                  :: it, info, dim_H, n_vectors
+    complex(dp), allocatable      :: x(:, :), y(:, :)
     real(dp)                      :: tolerance
 
-
-
-    ! Allocate arrays
     n_vectors = size( vectors, 2 )
-    dim = size( H, 1 )
+    dim_H = size( H, 1 )
     allocate( x, source = vectors )
-    allocate( y(dim, n_vectors) )
-    allocate( S_copy, source=S )
+    allocate( y(dim_H, n_vectors) )
 
     ! Optional arguments
     tolerance = tol_default
     if( present(tol) ) tolerance = tol
 
     ! Sanity checks
-    ! Check if H is hermitian
-    call assert( is_hermitian( H, tolerance ), 'H is not hermitian' )
-    ! Check if H and vectors have compatible size
-    call assert( size( H, 1 ) == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
-    ! Check if S is positive definite
+    call assert( dim_H == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
     call assert( is_positive_definite( S, tolerance ), 'S is not positive definite' )
-    ! Check if S and vectors have compatible size
     call assert( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
 
     ! Taylor expansion
@@ -88,9 +77,7 @@ contains
       ! Matrix multiplication: y = H*x
       call hermitian_matrix_multiply( H, x, y, tol=tolerance )
       ! Obtain (S^(-1))*y for positive definite S (y will store the solution)
-      call ZPOSV( 'U', dim, n_vectors, S_copy, dim, y, dim, info )
-      ! Restores S_copy to its original value, after being modified by ZPOSV
-      S_copy = S
+      call positive_definite_solve( S, y )
       x = ( alpha/it )*y
       vectors = vectors + x
     end do
@@ -102,8 +89,8 @@ contains
   subroutine exp_general_matrix_times_vectors( order_taylor, alpha, &
     & H, S, vectors, tol )
     !> The order of the Taylor expansion
-    integer, intent(in)           :: order_taylor
-    !> Complex prefactor
+    integer(i32), intent(in)      :: order_taylor
+    !> Complex prefactor \( \alpha \)
     complex(dp), intent(in)       :: alpha
     !> General matrix \( H \)
     complex(dp),intent(in)        :: H(:, :)
@@ -113,28 +100,25 @@ contains
     complex(dp),intent(inout)     :: vectors(:, :)
     !> Tolerance to check if matrices are hermitian and positive definite
     real(dp), intent(in), optional:: tol
-    integer                       :: it, info
-    integer                       :: dim, n_vectors
-    complex(dp), allocatable      :: x(:, :), y(:, :), S_copy(:, :)
+
+    integer(i32)                  :: it, info
+    integer(i32)                  :: dim_H, n_vectors
+    complex(dp), allocatable      :: x(:, :), y(:, :)
     real(dp)                      :: tolerance
 
     ! Allocate arrays
     n_vectors = size( vectors, 2 )
-    dim = size( H, 1 )
+    dim_H = size( H, 1 )
     allocate( x, source = vectors )
-    allocate( y(dim, n_vectors) )
-    allocate( S_copy, source=S )
+    allocate( y(dim_H, n_vectors) )
 
     ! Optional arguments
     tolerance = tol_default
     if( present(tol) ) tolerance = tol
 
     ! Sanity checks
-    ! Check if H and vectors have compatible size
     call assert( size( H, 1 ) == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
-    ! Check if S is positive definite
     call assert( is_positive_definite( S, tolerance ), 'S is not positive definite' )
-    ! Check if S and vectors have compatible size
     call assert( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
 
     ! Taylor expansion
@@ -142,143 +126,112 @@ contains
       ! Matrix multiplication: y = H*x
       call matrix_multiply( H, x, y )
       ! Obtain (S^(-1))*y for positive definite S (y will store the solution)
-      call ZPOSV( 'U', dim, n_vectors, S_copy, dim, y, dim, info )
-      ! Restores S_copy to its original value, after being modified by ZPOSV
-      S_copy = S
+      call positive_definite_solve( S, y )
       x = ( alpha/it )*y
       vectors = vectors + x
     end do
 
   end subroutine
 
-  !> This subroutine obtains the exponential \( \exp(\alpha \hat{H}) \) applied
-  !> to a set of vectors \( | \Psi_{j\mathbf{k}}\rangle \),
-  !> as done in [[exp_hermitianoperator_times_wavefunctions]].
-  !> Here the so-called Houston expansion (see this
-  !> [paper](https://doi.org/10.1103/PhysRevB.89.224305)) is employed.
-  !> We evaluate the exponential operator exactly rather than Taylor-expanding
-  !> it. This can be done by taking into account an auxiliary basis formed by
-  !> the eigenvectors of \( \hat{H} \). This means that we solve
-  !> \( \hat{H}| \psi^0_{i\mathbf{k}}\rangle =
-  !>       \varepsilon_{i\mathbf{k}}| \psi^0_{i\mathbf{k}}\rangle\), which in
-  !> practice is carried out solving:
+  !> Similar to [[exp_hermitian_matrix_times_vectors]], but without employing a Taylor expansion.
+  !> Instead, here the Houston expansion (see this
+  !> [paper](https://doi.org/10.1103/PhysRevB.89.224305)) is used, which allows for an
+  !> exact evaluation of the exponential operator. This is achieved by introducing an 
+  !> auxiliary basis composed of the eigenvectors of \( \hat{H} \). 
+  !> Specifically, the eigenvalue problem
+  !> \( \hat{H}| u^0_{i}\rangle = \varepsilon_{i}| u^0_{i}\rangle\) is solved, where
+  !> \( i \) runs from 1 to \( N \leq \) \( \dim( \hat{H} ) \). Then:
+  !> \[ 
+  !>     \exp(\alpha \hat{H}) = \sum_{i = 1}^{N} 
+  !>     | u^0_i\rangle \exp(\alpha \varepsilon_i) \langle u^0_i |.
+  !> \]
+  !> In practice, the generalized eigenvalue problem is solved:
   !>  \[
-  !>       H_{\mathbf{k}} C^0_{i\mathbf{k}} =
-  !>       \varepsilon_{i\mathbf{k}} S_{\mathbf{k}} C^0_{i\mathbf{k}},
+  !>       H C^0_{i} = \varepsilon_{i} S C^0_{i},
   !>  \]
-  !> where \( C^0_{i\mathbf{k}} \) is an array to represent the expansions
-  !> coefficients of \( | \psi^0_{i\mathbf{k}}\rangle \) in terms of the basis
-  !> \( | \phi_{\mathbf{k}\mu} \rangle \)
-  !>  \[  | \psi^0_{j\mathbf{k}} \rangle = \sum_\mu
-  !>      C^0_{i\mathbf{k}\mu} | \phi_{\mathbf{k}\mu}. \rangle \]
-  !> We now want to write \( | \Psi_{j\mathbf{k}}\rangle \) in terms of
-  !> \( | \psi^0_{i\mathbf{k}}\rangle \)
+  !> where \( C^0_{i} \) represents the expansion coefficients of 
+  !> \( | u^0_{i}\rangle \) in terms of a non-orthonormal basis
+  !> \( | \phi_{\mu} \rangle \) with overlap matrix \(S\).
+  !> \[  
+  !>      | u^0_{j} \rangle = \sum_\mu  C^0_{i\mu} | \phi_{\mu} \rangle. 
+  !> \]
+  !> The goal is to express an arbitrary state \( | v_{j}\rangle \) in terms of
+  !> the eigenstates \( | u^0_{i}\rangle \)
   !>  \[
-  !>      | \Psi_{j\mathbf{k}}\rangle = \sum_i p_{ij\mathbf{k}}
-  !>      | \psi^0_{i\mathbf{k}}\rangle,
+  !>      | v_{j}\rangle = \sum_i p_{ij}
+  !>      | u^0_{i}\rangle,
   !>  \]
-  !> where the projection coefficients are given by \( p_{ij\mathbf{k}} =
-  !> \langle \psi^0_{i\mathbf{k}} | \Psi_{j\mathbf{k}}\rangle \).
-  !> If \( | \Psi_{j\mathbf{k}}\rangle \) are represented by their expansion
-  !> coefficients \( C_{j\mathbf{k}} \), then we calculate
-  !> \( p_{ij\mathbf{k}} \) through
+  !> where the projection coefficients are given by \( p_{ij} =
+  !> \langle u^0_{i} | v_{j}\rangle \):
   !> \[
-  !>     p_{ij\mathbf{k}} = (C^0_{i\mathbf{k}})^\dagger S_{\mathbf{k}}
-  !>                  C_{j\mathbf{k}}.
+  !>     p_{ij} = (C^0_{i})^\dagger S C_{j},
   !> \]
-  !> Since
+  !> Since the action of the exponential operator on an eigenstate is given by:  
   !>  \[
-  !>	   \exp(\alpha \hat{H}) |\psi^0_{i\mathbf{k}}\rangle =
-  !>     \exp [ \alpha S_{\mathbf{k}}^{-1}H_{\mathbf{k}} ] C^0_{i\mathbf{k}} =
-  !>     \mathrm{e}^{\alpha\varepsilon_{i\mathbf{k}}}
-  !>     C^0_{i\mathbf{k}},
+  !>	   \exp(\alpha \hat{H}) |u^0_{i}\rangle =
+  !>     \exp [ \alpha S^{-1}H ] C^0_{i} =
+  !>     \mathrm{e}^{\alpha\varepsilon_{i}} C^0_{i},
   !>  \]
-  !> therefore, coming back to our original task, we have
+  !> the desired operation follows as
   !>  \[
-  !>        \exp(\alpha \hat{H})	| \Psi_{j\mathbf{k}}\rangle
-  !>          =   \sum_i p_{ij\mathbf{k}} \exp(\alpha \hat{H})
-  !>        | \psi^0_{i\mathbf{k}}\rangle =
-  !>       \sum_i  \mathrm{e}^{\alpha\varepsilon_{i\mathbf{k}}}
-  !>      C^0_{i\mathbf{k}} p_{ij\mathbf{k}} =
-  !>      \sum_i \tilde{C}^0_{i\mathbf{k}} p_{ij\mathbf{k}},
+  !>        \exp(\alpha \hat{H})	| v_{j}\rangle
+  !>          =   \sum_i p_{ij} \exp(\alpha \hat{H})
+  !>        | u^0_{i}\rangle =
+  !>       \sum_i  \mathrm{e}^{\alpha\varepsilon_{i}}
+  !>      C^0_{i} p_{ij} =
+  !>      \sum_i \tilde{C}^0_{i} p_{ij},
   !> \]
-  !> where \( \tilde{C}^0_{i\mathbf{k}} =
-  !>          \mathrm{e}^{\alpha\varepsilon_{i\mathbf{k}}}
-  !>           C^0_{i\mathbf{k}}\).
-  subroutine exphouston_hermitian_matrix_times_vectors( alpha, &
-      & H, S, vectors, tol )
-    !> Complex prefactor
-    complex(dp), intent(in)   :: alpha
-    !> Hermitian matrix \( H_{\mathbf{k}} \)
-    complex(dp),intent(in)    :: H(:, :)
-    !> Overlap matrix: must be positive definite
-    complex(dp),intent(in)    :: S(:, :)
+  !> where \( \tilde{C}^0_{i} = \mathrm{e}^{\alpha\varepsilon_{i}}  C^0_{i} \).
+  subroutine exphouston_hermitian_matrix_times_vectors( alpha, H, S, vectors, tol, n_eigs )
+    !> Complex pre-factor \( \alpha \)
+    complex(dp), intent(in) :: alpha
+    !> Hermitian matrix \( H \)
+    complex(dp),intent(in) :: H(:, :)
+    !> Overlap matrix \( S \): must be positive definite
+    complex(dp),intent(in) :: S(:, :)
     !> Refer to [[exp_hermitian_matrix_times_vectors]]
     complex(dp),intent(inout) :: vectors(:, :)
-    !> Tolerance for checking if the matrices are hermitian
-    real(dp), intent(in), optional :: tol
+    !> Tolerance for checking if the matrices are hermitian / positive definite
+    real(dp), optional, intent(in) :: tol
+    !> Number \( N \) of the lowest-lying eigenstates used for the operator expansion
+    integer(i32), optional, intent(in) :: n_eigs
 
-    integer                   :: i, lwork, info, n_eigvals_found
-    integer                   :: n_vectors, dim
-    integer, allocatable      :: ifail(:), iwork(:)
-    real(dp)                  :: tolerance
-    real(dp)                  :: vl, vu
-    real(dp), allocatable     :: eigvals(:)
-    complex(dp), allocatable  :: rwork(:), work(:)
-    complex(dp), allocatable  :: eigvecs(:, :), proj(:, :), aux(:, :)
-    complex(dp), allocatable  :: S_copy(:, :), H_copy(:, :)
+    integer(i32) :: i, n_vectors, matrix_dim, n_expansion
+    real(dp) :: tolerance
+    real(dp), allocatable :: eigenvalues(:)
+    complex(dp), allocatable :: eigenvectors(:, :), proj(:, :), aux(:, :), aux_exp(:, :)
+    complex(dp), allocatable :: S_copy(:, :), H_copy(:, :)
 
     tolerance = tol_default
     if( present(tol) ) tolerance = tol
-    dim = size( H, 1 )
+    matrix_dim = size( H, 1 )
+    n_expansion = matrix_dim
+    if ( present( n_eigs ) ) n_expansion = n_eigs
     n_vectors = size( vectors, 2 )
-    allocate( eigvecs(dim, n_vectors), aux(dim, n_vectors) )
-    allocate( proj(n_vectors, n_vectors) )
-    allocate( S_copy, source=S ) 
-    allocate( H_copy, source=H )
-    allocate( ifail(dim), iwork(5*dim), eigvals(dim), rwork(7*dim) )
 
     ! Sanity checks
-    ! Check if H is hermitian
-    call assert( is_hermitian( H, tolerance ), 'H is not hermitian' )
-    ! Check if H and vectors have compatible size
+    call assert( n_expansion <= matrix_dim, 'more eigenvectors than matrix_dim are requested' )
     call assert( size( H, 1 ) == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
-    ! Check if S is positive definite
     call assert( is_positive_definite( S, tolerance ), 'S is not positive definite' )
-    ! Check if S and vectors have compatible size
     call assert( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
 
-    vl = 0._dp
-    vu = 0._dp
+    allocate( eigenvectors(matrix_dim, n_expansion), aux(matrix_dim, n_vectors) )
+    allocate( proj(n_expansion, n_vectors), aux_exp(matrix_dim, n_expansion), eigenvalues(n_expansion) )
+    allocate( S_copy, source = S ) 
+    allocate( H_copy, source = H )
 
-    ! Obtain the optimum lwork
-    lwork = -1
-    allocate( work(2) )
-    call ZHEGVX( 1, 'V', 'I', 'U', dim, H_copy, dim, S_copy, dim, vl, &
-      & vu, 1, n_vectors, tol, n_eigvals_found, eigvals, eigvecs, dim, &
-      & work, lwork, rwork, iwork, ifail, info )
-    lwork = int( work(1) )
-    deallocate( work )
-    allocate( work(lwork) )
-
-    ! Solve the generalized eigenvalue/eigenvector problem: H*x = lambda*S*x
-    ! We use H_copy and S_copy because ZHEGVX overwrites these matrices
-    call ZHEGVX( 1, 'V', 'I', 'U', dim, H_copy, dim, S_copy, dim, vl, &
-      & vu, 1, n_vectors, tol, n_eigvals_found, eigvals, eigvecs, dim, &
-      & work, lwork, rwork, iwork, ifail, info )
-
-    ! Check if there were problems with the diagonalization
-    call assert( info==0, 'exphouston_hermitianmatrix_times_vectors: problems &
-      & with ZHEGVX, info not zero' )
+    call solve_generalized_hermitian_eigenproblem( H_copy, S_copy, tol, eigenvalues, eigenvectors )
 
     ! Project vectors onto the eigenvectors
     call hermitian_matrix_multiply( S, vectors, aux, tol=tolerance )
-    call matrix_multiply( eigvecs, aux, proj, 'C')
+    call matrix_multiply( eigenvectors, aux, proj, 'C')
 
-    ! Now, scale each eigenvector by the exponential of alpha*eigvals
-    forall( i = 1:n_vectors ) aux(:, i) = zexp( alpha*eigvals(i) )*eigvecs(:, i)
+    ! Scale each eigenvector by the exponential of alpha*eigenvalues
+    do concurrent (i = 1: n_expansion)
+      aux_exp(:, i) = exp( alpha * eigenvalues(i) ) * eigenvectors(:, i)
+    end do
 
-    call matrix_multiply( aux, proj, vectors )
+    call matrix_multiply( aux_exp, proj, vectors )
 
   end subroutine 
 

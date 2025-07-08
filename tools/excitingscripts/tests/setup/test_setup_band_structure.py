@@ -1,45 +1,7 @@
-import pytest
 from excitingscripts.setup.band_structure import setup_band_structure
 
 from excitingtools.exciting_dict_parsers.input_parser import parse_element_xml
 from excitingtools.exciting_obj_parsers.input_xml import parse_input_xml
-from excitingtools.utils.test_utils import MockFile
-
-
-@pytest.fixture
-def input_xml_mock(tmp_path) -> MockFile:
-    """ Mock 'input.xml' data.
-    """
-    input_xml_str = """<?xml version="1.0" ?>
-    <input>
-
-       <title>Diamond</title>
-       
-	   <structure speciespath="/home/exciting/species">
-		  <crystal scale="6.7274">
-			 <basevect>0.0 0.5 0.5</basevect>
-			 <basevect>0.5 0.0 0.5</basevect>
-			 <basevect>0.5 0.5 0.0</basevect>
-		  </crystal>
-		  <species speciesfile="C.xml">
-			 <atom coord="0.0 0.0 0.0"> </atom>
-			 <atom coord="0.25 0.25 0.25"> </atom>
-		  </species>
-	   </structure>
-	   
-       <groundstate
-           ngridk="4 4 4"
-           outputlevel="normal"
-           xctype="GGA_PBE_SOL">
-       </groundstate>
-
-    </input>
-    """
-
-    input_xml_file = tmp_path / "input.xml"
-    input_xml_file.write_text(input_xml_str)
-
-    return MockFile(input_xml_file, input_xml_str)
 
 
 def test_setup_band_structure(input_xml_mock, tmp_path):

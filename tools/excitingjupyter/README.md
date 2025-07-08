@@ -8,12 +8,20 @@ This requires that all functionalities that need custom Python code have to be i
 Examples and instructions can be found in `$EXCITINGROOT/tools/excitingscripts`. 
 Before implementing something new there, check if a more general function already exists and can be adapted.
 
+## Setting Environment Variables 
+
+Before running the tutorials, it is important to set the necessary environment variables.
+To do this, move to the exciting root directory and run the following commands:
+```bash
+cd tools/excitingjupyter
+source set_env_vars.sh
+```
+
 ## Installation
 
 It is highly recommended to use a vitual environment for executing the **``exciting``** tutorials, or building the website source-code. If your virtual environment does not exist yet, you can create it with:
 
 ```bash
-cd $EXCITINGROOT/tools/excitingjupyter
 source create_env.sh
 ```
 

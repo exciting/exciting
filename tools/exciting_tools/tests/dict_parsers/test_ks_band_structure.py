@@ -33,9 +33,9 @@ def band_structure_dat_mock(tmp_path) -> MockFile:
 def test_parse_band_structure_xml():
     band_data = parse_band_structure_xml(band_structure_xml)
 
-    assert (
-        band_data["n_kpts"] == band_data["band_energies"].shape[0]
-    ), "First dim of bands array equals the number of k-sampling points in the band structure"
+    assert band_data["n_kpts"] == band_data["band_energies"].shape[0], (
+        "First dim of bands array equals the number of k-sampling points in the band structure"
+    )
     assert band_data["n_kpts"] == 6, "sampling points per band"
     assert band_data["n_bands"] == 2, "band_structure_xml contains two bands"
 
@@ -79,9 +79,9 @@ def test_parse_band_structure_xml_vertices():
 def test_parse_band_structure_dat(band_structure_dat_mock):
     band_data = parse_band_structure_dat(band_structure_dat_mock.file)
 
-    assert (
-        band_data["n_kpts"] == band_data["band_energies"].shape[0]
-    ), "First dim of bands array equals the number of k-sampling points in the band structure"
+    assert band_data["n_kpts"] == band_data["band_energies"].shape[0], (
+        "First dim of bands array equals the number of k-sampling points in the band structure"
+    )
     assert band_data["n_kpts"] == 6, "sampling points per band"
     assert band_data["n_bands"] == 2, "band_structure_xml contains two bands"
 

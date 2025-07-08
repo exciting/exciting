@@ -66,6 +66,13 @@ module m_common_entities
 
 contains
 
+  function size_el(el) result(n)
+    type(entity_list), intent(in) :: el
+    integer :: n
+
+    n = ubound(el%list, 1)
+  end function size_el
+
   function shallow_copy_entity(ent1) result(ent2)
     type(entity_t), intent(in) :: ent1
     type(entity_t) :: ent2
@@ -112,14 +119,6 @@ contains
       endif
     enddo
   end function getEntityByName
-
-
-  function size_el(el) result(n)
-    type(entity_list), intent(in) :: el
-    integer :: n
-
-    n = ubound(el%list, 1)
-  end function size_el
 
 
   subroutine destroy_entity(ent)

@@ -1,5 +1,7 @@
 !> Expose lapack wrapper
 module xlapack
+  ! lapack workspaces
+  use lapack_workspaces, only: lapack_workspace_complex_dp_t
   ! multiplication
   use vector_multiplication, only: dot_multiply, norm, outer_product
   use general_matrix_multiplication, only: matrix_multiply
@@ -10,6 +12,9 @@ module xlapack
   use qr_factorization, only: qr_column_pivot, xgeqp3, xorgqr, extract_R
   ! diagonalization
   use diagonalize_tridiagonal, only: diagonalize_symtridiag
+  use generalized_hermitian_eigenproblem, only: solve_generalized_hermitian_eigenproblem
+  ! linear solvers
+  use linear_system_ill_defined_safe, only: ill_defined_safe_solve
   ! utils
   use matrix_rank, only: matrix_rank_SVD
   use determinant, only: determinant_LU

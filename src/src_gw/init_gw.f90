@@ -4,6 +4,7 @@ subroutine init_gw()
     use modinput
     use modmain
     use modgw
+    use mod_bands, only: evalfv
     use mod_gaunt_coefficients
     use modmpi
     use modxs, only: isreadstate0
@@ -11,6 +12,7 @@ subroutine init_gw()
     use m_filedel
     use mod_hdf5
     use gw_scf, only: set_gs_solver_threads, thread_consistent_scf
+#include "offload.fpp"
 
     implicit none
     logical :: reducek, is_task_group, is_task_epsilon, is_task_invertEpsilon, is_task_sigmac
@@ -161,6 +163,9 @@ subroutine init_gw()
     call init_dft_eigenvalues()
     call timesec(t1)
     time_initeval = time_initeval+t1-t0
+    
+    ! Upload GS globals to the devices
+    OMP_OFFLOAD target enter data map(always, to: idxas, idxlo, idxlm, lorbl, apword, nlorb, corind, evalcr, evalfv)
 
     ! timing
     call timesec(tend)

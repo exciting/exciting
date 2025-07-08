@@ -1,16 +1,28 @@
-
+!> This module contains related stuff for computing, retrieving and storing Gaunt coefficients in a compact way, as
+!> (mrm): Modified to make getgauntcoef callable from GPUs
 module mod_gaunt_coefficients
 
-    real(8), parameter :: epsangint=1.d-8
-    
+    use precision, only: i32, dp
+#include "offload.fpp"
+    private
+    public  :: calcgauntcoef, getgauntcoef, delete_gaunt_coefficients, epsangint
+
+    real(dp), parameter :: epsangint = 1.0e-8_dp
+
     ! Gaunt's coefficients
-    real(8), allocatable :: gauntcoef(:)
+    real(dp), allocatable :: gauntcoef(:)
+
+    ! Declare here all elements for device exposure
+    OMP_OFFLOAD declare target(gauntcoef)
 
 contains
     
 !---------------------------------------------------------------------------
     subroutine delete_gaunt_coefficients
-        if (allocated(gauntcoef)) deallocate(gauntcoef)
+        if (allocated(gauntcoef)) then 
+          OMP_OFFLOAD target exit data map(delete: gauntcoef)
+          deallocate(gauntcoef)
+        end if
     end subroutine
     
 !-------------------------------------------------------------------------------
@@ -58,14 +70,14 @@ contains
 !
 !!INPUT PARAMETERS:
         implicit none
-        integer(4), intent(in) :: maxj
-      
+        integer(i32), intent(in) :: maxj
+
 !!LOCAL VARIABLES:
-        integer(4) :: i
-        integer(4) :: l1, l2,  l3
-        integer(4) :: m1, m2, m3 
-        integer(4) :: ntot, ngrid
-      
+        integer(i32) :: i
+        integer(i32) :: l1, l2,  l3
+        integer(i32) :: m1, m2, m3
+        integer(i32) :: ntot
+
 !!REVISION HISTORY:
 !
 ! Created: Apr. 2004 by RGA
@@ -75,10 +87,9 @@ contains
 !EOP
 !BOC
         ntot = (maxj+1)*(maxj+2)*(maxj+3)*(16*maxj*maxj+29*maxj+10)/60
-        ngrid = (4*maxj+1)*(4*maxj+1)/3
         if (allocated(gauntcoef)) deallocate(gauntcoef)
-        allocate(gauntcoef(ntot))
-        i = 0      
+        allocate(gauntcoef(ntot), source=0.0_dp)
+        i = 0
         do l1 = 0, maxj
           do l2 = 0, l1
             do l3 = l1-l2, l1+l2
@@ -86,20 +97,17 @@ contains
                 do m2 = 0, l2
                   m3 = m1+m2
                   i = i+1
-                  if (mod(l1+l2+l3,2)==0) then
-                    if (iabs(m3)<=l3) then
+                  if (mod(l1+l2+l3,2)==0 .and. abs(m3)<=l3) then
                       gauntcoef(i) = gaunt_yyy(l3,l1,l2,m3,m1,m2)
-                    else
-                      gauntcoef(i) = 0.0d0
-                    endif
-                  else
-                    gauntcoef(i) = 0.0d0
-                  endif    
+                  endif
                 end do
-              end do 
+              end do
             end do
           end do
         end do
+
+        OMP_OFFLOAD target enter data map(always, to: gauntcoef)
+
         return
     end subroutine
 !EOC
@@ -109,8 +117,8 @@ contains
 !!ROUTINE: getgauntcoef
 !!INTERFACE:
 !
-    real(8) function getgauntcoef(l1,l2,l3,m1,m2)
-!      
+    real(dp) function getgauntcoef(l1,l2,l3,m1,m2)
+!
 !!DESCRIPTION:
 !
 !This function gets the gaunt coefficient $G^{l3,m1+m2}_{l1,l2,m1,m2}$
@@ -139,18 +147,21 @@ contains
 !
 !!INPUT PARAMETERS:
         implicit none
-        integer(4), intent(in) :: l1
-        integer(4), intent(in) :: l2
-        integer(4), intent(in) :: l3
-        integer(4), intent(in) :: m1
-        integer(4), intent(in) :: m2
-      
+        integer(i32), intent(in) :: l1
+        integer(i32), intent(in) :: l2
+        integer(i32), intent(in) :: l3
+        integer(i32), intent(in) :: m1
+        integer(i32), intent(in) :: m2
+
 !!LOCAL VARIABLES:
-        integer(4) :: j1, j2, mj1, mj2
-        integer(4) :: par, ing
-        integer(4) :: ind1, ind2, ind3, ind4
-        real(8) :: fact
+        integer(i32) :: j1, j2, mj1, mj2
+        integer(i32) :: par, ing
+        integer(i32) :: ind1, ind2, ind3, ind4
+        real(dp) :: fact
         logical :: trcond
+
+!! For GPU aware compilation this function is compiled also for the device
+        OMP_OFFLOAD declare target
 
 !!REVISION HISTORY:
 !
@@ -159,9 +170,9 @@ contains
 ! Adapted: Nov 2013 by DIN
 !
 !EOP
-!BOC    
-        par = mod(abs(l1+l2-l3),2)    
-        fact = 1.0d0
+!BOC
+        par = mod(abs(l1+l2-l3),2)
+        fact = 1.0_dp
         trcond = (abs(m1+m2)<=l3).and.(abs(l1-l2)<=l3).and.(l1+l2>=l3)
         if (trcond) then
           if (l1<l2) then
@@ -178,19 +189,19 @@ contains
           if (mj2<0) then
             mj2 = -mj2
             mj1 = -mj1
-            fact = (-2.0d0*par+1.0d0)
+            fact = (-2.0_dp*par + 1.0_dp)
           end if
           ind1 = (16*j1*j1-3*j1-3)*(j1+2)*(j1+1)*j1/60
           ind2 = j1*j2*(j2+1)*(4*j2-1)/3
           ind3 = j2*(j2-1)*(4*j2+7)/6
           ind4 = (2*j1+1)*(j2+1)*(l3-j1+j2)
-          ing = ind1+ind2+ind3+ind4+(j2+1)*(mj1+j1)+mj2+j2+1 
-          getgauntcoef = fact*gauntcoef(ing)   
+          ing = ind1+ind2+ind3+ind4+(j2+1)*(mj1+j1)+mj2+j2+1
+          getgauntcoef = fact*gauntcoef(ing)
         else
-          getgauntcoef = 0.0d0
+          getgauntcoef = 0.0_dp
         endif
         return
     end function
-!EOC      
+!EOC
 
 end module

@@ -1,14 +1,17 @@
 
 subroutine task_emac_q()
-
+    use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use modinput
     use modmain
+    use modmpi, only: mpi_allgatherv_ifc, rank, firstofset, lastofset, barrier, terminate, mpiglobal
     use modgw
     use mod_coulomb_potential, only: barc, delete_coulomb_potential
     use invert_dielectric_function, only: calcinveps
     use modxs, only: symt2
     use mod_mpi_gw
+    use modmpi, only: mpi_allgatherv_ifc, rank, firstofset, lastofset, barrier, terminate, mpiglobal
     use m_getunit
+    use mod_bands, only: numin, nstdf
 
     implicit none
     integer :: iq, iom, iop, fid, im
@@ -28,9 +31,6 @@ subroutine task_emac_q()
     !==========================
     ! Perform initialization
     !==========================
-
-    ! initialize local GW MPI environment
-    call init_mpi_gw
 
     ! prepare GW global data
     call init_gw
@@ -135,7 +135,7 @@ subroutine task_emac_q()
       !========================================
       ! Set v-diagonal MB and reduce its size
       !========================================
-      call setbarcev(input%gw%barecoul%barcevtol)
+      call setbarcev(input%gw%barecoul%barcevtol, Gamma )
       call delete_coulomb_potential
 
       !===================================
@@ -150,7 +150,11 @@ subroutine task_emac_q()
           call calcepsilon_ppm(iq,iomstart,iomend)
 
         case default
-          call calcepsilon(iq,iomstart,iomend)
+          call calcepsilon(iq, epsilon_indexes( &
+                          indexes_parallelization( 1, kqset%nkpt, 1, kqset%nkpt ), &
+                          indexes_parallelization( numin, nstdf, numin, nstdf ), &
+                          indexes_parallelization( iomstart, iomend, iomstart, iomend ) ) &
+                          )
           !================================
           ! Invert the dielectric function
           !================================
@@ -177,7 +181,6 @@ subroutine task_emac_q()
 
       ! clean unused data
       call delete_dielectric_function(Gamma)
-      if (allocated(fnm)) deallocate(fnm)
       if (allocated(mpwipw)) deallocate(mpwipw)
       if (allocated(barc)) deallocate(barc)
 
@@ -197,7 +200,7 @@ subroutine task_emac_q()
       vq_path(i) = v2(1)**2+v2(2)**2+v2(3)**2
     end do
 
-    if (myrank==0) then
+    if (rank==0) then
       write(fgw,*)
       write(fgw,*) 'Info(task_emac_q): '
       write(fgw,*) '  Averaged macroscopic dielectric function with and without local field'
@@ -213,7 +216,7 @@ subroutine task_emac_q()
       end do
       close(fid)
       10 format(7F12.4)
-    end if ! myrank
+    end if ! rank
 
     deallocate(iq_path)
     deallocate(vq_path)

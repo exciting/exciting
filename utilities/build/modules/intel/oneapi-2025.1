@@ -1,0 +1,54 @@
+#%Module
+module-whatis    "Setup intel oneapi toolkit 2025.1"
+conflict intel impi mpi intel-oneapi
+setenv VTUNE_PROFILER_2025_DIR {/usr/global/intel-oneapi-2025.1/vtune/2025.1};
+setenv CLASSPATH {/usr/global/intel-oneapi-2025.1/mpi/2021.15/share/java/mpi.jar};
+setenv CMPLR_ROOT {/usr/global/intel-oneapi-2025.1/compiler/2025.1};
+setenv DAL_MAJOR_BINARY {3};
+setenv LIBRARY_PATH {/usr/global/intel-oneapi-2025.1/tcm/1.3/lib:/usr/global/intel-oneapi-2025.1/umf/0.10/lib:/usr/global/intel-oneapi-2025.1/tbb/2022.1/env/../lib/intel64/gcc4.8:/usr/global/intel-oneapi-2025.1/pti/0.11/lib:/usr/global/intel-oneapi-2025.1/mpi/2021.15/lib:/usr/global/intel-oneapi-2025.1/mkl/2025.1/lib:/usr/global/intel-oneapi-2025.1/ishmem/1.3/lib:/usr/global/intel-oneapi-2025.1/ippcp/2025.1/lib/:/usr/global/intel-oneapi-2025.1/ipp/2022.1/lib:/usr/global/intel-oneapi-2025.1/dnnl/2025.1/lib:/usr/global/intel-oneapi-2025.1/dal/2025.4/lib:/usr/global/intel-oneapi-2025.1/compiler/2025.1/lib:/usr/global/intel-oneapi-2025.1/ccl/2021.15/lib/};
+setenv IPPCRYPTOROOT {/usr/global/intel-oneapi-2025.1/ippcp/2025.1};
+setenv DAL_MINOR_BINARY {0};
+setenv IPPCP_TARGET_ARCH {intel64};
+setenv CPATH {/usr/global/intel-oneapi-2025.1/umf/0.10/include:/usr/global/intel-oneapi-2025.1/tbb/2022.1/env/../include:/usr/global/intel-oneapi-2025.1/pti/0.11/include:/usr/global/intel-oneapi-2025.1/mpi/2021.15/include:/usr/global/intel-oneapi-2025.1/mkl/2025.1/include:/usr/global/intel-oneapi-2025.1/ishmem/1.3/include:/usr/global/intel-oneapi-2025.1/ippcp/2025.1/include:/usr/global/intel-oneapi-2025.1/ipp/2022.1/include:/usr/global/intel-oneapi-2025.1/dpl/2022.8/include:/usr/global/intel-oneapi-2025.1/dpcpp-ct/2025.1/include:/usr/global/intel-oneapi-2025.1/dnnl/2025.1/include:/usr/global/intel-oneapi-2025.1/dev-utilities/2025.1/include:/usr/global/intel-oneapi-2025.1/dal/2025.4/include:/usr/global/intel-oneapi-2025.1/dal/2025.4/include/dal:/usr/global/intel-oneapi-2025.1/ccl/2021.15/include};
+setenv FI_PROVIDER_PATH {/usr/global/intel-oneapi-2025.1/mpi/2021.15/opt/mpi/libfabric/lib/prov:/usr/lib64/libfabric};
+setenv VTUNE_PROFILER_DIR {/usr/global/intel-oneapi-2025.1/vtune/2025.1};
+setenv ISHMEM_ROOT {/usr/global/intel-oneapi-2025.1/ishmem/1.3};
+setenv DIAGUTIL_PATH {/usr/global/intel-oneapi-2025.1/dpcpp-ct/2025.1/etc/dpct/sys_check/sys_check.sh:/usr/global/intel-oneapi-2025.1/compiler/2025.1/etc/compiler/sys_check/sys_check.sh};
+setenv CCL_ROOT {/usr/global/intel-oneapi-2025.1/ccl/2021.15};
+setenv UMF_ROOT {/usr/global/intel-oneapi-2025.1/umf/0.10};
+setenv ONEAPI_ROOT {/usr/global/intel-oneapi-2025.1};
+setenv Pti_DIR {/usr/global/intel-oneapi-2025.1/pti/0.11/lib/cmake/pti};
+setenv OCL_ICD_FILENAMES {/usr/global/intel-oneapi-2025.1/compiler/2025.1/lib/libintelocl.so};
+setenv NLSPATH {/usr/global/intel-oneapi-2025.1/compiler/2025.1/lib/compiler/locale/%l_%t/%N};
+prepend-path PATH {/usr/global/intel-oneapi-2025.1/advisor/2025.1/bin64};
+prepend-path PATH {/usr/global/intel-oneapi-2025.1/compiler/2025.1/bin};
+prepend-path PATH {/usr/global/intel-oneapi-2025.1/debugger/2025.1/opt/debugger/bin};
+prepend-path PATH {/usr/global/intel-oneapi-2025.1/dev-utilities/2025.1/bin};
+prepend-path PATH {/usr/global/intel-oneapi-2025.1/dpcpp-ct/2025.1/bin};
+prepend-path PATH {/usr/global/intel-oneapi-2025.1/ishmem/1.3/bin};
+prepend-path PATH {/usr/global/intel-oneapi-2025.1/mkl/2025.1/bin};
+prepend-path PATH {/usr/global/intel-oneapi-2025.1/mpi/2021.15/bin};
+prepend-path PATH {/usr/global/intel-oneapi-2025.1/vtune/2025.1/bin64};
+setenv TBBROOT {/usr/global/intel-oneapi-2025.1/tbb/2022.1/env/..};
+setenv MANPATH {/usr/global/intel-oneapi-2025.1/mpi/2021.15/share/man:/usr/global/intel-oneapi-2025.1/debugger/2025.1/share/man:/usr/global/intel-oneapi-2025.1/compiler/2025.1/share/man:};
+setenv DPL_ROOT {/usr/global/intel-oneapi-2025.1/dpl/2022.8};
+setenv DNNLROOT {/usr/global/intel-oneapi-2025.1/dnnl/2025.1};
+setenv IPPROOT {/usr/global/intel-oneapi-2025.1/ipp/2022.1};
+setenv TCM_ROOT {/usr/global/intel-oneapi-2025.1/tcm/1.3};
+setenv INFOPATH {/usr/global/intel-oneapi-2025.1/debugger/2025.1/share/info};
+setenv MKLROOT {/usr/global/intel-oneapi-2025.1/mkl/2025.1};
+setenv DALROOT {/usr/global/intel-oneapi-2025.1/dal/2025.4};
+setenv CCL_CONFIGURATION {cpu_gpu_dpcpp};
+setenv INTEL_PYTHONHOME {/usr/global/intel-oneapi-2025.1/debugger/2025.1/opt/debugger};
+setenv SETVARS_COMPLETED {1};
+setenv IPP_TARGET_ARCH {intel64};
+setenv ADVISOR_2025_DIR {/usr/global/intel-oneapi-2025.1/advisor/2025.1};
+setenv GDB_INFO {/usr/global/intel-oneapi-2025.1/debugger/2025.1/share/info/};
+setenv I_MPI_ROOT {/usr/global/intel-oneapi-2025.1/mpi/2021.15};
+setenv LD_LIBRARY_PATH {/usr/global/intel-oneapi-2025.1/tcm/1.3/lib:/usr/global/intel-oneapi-2025.1/umf/0.10/lib:/usr/global/intel-oneapi-2025.1/tbb/2022.1/env/../lib/intel64/gcc4.8:/usr/global/intel-oneapi-2025.1/pti/0.11/lib:/usr/global/intel-oneapi-2025.1/mpi/2021.15/opt/mpi/libfabric/lib:/usr/global/intel-oneapi-2025.1/mpi/2021.15/lib:/usr/global/intel-oneapi-2025.1/mkl/2025.1/lib:/usr/global/intel-oneapi-2025.1/ishmem/1.3/lib:/usr/global/intel-oneapi-2025.1/ippcp/2025.1/lib/:/usr/global/intel-oneapi-2025.1/ipp/2022.1/lib:/usr/global/intel-oneapi-2025.1/dnnl/2025.1/lib:/usr/global/intel-oneapi-2025.1/debugger/2025.1/opt/debugger/lib:/usr/global/intel-oneapi-2025.1/dal/2025.4/lib:/usr/global/intel-oneapi-2025.1/compiler/2025.1/opt/compiler/lib:/usr/global/intel-oneapi-2025.1/compiler/2025.1/lib:/usr/global/intel-oneapi-2025.1/ccl/2021.15/lib/};
+setenv CMAKE_PREFIX_PATH {/usr/global/intel-oneapi-2025.1/tbb/2022.1/env/..:/usr/global/intel-oneapi-2025.1/pti/0.11/lib/cmake/pti:/usr/global/intel-oneapi-2025.1/mkl/2025.1/lib/cmake:/usr/global/intel-oneapi-2025.1/ipp/2022.1/lib/cmake/ipp:/usr/global/intel-oneapi-2025.1/dpl/2022.8/lib/cmake/oneDPL:/usr/global/intel-oneapi-2025.1/dnnl/2025.1/lib/cmake:/usr/global/intel-oneapi-2025.1/dal/2025.4:/usr/global/intel-oneapi-2025.1/compiler/2025.1:/usr/global/intel-oneapi-2025.1/ccl/2021.15/lib/cmake/oneCCL};
+setenv PYTHONPATH {/usr/global/intel-oneapi-2025.1/advisor/2025.1/pythonapi};
+setenv APM {/usr/global/intel-oneapi-2025.1/advisor/2025.1/perfmodels};
+setenv PKG_CONFIG_PATH {/usr/global/intel-oneapi-2025.1/vtune/2025.1/include/pkgconfig/lib64:/usr/global/intel-oneapi-2025.1/tbb/2022.1/env/../lib/pkgconfig:/usr/global/intel-oneapi-2025.1/mpi/2021.15/lib/pkgconfig:/usr/global/intel-oneapi-2025.1/mkl/2025.1/lib/pkgconfig:/usr/global/intel-oneapi-2025.1/ippcp/2025.1/lib/pkgconfig:/usr/global/intel-oneapi-2025.1/dpl/2022.8/lib/pkgconfig:/usr/global/intel-oneapi-2025.1/dnnl/2025.1/lib/pkgconfig:/usr/global/intel-oneapi-2025.1/dal/2025.4/lib/pkgconfig:/usr/global/intel-oneapi-2025.1/compiler/2025.1/lib/pkgconfig:/usr/global/intel-oneapi-2025.1/ccl/2021.15/lib/pkgconfig/:/usr/global/intel-oneapi-2025.1/advisor/2025.1/include/pkgconfig/lib64:};
+setenv CCL_CONFIGURATION_PATH {};
+

@@ -1,7 +1,8 @@
 module m_sax_operate
 
 #ifndef DUMMYLIB
-  use m_common_error, only: FoX_error
+  use m_common_error, only: FoX_error, in_error
+  use FoX_common, only : str_vs
 
   use m_sax_reader, only: open_file, close_file
   use m_sax_parser, only: sax_parser_init, sax_parser_destroy, sax_parse
@@ -12,12 +13,15 @@ module m_sax_operate
   implicit none
   private
 
+  integer, parameter :: SAX_OPEN_ERROR = 1001
+
   public :: xml_t
   public :: open_xml_file
   public :: open_xml_string
   public :: close_xml_t
   public :: parse
   public :: stop_parser
+  public :: SAX_OPEN_ERROR
 
 contains
 
@@ -33,11 +37,14 @@ contains
 
     call open_file(xt%fb, file=trim(file), iostat=i, lun=lun, es=xt%fx%error_stack)
     if (present(iostat)) then
+      if (in_error(xt%fx%error_stack)) i = SAX_OPEN_ERROR
       iostat = i
       if (i/=0) return
     else
       if (i/=0) &
         call FoX_error("Error opening file in open_xml_file")
+      if (in_error(xt%fx%error_stack)) & 
+        call FoX_error(str_vs(xt%fx%error_stack%stack(1)%msg))
     endif
 
     if (i==0) call sax_parser_init(xt%fx, xt%fb)

@@ -1,31 +1,34 @@
 
-subroutine qdepwsum(iq,iomstart,iomend,ndim)
-
-    use modinput
-    use modmain
-    use modgw
+subroutine qdepwsum(iq, ik, iomstart, iomend, ndim)
+    use constants, only: zi
+    use mod_atoms, only: idxas
+    use mod_bands, only: evalfv, nomax, occfv
+    use mod_core_states, only: corind
+    use mod_corestate, only: evalcr
+    use modinput, only: input
+    use modgw, only: fnm_sum, freq, kqset, kset, time_bzinit
+    use precision, only: dp, i32
 
     implicit none
-    integer(4), intent(in) :: iq
-    integer(4), intent(in) :: iomstart, iomend
-    integer(4), intent(in) :: ndim
 
-    integer(4) :: iom, n, m
-    integer(4) :: ik, jk, ikp, jkp
-    integer(4) :: ia, is, ias, ic, icg
-    real(8)    :: de, wkp, ene, occ, eta, ff
-    complex(8) :: z1, z2, sfact
-    real(8)    :: tstart, tend
-    complex(8), allocatable :: om(:)
+    integer(i32), intent(in) :: iq
+    !> k-point index
+    integer(i32), intent(in) :: ik
+    integer(i32), intent(in) :: iomstart, iomend
+    integer(i32), intent(in) :: ndim
+    
+    integer(i32) :: iom, n, m
+    integer(i32) :: jk, ikp, jkp
+    integer(i32) :: ia, is, ias, ic, icg
+    real(dp)     :: de, wkp, ene, occ, eta, ff
+    complex(dp)  :: z1, z2, sfact
+    real(dp)     :: tstart, tend
+    complex(dp), allocatable :: om(:)
 
     call timesec(tstart)
 
     ! spin degeneracy
-    sfact = 2.d0
-
-    if (allocated(fnm)) deallocate(fnm)
-    allocate(fnm(1:ndim,numin:nstdf,iomstart:iomend,1:kqset%nkpt))
-    fnm(:,:,:,:) = zzero
+    sfact = 2.0_dp
 
     if (allocated(om)) deallocate(om)
     allocate(om(iomstart:iomend))
@@ -41,57 +44,40 @@ subroutine qdepwsum(iq,iomstart,iomend,ndim)
         stop 'Not supported option!'
     end select
 
-    wkp = 1.0d0 / dble(kqset%nkpt)
+    wkp = 1.0_dp / dble(kqset%nkpt)
 
-    do ik = 1, kqset%nkpt
-      jk  = kqset%kqid(ik,iq)
-      ikp = kset%ik2ikp(ik)
-      jkp = kset%ik2ikp(jk)
+    jk  = kqset%kqid(ik,iq)
+    ikp = kset%ik2ikp(ik)
+    jkp = kset%ik2ikp(jk)
 
-      do n = 1, ndim
+    do n = 1, ndim
+      if (n <= nomax) then
+        ene = evalfv(n,ikp)
+        occ = occfv(n,ikp)/2.0_dp
+      else
+        icg = n - nomax
+        is  = corind(icg,1)
+        ia  = corind(icg,2)
+        ic  = corind(icg,3)
+        ias = idxas(ia,is)
+        ene = evalcr(ic,ias)
+        occ = 1.0_dp
+      end if
 
-        if (n <= nomax) then
-          ene = evalfv(n,ikp)
-          occ = occfv(n,ikp)/2.d0
-        else
-          icg = n - nomax
-          is  = corind(icg,1)
-          ia  = corind(icg,2)
-          ic  = corind(icg,3)
-          ias = idxas(ia,is)
-          ene = evalcr(ic,ias)
-          occ = 1.d0
-        end if
+      do m = lbound( fnm_sum, 2 ), ubound( fnm_sum, 2 )
+        do iom = iomstart, iomend
+          ff = occ * ( 1.0_dp - occfv(m,jkp)/2.0_dp )
+          de = evalfv(m,jkp) - ene
+          z1 = om(iom) - de + zi*eta
+          z2 = om(iom) + de - zi*eta
+          fnm_sum(n, m, iom) = sfact * ff * (1.0_dp/z1 - 1.0_dp/z2) * wkp
+        end do ! iom
+      end do ! m
 
-        do m = numin, nstdf
+    end do ! n
 
-          do iom = iomstart, iomend
-            ff = occ * ( 1.d0 - occfv(m,jkp)/2.d0 )
-            de = evalfv(m,jkp) - ene
-            z1 = om(iom) - de + zi*eta
-            z2 = om(iom) + de - zi*eta
-            fnm(n,m,iom,ik) = sfact * ff * (1.d0/z1 - 1.d0/z2) * wkp
-          end do ! iom
-
-        end do ! m
-
-      end do ! n
-
-    end do ! ik
 
     deallocate(om)
-
-    if (.false.) then
-      iom = 1
-      do ik = 1, kqset%nkpt
-        write(*,*) 'iq, ik = ', iq, ik
-        do n = 1, nomax
-        do m = numin, nstdf
-          write(*,'(2i4,2f12.6)') n, m, fnm(n,m,iom,ik)
-        end do
-        end do
-      end do
-    end if
 
     call timesec(tend)
     time_bzinit = time_bzinit+tend-tstart

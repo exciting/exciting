@@ -4,52 +4,34 @@
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
+!> The file where the (second-variational) eigenvectors are stored is `EVECSV.OUT`.
+!>
+!> It is a direct-access binary file. Its record length can be determined
+!> from the array sizes and data type information.
+!>
+!> One record of this file has the following structure:
+!>
+!> \[
+!> (k_{\rm lat},\; N_{\rm stsv},\; \Phi).
+!> \]
+!>
+!> Where:
+!> - **k\_lat** : k-point in lattice coordinates
+!> - **N\_stsv** : number of second-variational states (excluding core states)
+!> - **\Phi** :  the (second-variational) eigenvector array
 !
-!
-!BOP
-! !ROUTINE: getevecsv
-! !INTERFACE:
-!
+! !REVISION HISTORY:
+!   Documentation added, Dec 2009 (S. Sagmeister)
 Subroutine getevecsv (vpl, evecsv)
-! !USES:
       Use modinput
       Use modmpi
       Use mod_eigenvalue_occupancy, only: nstfv, nstsv
       Use mod_names, only: filetag_evecsv
       Use mod_kpoint, only: vkl_ptr, nkpt
       Use mod_symmetry, only: lspnsymc, symlatc
-! !DESCRIPTION:
-!   The file where the (second-variational) eigenvectors are stored is
-!   {\tt EVECSV.OUT}.
-!   It is a direct-access binary file, the record length of which can be
-!   determined
-!   with the help of the array sizes and data type information.
-!   One record of this file has the following structure
-!
-!   \begin{tabular}{|l|l|l|}
-!   \hline
-!   $k_{\rm lat}$ & $N_{\rm stsv}$ & $\Phi$ \\
-!   \hline
-!   \end{tabular}\newline\newline
-!   The following table explains the parts of the record in more detail
-!
-!   \begin{tabular}{|l|l|l|l|}
-!   \hline
-!   name & type & shape & description\\
-!   \hline \hline
-!   $k_{\rm lat}$ & real(8) & 3 & k-point in lattice coordinates \\ \hline
-!   $N_{\rm stsv}$ & integer & 1 & number of (second-variational) states \\
-!    &  &  & (without core states) \\ \hline
-!   $\Phi$ & complex(8) & $N_{\rm stsv}\times N_{\rm stsv}$ &
-!         (second-variational) eigenvector array \\
-!   \hline
-!   \end{tabular}\newline\newline
-!
-! !REVISION HISTORY:
-!   Documentation added, Dec 2009 (S. Sagmeister)
-!EOP
-!BOC
+      Use svlo, only: get_num_of_basis_functions_sv 
       Implicit None
+      
 ! arguments
       Real (8), Intent (In) :: vpl (3)
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
@@ -57,7 +39,7 @@ Subroutine getevecsv (vpl, evecsv)
       Integer :: isym, lspn, ik, ist, i
       Integer :: recl, nstsv_
       Real (8) :: vkl_ (3), det, v (3), th, t1
-      Complex (8) su2 (2, 2), zt1, zt2
+      Complex (8) :: su2 (2, 2), zt1, zt2
       Character (256) :: filetag
       Character (256), External :: outfilenamestring
 !<chm>
@@ -67,7 +49,8 @@ Subroutine getevecsv (vpl, evecsv)
 #ifdef XS
   ! added feature to access arrays for only a subset of bands
       Complex (8), Allocatable :: evecsv_ (:, :)
-#endif
+#endif 
+      Integer :: n_basis_functions_sv  
 ! find the k-point number
       Call findkpt (vpl, isym, ik)
 ! index to global spin rotation in lattice point group
@@ -156,28 +139,28 @@ Subroutine getevecsv (vpl, evecsv)
       If (lspn .Eq. 1) Return
 ! if eigenvectors are spin-unpolarised return
       If ( .Not. associated(input%groundstate%spin)) Return
+
+      ! Get the number of basis functions in the second-variational spin space.
+      ! This depends on the basis sets used for each spin channel, and it can
+      ! change depending on the system and the chosen cutoffs.
+      n_basis_functions_sv = get_num_of_basis_functions_sv()  
+
 ! find the SU(2) representation of the spin rotation matrix
       Call rotaxang (input%structure%epslat, symlatc(:, :, lspn), det, &
      & v, th)
       Call axangsu2 (v, th, su2)
 ! apply SU(2) symmetry matrix to second-variational states
       Do i = 1, nstsv
-         Do ist = 1, nstfv
-            zt1 = evecsv (ist, i)
-            zt2 = evecsv (ist+nstfv, i)
-            evecsv (ist, i) = su2 (1, 1) * zt1 + su2 (1, 2) * zt2
-            evecsv (ist+nstfv, i) = su2 (2, 1) * zt1 + su2 (2, 2) * zt2
+         Do ist = 1, n_basis_functions_sv  
+          evecsv(ist : ist+n_basis_functions_sv, i) = matmul(su2, evecsv(ist : ist+n_basis_functions_sv, i))
          End Do
       End Do
       Return
 End Subroutine
-!EOC
 
 Module m_getevecsvr
       Implicit None
 Contains
-!
-!
       Subroutine getevecsvr (fname, isti, istf, vpl, evecsv)
          Use modmain
          Implicit None

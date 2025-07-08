@@ -1,17 +1,19 @@
 
 subroutine task_evalqp()
-
-    use modinput
-    use modmain
-    use modgw
+    use mod_bands, only: evalfv, bandstructure_analysis
     use mod_frequency
     use mod_hdf5
-    use mod_mpi_gw
-    use m_getunit
-    use mod_vxc, only: vxcnn, read_vxcnn
+    use mod_vxc, only: vxcnn, read_vxcnn, deallocate_vxcnn
+    use modinput
+    use modgw
+    use modmain
+    use modmpi, only: rank
+    use quasiparticle_energies, only: write_qp_energies_text_format
+    use precision, only: dp
+    
     implicit none
     ! local variables
-    integer :: ikp, ik, ik_, ie, ie_, fid, recl
+    integer :: ikp, ik, ie
     real(8) :: egap
     character(20) :: s1, s2, v(3)
     logical :: reducek
@@ -33,11 +35,9 @@ subroutine task_evalqp()
     &                      input%gw%freqgrid%freqmin, &
     &                      input%gw%freqgrid%freqmax)
 
-    if (myrank==0) then
+    if (rank==0) then
 
       ! allocate the arrays
-
-      allocate(vxcnn(ibgw:nbgw,kset%nkpt))
       call init_selfenergy(ibgw,nbgw,kset%nkpt)
 
       ! real frequency grid
@@ -65,7 +65,7 @@ subroutine task_evalqp()
       if (allocated(evalfv)) deallocate(evalfv)
       allocate(evalfv(ibgw:nbgw,kset%nkpt))
       evalfv(ibgw:nbgw,:) = evalks(ibgw:nbgw,:)
-      call read_vxcnn()
+      call read_vxcnn('binary')
       call readselfx()
       call readselfc()
 
@@ -75,8 +75,7 @@ subroutine task_evalqp()
       &                   nbandsgw, kset%nkpt, evalks(ibgw:nbgw,:), &
       &                   kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
       &                   efermi, egap, fermidos)
-      call bandstructure_analysis('KS', ibgw, nbgw, kset%nkpt, &
-                                  evalks(ibgw:nbgw,:), efermi)
+      call bandstructure_analysis('KS', ibgw, evalks(ibgw:nbgw,:), efermi, .true.)
 
       !======================================
       ! Calculate the quasiparticle energies
@@ -88,13 +87,9 @@ subroutine task_evalqp()
       !------------------------------------------------------
       ! Write quasi-particle energies to file
       !------------------------------------------------------
-
-      ! Set KS so Efermi is 0
-      evalks(ibgw:nbgw,:) = evalks(ibgw:nbgw,:) - efermi
-
-      call write_qp_energies('EVALQP.DAT')
-      call bandstructure_analysis('G0W0',ibgw,nbgw,kset%nkpt,&
-      &                            evalqp(ibgw:nbgw,:),eferqp)
+      call write_qp_energies_text_format( [(ik, ik=1,kset%nkpt)], kset%vkl, kset%wkpt, &
+        ibgw, evalks, evalqp, real( vxcnn%diag_elements(ibgw:, :), dp ), selfex, sigc, znorm )
+      call bandstructure_analysis('G0W0',ibgw,evalqp(ibgw:nbgw,:),eferqp, .true.)
 
       !----------------------------------------
       ! Save QP energies into binary file
@@ -103,10 +98,10 @@ subroutine task_evalqp()
 
       ! clear memory
       deallocate(evalks, evalfv)
-      deallocate(vxcnn)
       call delete_selfenergy
+      call deallocate_vxcnn
 
-    end if ! myrank
+    end if ! rank
 
     return
 end subroutine

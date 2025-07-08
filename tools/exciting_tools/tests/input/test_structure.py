@@ -21,7 +21,6 @@ or
 import numpy as np
 import pytest
 
-from excitingtools.input.bandstructure import get_bandstructure_input_from_exciting_structure
 from excitingtools.input.structure import ExcitingStructure
 
 
@@ -143,12 +142,9 @@ def test_optional_atom_attributes_xml(xml_structure_CdS):
     # Cd
     atoms_cd = list(species_cd_xml)
     assert len(atoms_cd) == 1, "Wrong number of Cd atoms"
-    assert set(atoms_cd[0].keys()) == {
-        "coord",
-        "bfcmt",
-        "mommtfix",
-        "lockxyz",
-    }, "Cd contains all mandatory and optional atom properties"
+    assert set(atoms_cd[0].keys()) == {"coord", "bfcmt", "mommtfix", "lockxyz"}, (
+        "Cd contains all mandatory and optional atom properties"
+    )
     assert ("coord", "0.0 0.0 0.0") in atoms_cd[0].items()
     assert ("bfcmt", "1.0 1.0 1.0") in atoms_cd[0].items()
     assert ("mommtfix", "2.0 2.0 2.0") in atoms_cd[0].items()
@@ -184,9 +180,9 @@ def test_optional_structure_attributes_xml(lattice_and_atoms_CdS):
     optional = set(structure_attributes)
 
     assert xml_structure.tag == "structure"
-    assert (
-        set(xml_structure.keys()) == mandatory | optional
-    ), "Should contain mandatory speciespath plus all optional attributes"
+    assert set(xml_structure.keys()) == mandatory | optional, (
+        "Should contain mandatory speciespath plus all optional attributes"
+    )
     assert xml_structure.get("speciespath") == "./", "species path should be ./"
     assert xml_structure.get("autormt") == "true"
     assert xml_structure.get("cartesian") == "false"
@@ -280,10 +276,11 @@ def test_optional_species_attributes_xml(lattice_and_atoms_CdS):
 
 
 ref_dict = {
-    "xml_string": '<structure speciespath="./"> <crystal> <basevect>1.0 0.0 0.0</basevect>'
-    "<basevect>0.0 1.0 0.0</basevect><basevect>0.0 0.0 1.0</basevect></crystal>"
-    '<species speciesfile="Cd.xml"> <atom coord="0.0 0.0 0.0"> </atom></species>'
-    '<species speciesfile="S.xml"> <atom coord="1.0 0.0 0.0"> </atom></species></structure>'
+    "atoms": [{"position": [0.0, 0.0, 0.0], "species": "Cd"}, {"position": [1.0, 0.0, 0.0], "species": "S"}],
+    "crystal_properties": {},
+    "lattice": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+    "species_path": "./",
+    "species_properties": {"Cd": {}, "S": {}},
 }
 
 
@@ -313,9 +310,9 @@ def test_from_dict(lattice_and_atoms_CdS):
     cubic_lattice, arbitrary_atoms = lattice_and_atoms_CdS
     structure = ExcitingStructure.from_dict(ref_dict)
 
-    assert np.allclose(structure.lattice, np.array(cubic_lattice))
-    assert structure.species == [d["species"] for d in arbitrary_atoms]
-    assert structure.positions == [d["position"] for d in arbitrary_atoms]
+    assert np.allclose(structure.lattice, np.array(cubic_lattice))  # pylint: disable=no-member
+    assert structure.species == [d["species"] for d in arbitrary_atoms]  # pylint: disable=no-member
+    assert structure.positions == [d["position"] for d in arbitrary_atoms]  # pylint: disable=no-member
     assert structure.speciespath == "./"  # pylint: disable=no-member
 
 
@@ -464,9 +461,10 @@ def test_structure_input_with_integers():
 
 def test_get_bandstructure_input_from_exciting_structure(lattice_and_atoms_H20):
     pytest.importorskip("ase")
+    bandstructure_module = pytest.importorskip("excitingtools.input.bandstructure")
     cubic_lattice, atoms = lattice_and_atoms_H20
     structure = ExcitingStructure(atoms, cubic_lattice, "./")
-    bandstructure = get_bandstructure_input_from_exciting_structure(structure)
+    bandstructure = bandstructure_module.get_bandstructure_input_from_exciting_structure(structure)
     bs_xml = bandstructure.to_xml()
 
     assert bs_xml.tag == "bandstructure", 'Root tag should be "bandstructure"'
@@ -511,3 +509,22 @@ def test_get_bandstructure_input_from_exciting_structure(lattice_and_atoms_H20):
     point8 = path_xml[7]
     assert point8.get("coord") == "0.5 0.5 0.5", 'Invalid value for "coord" attribute of point 8'
     assert point8.get("label") == "R", 'Invalid value for "label" attribute of point 8'
+
+
+def test_preserve_species_ordering(lattice_and_atoms_H20):
+    """Older implementation ordered the species alphabetically. Now it's written like its defined."""
+    cubic_lattice, atoms = lattice_and_atoms_H20
+    new_order_atoms = [atoms[1], atoms[0], atoms[2]]
+    structure = ExcitingStructure(new_order_atoms, cubic_lattice, "./")
+    assert structure.species == ["O", "H", "H"], "Species list differs from lattice_and_atoms_H20"
+
+    elements = list(structure.to_xml())
+    assert len(elements) == 3, "Expect structure tree to have 3 sub-elements"
+
+    species_o_xml = elements[1]
+    assert species_o_xml.tag == "species", "Second subtree is species"
+    assert species_o_xml.items() == [("speciesfile", "O.xml")], "species is inconsistent"
+
+    species_h_xml = elements[2]
+    assert species_h_xml.tag == "species", "Third subtree is species"
+    assert species_h_xml.items() == [("speciesfile", "H.xml")], "species is inconsistent"

@@ -1,13 +1,23 @@
+
+! Cray 18.0.1 has a bug with the spread function marking it as inpure function
+#if _CRAYFTN 
+#define PURE_CRAY_BUG
+#else  
+#define PURE_CRAY_BUG pure
+#endif
+
 !> Math utilities and functions
 module math_utils
+  use asserts, only: assert
+  use constants, only: pi, zzero, zone, zi, fourpi, twopi, real_zero, real_one
   use iso_fortran_env, only: error_unit
   use, intrinsic :: ISO_C_BINDING
-
-  use precision, only: sp, dp
-  use constants, only: pi, zzero, zone, zi, fourpi, twopi, real_zero, real_one
-  use asserts, only: assert
+  use lapack_f95_interfaces, only: dsyev, zheev
+  use precision, only: sp, dp, i32
   use seed_generation, only: set_seed
-
+  use to_char_conversion, only: to_char
+  use iso_c_binding, only: c_f_pointer, c_loc
+  
   implicit none
 
   private
@@ -36,14 +46,21 @@ module math_utils
             integer_part, &
             random_units, &
             plane_wave_in_spherical_harmonics, &
-            get_degeneracies
+            get_degeneracies, &
+            is_close, &
+            get_integer_indexes, &
+            fill_random, &
+            transpose_reshape
+
 
   !> Default tolerance
-  real(dp), parameter :: default_tol = 1e-10
+  real(dp), parameter :: default_tol = 1e-10_dp
 
   !>  Return the diagonal of a 2D array
   interface diag
-    module procedure diag_int_sp, diag_real_dp, diag_complex_dp
+    module procedure diag_int_sp
+    module procedure diag_real_dp
+    module procedure diag_complex_dp
   end interface diag
 
   !>  Check if a matrix is square
@@ -55,6 +72,11 @@ module math_utils
   interface is_hermitian
     module procedure is_symmetric_real_dp, is_hermitian_complex_dp
   end interface is_hermitian
+
+  !> Check if a matrix is positive definite
+  interface is_positive_definite
+    module procedure is_positive_definite_complex_dp, is_positive_definite_real_dp
+  end interface
 
   !> Check if a matrix is unitary (orthogonal), such that
   !> \[
@@ -103,7 +125,7 @@ module math_utils
   !> \]
   !> where \(A_{ij}\) is derived by canceling the \(i\)'th row and the \(j\)'th collumn of \(A\).
   !> This implementation is based on the reference found at
-  !> [rossetta code](http://rosettacode.org/wiki/Determinant_and_permanent#Fortran)
+  !> [rossetta code](http://rosettacode.org/wiki/Deterlowerant_and_permanent#Fortran)
   interface determinant
     module procedure integer_determinant, real_determinant_dp, complex_determinant_dp
   end interface determinant
@@ -114,12 +136,12 @@ module math_utils
   !> \]
   !> where \(A_{ij}\) is derived by canceling the \(i\)'th row and the \(j\)'th collumn of \(A\).
   !> This implementation is based on the reference found at
-  !> [rossetta code](http://rosettacode.org/wiki/Determinant_and_permanent#Fortran)
+  !> [rossetta code](http://rosettacode.org/wiki/Deterlowerant_and_permanent#Fortran)
   interface permanent
     module procedure integer_permanent, real_permanent_dp, complex_permanent_dp
   end interface permanent
 
-  !> Modulus after floor division, returning in the range \((0,N]\). Works like the modulus function but instead of
+  !> Modulus after floor division, returning in thelimits \((0,N]\). Works like the modulus function but instead of
   !> \( \text{mod}(M, N) = 0 \), it returns \( \text{mod1}(M, N) = N \).
   interface mod1
     module procedure mod1_without_offset, mod1_with_offset
@@ -170,7 +192,41 @@ module math_utils
     module procedure :: integer_part_scalar, integer_part_matrix
   end interface integer_part
 
+   !> Fill arrays with random numbers within a given range.
+  interface fill_random
+    module procedure :: fill_random_rank2_complex_dp
+  end interface fill_random
+
 contains
+
+subroutine fill_random_rank2_complex_dp(Matrix,limits)
+use iso_c_binding, only: c_loc, c_f_pointer
+implicit none
+    !> Matrix to fill. 
+    complex(dp), intent(inout), target :: Matrix(:, :)
+    !>limits of the random number for the matrix to be filled. By default `[0.0, 1.0]`.
+    real(dp),    intent(in), optional ::limits(2)
+
+    real(dp) :: lower, upper
+    real(dp), pointer :: data(:, :)
+    integer :: m, n
+
+    lower = 0.0_dp
+    upper = 1.0_dp
+    if (present(limits)) then
+       lower =limits(1)
+       upper =limits(2)
+    end if
+
+    m = size(Matrix, 1)
+    n = size(Matrix, 2)
+
+    call c_f_pointer(c_loc(Matrix), data, [2*m, n] )
+    call random_number(data)
+
+    data = lower + (upper - lower)*data
+    
+end subroutine fill_random_rank2_complex_dp
 
 ! identity_real_dp, identity_complex_dp
 !
@@ -1159,7 +1215,7 @@ contains
 
 ! determinant
 !
-! Calculate the determinant of a matrix. See determinent_laplace for more information.
+! Calculate the determinant of a matrix. See deterlowerent_laplace for more information.
 
   !> Calculates the determinant of a real matrix using Laplace extension.
   real(dp) function real_determinant_dp(A)
@@ -1198,7 +1254,7 @@ contains
 
 ! permanent
 !
-! Calculate the determinant of a matrix. See determinent_laplace for more information.
+! Calculate the determinant of a matrix. See deterlowerent_laplace for more information.
 
   !> Calculates the permanent of a real matrix using Laplace extension.
   real(dp) function real_permanent_dp(A)
@@ -1245,7 +1301,7 @@ contains
   !> where $A_{ij}$ is derived by canceling the $i$'th row and the $j$'th collumn of $A$.
   !>
   !> This implementation is based on the reference found at
-  !> [rossetta code](http://rosettacode.org/wiki/Determinant_and_permanent#Fortran)
+  !> [rossetta code](http://rosettacode.org/wiki/Deterlowerant_and_permanent#Fortran)
   recursive function real_determinant_laplace_dp(a, permanent) result(accumulation)
     !> Matrix for which the determinant is calculated
     real(dp), dimension(:, :), intent(in) :: a
@@ -1402,7 +1458,7 @@ contains
     end if
   end function mod1_without_offset
 
-  !> Modulus after floor division with integer offset, returning in the range \((\text{offset}, N + \text{offset}]\):
+  !> Modulus after floor division with integer offset, returning in thelimits \((\text{offset}, N + \text{offset}]\):
   !> `mod1_offset(M, N, offset) = mod1(M - offset, N) + offset. Sess [[mod1_]].
   integer elemental function mod1_with_offset(M, N, offset)
     !> integer to translate
@@ -1634,39 +1690,67 @@ contains
 
   !> Check if a hermitian matrix is positive-definite. This is done by checking
   !> if all the eigenvalues are positive
-  logical function is_positive_definite( A, tol )
+  logical function is_positive_definite_complex_dp( A, tol )
     !> Matrix to be checked
-    complex(dp), intent(in)   :: A(:, :)
+    complex(dp), contiguous, intent(in) :: A(:, :)
     !> Tolerance
     real(dp), intent(in), optional :: tol
 
-    integer                   :: dim, info, lwork
+    integer                   :: n, info, lwork
     real(dp), allocatable     :: rwork(:), eigenvalues(:)
     complex(dp), allocatable  :: A_copy(:, :), work(:)
-    character(200)            :: error_msg
     real(dp)                  :: tolerance 
 
     tolerance = default_tol
     if( present(tol) ) tolerance = tol
 
     call assert( is_hermitian( A, tolerance ), 'A is not hermitian' )
-    ! TODO Issue #25: Lapack wrapper for ZHEEV needed
-    dim = size( A, 1 )
-    allocate( A_copy(dim, dim), eigenvalues(dim), rwork(3*dim-2) )
+    n = size( A, 1 )
+    allocate( A_copy(n, n), eigenvalues(n), rwork(3*n-2) )
     A_copy = A
     ! Obtain the optimum lwork
-    allocate( work(2) )
+    allocate( work(1) )
     lwork = -1
-    call ZHEEV( 'N', 'U', dim, A_copy, dim, eigenvalues, work, lwork, rwork, &
-      & info )
+    call ZHEEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, rwork, info )
     lwork = work(1)
     deallocate( work )
     allocate( work(lwork) )
     ! Obtain the eigenvalues of A
-    call ZHEEV( 'N', 'U', dim, A_copy, dim, eigenvalues, work, lwork, rwork, info )
-    write(error_msg,*) 'Error(is_positive_definite): ZHEEV returned info = ', info
-    call assert( info==0, error_msg )
-    is_positive_definite = all( eigenvalues > tolerance )
+    call ZHEEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, rwork, info )
+    call assert( info==0, 'Error(is_positive_definite): ZHEEV returned info = ' // to_char(info) )
+    is_positive_definite_complex_dp = all( eigenvalues > tolerance )
+  end function
+
+  !> Same as [[is_positive_definite_complex_dp]] for a real matrix
+  logical function is_positive_definite_real_dp( A, tol )
+    !> See [[is_positive_definite_complex_dp]]
+    real(dp), contiguous, intent(in) :: A(:, :)
+    !> See [[is_positive_definite_complex_dp]]
+    real(dp), intent(in), optional :: tol
+
+    integer(i32)              :: n, info, lwork
+    real(dp), allocatable     :: eigenvalues(:)
+    real(dp), allocatable     :: A_copy(:, :), work(:)
+    real(dp)                  :: tolerance 
+
+    tolerance = default_tol
+    if( present(tol) ) tolerance = tol
+
+    call assert( is_hermitian( A, tolerance ), 'A is not hermitian' )
+    n = size( A, 1 )
+    allocate( A_copy, source=A )
+    allocate( eigenvalues(n) )
+    ! Obtain the optimum lwork
+    allocate( work(1) )
+    lwork = -1
+    call DSYEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, info )
+    lwork = work(1)
+    deallocate( work )
+    allocate( work(lwork) )
+    ! Obtain the eigenvalues of A
+    call DSYEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, info )
+    call assert( info==0, 'Error(is_positive_definite): DSYEV returned info = ' // to_char(info) )
+    is_positive_definite_real_dp = all( eigenvalues > tolerance )
   end function
 
 
@@ -1704,7 +1788,7 @@ contains
 
 
   !> Calculate the fractional part of a matrix. See [[fractional_part_scalar(function)]].
-  pure function fractional_part_matrix(X_in, C_in, tol) result(X_out)
+  PURE_CRAY_BUG function fractional_part_matrix(X_in, C_in, tol) result(X_out)
     !> Matrix to map to the intervall
     real(dp), intent(in) :: X_in(:, :)
     !> Offset. It is expected that it has at least the same dimension as rank 1 of [[X]].
@@ -1776,7 +1860,7 @@ contains
 
 
   !> Calculate the integer part of a matrix. See [[integer_part_scalar(function)]].
-  pure function integer_part_matrix(X_in, C_in, tol) result(I_out)
+  PURE_CRAY_BUG function integer_part_matrix(X_in, C_in, tol) result(I_out)
     !> Matrix to map to the intervall
     real(dp), intent(in) :: X_in(:, :)
     !> Offset. It is expected that it has at least the same dimension as rank 1 of [[X]].
@@ -1828,18 +1912,18 @@ contains
   !>
   !> \[ {\rm e}^{{\rm i} {\bf p} \cdot {\bf r}}
   !>    = 4\pi \sum_{l,m} {\rm i}^l\, j_l(pr)\, Y_{lm}^\ast(\hat{\bf p})\, Y_{lm}(\hat{\bf r}) \]
-  subroutine plane_wave_in_spherical_harmonics( p, radial_grid, lmax, plane_wave_sh )
+  subroutine plane_wave_in_spherical_harmonics( p, radial_grid, lupper, plane_wave_sh )
     !> wavevector in Cartesian coordinates
     real(dp), intent(in) :: p(3)
     !> radial grid
     real(dp), intent(in) :: radial_grid(:)
-    !> maximum angular momentum \(l\) in expansion
-    integer, intent(in) :: lmax
+    !> upperimum angular momentum \(l\) in expansion
+    integer, intent(in) :: lupper
     !> radial functions of spherical harmonics expansion
     !> (\((l,m)\) index in first dimension, radial grid point in second)
     complex(dp), allocatable, intent(out) :: plane_wave_sh(:,:)
   
-    integer :: nr, lmmax, l, m, lm, ir
+    integer :: nr, lmupper, l, m, lm, ir
     real(dp) :: p_length, p_angles(2)
     complex(dp) :: fourpi_il
   
@@ -1847,25 +1931,25 @@ contains
     complex(dp), allocatable :: ylm(:)
   
     nr = size( radial_grid )
-    lmmax = (lmax + 1)**2
-    allocate( besselj(0:lmax) )
-    allocate( ylm(lmmax) )
+    lmupper = (lupper + 1)**2
+    allocate( besselj(0:lupper) )
+    allocate( ylm(lmupper) )
   
     if( allocated( plane_wave_sh ) ) deallocate( plane_wave_sh )
-    allocate( plane_wave_sh(lmmax, nr) )
+    allocate( plane_wave_sh(lmupper, nr) )
   
     ! decompose wavevector into length and angles
     call sphcrd( p, p_length, p_angles )
     ! generate spherical harmonics of wavevector
-    call genylm( lmax, p_angles, ylm )
+    call genylm( lupper, p_angles, ylm )
   
     do ir = 1, nr
       ! generate spherical bessel functions
-      call sbessel( lmax, p_length*radial_grid(ir), besselj )
+      call sbessel( lupper, p_length*radial_grid(ir), besselj )
       lm = 1
       fourpi_il = cmplx( fourpi, 0.0_dp, dp ) ! 4*pi*i^l
       ! synthesize radial functions
-      do l = 0, lmax
+      do l = 0, lupper
         do m = -l, l
           plane_wave_sh(lm, ir) = fourpi_il * besselj(l) * conjg( ylm(lm) )
           lm = lm + 1
@@ -1917,7 +2001,7 @@ contains
     j = 0 
     e = -huge( real_one )
     do i = 1, n
-      if( isclose(eval(i), e, reltol_local, abstol) .and. abstol > real_zero ) then
+      if( is_close(eval(i), e, reltol_local, abstol) .and. abstol > real_zero ) then
         deg(2, j) = i
         deg(3, j) = deg(3, j) + 1
       else
@@ -1929,23 +2013,62 @@ contains
 
     deg = deg(:, 1:j) 
   
-  contains
-    
-    !> For the checking of degeneracies we also use relative tolerance
-    !> It mimics Python's math.isclose()
-    elemental logical function isclose(a, b, rtol, atol)
-      !> numbers to compare
-      real(dp), intent(in) :: a, b 
-      !> Relative tolerance
-      real(dp), intent(in) :: rtol
-      !> Absolute tolerance
-      real(dp), intent(in) :: atol
-
-      isclose = abs(a - b) <= max(rtol * max(abs(a), abs(b)), atol)
-    
-    end function isclose
-  
   end function get_degeneracies
+
+  !> For the checking of degeneracies we also use relative tolerance
+  !> It mimics Python's math.isclose()
+  elemental logical function is_close(a, b, rtol, atol)
+    !> numbers to compare
+    real(dp), intent(in) :: a, b 
+    !> Relative tolerance
+    real(dp), intent(in) :: rtol
+    !> Absolute tolerance
+    real(dp), intent(in) :: atol
+
+    is_close = abs(a - b) <= max(rtol * max(abs(a), abs(b)), atol)
+
+  end function is_close
+
+
+  !> Given points in reduced coordinates it return the corresponding integer indexes
+  !> correspoding to a cell in [0,1). This operation is the safest option as it does 
+  !> not rely into any eps but on integers arithmetics, which is exact.
+  pure function get_integer_indexes(reduced_point, mesh_offset, mesh_size) result(integer_indexes)
+
+    !> Point in reduced coordinates
+    real(dp), intent(in)     :: reduced_point(3)
+    !> Offset of the mesh
+    real(dp), intent(in)     :: mesh_offset(3)
+    !> Size of the mesh
+    integer(i32), intent(in) :: mesh_size(3)
+    !> Integer indexes
+    integer(i32)             :: integer_indexes(3)
+
+    integer_indexes = nint((reduced_point - mesh_offset) * mesh_size)
+    integer_indexes = modulo(integer_indexes, mesh_size)
+
+  end function get_integer_indexes
+
+  !> This function combines transpose after reshape
+  !> Cray compiler (17.0.1 and 18.0.1) fail to do that onfly for complex numbers.
+  !> This function overcomes this issue with barely no cost, as compiler 
+  !> inlines it, and uses copy elision for reshaped_array.
+  !> 
+  !> To be used whenever the use case is not a parameter. 
+  !>
+  pure function transpose_reshape(flattened_array, N) result(reshaped_array)
+      !> The flattened array to reshape and transpose
+      complex(dp), intent(in)  :: flattened_array(:)
+      !> The new shape of the output array
+      integer,     intent(in)  :: N(2)
+      !> The new array with [N(2),N(1)]
+      complex(dp), allocatable :: reshaped_array(:,:)
+      if (size(flattened_array) /= product(N)) then
+          error stop "Error(transpose_reshape): the data size does not match the shape"
+      endif
+      reshaped_array = reshape(flattened_array, N)
+      reshaped_array = transpose(reshaped_array)
+  end function transpose_reshape
 
 end module math_utils
 

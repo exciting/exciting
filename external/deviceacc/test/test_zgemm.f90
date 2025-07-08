@@ -20,8 +20,9 @@ program test_zgemm
     use iso_c_binding
     use m_device_world_t,        only: device_world_t
     use device_linalg_common_interface, only: zgemm_gpu
+#if defined(DEVICEOFFLOAD)
     use mpi
-
+#endif
     implicit none
 
     integer(i32), parameter   :: n = 4000_i32
@@ -37,11 +38,11 @@ program test_zgemm
     
     ! LAPACK
     type(c_ptr) :: dA_ptr, dB_ptr, dC_ptr
-
+#if defined(DEVICEOFFLOAD)
     ! Init MPI world
     call mpi_init(err)
     mpi_world = MPI_COMM_WORLD
-    
+#endif
     ! Allocating the matrix A
     allocate(A(n,n), B(n,n), C(n,n),C_ref(n,n))
 
@@ -80,7 +81,7 @@ program test_zgemm
     call zgemm_gpu('t', 'c', n, n, n, zone, dA_ptr, n, dB_ptr, n, zzero, dC_ptr, n, device_world)
 
     ! Not needed but example of sync
-    call device_world%syncronize()
+    call device_world%synchronize()
 
     ! Retrieve C from the device, and free there the A, B, C space
     call device_world%register%from_device("C")
@@ -89,8 +90,9 @@ program test_zgemm
     call device_world%register%remove("C")
 
     call device_world%finish()
+#if defined(DEVICEOFFLOAD)
     call mpi_finalize(err)
-    
+#endif
     ! Check
     rdiff = sum(abs(C - C_ref)) / sum(abs(C))  
     write(*,*) '[TEST : test_zgemm]'   

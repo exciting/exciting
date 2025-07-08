@@ -16,10 +16,10 @@ module svlo
   private
 
   !> number of basis functions used in second-variation
-  integer :: num_of_basis_funs_sv
+  integer :: num_of_basis_functions_sv
 
-  public :: set_num_of_basis_funs_sv
-  public :: get_num_of_basis_funs_sv
+  public :: set_num_of_basis_functions_sv
+  public :: get_num_of_basis_functions_sv
   public :: is_input_compatible_with_svlo
   public :: construct_H_and_S_in_evecfv_plus_lo_basis
 
@@ -28,16 +28,16 @@ module svlo
 contains
 
   !> Get the number of basis functions used in second-variation
-  pure function get_num_of_basis_funs_sv() result(n)
+  pure function get_num_of_basis_functions_sv() result(n)
     integer :: n
-    n = num_of_basis_funs_sv
-  end function get_num_of_basis_funs_sv
+    n = num_of_basis_functions_sv
+  end function get_num_of_basis_functions_sv
 
   !> Set the number of basis functions used in second-variation
-  subroutine set_num_of_basis_funs_sv(n)
+  subroutine set_num_of_basis_functions_sv(n)
     integer, intent(in) :: n
-    num_of_basis_funs_sv = n
-  end subroutine set_num_of_basis_funs_sv
+    num_of_basis_functions_sv = n
+  end subroutine set_num_of_basis_functions_sv
 
   !> The purpose of this function is twofold.
   !> On the one hand, it checks if the input parameters that are provided
@@ -72,7 +72,7 @@ contains
        is_compatible_with_svlo = .false.
        incompatibility_info = '/input/phonons.'
     else if (associated(input%xs)) then
-       is_compatible_with_svlo = .false.
+       is_compatible_with_svlo = .true.
        incompatibility_info = '/input/xs.'
     else if (associated(input%gw)) then
        is_compatible_with_svlo = .false.
@@ -178,7 +178,7 @@ contains
     Type (evsystem) :: system_in_apw_plus_lo
     
     ! initialize new system 
-    Call newsystem (system_in_evecfv_on_apw_plus_lo, packed, num_of_basis_funs_sv)
+    Call newsystem (system_in_evecfv_on_apw_plus_lo, packed, num_of_basis_functions_sv)
     Call newsystem (system_in_apw_plus_lo, packed, nmat(ispn,ik))
 
     ! construct hamilton and overlap in old apw + lo basis
@@ -207,7 +207,7 @@ contains
     !> input matrix in apw + lo basis
     Complex (dp), Intent(In) :: matrix_in(nmat, nmat)
     !> output matrix in evecfv-on-apw + lo basis
-    Complex (dp), Intent(Out) :: matrix_out(num_of_basis_funs_sv, num_of_basis_funs_sv)
+    Complex (dp), Intent(Out) :: matrix_out(num_of_basis_functions_sv, num_of_basis_functions_sv)
     !> first-variational eigenvectors
     Complex (dp), Intent(In) :: evecfv(:,:)
     
@@ -228,14 +228,14 @@ contains
     call matrix_multiply( evecfv(1:ngk,1:nstfv), matrix__times__evecfv_on_apw(1:ngk, 1:nstfv), matrix_out(1:nstfv, 1:nstfv), trans_A = "C" )
     
     ! LO - evecfv@APW part
-    matrix_out(nstfv+1:num_of_basis_funs_sv, 1:nstfv) = matrix__times__evecfv_on_apw(ngk+1:nmat, 1:nstfv)
+    matrix_out(nstfv+1:num_of_basis_functions_sv, 1:nstfv) = matrix__times__evecfv_on_apw(ngk+1:nmat, 1:nstfv)
 
     ! evecfv@APW - LO part
-    matrix_out(1:nstfv, nstfv+1:num_of_basis_funs_sv) = &
-         Transpose( Conjg( matrix_out(nstfv+1:num_of_basis_funs_sv, 1:nstfv) ) )
+    matrix_out(1:nstfv, nstfv+1:num_of_basis_functions_sv) = &
+         Transpose( Conjg( matrix_out(nstfv+1:num_of_basis_functions_sv, 1:nstfv) ) )
 
     ! LO-LO part
-    matrix_out(nstfv+1:num_of_basis_funs_sv, nstfv+1:num_of_basis_funs_sv) = matrix_in(ngk+1:nmat, ngk+1:nmat)
+    matrix_out(nstfv+1:num_of_basis_functions_sv, nstfv+1:num_of_basis_functions_sv) = matrix_in(ngk+1:nmat, ngk+1:nmat)
 
     Deallocate( matrix__times__evecfv_on_apw )
 

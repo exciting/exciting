@@ -1,12 +1,15 @@
 """Parsers for BSE output files."""
 
 import re
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import numpy as np
 
+path_type = Union[Path, str]
 
-def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
+
+def numpy_gen_from_txt(name: path_type, skip_header: Optional[int] = 0) -> np.ndarray:
     """Numpy genfromtxt, dressed in try/expect.
 
     Not worth generalising, as would need to support genfromtxt's API.
@@ -22,7 +25,7 @@ def numpy_gen_from_txt(name: str, skip_header: Optional[int] = 0) -> np.ndarray:
     return data
 
 
-def parse_EPSILON_NAR(name: str) -> dict:
+def parse_EPSILON_NAR(name: path_type) -> dict:
     """Parser for:
     EPSILON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT.xml,
     EPSILON_NAR_FXCMB1_OC_QMT001.OUT.xml,
@@ -39,7 +42,7 @@ def parse_EPSILON_NAR(name: str) -> dict:
     return out
 
 
-def parse_LOSS_NAR(name):
+def parse_LOSS_NAR(name: path_type):
     """Parser for:
     LOSS_NAR_FXCMB1_OC_QMT001.OUT.xml,
     LOSS_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml
@@ -50,7 +53,7 @@ def parse_LOSS_NAR(name):
     return out
 
 
-def parse_EXCITON_NAR_BSE(name):
+def parse_EXCITON_NAR_BSE(name: path_type):
     """Parser for EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT"""
     data = numpy_gen_from_txt(name, skip_header=14)
     out = {}
@@ -64,7 +67,7 @@ def parse_EXCITON_NAR_BSE(name):
     return out
 
 
-def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
+def parse_infoxs_out(name: path_type, parse_timing: bool = False) -> dict:
     """
     Parser for INFOXS.OUT file. Parses only the started and stopped tasks.
     Searches for lines like:
@@ -73,11 +76,11 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
         'EXCITING <version> stopped for task <tasknumber>'
     See example file: exciting/test/test_farm/BSE/PBE_SOL-LiF/ref/INFOXS.OUT
     If a started task is found, it gets stored with name, number and status.
-    If the task is found to be finished afterwards, the status finished is set to True.
+    If the task is found to be finished afterward, the status finished is set to True.
 
     For success, the last started tasks has to be finished after that (in the file).
-    Last finished task is the last task if calculation was successful, the task before that
-    if it finished, else None.
+    Last finished task is the last task if calculation was successful, the first task before
+    that which finshed (in reversed order), else None if no task finished.
     :param name: path of the file to parse
     :param parse_timing: parse also timing information for the tasks. By default this is set to
                          False. If the task has not finished None is returned as timing.
@@ -93,6 +96,7 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
     all_tasks = re.findall(
         r"EXCITING .* (started) for task (.*) \( ?(\d+)\)|EXCITING .* stopped for task .* (\d+)", lines
     )
+    last_finished_task = None
 
     for task in all_tasks:
         if task[0] == "started":
@@ -103,24 +107,20 @@ def parse_infoxs_out(name: str, parse_timing: bool = False) -> dict:
             assert tasks, "No tasks started!"
             assert tasks[current_task]["number"] == int(task[3]), "Wrong task stopped."
             tasks[current_task]["finished"] = True
+            last_finished_task = tasks[current_task]["name"]
 
     success = tasks[-1]["finished"]
-    last_finished_task = None
-    if success:
-        last_finished_task = tasks[-1]["name"]
-    elif len(tasks) > 1 and tasks[-2]["finished"]:
-        last_finished_task = tasks[-2]["name"]
 
     if parse_timing:
         times = parse_times(lines)
         finished_tasks = [task for task in tasks if task["finished"]]
-        assert len(times["cpu"]) == len(finished_tasks), "Numbers of finished tasks and parsed times are not the same."
+        assert len(times["cpu_time"]) == len(finished_tasks), (
+            "Numbers of finished tasks and parsed times are not the same."
+        )
 
         for index, task in enumerate(finished_tasks):
-            task["cpu_time"] = float(times["cpu"][index])
-            task["wall_time"] = float(times["wall"][index])
-            task["cpu_time_cum"] = float(times["cpu_cum"][index])
-            task["wall_time_cum"] = float(times["wall_cum"][index])
+            for key in times:
+                task[key] = float(times[key][index])
 
     return {"tasks": tasks, "success": success, "last_finished_task": last_finished_task}
 
@@ -137,12 +137,15 @@ def parse_times(infoxs_string: str) -> dict:
 
     assert len(cpu_times) == len(wall_times), "Numbers of parsed timings are not consistent."
     assert len(cpu_times) == len(cpu_times_cum), "Numbers of parsed timings are not consistent."
+    parsed_times = {"cpu_time": cpu_times, "wall_time": wall_times, "cpu_time_cum": cpu_times_cum}
+    if not wall_times_cum:
+        return parsed_times
+
     assert len(cpu_times) == len(wall_times_cum), "Numbers of parsed timings are not consistent."
+    return {**parsed_times, "wall_time_cum": wall_times_cum}
 
-    return {"cpu": cpu_times, "wall": wall_times, "cpu_cum": cpu_times_cum, "wall_cum": wall_times_cum}
 
-
-def parse_fastBSE_absorption_spectrum_out(name: str) -> dict:
+def parse_fastBSE_absorption_spectrum_out(name: path_type) -> dict:
     """Parser for fastBSE_absorption_spectrum.out file.
 
     :param name: path of the file to parse
@@ -170,7 +173,7 @@ def parse_fastBSE_absorption_spectrum_out(name: str) -> dict:
     return {"energy_unit": energy_unit, "broadening": broadening, "frequency": data[:, 0], "imag_epsilon": data[:, 1:4]}
 
 
-def parse_fastBSE_exciton_energies_out(name: str) -> dict:
+def parse_fastBSE_exciton_energies_out(name: path_type) -> dict:
     """Parser for fastBSE_exciton_energies.out and fastBSE_gauss_quadrature_energies.out files.
 
     :param name: path of the file to parse
@@ -200,7 +203,7 @@ def parse_fastBSE_exciton_energies_out(name: str) -> dict:
     }
 
 
-def parse_fastBSE_oscillator_strength_out(name: str) -> dict:
+def parse_fastBSE_oscillator_strength_out(name: path_type) -> dict:
     """Parser for fastBSE_gauss_quadrature_oscillator_strengths.out.out file.
 
     :param name: path of the file to parse

@@ -43,6 +43,12 @@ contains
 
    !> Test generation of 2D grid
    subroutine test_find_2d_grid(test_report)
+#if _CRAYFTN
+! For Cray compiler 19.0.1  the optimizer will crash for this function. 
+! Following compiler directive switches optimization off. 
+! telling the compiler not to optimize this procedure.
+!DIR$ OPTIMIZE(-O0)
+#endif
       !> Test report object
       type(unit_test_type), intent(inout) :: test_report
 

@@ -24,7 +24,7 @@
 !>  * Context, ground state and k-point handlers could be encapulated in an object
 !>    instance, rather than this module.
 !>  * One could split this module up into a collection of smaller modules.
-module sirius_api 
+module sirius_api
   use iso_c_binding, only: c_ptr, c_null_ptr 
 #ifdef SIRIUS
   use sirius, only: sirius_context_handler,    &
@@ -88,7 +88,7 @@ module sirius_api
   use mod_kpoint, only: nkpt, vkl, wkpt
   use mod_potential_and_density, only: rhomt, magmt, rhoir, magir, veffmt, vxcmt, vxcir, bxcmt, bxcir
   use mod_timing, only: timefv, stopwatch
-  use modmpi, only: mpiinfo, distribute_loop, mpiglobal, mpi_env_k, mpi_env_band
+  use modmpi, only: mpiinfo, distribute_loop, mpiglobal, mpi_env_k, mpi_env_band, terminate_mpi_env
 
   implicit none
 
@@ -116,6 +116,9 @@ module sirius_api
   !> K-point set handler of SIRIUS
   type(sirius_kpoint_set_handler), public  :: ks_handler
 #endif
+  
+  !> SIRIUS warning file
+  character(len=*), parameter :: sirius_warning_file_name = "exciting+sirius.warning"
 
 contains
 
@@ -152,6 +155,8 @@ contains
 
     integer, parameter :: sirius_determine_principal_n = -1
     logical, parameter :: call_mpi_init = .false.
+
+    integer :: sirius_warning_unit
 
     call sirius_create_context( communicator, sctx )
     call sirius_import_parameters( sctx, &
@@ -249,6 +254,7 @@ contains
     call sirius_set_equivalent_atoms(sctx, icls)
 
     ! XC functional
+    if (mpiglobal%rank == 0) open(newunit=sirius_warning_unit, file=sirius_warning_file_name, status='replace', action='write', form='formatted')
     if (associated(input%groundstate%libxc)) then
       if (input%groundstate%libxc%exchange .ne. 'none') then
         call sirius_add_xc_functional(sctx, trim(input%groundstate%libxc%exchange))
@@ -256,11 +262,11 @@ contains
       if (input%groundstate%libxc%correlation .ne. 'none') then
         call sirius_add_xc_functional(sctx, trim(input%groundstate%libxc%correlation))
       end if
+    else
+      call terminate_mpi_env(mpiglobal, "Fatal error(setup_sirius): groundstate%libxc block is missing. SIRIUS &
+              requires the XC functional to be provided using the libxc block. ")
     end if
-
-    ! This is for DEBUG purpose
-    call sirius_add_xc_functional(sctx, "XC_GGA_X_PBE")
-    call sirius_add_xc_functional(sctx, "XC_GGA_C_PBE")
+    if (mpiglobal%rank == 0) close(sirius_warning_unit)
 
     ! MPI cart grid
     call sirius_set_mpi_grid_dims(sctx, 2, mpi_grid)
@@ -737,18 +743,26 @@ contains
     !> Number of G-vectors with G < gmaxvr
     integer, intent(in) :: ngvec
 
+#ifdef SIRIUS
     real(dp) :: mb, ylmg_mb, sfacg_mb
+
+    integer :: sirius_warning_unit
 
     mb = 1._dp / 1024._dp / 1024._dp
     ylmg_mb = mb * 16 * lmmaxvr * ngvec
     sfacg_mb = mb * 16 * natmtot * ngvec
 
-    if (ylmg_mb > 1000._dp) then
-        write(*, *)'Warning: large ylmg array of ',ylmg_mb, 'Mb'
+    if (ylmg_mb > 1000._dp .and. mpiglobal%rank == 0) then
+        open(newunit=sirius_warning_unit, file=sirius_warning_file_name, status='unknown', action='write',form='formatted',position='append')
+        write(sirius_warning_unit,*) 'Warning: large ylmg array of ',ylmg_mb, 'Mb'
+        close(sirius_warning_unit)
     end if
-    if (sfacg_mb > 1000._dp) then
-        write(*,*)'Warning: large sfacg array of ',sfacg_mb, 'Mb'
+    if (sfacg_mb > 1000._dp .and. mpiglobal%rank == 0) then
+        open(newunit=sirius_warning_unit, file=sirius_warning_file_name, status='unknown', action='write', form='formatted',position='append')
+        write(sirius_warning_unit,*) 'Warning: large sfacg array of ',sfacg_mb, 'Mb'
+        close(sirius_warning_unit)
     end if
+#endif
 
   end subroutine
 
@@ -789,3 +803,4 @@ contains
   end subroutine
 
 end module sirius_api
+

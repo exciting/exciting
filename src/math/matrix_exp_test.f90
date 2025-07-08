@@ -2,7 +2,7 @@
 module matrix_exp_test
   use constants, only: zone, zzero, zi
   use matrix_exp
-  use math_utils, only: all_close
+  use math_utils, only: all_close, transpose_reshape
   use modmpi, only: mpiinfo
   use precision, only: dp
   use unit_test_framework, only : unit_test_type
@@ -23,7 +23,7 @@ module matrix_exp_test
     !> test object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 7
+    integer, parameter :: n_assertions = 8
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -81,35 +81,35 @@ module matrix_exp_test
     ! Test 04: H, S = matrices 2x2, S = Identity
     call api_to_call_test( &
       & test_number=4, order_taylor=10, alpha=zone, &
-      & H=transpose(reshape([& 
+      & H=transpose_reshape([& 
         & 0.5_dp*zone, 0.2_dp*zone,&
-        & 0.2_dp*zone, 0.4_dp*zone], [2,2])), &
-      & S=transpose(reshape([&
+        & 0.2_dp*zone, 0.4_dp*zone], [2,2]), &
+      & S=transpose_reshape([&
         & zone,  zzero,&
-        & zzero, zone], [2,2])), &
-      & vectors=transpose(reshape([&
+        & zzero, zone], [2,2]), &
+      & vectors=transpose_reshape([&
         & zone, zzero, &
-        & zzero, zone], [2,2])), &
-      & expected=transpose(reshape([&
+        & zzero, zone], [2,2]), &
+      & expected=transpose_reshape([&
         & 1.6807292531262175_dp*zone, 0.3158889386228407_dp*zone,&
-        & 0.3158889386228407_dp*zone, 1.5227847839122006_dp*zone],[2,2])), &
+        & 0.3158889386228407_dp*zone, 1.5227847839122006_dp*zone],[2,2]), &
       & tol=1.e-10_dp, argument_test_report=test_report )
     ! Test 05: H, S = matrices 2x2, S not Identity
     call api_to_call_test( &
       & test_number=5, order_taylor=4, alpha=0.1_dp*zi, &
-      & H=transpose(reshape([&
+      & H=transpose_reshape([&
         & 0.5_dp*zone, 0.2_dp*zone, &
-        & 0.2_dp*zone, 0.4_dp*zone], [2,2])), &
-      & S=transpose(reshape([&
+        & 0.2_dp*zone, 0.4_dp*zone], [2,2]), &
+      & S=transpose_reshape([&
         &      zone,  -0.3_dp*zi, &
-        & 0.3_dp*zi,   0.7_dp*zone], [2,2])), &
-      & vectors=transpose(reshape([&
+        & 0.3_dp*zi,   0.7_dp*zone], [2,2]), &
+      & vectors=transpose_reshape([&
         &      zone,  zzero,&
-        &     zzero,   zone], [2,2])), &
-      & expected=transpose(reshape([ &
+        &     zzero,   zone], [2,2]), &
+      & expected=transpose_reshape([ &
         & ( 0.987970150134193_dp, 0.056707141711965_dp ), ( -0.021040917819654_dp, 0.021694671062836_dp ), &
         & ( 0.02252502998915_dp, 0.034229059191553_dp ),  ( 1.007097835195902_dp, 0.066095152312645_dp ) ], &
-        & [2,2] )), &
+        & [2,2] ), &
       & tol=1.e-10_dp, argument_test_report=test_report )
     
     contains
@@ -173,19 +173,19 @@ module matrix_exp_test
     real(dp), parameter    :: tol = 1.e-10_dp 
 
     ! Test a normal case
-    vectors_to_test = transpose(reshape([&
+    vectors_to_test = transpose_reshape([&
           & -zone,        zi, &
-          &  2._dp*zone,  3._dp*zone ] , [2,2] ))
-    expected_result = transpose(reshape([&
+          &  2._dp*zone,  3._dp*zone ] , [2,2] )
+    expected_result = transpose_reshape([&
       & (-30.75133221112_dp, 6.97003925824_dp), (-51.65417372143_dp, 21.63493311818_dp), &
-        (  4.07903080788_dp,23.05627348073_dp), ( 11.46334794687_dp, 40.19849931832_dp) ], [2,2] ))
+        (  4.07903080788_dp,23.05627348073_dp), ( 11.46334794687_dp, 40.19849931832_dp) ], [2,2] )
     call exp_general_matrix_times_vectors( order_taylor=4, alpha=(1._dp,1._dp), &
-      H=transpose(reshape([&
+      H=transpose_reshape([&
         &      zone,   (1._dp,1._dp), &
-        &     zzero,   0.7_dp*zone], [2,2])), &
-      S=transpose(reshape([&
+        &     zzero,   0.7_dp*zone], [2,2]), &
+      S=transpose_reshape([&
         &      zone,  -0.3_dp*zi, &
-        & 0.3_dp*zi,   0.7_dp*zone], [2,2])), &
+        & 0.3_dp*zi,   0.7_dp*zone], [2,2]), &
       vectors=vectors_to_test)
     call test_report%assert( all_close( a=vectors_to_test, &
       & b= expected_result, tol=tol ) , &
@@ -200,33 +200,54 @@ module matrix_exp_test
     !> Our test object
     type(unit_test_type), intent(inout) :: test_report
     !> Vectors to test [[exphouston_hermitian_matrix_times_vectors]]
-    complex(dp), allocatable            :: vectors_to_test(:, :)
+    complex(dp), allocatable :: vectors_to_test(:, :)
     !> Expected result for the exphouston
-    complex(dp), allocatable            :: expected_result(:, :)
+    complex(dp), allocatable :: expected_result(:, :)
     !> Tolerance for comparing the expected and the obtained vectors
-    real(dp), parameter                 :: tol = 1.e-10_dp
+    real(dp), parameter :: tol = 1.e-10_dp
 
     allocate( vectors_to_test(2, 2), expected_result(2, 2) )
-    ! Test a normal case
-    vectors_to_test = transpose(reshape([&
+    ! Test a case with the complete set of the eigenvectors used for expansion
+    vectors_to_test = transpose_reshape([&
           & -zone,        zi, &
-          &  2._dp*zone,  3._dp*zone ] , [2,2] ))
-    expected_result = transpose(reshape([&
+          &  2._dp*zone,  3._dp*zone ] , [2,2] )
+    expected_result = transpose_reshape([&
       & ( -1.56610785914499_dp, 0.357804262667934_dp ), ( -0.596007992382660_dp, 1.05980026647606_dp ), &
-      & ( 2.11926808755586_dp, 0.188702619714271_dp ) , ( 3.01993342215869_dp, 0.198669330793250_dp) ], [2,2] ))
+      & ( 2.11926808755586_dp, 0.188702619714271_dp ) , ( 3.01993342215869_dp, 0.198669330793250_dp) ], [2,2] )
     call exphouston_hermitian_matrix_times_vectors( alpha=-0.1_dp*zi, &
-      & H=transpose(reshape([& 
+      & H=transpose_reshape([& 
           & zone,   -zi, &
-          & zi,    zone ], [2,2] )), &
-      & S=transpose(reshape([& 
+          & zi,    zone ], [2,2] ), &
+      & S=transpose_reshape([& 
           &     zone,    -2._dp*zi, &
-          & 2._dp*zi,   5._dp*zone ], [2,2] )), &
+          & 2._dp*zi,   5._dp*zone ], [2,2] ), &
       & vectors=vectors_to_test, tol=tol)
     call test_report%assert( all_close( a=vectors_to_test, &
       & b= expected_result, tol=tol ) , &
       & message='exphouston_hermitian_matrix_times_vectors does not return the&
       & expected result for given input.' )
+    
+    ! Test a case with the partial set (1 out of 2) of the eigenvectors used for expansion
+    vectors_to_test = transpose_reshape([&
+          & -zone,        zi, &
+          &  2._dp*zone,  3._dp*zone ] , [2,2] )
+    expected_result = transpose_reshape([&
+      & ( 0.83333333333862258_dp, 3.6666666666654621_dp ), ( 6.73248597155119102e-12_dp, 4.6666666666666643_dp ), &
+      & ( 3.6666666666654626_dp, -0.83333333333862269_dp ), ( 4.6666666666666652_dp, -6.73248597155119183e-12_dp ) ], [2,2] )
+    call exphouston_hermitian_matrix_times_vectors( alpha=-0.1_dp*zi, &
+      & H=transpose_reshape([& 
+          & zone,   -zi, &
+          & zi,    zone ], [2,2] ), &
+      & S=transpose_reshape([& 
+          &     zone,    -2._dp*zi, &
+          & 2._dp*zi,   4.2_dp*zone ], [2,2] ), &
+      & vectors=vectors_to_test, tol=tol, n_eigs = 1)
+    call test_report%assert( all_close( a=vectors_to_test, &
+      & b= expected_result, tol=tol ) , &
+      & message='exphouston_hermitian_matrix_times_vectors does not return the&
+      & expected result for given input with n_expansion < matrix size.' )
 
   end subroutine
 
 end module
+

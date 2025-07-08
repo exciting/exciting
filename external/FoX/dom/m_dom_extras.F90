@@ -6,7 +6,8 @@ module m_dom_extras
   use m_dom_error, only: DOMException, inException, throw_exception,           &
     FoX_NODE_IS_NULL, FoX_INVALID_NODE
   use m_dom_dom, only: Node, ELEMENT_NODE,                                     &
-    getAttribute, getAttributeNS, getTextContent, getNodeType, getFoX_checks
+    getAttribute, getAttributeNS, internal_getTextContent, getNodeType, getFoX_checks, &
+    getTextContent_len
 
   implicit none
   private
@@ -98,7 +99,11 @@ subroutine extractDataContentCmplxDpSca(arg, data, num, iostat, ex)
     complex(dp), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentCmplxDpSca", ex)
@@ -112,10 +117,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentCmplxDpSca
 
@@ -125,7 +131,11 @@ subroutine extractDataContentCmplxSpSca(arg, data, num, iostat, ex)
     complex(sp), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentCmplxSpSca", ex)
@@ -139,10 +149,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentCmplxSpSca
 
@@ -152,7 +163,11 @@ subroutine extractDataContentRealDpSca(arg, data, num, iostat, ex)
     real(dp), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentRealDpSca", ex)
@@ -166,10 +181,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentRealDpSca
 
@@ -179,7 +195,11 @@ subroutine extractDataContentRealSpSca(arg, data, num, iostat, ex)
     real(sp), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentRealSpSca", ex)
@@ -193,10 +213,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentRealSpSca
 
@@ -206,7 +227,11 @@ subroutine extractDataContentIntSca(arg, data, num, iostat, ex)
     integer, intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentIntSca", ex)
@@ -220,10 +245,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentIntSca
 
@@ -233,7 +259,11 @@ subroutine extractDataContentLgSca(arg, data, num, iostat, ex)
     logical, intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentLgSca", ex)
@@ -247,10 +277,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentLgSca
 
@@ -262,12 +293,17 @@ subroutine extractDataContentChSca(arg, data, separator, csv, num, iostat, ex)
     logical, intent(in), optional :: csv
     character, intent(in), optional :: separator
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -275,10 +311,11 @@ endif
 
     endif
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, separator, csv, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, separator, csv, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, separator, csv, num, iostat)
 
   end subroutine extractDataContentChSca
 
@@ -289,7 +326,11 @@ subroutine extractDataContentCmplxDpArr(arg, data, num, iostat, ex)
     complex(dp), dimension(:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentCmplxDpArr", ex)
@@ -303,10 +344,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentCmplxDpArr
 
@@ -316,7 +358,11 @@ subroutine extractDataContentCmplxSpArr(arg, data, num, iostat, ex)
     complex(sp), dimension(:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentCmplxSpArr", ex)
@@ -330,10 +376,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentCmplxSpArr
 
@@ -343,7 +390,11 @@ subroutine extractDataContentRealDpArr(arg, data, num, iostat, ex)
     real(dp), dimension(:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentRealDpArr", ex)
@@ -357,10 +408,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentRealDpArr
 
@@ -370,7 +422,11 @@ subroutine extractDataContentRealSpArr(arg, data, num, iostat, ex)
     real(sp), dimension(:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentRealSpArr", ex)
@@ -384,10 +440,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentRealSpArr
 
@@ -397,7 +454,11 @@ subroutine extractDataContentIntArr(arg, data, num, iostat, ex)
     integer, dimension(:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentIntArr", ex)
@@ -411,10 +472,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentIntArr
 
@@ -424,7 +486,11 @@ subroutine extractDataContentLgArr(arg, data, num, iostat, ex)
     logical, dimension(:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentLgArr", ex)
@@ -438,10 +504,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentLgArr
 
@@ -453,12 +520,17 @@ subroutine extractDataContentChArr(arg, data, separator, csv, num, iostat, ex)
     logical, intent(in), optional :: csv
     character, intent(in), optional :: separator
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -466,10 +538,11 @@ endif
 
     endif
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, separator, csv, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, separator, csv, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, separator, csv, num, iostat)
 
   end subroutine extractDataContentChArr
 
@@ -480,7 +553,11 @@ subroutine extractDataContentCmplxDpMat(arg, data, num, iostat, ex)
     complex(dp), dimension(:,:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentCmplxDpMat", ex)
@@ -494,10 +571,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentCmplxDpMat
 
@@ -507,7 +585,11 @@ subroutine extractDataContentCmplxSpMat(arg, data, num, iostat, ex)
     complex(sp), dimension(:,:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentCmplxSpMat", ex)
@@ -521,10 +603,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentCmplxSpMat
 
@@ -534,7 +617,11 @@ subroutine extractDataContentRealDpMat(arg, data, num, iostat, ex)
     real(dp), dimension(:,:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentRealDpMat", ex)
@@ -548,10 +635,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentRealDpMat
 
@@ -561,7 +649,11 @@ subroutine extractDataContentRealSpMat(arg, data, num, iostat, ex)
     real(sp), dimension(:,:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentRealSpMat", ex)
@@ -575,10 +667,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentRealSpMat
 
@@ -588,7 +681,11 @@ subroutine extractDataContentIntMat(arg, data, num, iostat, ex)
     integer, dimension(:,:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentIntMat", ex)
@@ -602,10 +699,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentIntMat
 
@@ -615,7 +713,11 @@ subroutine extractDataContentLgMat(arg, data, num, iostat, ex)
     logical, dimension(:,:), intent(out) :: data
 
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentLgMat", ex)
@@ -629,10 +731,11 @@ endif
     endif
 
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, num, iostat)
 
   end subroutine extractDataContentLgMat
 
@@ -644,12 +747,17 @@ subroutine extractDataContentChMat(arg, data, separator, csv, num, iostat, ex)
     logical, intent(in), optional :: csv
     character, intent(in), optional :: separator
     integer, intent(out), optional :: num, iostat
-
+#ifdef RESTRICTED_ASSOCIATED_BUG
+    character(len=getTextContent_len(arg, .true.)) :: c
+#else
+    character(len=getTextContent_len(arg, associated(arg))) :: c
+#endif
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "extractDataContentChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -657,10 +765,11 @@ endif
 
     endif
     if (present(ex)) then
-      call rts(getTextContent(arg, ex), data, separator, csv, num, iostat)
+      call internal_getTextContent(arg, c, ex)
     else
-      call rts(getTextContent(arg), data, separator, csv, num, iostat)
+      call internal_getTextContent(arg, c)
     endif
+    call rts(c, data, separator, csv, num, iostat)
 
   end subroutine extractDataContentChMat
 
@@ -913,6 +1022,7 @@ subroutine extractDataAttributeChSca(arg, name, data, separator, csv, num, iosta
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttributeChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -923,6 +1033,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttributeChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1188,6 +1299,7 @@ subroutine extractDataAttributeChArr(arg, name, data, separator, csv, num, iosta
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttributeChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1198,6 +1310,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttributeChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1463,6 +1576,7 @@ subroutine extractDataAttributeChMat(arg, name, data, separator, csv, num, iosta
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttributeChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1473,6 +1587,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttributeChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1750,6 +1865,7 @@ subroutine extractDataAttNSChSca(arg, namespaceURI, localName, data, separator, 
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttNSChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -1760,6 +1876,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttNSChSca", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -2039,6 +2156,7 @@ subroutine extractDataAttNSChArr(arg, namespaceURI, localName, data, separator, 
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttNSChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -2049,6 +2167,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttNSChArr", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -2328,6 +2447,7 @@ subroutine extractDataAttNSChMat(arg, namespaceURI, localName, data, separator, 
   call throw_exception(FoX_NODE_IS_NULL, "extractDataAttNSChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif
@@ -2338,6 +2458,7 @@ endif
   call throw_exception(FoX_INVALID_NODE, "extractDataAttNSChMat", ex)
   if (present(ex)) then
     if (inException(ex)) then
+        data = ""
        return
     endif
   endif

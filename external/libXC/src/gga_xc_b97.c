@@ -1,617 +1,585 @@
 /*
  Copyright (C) 2006-2007 M.A.L. Marques
+               2020 Susi Lehtola
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
-  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-  
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include <stdio.h>
-#include <assert.h>
-#include <stdlib.h>
 #include "util.h"
 
-#define XC_GGA_XC_HCTH_93  161 /* HCTH functional fitted to  93 molecules  */
-#define XC_GGA_XC_HCTH_120 162 /* HCTH functional fitted to 120 molecules  */
-#define XC_GGA_XC_HCTH_147 163 /* HCTH functional fitted to 147 molecules  */
-#define XC_GGA_XC_HCTH_407 164 /* HCTH functional fitted to 407 molecules  */
-#define XC_GGA_XC_B97      167 /* Becke 97                                 */
-#define XC_GGA_XC_B97_1    168 /* Becke 97-1                               */
-#define XC_GGA_XC_B97_2    169 /* Becke 97-2                               */
-#define XC_GGA_XC_B97_D    170 /* Grimme functional to be used with C6 vdW term */
-#define XC_GGA_XC_B97_K    171 /* Boese-Martin for Kinetics                */
-#define XC_GGA_XC_B97_3    172 /* Becke 97-3                               */
-#define XC_GGA_XC_SB98_1a  176 /* Schmider-Becke 98 parameterization 1a    */
-#define XC_GGA_XC_SB98_1b  177 /* Schmider-Becke 98 parameterization 1b    */
-#define XC_GGA_XC_SB98_1c  178 /* Schmider-Becke 98 parameterization 1c    */
-#define XC_GGA_XC_SB98_2a  179 /* Schmider-Becke 98 parameterization 2a    */
-#define XC_GGA_XC_SB98_2b  180 /* Schmider-Becke 98 parameterization 2b    */
-#define XC_GGA_XC_SB98_2c  181 /* Schmider-Becke 98 parameterization 2c    */
-#define XC_GGA_XC_HCTH_A    97 /* HCTH-A                                   */
-#define XC_GGA_XC_B97_GGA1  96 /* Becke 97 GGA-1                           */
-#define XC_GGA_XC_HCTH_P14  95 /* HCTH p=1/4                               */
-#define XC_GGA_XC_HCTH_P76  94 /* HCTH p=7/6                               */
-#define XC_GGA_XC_HCTH_407P 93 /* HCTH/407+                                */
+#define XC_HYB_GGA_XC_B97     407 /* Becke 97                                 */
+#define XC_HYB_GGA_XC_B97_1   408 /* Becke 97-1                               */
+#define XC_HYB_GGA_XC_B97_2   410 /* Becke 97-2                               */
+#define XC_GGA_XC_B97_D       170 /* Grimme functional to be used with C6 vdW term */
+#define XC_GGA_XC_B97_3C      327 /* Grimme functional to be used with mTZVP basis, D3, and SRB */
+#define XC_HYB_GGA_XC_B97_K   413 /* Boese-Martin for Kinetics                */
+#define XC_HYB_GGA_XC_B97_3   414 /* Becke 97-3                               */
+#define XC_GGA_XC_HCTH_93     161 /* HCTH functional fitted to  93 molecules  */
+#define XC_GGA_XC_HCTH_120    162 /* HCTH functional fitted to 120 molecules  */
+#define XC_GGA_XC_HCTH_147    163 /* HCTH functional fitted to 147 molecules  */
+#define XC_GGA_XC_HCTH_407    164 /* HCTH functional fitted to 407 molecules  */
+#define XC_HYB_GGA_XC_SB98_1A 420 /* Schmider-Becke 98 parameterization 1a    */
+#define XC_HYB_GGA_XC_SB98_1B 421 /* Schmider-Becke 98 parameterization 1b    */
+#define XC_HYB_GGA_XC_SB98_1C 422 /* Schmider-Becke 98 parameterization 1c    */
+#define XC_HYB_GGA_XC_SB98_2A 423 /* Schmider-Becke 98 parameterization 2a    */
+#define XC_HYB_GGA_XC_SB98_2B 424 /* Schmider-Becke 98 parameterization 2b    */
+#define XC_HYB_GGA_XC_SB98_2C 425 /* Schmider-Becke 98 parameterization 2c    */
+#define XC_GGA_XC_B97_GGA1     96 /* Becke 97 GGA-1                           */
+#define XC_GGA_XC_HCTH_P14     95 /* HCTH p=1/4                               */
+#define XC_GGA_XC_HCTH_P76     94 /* HCTH p=7/6                               */
+#define XC_GGA_XC_HCTH_407P    93 /* HCTH/407+                                */
+#define XC_HYB_GGA_XC_B97_1P  266 /* version of B97 by Cohen and Handy        */
+#define XC_GGA_XC_HLE16       545 /* high local exchange 2016                 */
 
-static const FLOAT b97_params[][3][5] = {
-  {      /* HCTH/93 */
-    {1.09320,  -0.744056,    5.59920,   -6.78549,   4.49357}, /* X   */
-    {0.222601, -0.0338622,  -0.0125170, -0.802496,  1.55396}, /* Css */
-    {0.729974,  3.35287,   -11.5430,     8.08564,  -4.47857}  /* Cab */
-  }, {   /* HCTH/120 */
-      {1.09163,  -0.747215,  5.07833,  -4.10746,   1.17173},    /* X   */
-      {0.489508, -0.260699,  0.432917, -1.99247,   2.48531},    /* Css */
-      {0.514730,  6.92982, -24.7073,   23.1098,  -11.3234 }     /* Cab */
-  }, {   /* HCTH/147 */
-    {1.09025, -0.799194,   5.57212, -5.86760,  3.04544 },     /* X   */
-    {0.562576, 0.0171436, -1.30636,  1.05747,  0.885429},     /* Css */
-    {0.542352, 7.01464,  -28.3822,  35.0329, -20.4284  },     /* Cab */
-  }, {   /* HCTH/407 */
-    {1.08184, -0.518339,  3.42562, -2.62901,  2.28855},       /* X   */
-    {1.18777, -2.40292,   5.61741, -9.17923,  6.24798},       /* Css */
-    {0.589076, 4.42374, -19.2218,  42.5721, -42.0052 }        /* Cab */
-  }, {   /* Becke 97 */
-    {0.8094, 0.5073,  0.7481, 0.0, 0.0},                      /* X   */
-    {0.1737, 2.3487, -2.4868, 0.0, 0.0},                      /* Css */
-    {0.9454, 0.7471, -4.5961, 0.0, 0.0}                       /* Cab */
-  }, {   /* Becke 97-1 */
-    {0.789518, 0.573805,  0.660975, 0.0, 0.0},                /* X   */
-    {0.0820011, 2.71681, -2.87103,  0.0, 0.0},                /* Css */
-    {0.955689, 0.788552, -5.47869,  0.0, 0.0}                 /* Cab */
-  }, {   /* Becke 97-2 */
-    {0.827642,  0.0478400, 1.76125,  0.0, 0.0},               /* X   */
-    {0.585808, -0.691682,  0.394796, 0.0, 0.0},               /* Css */
-    {0.999849,  1.40626,  -7.44060,  0.0, 0.0}                /* Cab */
-  }, {   /* Becke 97-D */
-    {1.08662, -0.52127,  3.25429, 0.0, 0.0},                  /* X   */
-    {0.22340, -1.56208,  1.94293, 0.0, 0.0},                  /* Css */
-    {0.69041,  6.30270, -14.9712, 0.0, 0.0}                   /* Cab */
-  }, {   /* Becke 97-K */
-    {0.507863, 1.46873, -1.51301, 0.0, 0.0},                  /* X   */
-    {0.12355,  2.65399, -3.20694, 0.0, 0.0},                  /* Css */
-    {1.58613, -6.20977,  6.46106, 0.0, 0.0}                   /* Cab */
-  }, {   /* Becke 97-3 */
-    { 0.7334648,  0.2925270, 3.338789, -10.51158,  10.60907},  /* X   */
-    { 0.5623649, -1.322980,  6.359191, -7.464002,   1.827082}, /* Css */
-    { 1.133830,  -2.811967,  7.431302, -1.969342, -11.74423}   /* Cab */
-  }, {   /* SB98-1a */
-    { 0.845975,  0.228183,  0.749949, 0.0, 0.0},  /* X   */
-    {-0.817637, -0.054676,  0.592163, 0.0, 0.0},  /* Css */
-    { 0.975483,  0.398379, -3.73540,  0.0, 0.0}   /* Cab */
-  }, {   /* SB98-1b */
-    { 0.800103, -0.084192,  1.47742, 0.0, 0.0},  /* X   */
-    { 1.44946,  -2.37073,   2.13564, 0.0, 0.0},  /* Css */
-    { 0.977621,  0.931199, -4.76973, 0.0, 0.0}   /* Cab */
-  }, {   /* SB98-1c */
-    { 0.810936, 0.496090,  0.772385, 0.0, 0.0},  /* X   */
-    { 0.262077, 2.12576,  -2.30465,  0.0, 0.0},  /* Css */
-    { 0.939269, 0.898121, -4.91276,  0.0, 0.0}   /* Cab */
-  }, {   /* SB98-2a */
-    { 0.749200, 0.402322,  0.620779, 0.0, 0.0},  /* X   */
-    { 1.26686,  1.67146,  -1.22565,  0.0, 0.0},  /* Css */
-    { 0.964641, 0.050527, -3.01966,  0.0, 0.0}   /* Cab */
-  }, {   /* SB98-2b */
-    { 0.770587, 0.180767,  0.955246, 0.0, 0.0},  /* X   */
-    { 0.170473, 1.24051,  -0.862711, 0.0, 0.0},  /* Css */
-    { 0.965362, 0.863300, -4.61778,  0.0, 0.0}   /* Cab */
-  }, {   /* SB98-2c */
-    { 0.790194, 0.400271,  0.832857, 0.0, 0.0},  /* X   */
-    {-0.120163, 2.82332,  -2.59412,  0.0, 0.0},  /* Css */
-    { 0.934715, 1.14105,  -5.33398,  0.0, 0.0}   /* Cab */
-  }, {   /* HCTH-A  */
-    { 1.09878,  -2.51173,   0.0156233, 0.0,     0.0},  /* X   */
-    { 0.0136823, 0.268920, -0.550769,  1.03947, 0.0},  /* Css */
-    { 0.836897,  1.72051,  -2.78498,  -4.57504, 0.0}   /* Cab */
-  }, {   /* B97 GGA-1  */
-    { 1.1068, -0.8765,    4.2639, 0.0, 0.0},  /* X   */
-    { 0.4883, -2.117,    2.3235,  0.0, 0.0},  /* Css */
-    { 0.7961,  5.7060, -14.9820,  0.0, 0.0}   /* Cab */
-  }, {   /* HCTH p=1/4  */
-    { 1.03161,  -0.360781,   3.51994, -4.95944,  2.41165},  /* X   */
-    { 2.82414,   0.0318843, -1.78512,  2.39795, -0.876909}, /* Css */
-    { 0.0821827, 4.56466,  -13.5529,  13.3820,  -3.17493}   /* Cab */
-  }, {   /* HCTH p=7/6  */
-    { 1.16525,  -0.583033, 2.51769,   3.81278,   -5.45906}, /* X   */
-    {-3.92143,  -1.10098, -0.0914050, -0.859723, 2.07184},  /* Css */
-    { 0.192949, -5.73335, 50.8757,   135.475,  101.268}     /* Cab */
-  }, {   /* HCTH 407p  */
-    { 1.08018, -0.4117,   2.4368,   1.3890, -1.3529},  /* X   */
-    { 0.80302, -1.0479,   4.9807, -12.890,   9.6446},  /* Css */
-    { 0.73604,  3.0270, -10.075,   20.611, -29.418}    /* Cab */
-  },
-};
-
-typedef struct{
-  const FLOAT (*cc)[5];
+typedef struct {
+  double c_x[5], c_ss[5], c_ab[5];
 } gga_xc_b97_params;
 
+#define B97_N_PAR 16
+#define B97_N_PAR_NONHYB 15
+static const char  *b97_names[B97_N_PAR]  = {
+  "_cx0",  "_cx1",  "_cx2",  "_cx3",  "_cx4",
+  "_css0", "_css1", "_css2", "_css3", "_css4",
+  "_cos0", "_cos1", "_cos2", "_cos3", "_cos4",
+  "_cxx"};
+static const char  *b97_desc[B97_N_PAR]   = {
+  "u^0 coefficient for exchange",
+  "u^1 coefficient for exchange",
+  "u^2 coefficient for exchange",
+  "u^3 coefficient for exchange",
+  "u^4 coefficient for exchange",
+  "u^0 coefficient for same-spin correlation",
+  "u^1 coefficient for same-spin correlation",
+  "u^2 coefficient for same-spin correlation",
+  "u^3 coefficient for same-spin correlation",
+  "u^4 coefficient for same-spin correlation",
+  "u^0 coefficient for opposite-spin correlation",
+  "u^1 coefficient for opposite-spin correlation",
+  "u^2 coefficient for opposite-spin correlation",
+  "u^3 coefficient for opposite-spin correlation",
+  "u^4 coefficient for opposite-spin correlation",
+  "coefficient for exact exchange"
+};
+static const double b97_values[B97_N_PAR] =
+  {0.8094, 0.5073, 0.7481, 0.0, 0.0,
+   0.1737, 2.3487, -2.4868, 0.0, 0.0,
+   0.9454, 0.7471, -4.5961, 0.0, 0.0,
+   0.1943};
+static const double b97_1_values[B97_N_PAR] =
+  {0.789518, 0.573805, 0.660975, 0.0, 0.0,
+   0.0820011, 2.71681, -2.87103, 0.0, 0.0,
+   0.955689, 0.788552, -5.47869, 0.0, 0.0,
+   0.21};
+static const double b97_2_values[B97_N_PAR] =
+  {0.827642, 0.04784, 1.76125, 0.0, 0.0,
+   0.585808, -0.691682, 0.394796, 0.0, 0.0,
+   0.999849, 1.40626, -7.4406, 0.0, 0.0,
+   0.21};
+static const double b97_d_values[B97_N_PAR] =
+  {1.08662, -0.52127, 3.25429, 0.0, 0.0,
+   0.2234, -1.56208, 1.94293, 0.0, 0.0,
+   0.69041, 6.3027, -14.9712, 0.0, 0.0,
+   0.0};
+static const double b97_3c_values[B97_N_PAR] =
+  {1.076616, -0.469912, 3.322442, 0.0, 0.0,
+   0.543788, -1.444420, 1.637436, 0.0, 0.0,
+   0.635047, 5.532103, -15.301575, 0.0, 0.0,
+   0.0};
+static const double b97_k_values[B97_N_PAR] =
+  {0.507863, 1.46873, -1.51301, 0.0, 0.0,
+   0.12355, 2.65399, -3.20694, 0.0, 0.0,
+   1.58613, -6.20977, 6.46106, 0.0, 0.0,
+   0.42};
+static const double b97_3_values[B97_N_PAR] =
+  {0.7334648, 0.292527, 3.338789, -10.51158, 10.60907,
+   0.5623649, -1.32298, 6.359191, -7.464002, 1.827082,
+   1.13383, -2.811967, 7.431302, -1.969342, -11.74423,
+   2.692880E-01};
+static const double b97_hcth_93_values[B97_N_PAR] =
+  {1.0932, -0.744056, 5.5992, -6.78549, 4.49357,
+   0.222601, -0.0338622, -0.012517, -0.802496, 1.55396,
+   0.729974, 3.35287, -11.543, 8.08564, -4.47857,
+   0.0};
+static const double b97_hcth_120_values[B97_N_PAR] =
+  {1.09163, -0.747215, 5.07833, -4.10746, 1.17173,
+   0.489508, -0.260699, 0.432917, -1.99247, 2.48531,
+   0.51473, 6.92982, -24.7073, 23.1098, -11.3234,
+   0.0};
+/*
+  SL 2022-06-10
 
-static void 
-gga_xc_b97_init(XC(func_type) *p)
+  The c5=-0.0171 parameter of HCTH/147 has the wrong sign in the
+  original paper, doi:10.1063/1.480732. The parameters are given with
+  one more decimal in doi:10.1063/1.1589004; c5=0.01714. The values
+  here have a few more decimals, and possibly originate from the
+  authors' original implementation in CADPAC.
+
+  See also https://gitlab.com/libxc/libxc/-/issues/205
+ */
+static const double b97_hcth_147_values[B97_N_PAR] =
+  {1.09025, -0.799194, 5.57212, -5.8676, 3.04544,
+   0.562576, 0.0171436, -1.30636, 1.05747, 0.885429,
+   0.542352, 7.01464, -28.3822, 35.0329, -20.4284,
+   0.0};
+static const double b97_hcth_407_values[B97_N_PAR] =
+  {1.08184, -0.518339, 3.42562, -2.62901, 2.28855,
+   1.18777, -2.40292, 5.61741, -9.17923, 6.24798,
+   0.589076, 4.42374, -19.2218, 42.5721, -42.0052,
+   0.0};
+static const double b97_sb98_1a_values[B97_N_PAR] =
+  {0.845975, 0.228183, 0.749949, 0.0, 0.0,
+   -0.817637, -0.054676, 0.592163, 0.0, 0.0,
+   0.975483, 0.398379, -3.7354, 0.0, 0.0,
+   0.229015};
+static const double b97_sb98_1b_values[B97_N_PAR] =
+  {0.800103, -0.084192, 1.47742, 0.0, 0.0,
+   1.44946, -2.37073, 2.13564, 0.0, 0.0,
+   0.977621, 0.931199, -4.76973, 0.0, 0.0,
+   0.199352};
+static const double b97_sb98_1c_values[B97_N_PAR] =
+  {0.810936, 0.49609, 0.772385, 0.0, 0.0,
+   0.262077, 2.12576, -2.30465, 0.0, 0.0,
+   0.939269, 0.898121, -4.91276, 0.0, 0.0,
+   0.192416};
+static const double b97_sb98_2a_values[B97_N_PAR] =
+  {0.7492, 0.402322, 0.620779, 0.0, 0.0,
+   1.26686, 1.67146, -1.22565, 0.0, 0.0,
+   0.964641, 0.050527, -3.01966, 0.0, 0.0,
+   0.232055};
+static const double b97_sb98_2b_values[B97_N_PAR] =
+  {0.770587, 0.180767, 0.955246, 0.0, 0.0,
+   0.170473, 1.24051, -0.862711, 0.0, 0.0,
+   0.965362, 0.8633, -4.61778, 0.0, 0.0,
+   0.237978};
+static const double b97_sb98_2c_values[B97_N_PAR] =
+  {0.790194, 0.400271, 0.832857, 0.0, 0.0,
+   -0.120163, 2.82332, -2.59412, 0.0, 0.0,
+   0.934715, 1.14105, -5.33398, 0.0, 0.0,
+   0.219847};
+static const double b97_gga1_values[B97_N_PAR] =
+  {1.1068, -0.8765, 4.2639, 0.0, 0.0,
+   0.4883, -2.117, 2.3235, 0.0, 0.0,
+   0.7961, 5.706, -14.982, 0.0, 0.0,
+   0.0};
+static const double b97_hcth_p14_values[B97_N_PAR] =
+  {1.03161, -0.360781, 3.51994, -4.95944, 2.41165,
+   2.82414, 0.0318843, -1.78512, 2.39795, -0.876909,
+   0.0821827, 4.56466, -13.5529, 13.382, -3.17493,
+   0.0};
+static const double b97_hcth_p76_values[B97_N_PAR] =
+  {1.16525, -0.583033, 2.51769, 3.81278, -5.45906,
+   -3.92143, -1.10098, -0.091405, -0.859723, 2.07184,
+   0.192949, -5.73335, 50.8757, -135.475, 101.268,
+   0.0};
+static const double b97_hcth_407p_values[B97_N_PAR] =
+  {1.08018, -0.4117, 2.4368, 1.389, -1.3529,
+   0.80302, -1.0479, 4.9807, -12.89, 9.6446,
+   0.73604, 3.027, -10.075, 20.611, -29.418,
+   0.0};
+static const double b97_1p_values[B97_N_PAR] =
+  {0.8773, 0.2149, 1.5204, 0.0, 0.0,
+   0.2228, 1.3678, -1.5068, 0.0, 0.0,
+   0.9253, 2.027, -7.3431, 0.0, 0.0,
+   0.15};
+static const double b97_hle16_values[B97_N_PAR] =
+  {1.3523, -0.64792375, 4.282025, -3.2862625, 2.8606875,
+   0.593885, -1.20146, 2.808705, -4.589615, 3.12399,
+   0.294538, 2.21187, -9.6109, 21.28605, -21.0026,
+   0.0};
+
+
+static void
+gga_xc_b97_init(xc_func_type *p)
 {
-  gga_xc_b97_params *params;
-
-  assert(p != NULL);
-
-  p->n_func_aux  = 1;
-  p->func_aux    = (XC(func_type) **) malloc(1*sizeof(XC(func_type) *));
-  p->func_aux[0] = (XC(func_type) *)  malloc(  sizeof(XC(func_type)));
-
-  XC(func_init)(p->func_aux[0], XC_LDA_C_PW, p->nspin);
-
   assert(p->params == NULL);
-  p->params = malloc(sizeof(gga_xc_b97_params));
-  params = (gga_xc_b97_params *)(p->params);
+  p->params = libxc_malloc(sizeof(gga_xc_b97_params));
 
-  switch(p->info->number){
-  case XC_GGA_XC_HCTH_93:   p->func   =  0;  break;
-  case XC_GGA_XC_HCTH_120:  p->func   =  1;  break;
-  case XC_GGA_XC_HCTH_147:  p->func   =  2;  break;
-  case XC_GGA_XC_HCTH_407:  p->func   =  3;  break;
-  case XC_GGA_XC_B97:       p->func   =  4;  break;
-  case XC_GGA_XC_B97_1:     p->func   =  5;  break;
-  case XC_GGA_XC_B97_2:     p->func   =  6;  break;
-  case XC_GGA_XC_B97_D:     p->func   =  7;  break;
-  case XC_GGA_XC_B97_K:     p->func   =  8;  break;
-  case XC_GGA_XC_B97_3:     p->func   =  9;  break;
-  case XC_GGA_XC_SB98_1a:   p->func   = 10;  break;
-  case XC_GGA_XC_SB98_1b:   p->func   = 11;  break;
-  case XC_GGA_XC_SB98_1c:   p->func   = 12;  break;
-  case XC_GGA_XC_SB98_2a:   p->func   = 13;  break;
-  case XC_GGA_XC_SB98_2b:   p->func   = 14;  break;
-  case XC_GGA_XC_SB98_2c:   p->func   = 15;  break;
-  case XC_GGA_XC_HCTH_A:    p->func   = 16;  break;
-  case XC_GGA_XC_B97_GGA1:  p->func   = 17;  break;
-  case XC_GGA_XC_HCTH_P14:  p->func   = 18;  break;
-  case XC_GGA_XC_HCTH_P76:  p->func   = 19;  break;
-  case XC_GGA_XC_HCTH_407P: p->func   = 20;  break;
-  default:
-    fprintf(stderr, "Internal error in gga_b97\n");
-    exit(1);
-    break;
+  if(p->info->number == XC_HYB_GGA_XC_B97   ||
+     p->info->number == XC_HYB_GGA_XC_B97_1 ||
+     p->info->number == XC_HYB_GGA_XC_B97_2 ||
+     p->info->number == XC_HYB_GGA_XC_B97_K ||
+     p->info->number == XC_HYB_GGA_XC_B97_3 ||
+     p->info->number == XC_HYB_GGA_XC_SB98_1A ||
+     p->info->number == XC_HYB_GGA_XC_SB98_1B ||
+     p->info->number == XC_HYB_GGA_XC_SB98_1C ||
+     p->info->number == XC_HYB_GGA_XC_SB98_2A ||
+     p->info->number == XC_HYB_GGA_XC_SB98_2B ||
+     p->info->number == XC_HYB_GGA_XC_SB98_2C ||
+     p->info->number == XC_HYB_GGA_XC_B97_1P){
+    xc_hyb_init_hybrid(p, 0.0);
   }
 
-  params->cc = b97_params[p->func];
 }
 
+#include "maple2c/gga_exc/gga_xc_b97.c"
+#include "work_gga.c"
 
-void 
-XC(mgga_b97_func_g)(const FLOAT *cc, FLOAT gamma, FLOAT s, int order, FLOAT *g, FLOAT *dgds, FLOAT *d2gds2)
-{
-  FLOAT s2, dd, x, dxds, d2xds2, dgdx, d2gdx2;
-
-  s2 = s*s;
-  dd = 1.0 + gamma*s2;
-  x  = gamma * s2/dd;
-
-  *g = cc[0] + x*(cc[1] + x*(cc[2] + x*(cc[3] + x*cc[4])));
-
-  if(order < 1) return;
-
-  dxds  = gamma * 2.0*s/(dd*dd);
-  dgdx  = cc[1] + x*(2.0*cc[2] + x*(3.0*cc[3] + x*4.0*cc[4]));
-  *dgds = dgdx*dxds;
-
-  if(order < 2) return;
-  
-  d2gdx2  = 2.0*cc[2] + x*(6.0*cc[3] + x*12.0*cc[4]);
-  d2xds2  = 2.0*gamma*(1.0 - 3.0*gamma*s2)/(dd*dd*dd);
-  *d2gds2 = d2gdx2*dxds*dxds + dgdx*d2xds2;
-}
-
-
-static inline void
-func(const XC(func_type) *p, XC(gga_work_c_t) *r)
-{
-  static const FLOAT sign[2] = {1.0, -1.0};
-  const FLOAT gamma[3] = {0.004, 0.2, 0.006};
-
-  XC(lda_work_t) LDA[3];
-  const gga_xc_b97_params *params;
-  FLOAT cnst, ldax, x_avg;
-  FLOAT fx, dfxdx, d2fxdx2, fcpar, dfcpardx, d2fcpardx2, fcper, dfcperdx, d2fcperdx2;
-  FLOAT opz, opz13, dldaxdrs, dldaxdz, d2ldaxdrs2, d2ldaxdrsz, d2ldaxdz2, aux, aux12;
-  FLOAT dx_avgdxs[2], d2x_avgdxs2[3];
-  int is, js;
- 
-  params = (gga_xc_b97_params *)(p->params);
-
-  cnst = CBRT(4.0*M_PI/3.0);
-
-  /* first we get the parallel and perpendicular LDAS */
-  XC(lda_stoll) (p->func_aux[0], r->dens, r->zeta, r->order, LDA);
-
-  /* initialize to zero */
-  r->f = 0.0;
-  if(r->order >= 1){
-    r->dfdrs = r->dfdz = r->dfdxs[0] = r->dfdxs[1] = r->dfdxt = 0.0;
-  }
-  if(r->order >= 2){
-    r->d2fdrs2 = r->d2fdrsz = r->d2fdrsxt = r->d2fdrsxs[0] = r->d2fdrsxs[1] = 0.0;
-    r->d2fdz2 = r->d2fdzxt = r->d2fdzxs[0] = r->d2fdzxs[1] = r->d2fdxt2 = 0.0;
-    r->d2fdxtxs[0] = r->d2fdxtxs[1] = r->d2fdxs2[0] = r->d2fdxs2[1] = r->d2fdxs2[2] = 0.0;
-  }
-
-  /* now we calculate the g functions for exchange and parallel correlation */
-  for(is = 0; is < 2; is++){
-    opz   = 1.0 + sign[is]*r->zeta;
-
-    if(r->dens*opz < 2.0*p->info->min_dens) continue;
-
-    XC(mgga_b97_func_g)(params->cc[0], gamma[0], r->xs[is], r->order, &fx, &dfxdx, &d2fxdx2);
-    XC(mgga_b97_func_g)(params->cc[1], gamma[1], r->xs[is], r->order, &fcpar, &dfcpardx, &d2fcpardx2);
-
-    opz13 = CBRT(opz);
-
-    ldax = -X_FACTOR_C*opz*opz13/(2.0*M_CBRT2*cnst*r->rs);
-
-    r->f += ldax*fx + LDA[is].zk*fcpar;
-
-    if(r->order < 1) continue;
-
-    dldaxdrs = -ldax/r->rs;
-    dldaxdz  = sign[is]*4.0*ldax/(3.0*opz);
-
-    r->dfdrs     += dldaxdrs*fx + LDA[is].dedrs*fcpar;
-    r->dfdz      += dldaxdz *fx + LDA[is].dedz *fcpar;
-    r->dfdxs[is] += ldax*dfxdx + LDA[is].zk*dfcpardx;
-
-    if(r->order < 2) continue;
-    
-    js = (is == 0) ? 0 : 2;
-
-    d2ldaxdrs2 = -2.0*dldaxdrs/r->rs;
-    d2ldaxdrsz = -dldaxdz/r->rs;
-    d2ldaxdz2  = sign[is]*dldaxdz/(3.0*opz);
-
-    r->d2fdrs2      += d2ldaxdrs2*fx  + LDA[is].d2edrs2*fcpar;
-    r->d2fdrsz      += d2ldaxdrsz*fx  + LDA[is].d2edrsz*fcpar;
-    r->d2fdrsxs[is] += dldaxdrs*dfxdx + LDA[is].dedrs*dfcpardx;
-    r->d2fdz2       += d2ldaxdz2*fx   + LDA[is].d2edz2*fcpar;
-    r->d2fdzxs[is]  += dldaxdz*dfxdx  + LDA[is].dedz*dfcpardx;
-    r->d2fdxs2[js]  += ldax*d2fxdx2   + LDA[is].zk*d2fcpardx2;
-  }
-
-  /* and now we add the opposite-spin contribution */
-  aux   = r->xs[0]*r->xs[0] + r->xs[1]*r->xs[1];
-  aux12 = SQRT(aux);
-  x_avg = aux12/M_SQRT2;
-
-  XC(mgga_b97_func_g)(params->cc[2], gamma[2], x_avg, r->order, &fcper, &dfcperdx, &d2fcperdx2);
-
-  r->f += LDA[2].zk*fcper;
-
-  if(r->order < 1) return;
-
-  dx_avgdxs[0] = r->xs[0]/(aux12*M_SQRT2);
-  dx_avgdxs[1] = r->xs[1]/(aux12*M_SQRT2);
-
-  r->dfdrs    += LDA[2].dedrs*fcper;
-  r->dfdz     += LDA[2].dedz *fcper;
-  r->dfdxs[0] += LDA[2].zk*dfcperdx*dx_avgdxs[0];
-  r->dfdxs[1] += LDA[2].zk*dfcperdx*dx_avgdxs[1];
-
-  if(r->order < 2) return;
-
-  d2x_avgdxs2[0] =  r->xs[1]*r->xs[1]/(aux*aux12*M_SQRT2);
-  d2x_avgdxs2[1] = -r->xs[0]*r->xs[1]/(aux*aux12*M_SQRT2);
-  d2x_avgdxs2[2] =  r->xs[0]*r->xs[0]/(aux*aux12*M_SQRT2);
-
-  r->d2fdrs2     += LDA[2].d2edrs2*fcper;
-  r->d2fdrsz     += LDA[2].d2edrsz*fcper;
-  r->d2fdrsxs[0] += LDA[2].dedrs*dfcperdx*dx_avgdxs[0];
-  r->d2fdrsxs[1] += LDA[2].dedrs*dfcperdx*dx_avgdxs[1];
-  r->d2fdz2      += LDA[2].d2edz2*fcper;
-  r->d2fdzxs[0]  += LDA[2].dedz*dfcperdx*dx_avgdxs[0];
-  r->d2fdzxs[1]  += LDA[2].dedz*dfcperdx*dx_avgdxs[1];
-  r->d2fdxs2[0]  += LDA[2].zk*(d2fcperdx2*dx_avgdxs[0]*dx_avgdxs[0] + dfcperdx*d2x_avgdxs2[0]);
-  r->d2fdxs2[1]  += LDA[2].zk*(d2fcperdx2*dx_avgdxs[0]*dx_avgdxs[1] + dfcperdx*d2x_avgdxs2[1]);
-  r->d2fdxs2[2]  += LDA[2].zk*(d2fcperdx2*dx_avgdxs[1]*dx_avgdxs[1] + dfcperdx*d2x_avgdxs2[2]);
-}
-
-
-#include "work_gga_c.c"
-
-const XC(func_info_type) XC(func_info_gga_xc_b97) = {
-  XC_GGA_XC_B97,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_b97 = {
+  XC_HYB_GGA_XC_B97,
   XC_EXCHANGE_CORRELATION,
   "Becke 97",
-  XC_FAMILY_GGA,
-  "AD Becke, J. Chem. Phys. 107, 8554 (1997)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Becke1997_8554, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_b97_1) = {
-  XC_GGA_XC_B97_1,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_b97_1 = {
+  XC_HYB_GGA_XC_B97_1,
   XC_EXCHANGE_CORRELATION,
   "Becke 97-1",
-  XC_FAMILY_GGA,
-  "FA Hamprecht, AJ Cohen, DJ Tozer, and NC Handy, J. Chem. Phys. 109, 6264 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init,
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Hamprecht1998_6264, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_1_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_b97_2) = {
-  XC_GGA_XC_B97_2,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_b97_2 = {
+  XC_HYB_GGA_XC_B97_2,
   XC_EXCHANGE_CORRELATION,
   "Becke 97-2",
-  XC_FAMILY_GGA,
-  "PJ Wilson, TJ Bradley, and DJ Tozer, J. Chem. Phys. 115, 9233 (2001)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Wilson2001_9233, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_2_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_b97_d) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_b97_d = {
   XC_GGA_XC_B97_D,
   XC_EXCHANGE_CORRELATION,
   "Becke 97-D",
   XC_FAMILY_GGA,
-  "S Grimme, J. Comput. Chem. 27, 1787 (2006)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  {&xc_ref_Grimme2006_1787, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_d_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_b97_k) = {
-  XC_GGA_XC_B97_K,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_b97_3c = {
+  XC_GGA_XC_B97_3C,
+  XC_EXCHANGE_CORRELATION,
+  "Becke 97-3c by Grimme et. al.",
+  XC_FAMILY_GGA,
+  {&xc_ref_Brandenburg2018_064104, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_3c_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
+};
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_b97_k = {
+  XC_HYB_GGA_XC_B97_K,
   XC_EXCHANGE_CORRELATION,
   "Boese-Martin for Kinetics",
-  XC_FAMILY_GGA,
-  "AD Boese and JML Martin, J. Chem. Phys., Vol. 121, 3405 (2004)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Boese2004_3405, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_k_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_b97_3) = {
-  XC_GGA_XC_B97_3,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_b97_3 = {
+  XC_HYB_GGA_XC_B97_3,
   XC_EXCHANGE_CORRELATION,
   "Becke 97-3",
-  XC_FAMILY_GGA,
-  "TW Keal and DJ Tozer, J. Chem. Phys. 123, 121103 (2005)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Keal2005_121103, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_3_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_hcth_93) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_hcth_93 = {
   XC_GGA_XC_HCTH_93,
   XC_EXCHANGE_CORRELATION,
   "HCTH/93",
   XC_FAMILY_GGA,
-  "FA Hamprecht, AJ Cohen, DJ Tozer, and NC Handy, J. Chem. Phys. 109, 6264 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  {&xc_ref_Hamprecht1998_6264, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR - 1, b97_names, b97_desc, b97_hcth_93_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_hcth_120) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_hcth_120 = {
   XC_GGA_XC_HCTH_120,
   XC_EXCHANGE_CORRELATION,
   "HCTH/120",
   XC_FAMILY_GGA,
-  "AD Boese, NL Doltsinis, NC Handy, and M Sprik, J. Chem. Phys. 112, 1670 (2000)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  {&xc_ref_Boese2000_1670, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_hcth_120_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_hcth_147) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_hcth_147 = {
   XC_GGA_XC_HCTH_147,
   XC_EXCHANGE_CORRELATION,
   "HCTH/147",
   XC_FAMILY_GGA,
-  "AD Boese, NL Doltsinis, NC Handy, and M Sprik, J. Chem. Phys. 112, 1670 (2000)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  {&xc_ref_Boese2000_1670, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_hcth_147_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_hcth_407) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_hcth_407 = {
   XC_GGA_XC_HCTH_407,
   XC_EXCHANGE_CORRELATION,
   "HCTH/407",
   XC_FAMILY_GGA,
-  "AD Boese and NC Handy, J. Chem. Phys. 114, 5497 (2001)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  {&xc_ref_Boese2001_5497, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_hcth_407_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_sb98_1a) = {
-  XC_GGA_XC_SB98_1a,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_sb98_1a = {
+  XC_HYB_GGA_XC_SB98_1A,
   XC_EXCHANGE_CORRELATION,
   "SB98 (1a)",
-  XC_FAMILY_GGA,
-  "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Schmider1998_9624, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_sb98_1a_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_sb98_1b) = {
-  XC_GGA_XC_SB98_1b,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_sb98_1b = {
+  XC_HYB_GGA_XC_SB98_1B,
   XC_EXCHANGE_CORRELATION,
   "SB98 (1b)",
-  XC_FAMILY_GGA,
-  "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Schmider1998_9624, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_sb98_1b_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_sb98_1c) = {
-  XC_GGA_XC_SB98_1c,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_sb98_1c = {
+  XC_HYB_GGA_XC_SB98_1C,
   XC_EXCHANGE_CORRELATION,
   "SB98 (1c)",
-  XC_FAMILY_GGA,
-  "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Schmider1998_9624, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_sb98_1c_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_sb98_2a) = {
-  XC_GGA_XC_SB98_2a,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_sb98_2a = {
+  XC_HYB_GGA_XC_SB98_2A,
   XC_EXCHANGE_CORRELATION,
   "SB98 (2a)",
-  XC_FAMILY_GGA,
-  "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Schmider1998_9624, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_sb98_2a_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_sb98_2b) = {
-  XC_GGA_XC_SB98_2b,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_sb98_2b = {
+  XC_HYB_GGA_XC_SB98_2B,
   XC_EXCHANGE_CORRELATION,
   "SB98 (2b)",
-  XC_FAMILY_GGA,
-  "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Schmider1998_9624, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_sb98_2b_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_sb98_2c) = {
-  XC_GGA_XC_SB98_2c,
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_sb98_2c = {
+  XC_HYB_GGA_XC_SB98_2C,
   XC_EXCHANGE_CORRELATION,
   "SB98 (2c)",
-  XC_FAMILY_GGA,
-  "HL Schmider and AD Becke, J. Chem. Phys. 108, 9624 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Schmider1998_9624, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_sb98_2c_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_hcth_a) = {
-  XC_GGA_XC_HCTH_A,
-  XC_EXCHANGE_CORRELATION,
-  "HCTH-A",
-  XC_FAMILY_GGA,
-  "FA Hamprecht, AJ Cohen, DJ Tozer, and NC Handy, J. Chem. Phys. 109, 6264 (1998)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
-};
-
-const XC(func_info_type) XC(func_info_gga_xc_b97_gga1) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_b97_gga1 = {
   XC_GGA_XC_B97_GGA1,
   XC_EXCHANGE_CORRELATION,
   "Becke 97 GGA-1",
   XC_FAMILY_GGA,
-  "AJ Cohen and NC Handy, Chem. Phys. Lett. 316, 160-166 (2000)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  {&xc_ref_Cohen2000_160, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_gga1_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_hcth_p14) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_hcth_p14 = {
   XC_GGA_XC_HCTH_P14,
   XC_EXCHANGE_CORRELATION,
   "HCTH p=1/4",
   XC_FAMILY_GGA,
-  "G Menconi, PJ Wilson, and DJ Tozer, J. Chem. Phys. 114, 3958 (2001)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  {&xc_ref_Menconi2001_3958, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_hcth_p14_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_hcth_p76) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_hcth_p76 = {
   XC_GGA_XC_HCTH_P76,
   XC_EXCHANGE_CORRELATION,
-  "HCTH p=1/4",
+  "HCTH p=7/6",
   XC_FAMILY_GGA,
-  "G Menconi, PJ Wilson, and DJ Tozer, J. Chem. Phys. 114, 3958 (2001)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  {&xc_ref_Menconi2001_3958, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_hcth_p76_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };
 
-const XC(func_info_type) XC(func_info_gga_xc_hcth_407p) = {
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_hcth_407p = {
   XC_GGA_XC_HCTH_407P,
   XC_EXCHANGE_CORRELATION,
   "HCTH/407+",
   XC_FAMILY_GGA,
-  "AD Boese, A Chandra, JML Martin, and Dominik Marx, J. Chem. Phys. 119, 5965 (2003)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-23, 1e-32, 0.0, 1e-32,
-  gga_xc_b97_init, 
-  NULL,
-  NULL,
-  work_gga_c
+  {&xc_ref_Boese2003_5965, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_hcth_407p_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
+};
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_b97_1p = {
+  XC_HYB_GGA_XC_B97_1P,
+  XC_EXCHANGE_CORRELATION,
+  "version of B97 by Cohen and Handy",
+  XC_FAMILY_HYB_GGA,
+  {&xc_ref_Cohen2000_160, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR, b97_names, b97_desc, b97_1p_values, set_ext_params_cpy_exx},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
+};
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_gga_xc_hle16 = {
+  XC_GGA_XC_HLE16,
+  XC_EXCHANGE_CORRELATION,
+  "high local exchange 2016",
+  XC_FAMILY_GGA,
+  {&xc_ref_Verma2017_380, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | MAPLE2C_FLAGS,
+  1e-14,
+  {B97_N_PAR_NONHYB, b97_names, b97_desc, b97_hle16_values, set_ext_params_cpy},
+  gga_xc_b97_init, NULL,
+  NULL, &work_gga, NULL
 };

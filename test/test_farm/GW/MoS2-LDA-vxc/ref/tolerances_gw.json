@@ -1,0 +1,12 @@
+{
+  "VXCNN.DAT": {
+    "v_xc_nn": {
+      "tol": 1e-07,
+      "unit": "Hartree"
+    },
+    "vkl": {
+      "tol": 1e-07,
+      "unit": "null"
+    }
+  }
+}

@@ -19,35 +19,38 @@ build:debian-buster-Intel2021-serial:
      - docker
    before_script:
      # Module file, with paths consistent with the nfs drive
-     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+     - cp -r utilities/build/modules/intel /etc/environment-modules/modules
      - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
      - module load intel/oneapi-2021.3
    script:
-     - cp build/platforms/make.inc.ifort build/make.inc
-     - make serial -j 2
+     - mkdir build-cmake && cd build-cmake
+     - FC=ifort CC=icc CXX=icpc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=OFF -DOMP=OFF -DMKL=ON ..
+     - make -j 4 -l 4
+     - make install
    artifacts:
      paths:
-       - bin/exciting_serial
-       - build/make.inc
-     expire_in: 5 hrs
+       - install/lib
+       - install/bin/exciting_serial
+       - src/version.inc
+     expire_in: 12 hrs
 
 test-debian-buster-Intel2021-serial:
    image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
    stage: test
    dependencies:
      - build:debian-buster-Intel2021-serial
-     - python:regressionframework-python-3.7
+     - python:regressionframework-python3
    tags:
      - docker
    before_script:
-     - cp -r build/utilities/modules/intel /etc/environment-modules/modules
+     - cp -r utilities/build/modules/intel /etc/environment-modules/modules
      - eval "`/usr/lib/x86_64-linux-gnu/modulecmd.tcl sh autoinit`"
      - module load intel/oneapi-2021.3
      - python3 -m pip install --upgrade --force pip pillow==7.0.0 numpy termcolor pytest pyyaml
    script:
     # Run exciting unit tests
-     - bin/exciting_serial -run-unit-tests -kill-on-failure
+     - install/bin/exciting_serial -run-unit-tests -kill-on-failure
     # Install test framework parsers
      - python3 -m pip install -e tools/exciting_tools
     # Run exciting app tests
-     - cd test/ && python3 runtest.py -e exciting_serial -repeat-tests 2
+     - cd test/ && python3 runtest.py -bp $PWD/../install/bin/ -e exciting_serial -repeat-tests 2

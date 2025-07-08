@@ -2,16 +2,16 @@
 subroutine solve_QP_equation()
     use modinput
     use modmain,        only: efermi
-    use modgw,          only: kset, ibgw, nbgw, nvelgw, nbandsgw, evalqp, eferqp, evalfv
+    use modgw,          only: ibgw, nbgw, nvelgw, nbandsgw, evalqp, eferqp
     use mod_vxc,        only: vxcnn
     use mod_selfenergy, only: selfex, selfec, sigc, znorm, freq_selfc, deltaE
-    use mod_bands,      only: nomax, ikvbm
+    use mod_bands,      only: nomax, ikvbm, evalfv
     use mod_pade
     use m_getunit
     implicit none
     integer(4), parameter :: nitermax = 1000
     real(8),    parameter :: etol = 1.d-4
-    integer(4) :: iter, ik, ib, nz
+    integer(4) :: iter, ik, ib, nz, n_kpoints
     real(8)    :: enk, eqp, eqp_prev, diff, dzf2
     complex(8) :: sx, sc, de
     complex(8) :: dsigma, znk
@@ -21,6 +21,7 @@ subroutine solve_QP_equation()
     ! Alignment of the chemical potential:
     !   ef + de = ef + Sigma(kf, ef + de)
     !------------------------------------------
+    n_kpoints = size( selfec, 3 )
     select case (input%gw%selfenergy%eshift)
         case(0)
             ! no shift
@@ -28,7 +29,7 @@ subroutine solve_QP_equation()
         case(1)
             ! following Lucia Reining's book
             enk = evalfv(nomax,ikvbm)-efermi
-            sx = enk + selfex(nomax,ikvbm) - vxcnn(nomax,ikvbm)
+            sx = enk + selfex(nomax,ikvbm) - vxcnn%diag_elements(nomax,ikvbm)
             eqp = enk
             eqp_prev = eqp
             converged = .false.
@@ -52,7 +53,7 @@ subroutine solve_QP_equation()
             enk = evalfv(nomax,ikvbm)-efermi
             call get_selfc(freq_selfc%nomeg, freq_selfc%freqs, selfec(nomax,:,ikvbm), &
                         enk, sc, dsigma)
-            de = selfex(nomax,ikvbm) + sc - vxcnn(nomax,ikvbm)
+            de = selfex(nomax,ikvbm) + sc - vxcnn%diag_elements(nomax,ikvbm)
         case default
             write(*,*) 'Non supported values of eshift=', input%gw%selfenergy%eshift
             stop
@@ -63,7 +64,7 @@ subroutine solve_QP_equation()
     !--------------------------------------------
     ! Solve QP equation
     !--------------------------------------------
-    do ik = 1, kset%nkpt
+    do ik = 1, n_kpoints
         do ib = ibgw, nbgw
 
             enk = evalfv(ib,ik)-efermi
@@ -80,7 +81,7 @@ subroutine solve_QP_equation()
                                         enk, sigc(ib,ik), dsigma )
                         znk = zone / (zone-dsigma)
                         znorm(ib,ik)  = dble(znk)
-                        eqp = enk + znorm(ib,ik)*dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)) + &
+                        eqp = enk + znorm(ib,ik)*dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn%diag_elements(ib,ik)) + &
                               (1.d0-znorm(ib,ik))*deltaE
                         converged = .true.
                         exit
@@ -88,7 +89,7 @@ subroutine solve_QP_equation()
                         ! Perturbative solution without renormalization
                         call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
                                         enk, sigc(ib,ik), dsigma )
-                        eqp = enk + dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik))
+                        eqp = enk + dble(selfex(ib,ik) + sigc(ib,ik) - vxcnn%diag_elements(ib,ik))
                         znorm(ib,ik)  = 1.d0
                         converged = .true.
                         exit
@@ -96,7 +97,7 @@ subroutine solve_QP_equation()
                         ! Iterative solution
                         call get_selfc( freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
                                         eqp-deltaE, sigc(ib,ik), dsigma )
-                        eqp = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn(ib,ik)
+                        eqp = enk + selfex(ib,ik) + sigc(ib,ik) - vxcnn%diag_elements(ib,ik)
                         znorm(ib,ik)  = 1.d0
                     case default
                         write(*,*) 'Error(solve_QP_equation) Non supported value: eqpsolver =', input%gw%selfenergy%eqpsolver

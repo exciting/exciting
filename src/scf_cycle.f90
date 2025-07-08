@@ -1,49 +1,73 @@
-!BOP
-! !ROUTINE: scf_cycle
-! !INTERFACE:
-!
-!
 subroutine scf_cycle(verbosity)
-! !USES:
-    use modinput
-    use modmain
-    use modmpi
-    use scl_xml_out_Module
-    use TS_vdW_module, only: C6ab, R0_eff_ab
-    use sirius_init,   only: sirius_options
+    use cdft, only: cdft_input_keys, deallocate_cdft_global_arrays, determine_cdft_occupations, &
+      file_extension_GS, initialize_cdft_global_arrays, update_occupations_with_the_maximum_overlap_method
+    use exciting_mpi, only: xmpi_bcast, xmpi_allreduce
+    use lo_recommendation, only: recommend_local_orbital_trial_energies
+    use mod_APW_LO, only: apwn, apwe0, lorbe0, lorbl, lorbord, lorbn, maxapword, maxlapw, nlorb
+    use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, spr, spsymb
+    use mod_charge_and_moment, only: chgdst, chgpart, momtot
+    use mod_convergence, only: currentconvergence, vchgdst, vcurrentconvergence, vdeltae
+    use mod_eigenvalue_occupancy, only: evalsv, fermidos, occsv, nstfv, nstsv
+    use mod_eigensystem, only: mt_hscf, MTInitAll, MTNullify, nmatmax
+    use mod_energy, only: engytot, engyknst
+    use mod_force, only: forcemax, forcetot
+    use mod_Gvector, only: ngrid, ngrtot
+    use mod_Gkvector, only: vgkl
+    use mod_kpoint, only: nkpt, vkl, wkpt
+    use mod_LDA_LU, only: ldapu, lmmaxlu
+    use mod_misc, only: filext, task, tlast, tstop
+    use mod_muffin_tin, only: lmmaxvr, nrmt, nrmtmax
+    use mod_OEP_HF, only: resoep
+    use mod_potential_and_density, only: generate_density_and_magnetization, m2effig, magir, magmt, meffig, rhomt, rhoir, veffmt, veffir, vxcmt, vxcir, exmt, exir, ecmt, ecir, xctype
+    use mod_spin, only: ndmag, nspinor, nspnfv
+    use mod_timing, only: stopwatch, time_density_init, time_pot_init, timefor, timefv, &
+      timeinit, timeio, timemat, timemixer, timemt, timepot, timerho, timesv
+    use modinput, only: input, getfixspinnumber
+    use modmpi, only: barrier, firstofset, lastofset, mpiglobal, mpi_allgatherv_ifc, &
+      procs, rank, splittfile
+    use precision, only: dp, i32
+    use scl_xml_out_Module, only: deltae, dforcemax, iscl, scl_iter_xmlout, scl_xml_out_write, scl_xml_write_moments
+    use secular_equation, only: seceqn
     use sirius_api,    only: set_radial_functions_sirius, solve_seceqn_sirius, get_eval_sirius, get_evec_sirius, &
                              put_occ_sirius, generate_density_sirius, get_periodic_function_sirius
-    use mod_potential_and_density, only: generate_density_and_magnetization
-    use lo_recommendation, only: recommend_local_orbital_trial_energies
+    use sirius_init,   only: sirius_options
+    use total_energy, only: energy
     use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
-!
-
-! !DESCRIPTION:
-!
-! !REVISION HISTORY:
-!   Created February 2013 (DIN)
-!EOP
-!BOC
+    use TS_vdW_module, only: C6ab, R0_eff_ab
+    use kinetic_energy_density, only: gen_ked, ked_mt, ked_cr, ked_ir, ked_magmt, ked_magir
+    use kinetic_energy_density_vars, only: ked_var_init, ked_var_free, timeked
+    use mgga_potxc
+    use mgga_poteff
+    use mgga_init
+    use mGGA_eigensystem
     Implicit None
-    integer, intent(IN) :: verbosity
-    Real(8) :: et, fm
-    Real(8), Allocatable :: evalfv(:, :)
-    Complex (8), Allocatable :: evecfv(:, :, :)
-    Complex (8), Allocatable :: evecsv(:, :)
+
+    integer(i32), intent(IN) :: verbosity
+    Real(dp) :: et, fm
+    Real(dp), Allocatable :: evalfv(:, :)
+    Complex(dp), Allocatable :: evecfv(:, :, :)
+    Complex(dp), Allocatable :: evecsv(:, :)
     Logical :: exist
-    Integer :: ik, is, ia, idm, id, lmax, nodesmax
-    Integer :: n, nwork
-    !Integer :: i,j, ias
-    Real(8), Allocatable :: v(:),forcesum(:,:)
-    Real(8) :: timetot, ts0, ts1, tin1, tin0, ta,tb
-    character*(77) :: string, acoord
+    Integer(i32) :: ik, is, ia, idm, id, lmax, nodesmax
+    Integer(i32) :: n, nwork
+    Real(dp), Allocatable :: v(:)
+    Real(dp) :: timetot, ts0, ts1, tin1, tin0, ta,tb
+    
+    character(len=77) :: string, acoord
 
-    Real (8), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
-    Real (8), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
+    Real(dp), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
+    Real(dp), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
 
-    Type (apw_lo_basis_type) :: mt_basis
+    type(cdft_input_keys) :: cdft_calculation
+    logical :: spin_polarization, use_mGGA
+    integer(i32) :: first_k, last_k
+    complex (dp), allocatable :: evecfv_store(:, :, :)
+    real (dp), allocatable :: occsv_ref(:, :)
 
+    first_k = firstofset(rank, nkpt)
+    last_k = lastofset(rank, nkpt)
     acoord = "lattice"
+    spin_polarization = associated( input%groundstate%spin )
     if (input%structure%cartesian) acoord = "cartesian"
 
     If ((verbosity>-1).and.(rank==0)) Then
@@ -78,8 +102,14 @@ subroutine scf_cycle(verbosity)
         Call rhoinit
         Call timesec(tin1)
         time_density_init=tin1-tin0
-        Call timesec(tin0)
-        Call poteff
+        call timesec(tin0)
+        if ( associated(input%groundstate%mgga) ) then 
+            call init_mgga()
+            call calc_poteff_gga(veffmt, veffir, 2, xctype, rhomt, rhoir, vxcmt, vxcir, & 
+                                 exmt, ecmt, ecir, exir)                
+        else 
+            call poteff( .true. )
+        end if 
         Call genveffig
         Call timesec(tin1)
         time_pot_init=tin1-tin0
@@ -122,24 +152,51 @@ subroutine scf_cycle(verbosity)
     timeinit = timeinit+ts1-ts0
 !! TIME - End of initialisation segment
 
+!-----------------------------------------------------
+! CDFT
+    call cdft_calculation%read_input_keys( input%groundstate )
+    if( cdft_calculation%is_on() ) then
+      string = filext
+      filext = file_extension_GS
+      do ik = 1, nkpt
+        call getoccsv( vkl(:, ik), occsv(:, ik) )
+      end do
+      if ( cdft_calculation%read_density_potential_from_file() ) call readstate
+      call determine_cdft_occupations( cdft_calculation, wkpt, occsv )
+      if ( cdft_calculation%is_maximum_overlap_method_required() ) then
+        occsv_ref = occsv
+        allocate( evecfv_store(nmatmax, nstfv, first_k:last_k) )
+        splittfile = .false.
+        do ik = first_k, last_k
+          call getevecfv( vkl(:, ik), vgkl(:, :, :, ik), evecfv_store(:, :, ik) )
+        end do
+        call initialize_cdft_global_arrays( evecfv_store, first_k )
+      end if
+      filext = string
+    end if
+
 !----------------------------------------------------
 !! TIME - Mixer segment
-    Call timesec (ts0)
-    ! size of mixing vector
-    n = lmmaxvr*nrmtmax*natmtot+ngrtot
-    If (associated(input%groundstate%spin)) n = n*(1+ndmag)
-    If (ldapu .Ne. 0) n = n + 2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
-    ! allocate mixing arrays
-    Allocate (v(n))
-    ! call mixing array allocation functions by setting
-    nwork = -1
-    ! and call interface
-    iscl = 0
-    Call packeff (.True., n, v)
-    If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
-    Call packeff (.False., n, v)
-    Call timesec (ts1)
-    timemixer = ts1-ts0+timemixer
+    if ( associated(input%groundstate%mgga) ) then
+        iscl = 0 
+    else 
+        Call timesec (ts0)
+        ! size of mixing vector
+        n = lmmaxvr*nrmtmax*natmtot+ngrtot
+        If (spin_polarization) n = n*(1+ndmag)
+        If (ldapu .Ne. 0) n = n + 2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
+        ! allocate mixing arrays
+        Allocate (v(n))
+        ! call mixing array allocation functions by setting
+        nwork = -1
+        ! and call interface
+        iscl = 0
+        Call packeff (.True., n, v)
+        If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+        Call packeff (.False., n, v)
+        Call timesec (ts1)
+        timemixer = ts1-ts0+timemixer
+    end if 
 !! TIME - End of mixer segment
 !----------------------------------------------------
 
@@ -231,8 +288,17 @@ subroutine scf_cycle(verbosity)
 ! Effective Hamiltonian Setup: Radial and Angular integrals
 !------------------------------------------------------------
         call stopwatch("exciting:rad_int", 1)
-        call MTInitAll(mt_hscf)
-        call hmlint(mt_hscf)
+        if ( associated(input%groundstate%mgga) ) then
+            use_mGGA = ( ((task == 1) .or. (task == 3)) .and. mgga_read_in ) .or. (iscl >= 2)
+            if (use_mGGA) then
+                call mGGA_eig_init(veffmt, veffir, vxcmt_mgga_nonmult, vxcir_mgga_nonmult)
+            else
+                call mGGA_eig_init(veffmt, veffir)
+            end if
+        else 
+            call MTInitAll(mt_hscf) 
+            call hmlint(mt_hscf)
+        end if 
         call stopwatch("exciting:rad_int", 0)
 !________________
 ! partial charges
@@ -264,13 +330,14 @@ subroutine scf_cycle(verbosity)
 ! start k-point loop
 #ifdef MPI
             call barrier()
-            If (rank == 0) Call delevec()
+            If (rank == 0) then 
+              if( input%groundstate%solver%type /= 'Davidson' .or. procs > 1 ) Call delevec()
+            end if
             splittfile = .True.
-            Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
 #else
             splittfile = .False.
-            Do ik = 1, nkpt
 #endif
+            Do ik = first_k, last_k
 
 !____________________________________________
 ! every thread should allocate its own arrays
@@ -291,7 +358,7 @@ subroutine scf_cycle(verbosity)
 
 !__________________________________________________________
 ! solve the first- and second-variational secular equations
-                call seceqn (ik, evalfv, evecfv, evecsv)
+                call seceqn (ik, evalfv, evecfv, evecsv, cdft_calculation%is_maximum_overlap_method_required() )
 
                 call timesec(ts0)
 
@@ -304,6 +371,12 @@ subroutine scf_cycle(verbosity)
                 Call putevecsv (ik, evecsv)
 
 !__________________________
+! store evecfv for the case of maximum overlap in cdft
+                if ( cdft_calculation%is_maximum_overlap_method_required() &
+                    .and. (ik >= first_k) .and. (ik<=last_k) ) &
+                    evecfv_store(1:nmatmax, 1:nstfv, ik) = evecfv(1:nmatmax, 1:nstfv, 1)
+
+!__________________________
 ! calculate partial charges
                 if (input%groundstate%tpartcharges) call genpchgs(ik,evecfv,evecsv)
                 deallocate (evalfv, evecfv, evecsv)
@@ -311,11 +384,8 @@ subroutine scf_cycle(verbosity)
             End Do ! ik
 
 ! end k-point loop -------------------------------------------------------------
-
-#ifdef MPI
             call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstsv, rbuf=evalsv)
             if (task==7) call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstfv, rbuf=engyknst)
-#endif
         end if
 
         call timesec(tb)
@@ -326,7 +396,15 @@ subroutine scf_cycle(verbosity)
 !-----------------------------------------------
 ! find the occupation numbers and Fermi energy
 !-----------------------------------------------
-        Call occupy
+        if( cdft_calculation%is_on() ) then
+          if ( cdft_calculation%is_maximum_overlap_method_required() ) then
+            occsv = occsv_ref
+            call update_occupations_with_the_maximum_overlap_method( evecfv_store, occsv(:, first_k:) )
+          end if
+        else 
+          call occupy
+        end if 
+
         If (rank==0) Then
 ! write out the eigenvalues and occupation numbers
             Call writeeval
@@ -334,11 +412,7 @@ subroutine scf_cycle(verbosity)
             Call writefermi
         End If
 !write the occupancies to file
-#ifdef MPI
-        Do ik = firstofset(rank,nkpt), lastofset(rank,nkpt)
-#else
-        Do ik = 1, nkpt
-#endif
+        Do ik = first_k, last_k
             Call putoccsv (ik, occsv(:, ik))
         End Do
         if ( associated(input%groundstate%sirius) ) then
@@ -357,7 +431,7 @@ subroutine scf_cycle(verbosity)
           call get_periodic_function_sirius(rhoir, ngrid)
           call timesec(ts0)
         else
-          call generate_density_and_magnetization()
+          call generate_density_and_magnetization
           call timesec(ts0)
 #ifdef MPI
         ! EXX case
@@ -377,7 +451,7 @@ subroutine scf_cycle(verbosity)
 ! symmetrise the density
           call symrf(input%groundstate%lradstep, rhomt, rhoir)
 ! symmetrise the magnetisation
-          If (associated(input%groundstate%spin)) Call symrvf(input%groundstate%lradstep, magmt, magir)
+          If (spin_polarization) Call symrvf(input%groundstate%lradstep, magmt, magir)
 ! convert the density from a coarse to a fine radial mesh
           call rfmtctof (rhomt)
 ! convert the magnetisation from a coarse to a fine radial mesh
@@ -391,7 +465,7 @@ subroutine scf_cycle(verbosity)
 ! calculate the charges
         Call charge
 ! calculate the moments
-        If (associated(input%groundstate%spin)) Call moment
+        If (spin_polarization) Call moment
 ! normalise the density
         Call rhonorm
         call stopwatch("exciting:rhomag", 0)
@@ -415,29 +489,56 @@ subroutine scf_cycle(verbosity)
         rhoirref(:)=rhoir(:)
         rhomtref(:,:,:)=rhomt(:,:,:)
 
+! compute kinetic energy density 
+        if ( associated(input%groundstate%mgga)  ) then 
+            call timesec (ts0)
+            call gen_ked()
+ 
+            ! symmetrise the kinetic energy density
+            call symrf(input%groundstate%lradstep, ked_mt, ked_ir)
+            ! convert the density from a coarse to a fine radial mesh
+            call rfmtctof (ked_mt)
+            if (associated(input%groundstate%spin)) Call symrvf(input%groundstate%lradstep, ked_magmt, ked_magir)
+            call timesec (ts1)
+            timeked = timeked + ts1-ts0
+        end if 
+
 !-----------------------------------
 ! Compute the effective potential
 !-----------------------------------
-        Call poteff
+        call timesec (ts0)
+        if ( associated(input%groundstate%mgga)) then 
+            call calc_poteff_mgga(veffmt, veffir, 3, xctype_mgga, rhomt, rhoir, exmt, ecmt, ecir, exir, &
+                                vxcmt, vxcmt_mgga_nonmult, vxcir, vxcir_mgga_nonmult, ked_ir, ked_mt)
+            call calc_poteff_gga(veffmt_gga, veffir_gga, 2, xctype, rhomt, rhoir, vxcmt_gga, vxcir_gga, &
+                                exmt_gga, ecmt_gga, ecir_gga, exir_gga)
+        else 
+            call poteff( .true. )
+        end if 
+        call timesec (ts1)
+        timepot = ts1-ts0+timepot
+
 !---------------
 ! Mixing
 !---------------
-! pack interstitial and muffin-tin effective potential and field into one array
-        Call packeff (.True., n, v)
-! mix in the old potential and field with the new
-        If (rank .Eq. 0) Then
-           Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
-           do id=1, input%groundstate%niterconvcheck-1
-              vcurrentconvergence(id) = vcurrentconvergence(id+1)
-           end do
-           vcurrentconvergence(input%groundstate%niterconvcheck) = currentconvergence
-
-        End If
-#ifdef MPI
-        Call MPI_bcast (v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-#endif
-! unpack potential and field
-        Call packeff (.False., n, v)
+        if ( associated(input%groundstate%mgga) ) then  
+            call mgga_mixer(iscl, v, nwork, currentconvergence, vcurrentconvergence)
+        else 
+            Call timesec (ts1)
+            ! pack interstitial and muffin-tin effective potential and field into one array
+            Call packeff (.True., n, v)
+            ! mix in the old potential and field with the new
+            If (rank .Eq. 0) Then
+                Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+                do id=1, input%groundstate%niterconvcheck-1
+                    vcurrentconvergence(id) = vcurrentconvergence(id+1)
+                end do
+                vcurrentconvergence(input%groundstate%niterconvcheck) = currentconvergence
+            End If
+        call xmpi_bcast(mpiglobal, v)
+            ! unpack potential and field
+            Call packeff (.False., n, v)
+        end if 
 !---------------
 ! Fourier transform effective potential to G-space
         Call genveffig
@@ -447,7 +548,7 @@ subroutine scf_cycle(verbosity)
         If (getfixspinnumber() .Ne. 0) Call fsmfield
         Call genmeffig
 ! reduce the external magnetic fields if required
-        If (associated(input%groundstate%spin)) Then
+        If (spin_polarization) Then
             If (input%groundstate%spin%reducebf .Lt. 1.d0) Then
                 input%groundstate%spin%bfieldc(:) = &
                &  input%groundstate%spin%bfieldc(:) * input%groundstate%spin%reducebf
@@ -491,14 +592,14 @@ subroutine scf_cycle(verbosity)
 ! output energy components
             call writeengy(60)
             if (verbosity>0) Write (60,*)
-            Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
+            Write (60, '(" DOS at Fermi energy (states/Ha/cell)",T45, ": ", F18.8)') fermidos
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
 !            Write (62, '(G18.10)') fermidos
 !            Call flushifc (62)
 ! output charges and moments
             Call writechg (60,input%groundstate%outputlevelnumber)
 ! write total moment to MOMENT.OUT and flush
-            If (associated(input%groundstate%spin)) Then
+            If (spin_polarization) Then
                 Write (63, '(3G18.10)') momtot (1:ndmag)
                 Call flushifc (63)
             End If
@@ -507,7 +608,9 @@ subroutine scf_cycle(verbosity)
 ! output forces to INFO.OUT
 !            if (input%groundstate%tforce) call writeforce(60,input%relax%outputlevelnumber)
 ! write band-gap if the dos at the Fermi energy is smaller than the given threshold
-            if (fermidos<1.0d-4) call printbandgap(60)
+            if ( .not. cdft_calculation%is_on() ) then
+              if ( fermidos < 1.0d-4 ) call printbandgap(60)
+            end if
 ! check for WRITE file
             Inquire (File='WRITE', Exist=exist)
             If (exist) Then
@@ -518,7 +621,7 @@ subroutine scf_cycle(verbosity)
                 Close (50, Status='DELETE')
             End If
             Call scl_iter_xmlout ()
-            If (associated(input%groundstate%spin)) Call scl_xml_write_moments()
+            If (spin_polarization) Call scl_xml_write_moments()
             Call scl_xml_out_write()
         End If
 ! write STATE.OUT file if required
@@ -550,9 +653,10 @@ subroutine scf_cycle(verbosity)
 
 ! output the current total time
         timetot = timeinit+timemat+timefv+timesv+timerho+timepot+timefor+timeio+timemt+timemixer
+        if ( associated(input%groundstate%mgga) ) timetot = timetot + timeked
         if ((verbosity>-1).and.(rank==0)) then
             write(60,*)
-            write(60, '(" Wall time (seconds)",T45 ": ", F12.2)') timetot
+            write(60, '(" Wall time (seconds)",T45, ": ", F12.2)') timetot
         end if
 
 ! write TOTENERGY.OUT
@@ -654,10 +758,9 @@ subroutine scf_cycle(verbosity)
 
         End If ! iscl>2
 
-#ifdef MPI
-        Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
-        Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
-#endif
+        call xmpi_bcast(mpiglobal, tstop)
+        call xmpi_bcast(mpiglobal, tlast)
+
         call timesec(ts1)
         timeio = ts1 - ts0 + timeio
 !! TIME - End of fourth IO segment
@@ -694,15 +797,11 @@ subroutine scf_cycle(verbosity)
 !------------------
     If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
         Call force(input%groundstate%tfibs)
-#ifdef MPI
 ! For whatever reason each MPI process may produce very slightly different forces.
 ! At this spot, we equalise them, so that we do not end up with a different geometry
 ! for every process.
-        allocate(forcesum(3,natmtot))
-        call MPI_ALLREDUCE(forcetot, forcesum, natmtot*3, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-        forcetot(1:3,1:natmtot)=forcesum(1:3,1:natmtot)/dble(procs)
-        deallocate(forcesum)
-#endif
+        call xmpi_allreduce( forcetot, mpiglobal )
+        forcetot(1:3,1:natmtot)=forcetot(1:3,1:natmtot)/dble(procs)
 ! output forces to INFO.OUT
         if ((verbosity>-1).and.(rank==0)) then
            call printbox(60,"-","Writing atomic positions and forces")
@@ -735,11 +834,12 @@ subroutine scf_cycle(verbosity)
 
     if (allocated(rhomtref)) deallocate(rhomtref)
     if (allocated(rhoirref)) deallocate(rhoirref)
+    if( cdft_calculation%is_on() )  call deallocate_cdft_global_arrays()
 
     If ((verbosity>-1).and.(rank==0)) Then
 ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT
 !      Write (62,*)
-      If (associated(input%groundstate%spin)) write (63,*)
+      If (spin_polarization) write (63,*)
 ! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
 !      Write (66,*)
 !      If (input%groundstate%tforce) Write (67,*)

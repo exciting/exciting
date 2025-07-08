@@ -4,12 +4,12 @@ Should only be run if changes to the schema are made.
 
 import re
 from pathlib import Path
-from typing import List
+from typing import List, Tuple, Union
 
 import xmlschema
-from xmlschema.validators import XsdAnyElement
+from xmlschema.validators import XsdAnyAttribute, XsdAnyElement
 
-from excitingtools.utils.utils import get_excitingtools_root
+from excitingtools.utils.utils import get_excitingtools_root, variable_to_pretty_str
 
 
 def copy_schema_files_for_parsing(schema_files: List[str]) -> List[Path]:
@@ -93,6 +93,48 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     return file_list
 
 
+class TypeWrapper:
+    """Simple wrapper class around the type object simply used for pretty printing."""
+
+    def __init__(self, t: type):
+        self.t = t
+
+    def __repr__(self) -> str:
+        return self.t.__name__
+
+
+def get_attribute_type(attribute: xmlschema.XsdAttribute) -> Tuple[TypeWrapper, Union[int, List[str]]]:
+    """Extract the expected type of the attribute and either the number of expected values or the set of allowed values.
+
+    :param attribute: attribute to inspect
+    :return: tuple of expected type and expected number of values or set of allowed values
+    """
+    # some types have this prefix in front of their name
+    xs_prefix = re.compile(r"(?:\{http://www.w3.org/2001/XMLSchema})?(.*)")
+    # dictionary which maps type name to type and number of expected values
+    name_to_type = {
+        "integertriple": (TypeWrapper(int), 3),
+        "string": (TypeWrapper(str), 1),
+        "fortrandouble": (TypeWrapper(float), 1),
+        "boolean": (TypeWrapper(bool), 1),
+        "anyURI": (TypeWrapper(str), 1),
+        "vect3d": (TypeWrapper(float), 3),
+        "integer": (TypeWrapper(int), 1),
+        "integerpair": (TypeWrapper(int), 2),
+        "vect2d": (TypeWrapper(float), 2),
+        "booleantriple": (TypeWrapper(bool), 3),
+        "integerquadrupel": (TypeWrapper(int), 4),
+    }
+    try:
+        # as long as attribute.type.name is a simple string, we can simply use the dictionary
+        return name_to_type[xs_prefix.match(attribute.type.name).group(1)]
+    except TypeError:
+        # otherwise there exists an enumeration with allowed values
+        t, _ = name_to_type[xs_prefix.match(attribute.type.base_type.name).group(1)]
+        choices = sorted(attribute.type.validators[0].enumeration)
+        return t, choices
+
+
 def read_schema_to_dict(name: str) -> dict:
     """Read schema and transform to sensible dictionary.
 
@@ -114,9 +156,12 @@ def read_schema_to_dict(name: str) -> dict:
         children = [x.name for x in xsd_element.iterchildren() if not isinstance(x, XsdAnyElement)]
         mandatory_children = set([x.name for x in xsd_element.iterchildren() if x.min_occurs > 0])
         multiple_childs = set([x.name for x in xsd_element.iterchildren() if x.max_occurs is None or x.max_occurs > 1])
+        attribute_types = {
+            k: get_attribute_type(v) for k, v in attributes.items() if not isinstance(v, XsdAnyAttribute)
+        }
 
         tag_info[xsd_element.name] = {
-            "attribs": filter(lambda x: x is not None, attributes),
+            "attribute_types": attribute_types,
             "children": children,
             "mandatory_attribs": mandatory_attributes | mandatory_children,
             "multiple_children": multiple_childs,
@@ -144,50 +189,24 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
     """
     info_string = f"\n# {super_tag} information \n"
     for tag in schema_dict:
-        valid_attributes = sorted(schema_dict[tag]["attribs"])
         valid_subtrees = schema_dict[tag]["children"]
         mandatory_attributes = sorted(schema_dict[tag]["mandatory_attribs"])
         multiple_childs = sorted(schema_dict[tag]["multiple_children"])
+        attribute_types = schema_dict[tag]["attribute_types"]
 
-        if not (valid_attributes or valid_subtrees or mandatory_attributes):
+        if not (attribute_types or valid_subtrees or mandatory_attributes):
             continue
 
-        if valid_attributes:
-            info_string += list_string_line_limit(f"{tag}_valid_attributes", valid_attributes) + " \n"
+        if attribute_types:
+            info_string += variable_to_pretty_str(f"{tag}_attribute_types", attribute_types) + " \n"
         if valid_subtrees:
-            info_string += list_string_line_limit(f"{tag}_valid_subtrees", valid_subtrees) + " \n"
+            info_string += variable_to_pretty_str(f"{tag}_valid_subtrees", valid_subtrees) + " \n"
         if mandatory_attributes:
-            info_string += list_string_line_limit(f"{tag}_mandatory_attributes", mandatory_attributes) + " \n"
+            info_string += variable_to_pretty_str(f"{tag}_mandatory_attributes", mandatory_attributes) + " \n"
         if multiple_childs:
-            info_string += list_string_line_limit(f"{tag}_multiple_children", multiple_childs) + " \n"
+            info_string += variable_to_pretty_str(f"{tag}_multiple_children", multiple_childs) + " \n"
         info_string += "\n"
     return info_string
-
-
-def list_string_line_limit(name: str, content: list, max_length: int = 120) -> str:
-    """Given a list of unique items, produces a python formatted string containing the definition of the list
-    given by the name:
-        name = ['entry1', 'entry2', ...]
-    Inserts a line break every time the string gets longer then the limit.
-
-    :param name: the name of the set in the final string representing the definition
-    :param content: the list to write to string as a set (list because of consistent ordering)
-    :param max_length: the maximum line length
-    :return: the formatted string with fixed line length
-    """
-    formatted_string = ""
-    current_line_string = name + " = ["
-    start_len = len(current_line_string)
-    entry_break_string = '", '
-
-    for entry in content:
-        if len(str(entry) + current_line_string + entry_break_string) > max_length:
-            formatted_string += current_line_string + "\n"
-            current_line_string = start_len * " "
-        current_line_string += f'"{entry}{entry_break_string}'
-
-    formatted_string += current_line_string[:-2] + "]"
-    return formatted_string
 
 
 def get_all_include_files() -> list:
@@ -212,20 +231,15 @@ def main():
     schemas = get_all_include_files()
     tmp_files = copy_schema_files_for_parsing(schemas)
 
-    input_schema_dict = {"input": read_schema_to_dict("input")["input"]}
+    input_schema_dict = read_schema_to_dict("input")
     info += write_schema_info("input", input_schema_dict)
 
     for schema in schemas:
         schema_dict = read_schema_to_dict(schema)
         info += write_schema_info(schema, schema_dict)
 
-    # Handle special case for 'xs' to handle the valid plan entries
-    xs_schema_dict = read_schema_to_dict("xs")
-    info += "\n# valid entries for the xs subtree 'plan'\n"
-    info += list_string_line_limit("valid_plan_entries", sorted(xs_schema_dict["doonly"]["plan"])) + " \n"
-
     with open(filename, "w") as fid:
-        fid.write(info)
+        fid.write(info[:-1])
 
     for file in tmp_files:
         file.unlink()

@@ -1,16 +1,16 @@
 module task_sigmac
   use asserts, only: assert
-  use constants, only: zzero
+  use constants, only: zzero, real_zero
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
   use math_utils, only: all_zero
   use modinput, only: input, gw_type
   use modgw, only: freq, ibgw, nbgw
   use modmpi, only: mpiglobal, terminate_if_false, distribute_loop
-  use mod_coulomb_potential, only: read_coulomb_potential_from_file, barc
+  use mod_coulomb_potential, only: read_barcev_vmat_from_file, calculate_sqrt_bare_coulomb, delete_coulomb_potential, barc
   use mod_dielectric_function, only: read_inverse_epsilon_from_file, epsilon
   use mod_kqpts, only: kpoints_sets
-  use mod_misc_gw, only: Gamma
+  use mod_misc_gw, only: Gamma, gammapoint
   use mod_product_basis, only: read_sgi_from_file
   use mod_selfenergy, only: selfec, write_selfec_single_kpoint, & 
     generate_frequency_grid_for_correlation_self_energy
@@ -31,6 +31,7 @@ module task_sigmac
     private
     type(kpoints_sets) :: k_points
     integer(i32) :: n_omega
+    real(dp) :: eigenvalue_cutoff_Coulomb_matrix
     character(len=max_length) :: output_format
   contains
     procedure :: parse_input, sanity_checks
@@ -49,6 +50,7 @@ subroutine parse_input( this, gw_inp, n_kpt )
   call this%k_points%parse_input( gw_inp%taskGroup%sigmac%kpointsarray, n_kpt )
   this%n_omega = gw_inp%freqgrid%nomeg
   this%output_format = trim( gw_inp%taskGroup%outputFormat )
+  this%eigenvalue_cutoff_Coulomb_matrix = gw_inp%barecoul%barcevtol
 end subroutine
 
 subroutine sanity_checks( this, gw_inp )
@@ -60,6 +62,8 @@ subroutine sanity_checks( this, gw_inp )
     'Element sigmac must be present when executing '//'"'//task_name//'"' )
   call terminate_if_false( associated(gw_inp%freqgrid), &
     'Element freqgrid must be present when executing '//'"'//task_name//'"' )
+  call terminate_if_false( associated(gw_inp%barecoul), &
+    'Element barecoul must be present when executing '//'"'//task_name//'"' )
 end subroutine
 
 
@@ -88,6 +92,7 @@ subroutine execute_task_sigmac( n_kpoints_max, qpoints, file_format )
   integer(i32), parameter :: maxlen=80
   character(len=maxlen) :: string
   real(dp), parameter :: tolerance_zero_vector = 1.e-6_dp
+  real(dp) :: eigenvalue_cutoff
   type(task_sigmac_parameters) :: input_parameters
   type(mpiinfo) :: mpi_environment_kpoints
   
@@ -104,6 +109,7 @@ subroutine execute_task_sigmac( n_kpoints_max, qpoints, file_format )
   n_qpoints = size( qpoints, 2 )
   iq_start = 1
   iq_end = n_qpoints
+  eigenvalue_cutoff = max( real_zero, input_parameters%eigenvalue_cutoff_Coulomb_matrix )
   call generate_frequency_grid_for_correlation_self_energy( input%gw )
   do i = i_start, i_end
     ik = input_parameters%k_points%list_of_indexes(i)
@@ -115,10 +121,11 @@ subroutine execute_task_sigmac( n_kpoints_max, qpoints, file_format )
     if( allocated( selfec )) deallocate( selfec )
     allocate( selfec(ibgw:nbgw, omega_i:omega_f, ik:ik), source=zzero )
     do iq = iq_start, iq_end
-      call read_coulomb_potential_from_file( iq, file_format )
       call read_sgi_from_file( iq, file_format )
       call calcmpwipw( iq )
-      Gamma = all_zero( qpoints(:,iq), tol=tolerance_zero_vector )
+      call read_barcev_vmat_from_file( iq, file_format )
+      Gamma = gammapoint( qpoints(:,iq), tol=tolerance_zero_vector )
+      call calculate_sqrt_bare_coulomb( iq, eigenvalue_cutoff, Gamma )
       call read_inverse_epsilon_from_file( iq, Gamma, file_format )
       call sanity_check_frequencies_of_epsilon()
       call sanity_check_epsilon_and_barc()
@@ -126,6 +133,7 @@ subroutine execute_task_sigmac( n_kpoints_max, qpoints, file_format )
     end do
     call write_selfec_single_kpoint( ik, file_format )
   end do
+  call delete_coulomb_potential
 
 end subroutine
 

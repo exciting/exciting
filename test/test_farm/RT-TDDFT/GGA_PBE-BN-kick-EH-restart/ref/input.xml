@@ -1,0 +1,68 @@
+<input>
+        <title>C</title>
+        <structure speciespath="./">
+                <crystal scale="6.833">
+                        <basevect>0.0 0.5 0.5 </basevect>
+                        <basevect>0.5 0.0 0.5 </basevect>
+                        <basevect>0.5 0.5 0.0 </basevect>
+                </crystal>
+ 		<species speciesfile="B.xml" rmt="1.32">
+	      		<atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    		</species>
+    		<species speciesfile="N.xml" rmt="1.28">
+      			<atom coord="0.25 0.25 0.25"/>
+    		</species>
+        </structure>
+        <groundstate
+                ngridk="2 2 2"
+                rgkmax="3.0"
+                gmaxvr="10.0"
+                epsengy="1e-5"
+                vkloff="0.0 0.0 0.0"
+                do="fromscratch"
+                mixerswitch="1"
+                mixer="msec"
+                findlinentype="Wigner_Seitz"
+                frozencore="false"
+                outputlevel="high"
+                nempty="4"
+                useDensityMatrix="false"
+                xctype="GGA_PBE">
+        </groundstate>
+        <xs
+          xstype ="RT-TDDFT"
+          ngridk="2 2 2"
+          vkloff="0.01 -0.04 -0.07"
+          h5fname="rt.h5"
+          h5gname="/"
+          nosym="true"
+          reducek="false"
+          nempty="2">
+          <realTimeTDDFT
+            propagator="EH"
+            timeStep="0.2d0"
+            endTime="5.0d0"
+            restartFilesFormat="hdf5"
+            saveState="true"
+            do="fromfile"
+            printTimingGeneral="false"
+            printTimingDetailed="false"
+            calculateNExcitedElectrons="true"
+            calculateTotalEnergy="true"
+            restartExtension=".SAVE"
+            printAfterIterations="1"
+            vectorPotentialSolver="midpoint"
+            nEigenvectorsEH="8">
+            <pmat readFromFile="false" forceHermitian="true" />
+            <laser fieldType="total">
+              <kick t0="1.d0" width="0d0" amplitude="0.1d0" direction="y"/>
+            </laser>
+            <screenshots niter="20">
+              <eigenvalues nEigenvalues="-1" tolerance="1d-14" />
+              <projectionCoefficients printAbsoluteValue="true" format="F10.5" />
+              <occupations format="F15.8" textFormat="true" binaryFormat="false" />
+            </screenshots>
+          </realTimeTDDFT>
+
+        </xs>
+</input>

@@ -8,7 +8,8 @@ from excitingtools.utils.test_utils import MockFile
 @pytest.fixture
 def vxc_mock(tmp_path):
     """Mock VXCNN.DAT data with energies for 3 k-points"""
-    vxc_string = """ik=   1    vkl=  0.0000  0.0000  0.0000
+    vxc_string = """1          11           3 : index of first band, index of last band, number of k-points
+    ik=   1    vkl=  0.0000  0.0000  0.0000
        1       -2.908349       -0.000000
        2       -2.864103        0.000000
        3       -2.864103       -0.000000

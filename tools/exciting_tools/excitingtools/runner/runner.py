@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import enum
 import os
 import shutil
@@ -12,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
-from excitingtools.utils.jobflow_utils import special_serialization_attrs
+from excitingtools.base import ECTObject
 
 
 class RunnerCode(enum.Enum):
@@ -38,7 +37,7 @@ class SubprocessRunResults:
         return self.return_code == 0
 
 
-class BinaryRunner:
+class BinaryRunner(ECTObject):
     """Class to execute a subprocess."""
 
     path_type = Union[str, Path]
@@ -85,23 +84,6 @@ class BinaryRunner:
 
         if time_out <= 0:
             raise ValueError("time_out must be a positive integer")
-
-    def as_dict(self) -> dict:
-        """Returns a dictionary representing the current object for later recreation.
-        The serialise attributes are required for recognition by monty and jobflow.
-        """
-        serialise_attrs = special_serialization_attrs(self)
-        return {**serialise_attrs, **self.__dict__}
-
-    @classmethod
-    def from_dict(cls, d: dict):
-        my_dict = copy.deepcopy(d)
-        # Remove key value pairs needed for workflow programs
-        # call function on class to get only the keys (values not needed)
-        serialise_keys = special_serialization_attrs(cls)
-        for key in serialise_keys:
-            my_dict.pop(key, None)
-        return cls(**my_dict)
 
     def _check_mpi_processes(self):
         """Check whether mpi is specified and if yes that the number of MPI processes specified is valid."""

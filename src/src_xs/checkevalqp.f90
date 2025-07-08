@@ -3,9 +3,10 @@ subroutine checkevalqp(fname, nkp2, kvecs2, eqp2)
   use modmpi
   use modinput, only: input
   use constants, only: zzero
+  use mod_bands, only: nkp1
   use mod_kpoint, only: nkpt, vkl
   use mod_eigenvalue_occupancy, only: nstsv
-  use modgw, only: ibgw, nbgw, nkp1
+  use modgw, only: ibgw, nbgw
   use modbse, only: koulims
 
   implicit none

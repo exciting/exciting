@@ -1,20 +1,26 @@
 !> Obtain the correlation part of the self energy for the given k-points, 
 !> evaluating the one term (of a sum) corresponding to a given q-point
 subroutine calcselfc(iq, ikp_first, ikp_last)
-    use modinput, only: input
-    use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize, fdebug
+    use constants,  only: zzero
     use mod_APW_LO, only: apwordmax
     use mod_atoms, only: natmtot
     use mod_bands, only: eveckalm, eveckpalm, eveckp, eveck, nstse, evalfv
     use mod_core_states, only: ncg
+    use mod_dielectric_function, only: epsilon
     use mod_eigensystem, only: nmatmax
     use mod_eigenvalue_occupancy, only: nstfv
+    use mod_expand_products, only: expand_products_generic, split_interval
     use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
+    use mod_misc_gw, only: Gamma
     use mod_muffin_tin, only: lmmaxapw
     use mod_product_basis, only: minmmat, mbsiz
     use mod_selfenergy, only: mwm, freq_selfc, selfec
+    use modinput, only: input
+    use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize, fdebug
+    use modmpi, only: rank
     use precision, only: i32, dp
-    
+#include "offload.fpp"
+
     implicit none
 
     !> index of the q-point term to evaluate
@@ -27,9 +33,13 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     ! local
     integer(i32) :: ik, ikp, jk, ie1, iom
     integer(i32) :: mdim, iblk, nblk, mstart, mend
+    integer(i32) :: m_val_start, m_val_end, m_core_start, m_core_end
     real(dp) :: tstart, tend
 
     call timesec(tstart)
+
+    ! Update data
+    OMP_OFFLOAD target update to(epsilon) 
 
     !------------------------
     ! total number of states
@@ -54,13 +64,13 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     ! products M*W^c*M
     !-------------------------------------------
     allocate(mwm(ibgw_including_degeneracy:nbgw_including_degeneracy,1:mdim,1:freq%nomeg))
-    ! msize = sizeof(mwm)*b2mb
-    ! write(*,'(" calcselfc: size(mwm) (Mb):",f12.2)') msize
 
     allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
+
+    OMP_OFFLOAD target enter data map(alloc: mwm, eveckalm, eveckpalm, eveck, eveckp)
 
     !================================
     ! loop over irreducible k-points
@@ -80,6 +90,8 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
       call expand_evec(ik, 't')
       call expand_evec(jk, 'c')
 
+      OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
+
       !=================================
       ! Loop over m-blocks in M^i_{nm}
       !=================================
@@ -91,14 +103,21 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
         ! m-block M^i_{nm}
         allocate(minmmat(mbsiz,ibgw_including_degeneracy:nbgw_including_degeneracy,mstart:mend))
         msize = sizeof(minmmat)*b2mb
-
-        call expand_products(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, -1, mstart, mend, nstse, minmmat)
+        OMP_OFFLOAD target data map(alloc: minmmat)
+        call split_interval( mstart, mend, nstse, m_val_start, m_val_end, m_core_start, m_core_end)
+        call expand_products_generic(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, 1, 0,  m_val_start, m_val_end, m_core_start, m_core_end, minmmat, .true.)
+        ! For Gamma we retrieve the minmmat from the device
+        ! because MWM corrections for head and wings are computed 
+        ! in the host. This is because their memory layout is not
+        ! friendly for the device.
+        OMP_OFFLOAD target update from(minmmat) if(Gamma)
 
         !================================================================
         ! Calculate weight(q)*Sum_ij{M^i*W^c_{ij}(k,q;\omega)*conjg(M^j)}
         !================================================================
         call calcmwm(ibgw_including_degeneracy, nbgw_including_degeneracy, mstart, mend, minmmat)
 
+        OMP_OFFLOAD end target data ! minmmat 
         deallocate(minmmat)
 
       end do ! iblk
@@ -131,11 +150,13 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
 
     end do ! ikp
 
+    OMP_OFFLOAD target exit data map(delete: eveck, eveckp, eveckalm, eveckpalm, mwm)
+
     deallocate(eveck)
     deallocate(eveckp)
     deallocate(eveckalm)
     deallocate(eveckpalm)
-
+    
     ! delete MWM
     deallocate(mwm)
 

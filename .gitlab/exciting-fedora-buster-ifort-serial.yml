@@ -1,0 +1,41 @@
+# Intel classic Fortran compiler build and test. Serial compilation and testing.
+
+build:fedora-buster-ifort-serial:
+   image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora_intel_ifort
+   stage: build
+   tags:
+     - docker
+   before_script:
+     - . spack/share/spack/setup-env.sh
+     - spack load intel-oneapi-compilers-classic@2021.10.0 intel-oneapi-mpi@2021.14.1 intel-oneapi-mkl@2024.2.0 libxc@7.0.0
+   script:
+     - mkdir build-cmake && cd build-cmake
+     - FC=ifort CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=OFF -DOMP=OFF -DMKL=ON -DUSE_INTERNAL_LIBXC=OFF ..
+     - make -j 4 -l 4
+     - make install
+   artifacts:
+     paths:
+       - install/lib
+       - install/bin/exciting_serial
+       - src/version.inc
+     expire_in: 5 hrs
+
+test-fedora-buster-ifort-serial:
+   image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora_ifort
+   stage: test
+   dependencies:
+     - build:fedora-buster-ifort-serial
+     - python:regressionframework-python3
+   tags:
+     - docker
+   before_script:
+     - . spack/share/spack/setup-env.sh
+     - spack load intel-oneapi-compilers-classic@2021.10.0 intel-oneapi-mpi@2021.14.1 intel-oneapi-mkl@2024.2.0 libxc@7.0.0
+     - pip3 install numpy termcolor pytest pyyaml
+   script:
+    # Run exciting unit tests
+     - install/bin/exciting_serial -run-unit-tests -kill-on-failure
+    # Install test framework parsers
+     - pip3 install -e tools/exciting_tools
+    # Run exciting app tests
+     - cd test/ && python3 runtest.py -r ../install/bin/ -e exciting_serial -repeat-tests 2

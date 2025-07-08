@@ -25,7 +25,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use mod_misc, only: task
       Use mod_timing, only: timesv
       Use generation_wavefunction, only: generate_basisfunction_secondvariation_MT
-      Use svlo, only: get_num_of_basis_funs_sv, construct_H_and_S_in_evecfv_plus_lo_basis
+      Use svlo, only: get_num_of_basis_functions_sv, construct_H_and_S_in_evecfv_plus_lo_basis
       Use modfvsystem, only: newsystem, evsystem, deletesystem, solvewithlapack
 
       Implicit None
@@ -36,14 +36,14 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Complex (8), Intent (In) :: evecfv (nmatmax, nstfv)
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
 ! local variables
-      Complex (8) :: evecfv_tmp (nmatmax, get_num_of_basis_funs_sv())
+      Complex (8) :: evecfv_tmp (nmatmax, get_num_of_basis_functions_sv())
       Integer :: ispn, jspn, ia, is, ias
       Integer :: ist, jst, i, j, k, l, lm, nm, m, io
       Integer :: ir, irc, igk, ifg
       Integer :: nsc, lwork, info
       Integer :: if3, offset, svlo_offset, losize, b, e
       logical :: realspace
-      Integer :: num_of_basis_funs_sv
+      Integer :: num_of_basis_functions_sv
 ! fine structure constant
       Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
 ! electron g factor
@@ -80,7 +80,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       ! Type (MTHamiltonianList) :: mt_h
       ! Type (apw_lo_basis_type) :: mt_basis
 
-      num_of_basis_funs_sv = get_num_of_basis_funs_sv()
+      num_of_basis_functions_sv = get_num_of_basis_functions_sv()
       
       If (issvlo()) then
          evecfv_tmp(:,:) = zzero
@@ -131,7 +131,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Allocate (cf(3, nrmtmax))
       Allocate (sor(nrcmtmax))
       Allocate (rwork(3*nstsv))
-      Allocate (wfmt1(lmmaxvr, nrcmtmax, num_of_basis_funs_sv))
+      Allocate (wfmt1(lmmaxvr, nrcmtmax, num_of_basis_functions_sv))
       Allocate (wfmt2(lmmaxvr, nrcmtmax, nsc))
       lwork = 2 * nstsv
       Allocate (work(lwork))
@@ -218,7 +218,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 ! begin loop over states
 !xOMP PARALLEL DEFAULT(SHARED) PRIVATE(wfmt3,wfmt2,i,j,wfmt4)
 !xOMP DO
-            Do jst = 1, num_of_basis_funs_sv
+            Do jst = 1, num_of_basis_functions_sv
                If (associated(input%groundstate%spin)) Then
                   wfmt4(:, :)=wfmt1(:, :, jst)
                   Call zgemm ('N', 'N', lmmaxvr, &
@@ -281,17 +281,17 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
                   End Do
                End If
 ! second-variational Hamiltonian matrix
-               Do ist = 1, num_of_basis_funs_sv
+               Do ist = 1, num_of_basis_functions_sv
                   Do k = 1, nsc
                      If (k .Eq. 1) Then
                         i = ist
                         j = jst
                      Else If (k .Eq. 2) Then
-                        i = ist + num_of_basis_funs_sv
-                        j = jst + num_of_basis_funs_sv
+                        i = ist + num_of_basis_functions_sv
+                        j = jst + num_of_basis_functions_sv
                      Else
                         i = ist
-                        j = jst + num_of_basis_funs_sv
+                        j = jst + num_of_basis_functions_sv
                      End If
                         evecsv (i, j) = evecsv (i, j) + zfmtinp &
                        & (.True., input%groundstate%lmaxmat, nrcmt(is), &
@@ -324,10 +324,10 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
 
 
 
-        allocate(zwf(mt_hscf%maxaa,num_of_basis_funs_sv))
+        allocate(zwf(mt_hscf%maxaa,num_of_basis_functions_sv))
         allocate(apwi(mt_hscf%maxaa,ngk(1, ik)))
-        allocate(zhwf(mt_hscf%maxaa,num_of_basis_funs_sv))
-        allocate(zhlo(mt_hscf%maxnlo,num_of_basis_funs_sv))
+        allocate(zhwf(mt_hscf%maxaa,num_of_basis_functions_sv))
+        allocate(zhlo(mt_hscf%maxnlo,num_of_basis_functions_sv))
 
         offset=ngk(1,ik)
         Do is = 1, nspecies
@@ -457,8 +457,8 @@ if (mt_hscf%losize(is).gt.0) then
 endif
           call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      num_of_basis_funs_sv, &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &          ! M ... rows of op( A ) = rows of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       zwf, &        ! A
@@ -474,7 +474,7 @@ endif
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       mt_hscf%beta%aa(:,:,ias), &        ! A
@@ -489,7 +489,7 @@ if (mt_hscf%losize(is).gt.0) then
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       mt_hscf%beta%loa(:,:,ias), &        ! A
@@ -503,7 +503,7 @@ if (mt_hscf%losize(is).gt.0) then
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       mt_hscf%beta%lolo(:,:,ias), &        ! A
@@ -517,7 +517,7 @@ if (mt_hscf%losize(is).gt.0) then
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       mt_hscf%beta%alo(:,:,ias), &        ! A
@@ -531,8 +531,8 @@ if (mt_hscf%losize(is).gt.0) then
 
           call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      num_of_basis_funs_sv, &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &          ! M ... rows of op( A ) = rows of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       evecfv_tmp(offset+1,1), &        ! A
@@ -540,7 +540,7 @@ if (mt_hscf%losize(is).gt.0) then
                       zhlo, &           ! B
                       mt_hscf%maxnlo, &          ! LDB ... leading dimension of B
                       zone, &          ! beta
-                      evecsv(num_of_basis_funs_sv+1,num_of_basis_funs_sv+1), &  ! C
+                      evecsv(num_of_basis_functions_sv+1,num_of_basis_functions_sv+1), &  ! C
                       nstsv &      ! LDC ... leading dimension of C
                       )
 
@@ -548,8 +548,8 @@ endif
 
           call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      num_of_basis_funs_sv, &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &          ! M ... rows of op( A ) = rows of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       zwf, &        ! A
@@ -557,7 +557,7 @@ endif
                       zhwf, &           ! B
                       mt_hscf%maxaa, &          ! LDB ... leading dimension of B
                       zone, &          ! beta
-                      evecsv(num_of_basis_funs_sv+1,num_of_basis_funs_sv+1), &  ! C
+                      evecsv(num_of_basis_functions_sv+1,num_of_basis_functions_sv+1), &  ! C
                       nstsv &      ! LDC ... leading dimension of C
                       )
 ! alpha-beta block
@@ -565,7 +565,7 @@ if (ncmag) then
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       mt_hscf%ab%aa(:,:,ias), &        ! A
@@ -580,7 +580,7 @@ if (mt_hscf%losize(is).gt.0) then
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       mt_hscf%ab%loa(:,:,ias), &        ! A
@@ -594,7 +594,7 @@ if (mt_hscf%losize(is).gt.0) then
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%losize(is), &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       mt_hscf%ab%lolo(:,:,ias), &        ! A
@@ -608,7 +608,7 @@ if (mt_hscf%losize(is).gt.0) then
           call zgemm('N', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
                       mt_hscf%maxaa, &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       mt_hscf%ab%alo(:,:,ias), &        ! A
@@ -622,8 +622,8 @@ if (mt_hscf%losize(is).gt.0) then
 
           call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      num_of_basis_funs_sv, &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &          ! M ... rows of op( A ) = rows of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%losize(is), &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       evecfv_tmp(offset+1,1), &        ! A
@@ -631,7 +631,7 @@ if (mt_hscf%losize(is).gt.0) then
                       zhlo, &           ! B
                       mt_hscf%maxnlo, &          ! LDB ... leading dimension of B
                       zone, &          ! beta
-                      evecsv(1,num_of_basis_funs_sv+1), &  ! C
+                      evecsv(1,num_of_basis_functions_sv+1), &  ! C
                       nstsv &      ! LDC ... leading dimension of C
                       )
 
@@ -639,8 +639,8 @@ endif
 
           call zgemm('C', &           ! TRANSA = 'N'  op( A ) = A.
                      'N', &           ! TRANSB = 'N'  op( B ) = B.
-                      num_of_basis_funs_sv, &          ! M ... rows of op( A ) = rows of C
-                      num_of_basis_funs_sv, &           ! N ... cols of op( B ) = cols of C
+                      num_of_basis_functions_sv, &          ! M ... rows of op( A ) = rows of C
+                      num_of_basis_functions_sv, &           ! N ... cols of op( B ) = cols of C
                       mt_hscf%maxaa, &          ! K ... cols of op( A ) = rows of op( B )
                       zone, &          ! alpha
                       zwf, &        ! A
@@ -648,7 +648,7 @@ endif
                       zhwf, &           ! B
                       mt_hscf%maxaa, &          ! LDB ... leading dimension of B
                       zone, &          ! beta
-                      evecsv(1,num_of_basis_funs_sv+1), &  ! C
+                      evecsv(1,num_of_basis_functions_sv+1), &  ! C
                       nstsv &      ! LDC ... leading dimension of C
                       )
 endif
@@ -772,8 +772,8 @@ If (.not. issvlo()) then
       systemsv%hamilton%za(:, :) = evecsv(:, :)
       systemsv%overlap%za(:, :) = zzero
       Do ispn = 1, nspinor
-         b = (ispn-1)*num_of_basis_funs_sv+1
-         e = (ispn-1)*num_of_basis_funs_sv+num_of_basis_funs_sv
+         b = (ispn-1)*num_of_basis_functions_sv+1
+         e = (ispn-1)*num_of_basis_functions_sv+num_of_basis_functions_sv
          systemsv%hamilton%za(b:e, b:e) = systemsv%hamilton%za(b:e, b:e) + systemfv%hamilton%za(:,:)
          systemsv%overlap%za(b:e, b:e) = systemsv%overlap%za(b:e, b:e) + systemfv%overlap%za(:,:)
       End Do

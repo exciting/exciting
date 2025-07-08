@@ -5,46 +5,51 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
-!BOP
-! !ROUTINE: seceqn
-!
-!
-Subroutine seceqn (ik, evalfv, evecfv, evecsv)
-  ! !USES:
+module secular_equation
+  implicit none 
+
+  private
+
+  public :: seceqn
+
+contains 
+
+! !REVISION HISTORY:
+!   Created March 2004 (JKD)
+!   Removed a call to arpack July 2022 (Andris)
+!   Introduced an optional argument, changed to FORD documentation, Oct 2024 (Ronaldo)
+!> Solve the first- and second-variational secular equations. See routines
+!> `match`, `seceqnfv`, `seceqnss`, and `seceqnsv`.
+Subroutine seceqn (ik, evalfv, evecfv, evecsv, cdft_maximum_overlap)
       Use modinput
       Use modmain
       Use modmpi
-!
-  ! !INPUT/OUTPUT PARAMETERS:
-  !   ik     : k-point number (in,integer)
-  !   evalfv : first-variational eigenvalues (out,real(nstfv))
-  !   evecfv : first-variational eigenvectors (out,complex(nmatmax,nstfv))
-  !   evecsv : second-variational eigenvectors (out,complex(nstsv,nstsv))
-  ! !DESCRIPTION:
-  !   Solves the first- and second-variational secular equations. See routines
-  !   {\tt match}, {\tt seceqnfv}, {\tt seceqnss} and {\tt seceqnsv}.
-  !
-  ! !REVISION HISTORY:
-  !   Created March 2004 (JKD)
-  !   Removed a call to arpack July 2022 (Andris)
-  !EOP
-  !BOC
-      Implicit None
-  ! arguments
+
+      !> k-point index
       Integer, Intent (In) :: ik
+      !> first-variational eigenvalues
       Real (8), Intent (Out) :: evalfv (nstfv, nspnfv)
+      !> first-variational eigenvectors
       Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv, nspnfv)
+      !> second-variational eigenvectors
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
+      !> If `.true.`, the maximum overlap method is employed within a constrained DFT calculation
+      logical, optional, intent(in) :: cdft_maximum_overlap
+
   ! local variables
       Integer :: ispn!,ib
   ! time
       Real (8) :: ts0,ts1
-!
+      logical  :: is_maximum_overlap_method_used
 !
   ! allocatable arrays
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
+
+      
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
       apwalm=zzero
+      is_maximum_overlap_method_used = .false.
+      if( present(cdft_maximum_overlap) ) is_maximum_overlap_method_used = cdft_maximum_overlap
   ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
 
   !
@@ -61,9 +66,10 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
          Call timesec(ts1)
          timematch=ts1-ts0+timematch
      ! solve the first-variational secular equation
-         Call seceqnfv(ispn, ik, nmat(ispn,ik), ngk(ispn,ik), &
+         Call seceqnfv(ik, nmat(ispn,ik), ngk(ispn,ik), &
         &  igkig(:,ispn,ik), vgkc(:,:,ispn,ik), apwalm(:,:,:,:,ispn), &
-        &  evalfv(:,ispn), evecfv(:,:,ispn))
+        &  is_maximum_overlap_method_used, &
+        & evalfv(:,ispn), evecfv(:,:,ispn))
       End Do
       If (isspinspiral()) Then
      ! solve the spin-spiral second-variational secular equation
@@ -78,6 +84,6 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv)
       End If
 !
       Deallocate (apwalm)
-      Return
 End Subroutine seceqn
 !EOC
+end module

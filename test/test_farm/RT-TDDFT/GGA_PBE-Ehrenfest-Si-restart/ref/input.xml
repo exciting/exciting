@@ -1,0 +1,71 @@
+<input>
+  <title>Si</title>
+  <structure speciespath="./">
+    <crystal scale="10.26">
+      <basevect>0.0 0.5 0.5 </basevect>
+      <basevect>0.5 0.0 0.5 </basevect>
+      <basevect>0.5 0.5 0.0 </basevect>
+    </crystal>
+    <species speciesfile="Si.xml" rmt="2.0">
+      <atom coord="0.00 0.00 0.00"/>
+      <atom coord="0.23 0.25 0.25"/>
+    </species>
+  </structure>
+  <groundstate
+    ngridk="3 3 3"
+    rgkmax="4.0"
+    gmaxvr="12.0"
+    epsengy="1e-6"
+    reducek="false"
+    nosym="true"
+    vkloff="-0.07 0.11 0.003"
+    do="fromscratch"
+    mixerswitch="1"
+    mixer="msec"
+    findlinentype="Wigner_Seitz"
+    frozencore="false"
+    outputlevel="high"
+    nempty="2"
+    useDensityMatrix="false"
+    radialgridtype="cubic"
+    xctype="LDA_PW">
+  </groundstate>
+  <xs
+    xstype ="RT-TDDFT"
+    h5fname="rt.h5"
+    h5gname="./"
+    ngridk="2 2 2"
+    rgkmax="2.0d0"
+    vkloff="-0.07 0.11 0.003"
+    nosym="true"
+    reducek="false" skipgnd="false"
+    nempty="3">
+    <realTimeTDDFT
+      propagator="EH"
+      timeStep="0.2d0"
+      endTime="5.0d0"
+      do="fromfile"
+      restartExtension=".SAVE"
+      restartFilesFormat="hdf5"
+      printTimingGeneral="false"
+      printTimingDetailed="false"
+      calculateTotalEnergy="true"
+      calculateNExcitedElectrons="false"
+      printAfterIterations="5"
+      vectorPotentialSolver="improvedeuler"
+      fieldCoupling="velocityGauge"
+      basis="LAPWlo">
+      <pmat writeToFile="false" forceHermitian="true"/>
+      <laser fieldType="total">
+        <sinSq t0="0.5d0" omega="1.d0" phase="0.d0" amplitude="1.0d0" pulseLength="5.d0"
+          direction="y"/>
+      </laser>
+    </realTimeTDDFT>
+  </xs>
+  <MD 
+    type="Ehrenfest"
+    printAllForces="true"
+    timeStep="0.2d0"
+    integrationAlgorithm="HeunSimplified">
+  </MD>
+</input>

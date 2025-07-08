@@ -1,6 +1,6 @@
       
 subroutine task_eps_r
-
+    use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use modinput
     use modmain
     use modgw
@@ -8,9 +8,11 @@ subroutine task_eps_r
     use invert_dielectric_function, only: calcinveps
     use modxs, only: symt2
     use mod_mpi_gw
+    use modmpi, only: rank, mpiglobal, distribute_loop
     use m_getunit
     use mod_hdf5
     use mod_rpath
+    use mod_bands, only: evalfv, numin, nstdf
             
     implicit none
     integer(4) :: ikp, iq, fid, ik
@@ -97,20 +99,11 @@ subroutine task_eps_r
     ! Main loop: BZ integration
     !===========================================================================    
 
-#ifdef MPI
-    call set_mpi_group(kqset%nkpt)
-    call mpi_set_range(nproc_row, &
-    &                  myrank_row, &
-    &                  kset%nkpt, 1, &
-    &                  iqstart, iqend)
-#else
-    iqstart = 1
-    iqend = kqset%nkpt
-#endif
+    call distribute_loop( mpiglobal, kqset%nkpt, iqstart, iqend )
     iomstart = 1
     iomend = freq%nomeg
     
-    if (myrank==0) then
+    if (rank==0) then
       call boxmsg(fgw,'=','q-point cycle')
       call flushifc(fgw)
     end if
@@ -138,15 +131,19 @@ subroutine task_eps_r
       !========================================
       ! Set v-diagonal MB and reduce its size
       !========================================
-      call setbarcev(input%gw%barecoul%barcevtol)
+      call setbarcev(input%gw%barecoul%barcevtol, Gamma)
       
       !===================================
       ! Calculate the dielectric function
       !===================================
       call init_dielectric_function(mbsiz,iomstart,iomend,Gamma)
 
-      ! dielectric matrix      
-      call calcepsilon(iq,iomstart,iomend)
+      ! dielectric matrix   
+      call calcepsilon(iq, epsilon_indexes( &
+                      indexes_parallelization( 1, kqset%nkpt, 1, kqset%nkpt ), &
+                      indexes_parallelization( numin, nstdf, numin, nstdf ), &
+                      indexes_parallelization( iomstart, iomend, iomstart, iomend ) ) &
+                      )
 
       ! e = (1-vP) - 1
       do im = 1, mbsiz
@@ -212,7 +209,7 @@ subroutine task_eps_r
     deallocate(tvec,wfmb)
 
 #ifdef MPI
-    call mpi_sum_array(0,eps_r,npt,mycomm_row)
+    call mpi_sum_array( eps_r, mpiglobal, .false. )
 #endif
 
     if (rank==0) then

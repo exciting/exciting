@@ -205,6 +205,11 @@ currently map onto Python classes. One can consult `exciting_tools/excitingtools
 Development follows a continuous integration and deployment workflow, therefore if one wishes for additional features, 
 please make a request on GitHub issues or open a merge request.
 
+To specify subtrees, one need to use nested dictionaries. Each subtree can be specified via the corresponding input
+class or a dictionary, which will be converted to the class during initialization. Here it doesn't matter if the subtree
+is specified directly or set after the initial class object creation. In every circumstance the names of the 
+specified attributes and subtrees are checked against the schema of <span style="font-family:american typewriter; font-size:1em;">**exciting**</span>.
+
 #### Binary Execution
 
 Next we can define a runner and run our calculation:
@@ -353,6 +358,7 @@ Before doing so, please ensure the semantic versioning is appropriately updated 
 The following people (in alphabetic order by their family names) have contributed to excitingtools:
 
 * Alexander Buccheri
+* Noah Hoffmann
 * Hannah Kleine
 * Martin Kuban
 * Benedikt Maurer

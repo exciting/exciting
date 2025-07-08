@@ -1,6 +1,8 @@
 !> Module for collecting unit test drivers for modules in the lapack_wrappers directory.
 module lapack_wrappers_test_drivers
   use modmpi, only: mpiinfo
+  ! workspaces
+  use workspaces_test, only: workspaces_test_driver
   ! multiplication
   use vector_multiplication_test, only: vector_multiplication_test_driver
   use general_matrix_multiplication_test, only: general_matrix_multiplication_test_driver
@@ -11,6 +13,10 @@ module lapack_wrappers_test_drivers
   use qr_factorization_test, only: qr_factorization_test_driver
   ! diagonalization
   use diagonalize_tridiagonal_test, only: diagonalize_tridiagonal_test_driver
+  use generalized_hermitian_eigenproblem_test, only: solve_generalized_hermitian_eigenproblem_test_driver
+  ! linear systems
+  use linear_system_positive_definite_test, only: linear_system_positive_definite_test_driver
+  use linear_system_ill_defined_safe_test,  only: linear_system_ill_defined_safe_test_driver  
   ! utils
   use matrix_rank_test, only: matrix_rank_test_driver
   use determinant_test, only: determinant_test_driver
@@ -32,6 +38,8 @@ contains
     !> if an assertion fails 
     logical, optional :: kill_on_failure 
 
+    ! Workspaces
+    call workspaces_test_driver(mpiglobal, kill_on_failure)
     ! multiplication
     call vector_multiplication_test_driver(mpiglobal, kill_on_failure)
     call general_matrix_multiplication_test_driver(mpiglobal, kill_on_failure)
@@ -42,6 +50,10 @@ contains
     call qr_factorization_test_driver(mpiglobal, kill_on_failure)
     ! Diagonalization wrappers
     call diagonalize_tridiagonal_test_driver(mpiglobal, kill_on_failure)
+    call solve_generalized_hermitian_eigenproblem_test_driver(mpiglobal, kill_on_failure)
+    ! Linear systems
+    call linear_system_positive_definite_test_driver(mpiglobal, kill_on_failure)
+    call linear_system_ill_defined_safe_test_driver(mpiglobal, kill_on_failure)
     ! utils
     call matrix_rank_test_driver(mpiglobal, kill_on_failure)
     call determinant_test_driver(mpiglobal, kill_on_failure)

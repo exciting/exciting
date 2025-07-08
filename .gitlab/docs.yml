@@ -2,16 +2,18 @@
 
 # Build exciting's documentation
 build:exciting-debian-buster-documentation:
- image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-docs
+ image: gitdocker.physik.hu-berlin.de/sol/exciting:ubuntu-GCC11-hdf5-December2023
  stage: build
  tags:
    - docker
  script:
-   - cp build/platforms/make.inc.gfortran8-9 build/make.inc
-   # exciting input documentation
-   - make doc
+   # Update ford: the version installed in the container is outdated
+   - pip3 install --upgrade ford
+   # Make the build folder
+   - mkdir build-cmake && cd build-cmake
    # Ford documentation without graphical dependencies (which is slow)
-   - make ford
+   - FC=gfortran CC=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DBUILD_EXCITING=OFF -DDOCUMENTATION=ON ..
+   - make GenerateExcitingDocs 
  artifacts:
    paths:
      - docs/exciting/excitinginput.pdf

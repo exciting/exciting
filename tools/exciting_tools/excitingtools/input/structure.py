@@ -31,7 +31,7 @@ class ExcitingStructure(ExcitingXMLInput):
     path_type = Union[str, Path]
 
     # Mandatory attribute "coord" taken out because it's specified inside the atoms
-    _valid_atom_attributes = set(valid_attributes.atom_valid_attributes) - {"coord"}
+    _valid_atom_attributes = set(valid_attributes.atom_attribute_types.keys()) - {"coord"}
 
     def __init__(
         self,
@@ -67,7 +67,7 @@ class ExcitingStructure(ExcitingXMLInput):
         :param species_properties: Optional species properties, defined as:
         {'species1': {'rmt': rmt_value}, 'species2': {'rmt': rmt_value}}
         and with subtrees as:
-        {'species1': {'rmt': rmt_value, 'LDAplusU': {'J': J, 'U': U, 'l': l}}, species2: ... }
+        {'species1': {'rmt': rmt_value, 'LDAplusU': {'J': J, 'U': U, 'l': l}}, 'species2': ... }
         :param kwargs: Optional structure properties. Passed as kwargs.
         """
         if isinstance(species_path, Path):
@@ -90,7 +90,7 @@ class ExcitingStructure(ExcitingXMLInput):
             self.lattice, self.species, self.positions = self._init_lattice_species_positions_from_ase_atoms(atoms)
             self.atom_properties = [{}] * len(self.species)
 
-        self.unique_species = sorted(set(self.species))
+        self.unique_species = list(dict.fromkeys(self.species))  # preserve order, e.g. 'xasspecies' needs it
 
         # Optional properties
         self.crystal_properties = self._initialise_subelement_attribute(ExcitingCrystalInput, crystal_properties or {})
@@ -152,7 +152,9 @@ class ExcitingStructure(ExcitingXMLInput):
             check_valid_keys(atom_properties.keys(), self._valid_atom_attributes, "Atom properties")
             yield atom_properties
 
-    def _init_species_properties(self, species_properties: Union[dict, None]) -> Iterator[Tuple[str, ExcitingXMLInput]]:
+    def _init_species_properties(
+        self, species_properties: Union[dict, None]
+    ) -> Iterator[Tuple[str, ExcitingSpeciesInput]]:
         """Initialise species_properties.
 
         For species without properties, return empty_properties: {'S': {}, 'Al': {}}.

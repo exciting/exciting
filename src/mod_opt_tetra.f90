@@ -1081,7 +1081,7 @@ module mod_opt_tetra
     else
       self%ttype = 2
       write(*,*)
-      write( *, '("Warning (opt_tetra_init): invalid tetra_type (",i3,")! I use type 2 (improved tetrahedron).")'), tetra_type
+      write( *, '("Warning (opt_tetra_init): invalid tetra_type (",i3,")! I use type 2 (improved tetrahedron).")') tetra_type
     end if
     
     ! construct tetrahedra

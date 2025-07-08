@@ -1,3 +1,14 @@
+"""Run a series of **exciting** calculations with different strain values.
+
+Located at `excitingscripts/execute/elastic_strain.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.execute.elastic_strain 
+```
+"""
+
 import os
 import pathlib
 from argparse import ArgumentParser
@@ -6,13 +17,15 @@ from typing import Union
 import numpy as np
 import numpy.typing as npt
 from excitingscripts.execute.single import run_exciting
+from excitingtools import parse
 from scipy.constants import physical_constants
 
-from excitingtools import parse
 
-
-def execute_elastic_strain(root_directory: Union[str, pathlib.Path]=os.getcwd(), dft_half: bool=False,
-                           excitingroot=os.getenv("EXCITINGROOT")) -> npt.NDArray[np.float64]:
+def execute_elastic_strain(
+    root_directory: Union[str, pathlib.Path] = os.getcwd(),
+    dft_half: bool = False,
+    excitingroot=os.getenv("EXCITINGROOT"),
+) -> npt.NDArray[np.float64]:
     """Execute a series of exciting calculations with different interlayer distances.
 
     :param root_directory: Root directory.
@@ -20,7 +33,15 @@ def execute_elastic_strain(root_directory: Union[str, pathlib.Path]=os.getcwd(),
     :param excitingroot: Environment variable string.
     :returns: Array with energy-strain data.
     """
-    displ_points = len(os.listdir(root_directory))
+
+    # Counting the number of rundir-xx
+    listdir = os.listdir(root_directory)
+    displ_points = len(listdir)
+
+    for directory in listdir:
+        if not directory.startswith("rundir"):
+            displ_points -= 1
+
     rundir_infty = f"{root_directory}/rundir-oo"
     if os.path.exists(rundir_infty):
         displ_points -= 1
@@ -32,7 +53,6 @@ def execute_elastic_strain(root_directory: Union[str, pathlib.Path]=os.getcwd(),
 
     for i in range(displ_points):
         run_exciting(f"{root_directory}/rundir-{i + 1}", excitingroot)
-
         results = parse(f"{root_directory}/rundir-{i + 1}/INFO.OUT")
         max_scf = max([int(j) for j in results["scl"].keys()])
         converged_results = results["scl"][str(max_scf)]
@@ -62,21 +82,28 @@ def execute_elastic_strain(root_directory: Union[str, pathlib.Path]=os.getcwd(),
 
 
 def main() -> None:
-    parser = ArgumentParser(description="""Execute a series of exciting calculations.""")
+    parser = ArgumentParser(
+        description="""Execute a series of exciting calculations."""
+    )
 
-    parser.add_argument("--root-directory", "-r",
-                        default=[os.getcwd()],
-                        nargs=1,
-                        dest="root_directory",
-                        help="root path for files that are created by this script")
+    parser.add_argument(
+        "--root-directory",
+        "-r",
+        default=[os.getcwd()],
+        nargs=1,
+        dest="root_directory",
+        help="root path for files that are created by this script",
+    )
 
-    parser.add_argument('--dft-half',
-                        dest='dft_half',
-                        action='store_true',
-                        help=""" If present, data will be saved to "bandgap-vs-rcut".
-                             Otherwise, data will be saved to "energy-vs-strain".""")
+    parser.add_argument(
+        "--dft-half",
+        dest="dft_half",
+        action="store_true",
+        help=""" If present, data will be saved to "bandgap-vs-rcut".
+                             Otherwise, data will be saved to "energy-vs-strain".""",
+    )
 
-    parser.set_defaults(dft_half = False)
+    parser.set_defaults(dft_half=False)
 
     args = parser.parse_args()
 
@@ -86,6 +113,7 @@ def main() -> None:
 
     with open(f"{args.root_directory[0]}/{output_file}", "w") as f:
         np.savetxt(f, energy_strain_data, fmt="%15.8f %15.10f")
+
 
 if __name__ == "__main__":
     main()

@@ -6,7 +6,7 @@ Subroutine readspeciesxml
   Use modspdeflist
   Use FoX_dom
   Use modspdb
-  Use modmpi, only: mpiglobal, rank, barrier, ierr
+  Use modmpi, only: mpiglobal, rank, barrier, ierr, terminate
   Use errors_warnings, only: terminate_if_true
   Use mod_muffin_tin, only: idx_species_fixed_rmt
 #ifdef MPI
@@ -216,7 +216,25 @@ Subroutine readspeciesxml
      apwn(1:maxapword, 0:maxlapw, is) = default_apwn
      
      if (size(speziesdeflist(is)%sp%basis%default%wfarray)>0) then
-       
+          write(*,*) 'Errror (readspecies): wf definitions in the default elements are not supported anymore.'
+          write(*,*) 'A configuration like the following '
+          write(*,*) '<default>'
+          write(*,*) '  <wf matchingOrder="0" trialEnergy="[trialEnergy]" searchE="[searchE]"/>'
+          write(*,*) '</default>'
+          write(*,*) 'resembles a standard apw and can be replaced by the default element'
+          write(*,*) '<default type="apw" trialEnergy="[trialEnergy]" searchE="[searchE]">'
+          write(*,*) ' '
+          write(*,*) 'A configuration like the following '
+          write(*,*) '<default>'
+          write(*,*) '  <wf matchingOrder="0" trialEnergy="[trialEnergy]" searchE="[searchE]"/>'
+          write(*,*) '  <wf matchingOrder="1" trialEnergy="[trialEnergy]" searchE="[searchE]"/>'
+          write(*,*) '</default>'
+          write(*,*) 'resembles a standard lapw and can be replaced by the default element'
+          write(*,*) '<default type="lapw" trialEnergy="[trialEnergy]" searchE="[searchE]">'
+          write(*,*) ' '
+          write(*,*) 'Other configurations (like SLAPWs) are not supported anymore. '
+          call terminate
+
 !      DEFAULT: Element wf is specified
 !      The definition based on the augmentation type is (if present) ignored
 
@@ -322,7 +340,24 @@ Subroutine readspeciesxml
         End If
         
         if (size(speziesdeflist(is)%sp%basis%customarray(ilx)%custom%wfarray)>0) then
-
+          write(*,*) 'Errror (readspecies): wf definitions in the custom elements are not supported anymore.'
+          write(*,*) 'A configuration like the following '
+          write(*,*) '<custom l="[l]">'
+          write(*,*) '  <wf matchingOrder="0" trialEnergy="[trialEnergy]" searchE="[searchE]"/>'
+          write(*,*) '</custom>'
+          write(*,*) 'resembles a standard aapw and can be replaced by the custom element'
+          write(*,*) '<custom l="[l]" type="apw" trialEnergy="[trialEnergy]" searchE="[searchE]">'
+          write(*,*) ' '
+          write(*,*) 'A configuration like the following '
+          write(*,*) '<custom l="[l]">'
+          write(*,*) '  <wf matchingOrder="0" trialEnergy="[trialEnergy]" searchE="[searchE]"/>'
+          write(*,*) '  <wf matchingOrder="1" trialEnergy="[trialEnergy]" searchE="[searchE]"/>'
+          write(*,*) '</custom>'
+          write(*,*) 'resembles a standard lapw and can be replaced by the custom element'
+          write(*,*) '<custom l="[l]" type="lapw" trialEnergy="[trialEnergy]" searchE="[searchE]">'
+          write(*,*) ' '
+          write(*,*) 'Other configurations (like SLAPWs) are not supported anymore. '
+          call terminate
 !         CUSTOM: Element wf is specified
 !         The definition bases on the augmentation type is (if present) ignored
         

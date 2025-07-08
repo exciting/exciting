@@ -7,6 +7,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
     use modmain, only : zzero, idxas, evalcr, efermi
     use constants, only : pi
     use modgw
+    use mod_bands, only: nstse, evalfv
     ! input variables
     implicit none
     integer(4), intent(in) :: ikp

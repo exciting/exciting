@@ -2,16 +2,16 @@
 # * excitingtools 
 # * Regression testing framework
 
-python:excitingtools-python-3.7:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+python:excitingtools-python3:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
   stage: python
   tags:
     - docker
   before_script:
     - python3 -m pip install -U pip setuptools
-    - python3 -m pip install --upgrade --force pylint coverage
+    - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib
   script:
-    - cd tools/exciting_tools && python3 -m pip install -e .[dev,schemaparsing,h5_parsing]
+    - cd tools/exciting_tools && python3 -m pip install -e .[dev,schemaparsing,h5_parsing,serialisation]
     # run ruff and check the files (includes some pylint, see also README.MD section Code 'Checking and Formatting')
     - ruff check
     - ruff format --diff
@@ -31,8 +31,21 @@ python:excitingtools-python-3.7:
         coverage_format: cobertura
         path: tools/exciting_tools/excitingtools_testcov.xml
 
-python:regressionframework-python-3.7:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+# test pure excitingtools without extensions and for lowest supported python version
+python:excitingtools-python3.7:
+  image: python:3.7
+  stage: python
+  tags:
+    - docker
+  before_script:
+    - python3 -m pip install --upgrade pip setuptools pytest
+  script:
+    - cd tools/exciting_tools && python3 -m pip install .
+    - python3 -m pytest
+
+
+python:regressionframework-python3:
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
   stage: python
   tags:
     - docker
@@ -42,6 +55,10 @@ python:regressionframework-python-3.7:
     - python3 -m pip install -U pip setuptools
     - python3 -m pip install coverage
     - python3 -m pip install h5py
+    - python3 -m pip install pytest
+    - python3 -m pip install pyyaml
+    - python3 -m pip install termcolor
+    - python3 -m pip install --upgrade numpy scipy
     - python3 -m pip install tools/exciting_tools
   script:
     - cd test/ && coverage run -m pytest test_functions/
@@ -55,7 +72,7 @@ variables:
   PYPI_TOKEN: $excitingtools_pypi
 
 deploy:excitingtools-pypi:
-  image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-buster-GCC8-April2022
+  image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
   stage: deploy
   tags:
     - docker
@@ -73,3 +90,57 @@ deploy:excitingtools-pypi:
   rules:
     # Only deploy when a feature is merged, not each time the pipeline passes
     - if: '$CI_COMMIT_REF_NAME == "development"'
+
+python:venv-build-python3.7:
+  image: python:3.7
+  stage: python
+  tags: 
+    - docker
+  script:
+    - cd tools/excitingjupyter
+    - source create_env.sh
+
+python:venv-build-python3.9:
+  image: python:3.9
+  stage: python
+  tags: 
+    - docker
+  script:
+    - cd tools/excitingjupyter
+    - source create_env.sh
+
+python:venv-build-python3.10:
+  image: python:3.10
+  stage: python
+  tags: 
+    - docker
+  script:
+    - cd tools/excitingjupyter
+    - source create_env.sh
+
+python:venv-build-python3.11:
+  image: python:3.11
+  stage: python
+  tags: 
+    - docker
+  script:
+    - cd tools/excitingjupyter
+    - source create_env.sh
+
+python:venv-build-python3.12:
+  image: python:3.12
+  stage: python
+  tags: 
+    - docker
+  script:
+    - cd tools/excitingjupyter
+    - source create_env.sh
+
+python:venv-build-python3.13:
+  image: python:3.13
+  stage: python
+  tags: 
+    - docker
+  script:
+    - cd tools/excitingjupyter
+    - source create_env.sh

@@ -1,16 +1,19 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-#_______________________________________________________________________________
-'''
-Plot single and multiple electronic and phonon band structures (BS)
+"""Plot single and multiple electronic and phonon band structures (BS)
 
 Require the following files:
-
 - for electronic BS: input.xml, BAND.OUT, BAND-QP.OUT, BAND_WANNIER.OUT, BANDLINES.OUT
-
 - for phonon BS: input.xml, PHDISP.OUT, PHLINES.OUT
 
-'''
+More details can be found **[here](https://www.exciting-code.org/home/the-python-script-plot.band_structure)**.
+
+Located at `excitingscripts/plot/band_structure.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.band_structure
+```
+"""
 
 import argparse as ap
 import os
@@ -669,7 +672,7 @@ def main(input_options):
          (len(legend)>0) ):       
         leg=ax1.legend(loc=leg_pos,borderaxespad=0.5,
                        framealpha=0.9,fancybox=True)
-        leg.get_frame().set_linewidth(axes_thickness)
+        leg.get_frame().set_linewidth(float(axes_thickness))
         leg.get_frame().set_edgecolor("grey")
         leg.draw_frame(True)
 

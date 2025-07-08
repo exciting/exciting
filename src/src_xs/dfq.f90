@@ -8,7 +8,7 @@
 subroutine dfq(iq)
 ! !USES:
   use mod_misc, only: filext
-  use modinput, only: input
+  use modinput, only: input, issvlo
   use modmpi, only: procs, rank, barrier
   use mod_misc, only: task
   use constants, only: zzero, zone, zi, krondelta
@@ -222,7 +222,6 @@ subroutine dfq(iq)
      & tord=input%xs%tddft%torddf, markfxcbse=tfxcbse, iqmt=iq,&
      & procs=procs, rank=rank, filnam=fnchi0_t)
   end if
-
 
   ! Calculate k+q and G+k+q related variables
   ! by setting the offset generated from vkloff and the q point
@@ -458,7 +457,7 @@ subroutine dfq(iq)
       ikmapikq_ptr => ikmapikq
       call setptr01
       if (.not. input%groundstate%tevecsv) then
-        call ematqk(iq, ik, xiou, bc)
+        call ematqk(iq, ik, xiou, bc, issvlo())
       else
         call ematqk_sv(iq, ik, xiou, bc)
       end if
@@ -482,7 +481,7 @@ subroutine dfq(iq)
         ikmapikq_ptr => ikmapikq
         call setptr01
         if (.not. input%groundstate%tevecsv) then
-          call ematqk(iq, ik, xiuo, bc)
+          call ematqk(iq, ik, xiuo, bc,issvlo())
         else
           call ematqk_sv(iq, ik, xiuo, bc)
         end if

@@ -6,12 +6,20 @@ subroutine calcpmatgw
 !
 !!USES:
     use modinput
-    use modmain
-    use modgw
+    use constants, only: zzero
+    use mod_APW_LO, only: apwordmax
+    use mod_muffin_tin, only: lmmaxapw
+    use mod_Gkvector, only: ngkmax
+    use mod_atoms, only: natmtot
+    use mod_eigensystem, only: nmatmax
+    use mod_core_states,   only : ncg
+    use mod_pmat, only: init_pmat, genevecalm, genpmatvv_k, genpmatcv_k, clear_pmat
+    use mod_dielectric_function, only: fname_pmatvv, fname_pmatcv
+    use modgw, only: kset, kqset, Gkqset, time_pmat 
+    use mod_bands, only: nomax, numin, nstdf
+    use mod_eigenvalue_occupancy, only: nstfv
     use m_getunit
-    use modmpi
-    use mod_pmat
-    use mod_hdf5
+    use modmpi, only: rank, firstofset, lastofset, barrier 
 
 !!DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
@@ -21,22 +29,25 @@ subroutine calcpmatgw
 !   Created October 2013 (DIN)
 !EOP
 !BOC
+    use precision, only: i32, long_int, dp
     implicit none
 ! local variables
-    integer    :: ikp, ik, fid, ispn, i, j
-    integer(8) :: recl
-    real(8)    :: tstart, tend, t0, t1
-    complex(8), allocatable :: apwalm(:,:,:,:)
-    complex(8), allocatable :: evecfv(:,:)
-    complex(8), allocatable :: pmv_k(:,:,:), pmc_k(:,:,:)
-    complex(8), allocatable :: pmv(:,:,:,:), pmc(:,:,:,:)
+    integer(i32)  :: ikp, ik, fid, ispn, i, j
+    integer(long_int) :: recl
+    real(dp)    :: tstart, tend, t0, t1
+    complex(dp), allocatable :: apwalm(:,:,:,:)
+    complex(dp), allocatable :: evecfv(:,:)
+    complex(dp), allocatable :: pmv_k(:,:,:), pmc_k(:,:,:)
+    complex(dp), allocatable :: pmv(:,:,:,:), pmc(:,:,:,:)
 
-    integer    :: k, isym, lspl
-    real(8)    :: v(3), v1(3), v2(3), pm(9), sl(3,3), sc(3,3)
-    complex(8) :: p(3), o(6)
+    integer(i32) :: k, isym, lspl
+    real(dp)     :: v(3), v1(3), v2(3), pm(9), sl(3,3), sc(3,3)
+    complex(dp)  :: p(3), o(6)
 
-    integer :: ikstart, ikend
-    integer, allocatable :: ikp2rank(:)
+    integer(i32) :: ikstart, ikend
+    integer(i32), allocatable :: ikp2rank(:)
+
+    logical(i32) :: coreflag_is_all
 
     call timesec(tstart)
 
@@ -54,10 +65,12 @@ subroutine calcpmatgw
       ikp2rank(ikp) = rank
     end do ! ik
 
+    coreflag_is_all = input%gw%coreflag=='all'
+
     !===============================
     ! Initialization
     !===============================
-    call init_pmat(input%gw%coreflag=='all', nstdf)
+    call init_pmat(coreflag_is_all, nstdf)
 
     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
     allocate(evecfv(nmatmax,nstfv))
@@ -68,7 +81,7 @@ subroutine calcpmatgw
     allocate(pmv_k(1:nomax,numin:nstdf,3))
     allocate(pmv(1:nomax,numin:nstdf,3,ikstart:ikend))
     pmv(:,:,:,:) = zzero
-    if (input%gw%coreflag=='all') then
+    if (coreflag_is_all) then
       allocate(pmc_k(1:ncg,numin:nstdf,3))
       allocate(pmc(1:ncg,numin:nstdf,3,ikstart:ikend))
       pmc(:,:,:,:) = zzero
@@ -92,21 +105,21 @@ subroutine calcpmatgw
       !------------------------------------
       call genpmatvv_k(Gkqset%ngk(1,ik), Gkqset%igkig(:,1,ik), &
       &                Gkqset%vgkc(:,:,1,ik), nstdf, evecfv(:,1:nstdf), &
-      &                1, nomax, numin, nstdf, pmv_k)
+      &                1_i32, nomax, numin, nstdf, pmv_k)
       pmv(:,:,:,ikp) = pmv(:,:,:,ikp) + pmv_k(:,:,:)
       !------------------------------------
       ! core-valence contribution
       !------------------------------------
-      if (input%gw%coreflag=='all') then
+      if (coreflag_is_all) then
         call genpmatcv_k(kqset%vkl(:,ik), &
-        &                1, ncg, numin, nstdf, pmc_k)
+        &                1_i32, ncg, numin, nstdf, pmc_k)
         pmc(:,:,:,ikp) = pmc(:,:,:,ikp) + pmc_k(:,:,:)
       endif
 
     end do
 
     deallocate(pmv_k)
-    if (input%gw%coreflag=='all') deallocate(pmc_k)
+    if (coreflag_is_all) deallocate(pmc_k)
     deallocate(apwalm)
     deallocate(evecfv)
     call clear_pmat()
@@ -120,7 +133,7 @@ subroutine calcpmatgw
       call getunit(fid)
       open(fid,File=fname_pmatvv,form='UNFORMATTED',status='REPLACE')
       close(fid)
-      if (input%gw%coreflag=='all') then
+      if (coreflag_is_all) then
         call getunit(fid)
         open(fid,File=fname_pmatcv,form='UNFORMATTED',status='REPLACE')
         close(fid)
@@ -136,7 +149,7 @@ subroutine calcpmatgw
              Access='DIRECT',Status='OLD',Recl=recl)
         write(fid,rec=ikp) pmv(:,:,:,ikp)
         close(fid)
-        if (input%gw%coreflag=='all') then
+        if (coreflag_is_all) then
           call getunit(fid)
           inquire(iolength=recl) pmc(:,:,:,ikp)
           open(fid,File=fname_pmatcv,Action='WRITE',Form='UNFORMATTED',&
@@ -149,7 +162,7 @@ subroutine calcpmatgw
     end do
 
     deallocate(pmv)
-    if (input%gw%coreflag=='all') deallocate(pmc)
+    if (coreflag_is_all) deallocate(pmc)
 
     ! timing
     call timesec(tend)
@@ -158,3 +171,4 @@ subroutine calcpmatgw
     return
 end subroutine
 !EOC
+

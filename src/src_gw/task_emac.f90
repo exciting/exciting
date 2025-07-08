@@ -1,14 +1,17 @@
 
 subroutine task_emac()
-
+    use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use modinput
     use modmain
+    use modmpi, only: rank
     use modgw
     use mod_coulomb_potential
     use invert_dielectric_function, only: calcinveps
     use modxs, only: symt2
     use mod_mpi_gw
+    use modmpi, only: rank, mpiglobal
     use m_getunit
+    use mod_bands, only: numin, nstdf
 
     implicit none
     integer :: iq, iom, fid
@@ -19,9 +22,6 @@ subroutine task_emac()
     !==========================
     ! Perform initialization
     !==========================
-
-    ! initialize local GW MPI environment
-    call init_mpi_gw()
 
     ! prepare GW global data
     call init_gw()
@@ -61,7 +61,7 @@ subroutine task_emac()
     !========================================
     ! Set v-diagonal MB and reduce its size
     !========================================
-    call setbarcev(input%gw%barecoul%barcevtol)
+    call setbarcev(input%gw%barecoul%barcevtol, Gamma)
     call delete_coulomb_potential()
 
     !===================================
@@ -76,18 +76,21 @@ subroutine task_emac()
         call calcepsilon_ppm(iq, 1, freq%nomeg)
 
       case default
-        call calcepsilon(iq, 1, freq%nomeg)
+        call calcepsilon(iq, epsilon_indexes( &
+                        indexes_parallelization( 1, kqset%nkpt, 1, kqset%nkpt ), &
+                        indexes_parallelization( numin, nstdf, numin, nstdf ), &
+                        indexes_parallelization( 1, freq%nomeg, 1, freq%nomeg ) ) &
+                        )
         call calcinveps(1, freq%nomeg, gamma, input%gw%scrcoul, freq%fconv, symt2,&
                         &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
 
     end select
 
     ! clean unused data
-    if (allocated(fnm)) deallocate(fnm)
     if (allocated(mpwipw)) deallocate(mpwipw)
     if (allocated(barc)) deallocate(barc)
 
-    if (myrank==0) then
+    if (rank==0) then
       call getunit(fid)
       open(fid, File='EPSMACRO.OUT', Form='Formatted', Action='Write', Status='Replace')
       write(fid,'(a)')'# frequency       eps_{00} (diag)            eps_{00}+LFE (diag)            <eps_{00}^{-1}>'
@@ -99,7 +102,7 @@ subroutine task_emac()
       end do
       close(fid)
       10 format(f12.6,4x,2G12.4,4x,2G12.4,4x,2G12.4)
-    end if ! myrank
+    end if ! rank
 
     call delete_dielectric_function(Gamma)
 

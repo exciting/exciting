@@ -6,15 +6,17 @@
 ## Compilation of exciting
 
 Before starting, be sure that **`exciting`** is already compiled according to the procedure reported in 
-**[<span style="color:#D79922">Download and compile exciting</span>](http://exciting.wikidot.com/neon-download-and-compile-exciting)**. 
+**[<span style="color:#D79922">Download and compile exciting</span>](https://exciting-code.org/uploads/exciting/tutorial_notebooks/00_tutorial_download_and_compile_exciting.html)**. 
 This is also documented in exciting's `INSTALL` file in the repository root.
 
-## Running the Wikidot Tutorial Scripts
+## Setting Environment Variables 
 
-In order to run the scripts used in the **`exciting`** tutorials it is important that the relevant environment variables 
-are already defined in your **~/.bashrc** file as specified in **[<span style="color:#D79922">How to set environment 
-variables for tutorials scripts</span>](http://exciting.wikidot.com/neon-tutorial-scripts-and-environment-variables)**. 
-However, this is not necessary for running the tutorials inside Jupyter Notebooks.
+Before running the tutorials, it is important to set the necessary environment variables.
+To do this, move to the exciting root directory and run the following commands:
+```bash
+cd tools/excitingjupyter
+source set_env_vars.sh
+```
 
 ## Installing the excitingJupyter Package
 
@@ -76,9 +78,10 @@ In order to add the layout style designed for the Jupyter tutorials, type the fo
 ```bash
 # Find path for custom CSS file:
 path=$(python -c "import notebook; print(notebook.__file__)")
-notebookpath=${path::-11}
-csspath="${notebookpath}static/custom/."
+notebookpath=${path::-20}
+csspath="${notebookpath}nbclassic/static/custom/."
 # Add custom CSS style:
+rm -f $csspath/custom.css
 cp excitingjupyter/custom.css "$csspath"
 cp ../../docs/logo/logotransp.png "$csspath"
 ```
@@ -89,7 +92,7 @@ in a terminal shell is not sufficient as each Jupyter cell creates a new shell i
 are present is to add them to your `.bashrc`. For example, the SOL group uses the TCL module system so one would add:
 
 ```bash
-module load intel/2019
+module load intel-oneapi/2021.3
 ```
 
 to the `.bashrc` (which loads everything required). **Please take an equivalent approach on your platform.**
@@ -112,7 +115,7 @@ jupyter-notebook
 
 This will open your browser, where you can select the tutorial you want to work on.
 To start, _e.g._, with the first tutorials, click on the folder **01_getting_started**,
-and select the notebook: **tutorial_how_to_start_an_exciting_calculation.ipynb**.
+and select the notebook: **how_to_start_an_exciting_calculation.ipynb**.
 
 This should launch an executable version of the notebook in a new tab of your browser.
 

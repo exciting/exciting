@@ -1,7 +1,7 @@
 [project]
 name = "excitingscripts"
 description = "Executable command-line scripts for working with the exciting code."
-version = "0.1.0"
+version = "1.0.0"
 readme = {file = "README.md", content-type = "text/markdown"}
 authors = [
     {name="excitingscripts developers"}
@@ -16,7 +16,7 @@ dependencies = [
     'matplotlib>=2.2.0', 
     'scipy>=1.7.0', 
     'excitingtools>=1.6.3',
-    'typing-extensions==3.10.0.2',
+    'typing-extensions>=3.7',
     'ase>=3.22.1'
 ]
 license = {file = "LICENSE"}

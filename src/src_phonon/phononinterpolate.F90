@@ -9,7 +9,10 @@ subroutine phononinterpolate
 ! initialise universal variables
   Call init0
   Call init2
-  call phinterp(input%phonons%interpolate%ngridq, &
-    input%phonons%interpolate%vqloff,.true.,.true., &
-    input%phonons%interpolate%writeeigenvectors,"PHONON_INTERPOLATE.OUT")
+  call phinterp( &
+    input%phonons%interpolate%ngridq, &
+    input%phonons%interpolate%vqloff, &
+    input%phonons%interpolate%reduceq, .true., &
+    input%phonons%interpolate%writeeigenvectors, "PHONON_INTERPOLATE.OUT")
+! (ngridp,vploff,reducep,tfbz,twrev,fname)
 end subroutine

@@ -67,7 +67,7 @@ module scrcoul_low_dim
     use asserts, only: assert
     implicit none
     private
-    public :: apply_2d_limit
+    public :: apply_2d_limit, set_singc12
 contains
 
     !> Calculate the vectors \( \mathbf{a}_\mu \) according to the formula

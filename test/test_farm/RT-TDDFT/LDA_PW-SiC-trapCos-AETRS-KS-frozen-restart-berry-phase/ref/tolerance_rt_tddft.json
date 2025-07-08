@@ -1,0 +1,106 @@
+{
+  "EIGVAL_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "eigenvalues": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    }
+  },
+  "OCCSV_TXT_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "occupations": {
+      "tol": 1e-06,
+      "unit": "null"
+    }
+  },
+  "PROJECTION_COEFFS_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "projection": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "CURRENT.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jx": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jy": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jz": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    }
+  },
+  "N_EXCITATIONS.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "number_electrons_GroundState": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "number_electrons_ExcitedState": {
+      "tol": 1e-08,
+      "unit": "null"
+    },
+    "sum": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "TOTENERGY_RTTDDFT.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "ETOT": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Madelung": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Eigenvalues-Core": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Eigenvalues-Valence": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Exchange": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Correlation": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "XC-potential": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    },
+    "Coulomb pot. energy": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    }
+  }
+}

@@ -4,7 +4,7 @@
 !
 !!INTERFACE:
 !
-subroutine qdepwtet(iq,iomstart,iomend,ndim)
+subroutine qdepwtet(iq, iomstart, iomend, ndim)
 !
 !!DESCRIPTION:
 !
@@ -13,44 +13,72 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
 !
 !
 !!USES:
-    use modinput
-    use modmain, only : natmtot, zzero, nspecies, natoms, idxas, &
-    &                   evalcr, efermi
-    use modgw,   only : fnm, freq, ncmax, kset, kqset, nomax, numin, &
-    &                   ncg, corind, fdebug, time_bzinit, evalfv, nstdf
+    use constants, only: zzero
+    use mod_atoms, only: idxas
+    use mod_bands, only: nomax, numin, evalfv, nstdf
+    use mod_corestate, only: evalcr
+    use mod_eigenvalue_occupancy, only: efermi
+    use mod_lattice, only: bvec, binv
+    use mod_symmetry, only: symlat, lsplsymc, nsymcrys, symlatc, & 
+                            find_equivalent_wavevectors, get_equivalent_qpairs
+    use modinput, only: input
+    use modgw,   only : fnm_tet, freq, ncmax, kset, kqset, &
+    &                   ncg, corind, fdebug, time_bzinit
+        use precision, only: i32, dp
 
-!!INPUT PARAMETERS:
     implicit none
-    integer(4), intent(in) :: iq
-    integer(4), intent(in) :: iomstart, iomend
-    integer(4), intent(in) :: ndim
+
+    integer(i32), intent(in) :: iq
+    integer(i32), intent(in) :: iomstart, iomend
+    integer(i32), intent(in) :: ndim
+    
 
 !!LOCAL VARIABLES:
-    integer(4) :: ik, ikp, ib, ic, icg
-    integer(4) :: ia, is, ias
-    integer(4) :: iom, n, m
-    integer(4) :: fflg, sgw
+    integer(i32) :: ik, ikp, ib, ic, icg
+    integer(i32) :: ia, is, ias, ie1, ie2
+    integer(i32) :: iom
+    integer(i32) :: fflg, sgw
+    integer(i32) :: mini, mend
 
-    real(8) :: emaxb ! maximum energy of the second band
-    real(8) :: edif, edsq, omsq
-    real(8) :: sfact
+    real(dp) :: emaxb ! maximum energy of the second band
+    real(dp) :: edif, edsq, omsq
+    real(dp) :: sfact
 
-    real(8), allocatable :: eval(:,:)
-    real(8), allocatable :: cwpar(:,:,:)
-    real(8), allocatable :: cwparsurf(:,:,:)
+    real(dp), allocatable :: eval(:,:), eval_pair(:,:)
+    real(dp), allocatable :: cwpar(:,:,:)
+    real(dp), allocatable :: cwparsurf(:,:,:)
 
-    real(8) :: tstart, tend
+    logical :: is_core, is_realfreq
+
+    real(dp) :: tstart, tend
+
+    ! Equivalent q-points fnm 
+    complex(dp), allocatable :: fnm_equiv(:,:)
+
+    ! Symmetry related indexes
+    integer(i32), allocatable :: iqeq_list(:), isymeq_list(:)
+
+    ! Index for iq equivalence
+    integer(i32) :: isym, iqeq, nsym, neq, neqpairs
+    integer(i32), allocatable :: point_pairs(:,:)
 
 !EOP
 !BOC
     call timesec(tstart)
+    mini = lbound( fnm_tet, 2 )
+    mend = ubound( fnm_tet, 2 )
 
     !---------------------------------------------------------------------
     ! Initialization
     !---------------------------------------------------------------------
-    if (allocated(fnm)) deallocate(fnm)
-    allocate(fnm(1:ndim,numin:nstdf,iomstart:iomend,kqset%nkpt))
-    fnm(:,:,:,:) = zzero
+    nsym = merge(nsymcrys, 1_i32, input%gw%enforceCrystalSymmetryTetrahedron)
+    allocate(fnm_equiv(kqset%nkpt,nsym), source=zzero)
+
+    ! Find equivalent q-points
+    ! Notice that a point can be found more than once
+    call find_equivalent_wavevectors( 3, kqset%vql(:, iq), kqset%vql(:,:), kqset%nkpt, &
+      symlat(:, :, lsplsymc(1:nsym)), nsym, iqeq_list, isymeq_list)
+    neq = size(iqeq_list)
 
     ! real or imaginary frequencies
     select case (freq%fconv)
@@ -63,6 +91,9 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     end select
     sgw = 5-2*fflg
 
+    ! Are we dealing with real frequencies
+    is_realfreq = (fflg == 2)
+
     !====================
     ! valence-valence
     !====================
@@ -72,108 +103,113 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       eval(1:nstdf,ik) = evalfv(1:nstdf,ikp)
     end do
 
-    allocate(cwpar(nstdf,nstdf,kqset%nkpt))
-    if (fflg==2) then
-      allocate(cwparsurf(nstdf,nstdf,kqset%nkpt))
-    end if
+    allocate(cwpar(2,2,kqset%nkpt))
+    if (is_realfreq) allocate(cwparsurf(2,2,kqset%nkpt))
 
+    allocate(eval_pair(2,kqset%nkpt))
+    allocate(point_pairs(2,nsym))
+
+    !$omp parallel do collapse(3) default(none) schedule(dynamic) &
+    !$omp shared(iq, iomstart, iomend, mini, mend, ndim, nomax, corind, idxas, eval, evalcr) &
+    !$omp shared(efermi, sgw, freq, neq, iqeq_list, kqset, fflg, is_realfreq, fnm_tet, nsym) &
+    !$omp shared(lsplsymc, symlatc, bvec, binv, input) &
+    !$omp private(iom, ie2, ie1, is_core, icg, is, ia, ic, ias, emaxb, omsq, isym, iqeq, ik, edif, edsq, neqpairs) &
+    !$omp firstprivate(eval_pair, point_pairs, cwpar, cwparsurf, fnm_equiv) 
     do iom = iomstart, iomend
-      call tetcw(kqset%nkpt, kqset%ntet, nstdf, kqset%wtet, &
-                 eval, &
-                 kqset%tnodes, kqset%linkq(:,iq), kqset%kqid(:,iq), &
-                 kqset%tvol, efermi, freq%freqs(iom), fflg, &
-                 cwpar)
-      if (fflg==2) then
-        call tetcw(kqset%nkpt, kqset%ntet, nstdf, kqset%wtet, &
-                   eval, &
-                   kqset%tnodes, kqset%linkq(:,iq), kqset%kqid(:,iq), &
-                   kqset%tvol, efermi, freq%freqs(iom), 4, &
-                   cwparsurf)
-      end if
-      do ik = 1, kqset%nkpt
-        do ib = 1, nstdf
-          if (eval(ib,kqset%kqid(ik,iq)) > 900.0) cwpar(1:nstdf,ib,ik) = 0.0d0
-          if (fflg == 2) then
-            if (eval(ib,kqset%kqid(ik,iq)) > 900.0) cwparsurf(1:nstdf,ib,ik) = 0.0d0
+      do ie2 = mini, mend
+        do ie1 = 1, ndim
+
+          eval_pair(2,:) = eval(ie2,:)
+
+          is_core = ( ie1 > nomax )
+
+          ! Valence band
+          if (.not. is_core) then
+            eval_pair(1,:) = eval(ie1,:)
+          else
+            icg = ie1 - nomax
+            is  = corind(icg,1)
+            ia  = corind(icg,2)
+            ic  = corind(icg,3)
+            ias = idxas(ia,is)
+            eval_pair(1,1:kqset%nkpt) = evalcr(ic,ias)
+            emaxb = maxval(eval_pair(2,:))
+            if (emaxb <= efermi) cycle 
+            omsq = sgw*freq%freqs(iom)*freq%freqs(iom)
           end if
-        end do
-      end do
-      ! the factor 2 comes from the spin degeneracy
-      if (fflg == 2) then
-        fnm(1:nomax,numin:nstdf,iom,1:kqset%nkpt) = &
-           cmplx(cwpar(1:nomax,numin:nstdf,1:kqset%nkpt), &
-                       cwparsurf(1:nomax,numin:nstdf,1:kqset%nkpt))
-      else
-        fnm(1:nomax,numin:nstdf,iom,1:kqset%nkpt) = &
-            cmplx(cwpar(1:nomax,numin:nstdf,1:kqset%nkpt),0.0)
-      endif
-    enddo ! iom
+          
+          do isym = 1, neq
+            
+            iqeq = iqeq_list(isym)
 
-    deallocate(eval)
-    deallocate(cwpar)
-    if (fflg == 2) deallocate(cwparsurf)
+            call tetcw(kqset%nkpt, kqset%ntet, 2, kqset%wtet, eval_pair, &
+                       kqset%tnodes, kqset%linkq(:,iqeq), kqset%kqid(:,iqeq), &
+                       kqset%tvol, efermi, freq%freqs(iom), merge(1, fflg, is_core), &
+                       cwpar)
 
-    !====================
-    ! core-valence
-    !====================
-    if (input%gw%coreflag=='all') then
+            if (is_realfreq) call tetcw(kqset%nkpt, kqset%ntet, 2, kqset%wtet, eval_pair, &
+                                    kqset%tnodes, kqset%linkq(:,iqeq), kqset%kqid(:,iqeq), &
+                                    kqset%tvol, efermi, freq%freqs(iom), 4, cwparsurf)
 
-      allocate(eval(2,kqset%nkpt))
-      allocate(cwpar(2,2,kqset%nkpt))
-
-      do icg = 1, ncg
-        is = corind(icg,1)
-        ia = corind(icg,2)
-        ic = corind(icg,3)
-        ias = idxas(ia,is)
-        eval(1,1:kqset%nkpt) = evalcr(ic,ias)
-
-        do ib = numin, nstdf
-          do ik = 1, kqset%nkpt
-            ikp = kset%ik2ikp(ik)
-            eval(2,ik) = evalfv(ib,ikp)
-          end do
-          ! continue only if the band is at least partially unoccupied
-          emaxb = maxval(eval(2,:))
-          if (emaxb > efermi) then
-            do iom = iomstart, iomend
-              omsq = sgw*freq%freqs(iom)*freq%freqs(iom)
-              call tetcw(kqset%nkpt,kqset%ntet,2,kqset%wtet, &
-              &          eval,&
-              &          kqset%tnodes,kqset%linkq(:,iq),kqset%kqid(:,iq), &
-              &          kqset%tvol,efermi,freq%freqs(iom),1, &
-              &          cwpar)
+            if (is_core) then
               do ik = 1, kqset%nkpt
-                ikp = kset%ik2ikp(ik)
-                edif = evalfv(ib,ikp)-evalcr(ic,ias)
+                edif = eval(ie2,ik)-evalcr(ic,ias)
                 edsq = edif*edif
-                fnm(nomax+icg,ib,iom,ik) = 2.0d0*cwpar(1,2,ik)*edif/(omsq-edsq) ! <-- why 2?
+                cwpar(1,2,ik) = 2.0_dp*cwpar(1,2,ik)*edif/(omsq-edsq) ! <-- why 2?
               end do
-              if (fflg==2) then
-                call tetcw(kqset%nkpt, kqset%ntet, 2, kqset%wtet, &
-                           eval, &
-                           kqset%tnodes, kqset%linkq(:,iq), kqset%kqid(:,iq), &
-                           kqset%tvol, efermi, freq%freqs(iom), 4, &
-                           cwpar)
-                do ik = 1, kqset%nkpt
-                  fnm(nomax+icg,ib,iom,ik) = &
-                      cmplx(real(fnm(nomax+icg,ib,iom,ik)),cwpar(1,2,ik))
-                end do
-              end if
-            end do ! iom
-          endif
-        end do ! ib
+            else 
+              do ik = 1, kqset%nkpt
+                if (eval(ie2,kqset%kqid(ik,iqeq)) > 900.0_dp) then
+                  cwpar(1,2,ik) = 0.0_dp
+                  if (is_realfreq) cwparsurf(1,2,ik) = 0.0_dp
+                end if
+              end do
+            end if
 
-      enddo ! icg
+            if (is_realfreq) then
+              fnm_equiv(1:kqset%nkpt,isym) = cmplx(cwpar(1,2,1:kqset%nkpt),cwparsurf(1,2,1:kqset%nkpt))
+            else 
+              fnm_equiv(1:kqset%nkpt,isym) = cmplx(cwpar(1,2,1:kqset%nkpt),0.0)
+            end if
 
-      deallocate(eval)
-      deallocate(cwpar)
+          end do ! isym
 
-    end if ! core
+          ! The symmetry equivalent pairs are not equivalent
+          ! Thus, we average over symmetry equivalent pairs with their appropiate weight
+          ! While this approach cannot be physically justified, and indeed a much better
+          ! solution will be to modify LIBBZINT to be compliant with the crystal symmetry,
+          ! averaging is a commonly used solution in other fields as transport.
+          if (nsym /= 1) then
+            do ik = 1, kqset%nkpt
+              ! Computing the symmetry equivalent pairs (q,k), notice that the 
+              ! call will provide all even repeated pairs, that is with their appropriate weight
+              ! within the equivalence group.  
+              call get_equivalent_qpairs(iq, ik, kqset%vkl(:,:), point_pairs, nsym, lsplsymc, symlatc, bvec, binv, &
+                                         input%gw%ngridq, input%gw%vqloff)
+              ! Few choices for the mesh can break crystal symmetry; most of times this is unwanted
+              ! Nevertheless, it has few useful cases, so we check for this case.
+              ! For the weight, we only consider
+              ! operations mapping point-pairs within the mesh
+              neqpairs = nsym - count(point_pairs(1,:) == -1)
+              do isym = 1, nsym
+                if (point_pairs(1,isym) == -1) cycle ! If the symmetry operation do not map the points to valid ones, cycle
+                fnm_tet(ie1,ie2,iom,ik) = fnm_tet(ie1,ie2,iom,ik) + fnm_equiv(point_pairs(2,isym),isym)
+              end do
+              ! Apply the approapiate weight to the summation over the equivalent pairs
+              fnm_tet(ie1,ie2,iom,ik) = fnm_tet(ie1,ie2,iom,ik) / neqpairs
+            end do
+          else
+            fnm_tet(ie1,ie2,iom,:) = fnm_equiv(:,1)
+          end if
+
+        end do !ie1
+      end do !ie2
+    end do !iom
+    !$omp end parallel do
 
     ! spin degeneracy: I'm not sure about this prefactor for core states
-    sfact = 2.d0
-    fnm(:,:,:,:) = sfact*fnm(:,:,:,:)
+    sfact = 2.0_dp
+    fnm_tet = sfact*fnm_tet
 
     !-------------------------
     ! Debugging info
@@ -185,9 +221,9 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
       write(fdebug,*)
       iom = 1
       do ik = 1, kqset%nkpt
-        do ic = 1, ndim
-        do ib = numin, nstdf
-          write(fdebug,1) ic, ib, iom, ik, fnm(ic,ib,iom,ik)
+      do ic = 1, ndim
+        do ib = mini, mend
+          write(fdebug,1) ic, ib, iom, ik, fnm_tet(ic,ib,iom,ik)
         end do
         end do
       end do
@@ -199,5 +235,6 @@ subroutine qdepwtet(iq,iomstart,iomend,ndim)
     time_bzinit =  time_bzinit+tend-tstart
 
     return
+
 end subroutine
 !EOC

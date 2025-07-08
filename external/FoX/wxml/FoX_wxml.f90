@@ -34,6 +34,11 @@ module FoX_wxml
   public :: xml_AddAttlistToDTD
   public :: xml_AddPEreferenceToDTD
 
+  public :: xmlf_GetPretty_print
+  public :: xmlf_SetPretty_print
+  public :: xmlf_GetExtendedData
+  public :: xmlf_SetExtendedData
+
   public :: xmlf_Name
   public :: xmlf_OpenTag
 

@@ -1,40 +1,38 @@
 
 subroutine getevalqp(fname, nkp2, kvecs2, eqp2)
-
-  use modmpi
-  use modinput
+  use bandstructure,            only: fourintp
   use constants,                only: zzero
-  use mod_kpoint,               only: nkpt, vkl
+  use mod_bands,                only: nkp1, kvecs1, eks1, eqp1
   use mod_eigenvalue_occupancy, only: nstsv
-  use modgw,                    only: ibgw, nbgw, nkp1, kvecs1, eks1, eqp1, eferqp, eferks
+  use mod_kpoint,               only: nkpt, vkl
+  use modgw,                    only: ibgw, nbgw, eferqp, eferks
+  use modmpi,                   only: terminate_if_false
+  use precision,                only: dp, i32
 
   implicit none
+
   character(*), intent(in)    :: fname
-  integer(4),   intent(in)    :: nkp2
-  real(8),      intent(in)    :: kvecs2(3,nkp2)
-  real(8),      intent(inout) :: eqp2(nstsv,nkp2)
+  integer(i32), intent(in)    :: nkp2
+  real(dp),     intent(in)    :: kvecs2(3, nkp2)
+  real(dp),     intent(inout) :: eqp2(nstsv, nkp2)
 
   logical :: exist
-  integer(4) :: ik, ib, nb, nk, nqp
-  integer(4) :: recl
-  real(8), allocatable :: eqp(:)
-  complex(8), allocatable :: de1(:,:), de2(:,:)
+  integer(i32) :: ik, ib, nb, nk, nqp, unit
+  integer(i32) :: recl
+  real(dp), allocatable :: eqp(:)
+  complex(dp), allocatable :: de1(:,:), de2(:,:)
 
   !-----------------------------------------------------------------------------
   ! Read the file
   !-----------------------------------------------------------------------------      
   inquire(File=fname, Exist=exist)
-  if (.not.exist) then
-    write(*,*)'ERROR(getevalqp): File ', trim(fname), ' does not exist!'
-    stop
-  end if
+  call terminate_if_false( exist, 'ERROR(getevalqp): File ' // trim( fname ) // ' does not exist!')
       
   inquire(IoLength=recl) nkp1, ibgw, nbgw
-  open(70, File=trim(fname), Action='READ', Form='UNFORMATTED', &
+  open(newunit=unit, File=trim(fname), Action='READ', Form='UNFORMATTED', &
        Access='DIRECT', Recl=recl)
-  read(70, Rec=1) nkp1, ibgw, nbgw
-  close(70)
-  ! print*, nkp1, ibgw, nbgw
+  read(unit, Rec=1) nkp1, ibgw, nbgw
+  close(unit)
       
   allocate(kvecs1(1:3,nkp1))
   allocate(eqp1(ibgw:nbgw,nkp1))
@@ -44,23 +42,18 @@ subroutine getevalqp(fname, nkp2, kvecs2, eqp2)
           eqp1(ibgw:nbgw,1), eks1(ibgw:nbgw,1), &
           eferqp, eferks
   
-  open(70, File=trim(fname), Action='READ', Form='UNFORMATTED', &
+  open(newunit=unit, File=trim(fname), Action='READ', Form='UNFORMATTED', &
        Access='DIRECT', Recl=recl)
   
   nqp = nbgw-ibgw+1
   allocate(eqp(nqp))
 
   do ik = 1, nkp1
-    read(70, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
+    read(unit, Rec=ik) nk, ib, nb, kvecs1(:,ik), &
          eqp1(ibgw:nbgw,ik), eks1(ibgw:nbgw,ik), &
          eferqp, eferks
-    ! write(*,*) 'ik=', ik
-    ! do ib = ibgw, nbgw
-    !   write(*,*) ib, eqp1(ib,ik), eks1(ib,ik)
-    ! end do
-    ! write(*,*)
   end do
-  close(70)
+  close(unit)
 
   !----------------------------------------------
   ! Special case of only one k-point (molecules)
@@ -86,11 +79,6 @@ subroutine getevalqp(fname, nkp2, kvecs2, eqp2)
   allocate(de1(nkp1,ibgw:nbgw))
   do ik = 1, nkp1
     de1(ik,:) = cmplx(eqp1(ibgw:nbgw,ik)-eks1(ibgw:nbgw,ik), 0.d0, 8)
-    ! write(*,*) 'ik=', ik
-    ! do ib = ibgw, nbgw
-    !   write(*,*) ib, de1(ik,ib)
-    ! end do
-    ! write(*,*)
   enddo
 
   allocate(de2(nkpt,ibgw:nbgw))
@@ -104,8 +92,6 @@ subroutine getevalqp(fname, nkp2, kvecs2, eqp2)
      enddo 
   enddo
 
-  deallocate(de1, de2)
   deallocate(kvecs1, eqp1, eks1)
 
-  return
 end subroutine

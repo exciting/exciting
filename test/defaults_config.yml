@@ -30,11 +30,12 @@ default_files_under_test:
        - "EPSILON_??.OUT"
        - "LOSS_??.OUT"
    rt_tddft:
-      - "JIND.OUT"
-      - "NEXC.OUT"
-      - "ETOT_RTTDDFT.OUT"
+      - "CURRENT.OUT"
+      - "N_EXCITATIONS.OUT"
+      - "TOTENERGY_RTTDDFT.OUT"
       - "EIGVAL_??.OUT"
-      - "PROJ_??.OUT"
+      - "OCCSV_TXT_??.OUT"
+      - "PROJECTION_COEFFS_??.OUT"
    xanes:
       - "EPSILON_??.OUT"
       - "EXCITON_??.OUT"

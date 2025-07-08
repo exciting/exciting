@@ -2,21 +2,26 @@ module MD
   use asserts, only: assert
   use constants, only: y00
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
-  use modinput, only: input
+  use mod_atoms, only: atposc, idxas, natoms, nspecies
+  use modinput, only: input, structure_type
+  use rttddft_electric_field, only: Electric_Field
   use precision, only: dp, i32
+  use to_char_conversion, only: to_char
+  
   implicit none
 
   private 
-  ! Types
-  public :: force, MD_input_keys, MD_timing
+
+  integer(i32), parameter :: n_cartesian = 3
+  
   ! Procedures
   public :: obtain_core_corrections, &
-            obtain_force_ext, &
+            force_ext, &
             obtain_Hellmann_Feynman_force, &
             obtain_valence_corrections_part1, &
             obtain_valence_corrections_part2
 
-  type force
+  type, public :: force
     !> External force
     real(dp), allocatable     :: EXT(:,:)
     !> Hellmann-Feynman force
@@ -37,18 +42,22 @@ module MD
     final              :: force_destructor
   end type
 
-  type trajectory
-    integer(i32), private     :: n_atoms
+  type, public :: trajectory
     !> Positions of the nuclei in cartesian coordinates
-    real(dp), allocatable     :: positions(:,:)
+    real(dp), allocatable     :: positions(:, :)
     !> Velocities in cartesian coordinates
-    real(dp), allocatable     :: velocities(:,:)
+    real(dp), allocatable     :: velocities(:, :)
   contains
+    private
+    procedure, public  :: allocate_arrays => trajectory_allocate_arrays
+    procedure, public  :: assert_consistency => trajectory_assert_consistency
     procedure, private :: deallocate_arrays => trajectory_deallocate_arrays
+    procedure, public  :: initialize => trajectory_initialize
+    procedure, public  :: update_globals => trajectory_update_global_vars
     final              :: trajectory_destructor
   end type
 
-  type MD_input_keys
+  type, public :: MD_input_keys
     logical           :: on
     logical           :: print_all_force_components
     logical           :: update_overlap
@@ -64,7 +73,7 @@ module MD
   end type
 
   !> Type for store timings spent in different subroutines of a MD
-  type MD_timing
+  type, public :: MD_timing
     !> Overall time spent in an MD step
     real(dp) :: t_MD_step
     !> Time spent to evaluate the 1st part of the total force
@@ -77,19 +86,40 @@ module MD
     real(dp) :: t_MD_moveions
     !> Time spent to update the basis after moving the ions
     real(dp) :: t_MD_updateBasis
+  contains
+    procedure :: reset_MD_timing
   end type 
 
-  contains 
-  subroutine force_allocate_arrays( this, n_atoms )
+contains
+  pure subroutine reset_MD_timing( this )
+    class(MD_timing), intent(inout) :: this
+
+    this%t_MD_step = 0._dp
+    this%t_MD_1st = 0._dp
+    this%t_MD_2nd = 0._dp
+    this%t_MD_sumforces = 0._dp
+    this%t_MD_moveions = 0._dp
+    this%t_MD_updateBasis = 0._dp
+
+  end subroutine reset_MD_timing
+
+  !> Allocate force arrays
+  subroutine force_allocate_arrays( this, n_atoms, allocate_total )
     class(force), intent(inout) :: this
-    integer, intent(in) :: n_atoms
+    !> Number of atoms
+    integer(i32), intent(in) :: n_atoms
+    !> If `.true.`, also allocate the `total` and `total_save` components.  
+    !> `.false.` is the right option when restarting and old calculation
+    logical, intent(in) :: allocate_total
 
     allocate( this%EXT(3, n_atoms), source = 0._dp )
     allocate( this%HF(3, n_atoms), source = 0._dp )
     allocate( this%core(3, n_atoms), source = 0._dp )
     allocate( this%val(3, n_atoms), source = 0._dp )
-    allocate( this%total(3, n_atoms), source = 0._dp )
-    allocate( this%total_save(3, n_atoms), source = 0._dp )
+    if( allocate_total ) then
+      allocate( this%total(3, n_atoms), source = 0._dp )
+      allocate( this%total_save(3, n_atoms), source = 0._dp )
+    end if
   end subroutine
 
   subroutine force_deallocate_arrays( this )
@@ -117,7 +147,66 @@ module MD
     this%total_save = this%total
   end subroutine 
 
-  subroutine trajectory_deallocate_arrays( this )
+  !> Initialize from positions and velocities defined in the input file.
+  !> This can be executed even before calling `init0`, which initializes global variables 
+  !> such as `natoms(:)` and `idxas(:, :)`
+  subroutine trajectory_initialize( this, structure )
+    class(trajectory), intent(inout) :: this
+    !> `structure` element in the input file
+    type(structure_type), intent(in) :: structure
+
+    integer(i32) :: is, ia, ias, n_species, n_atoms
+    logical :: cartesian
+
+    cartesian = structure%cartesian
+    ias = 0
+    n_species = size( structure%speciesarray )
+    do is = 1, n_species
+      n_atoms = size( structure%speciesarray(is)%species%atomarray )
+      do ia = 1, n_atoms
+        ias = ias + 1
+        this%velocities(:, ias) = structure%speciesarray(is)%species%atomarray(ia)%atom%velocity
+        if ( cartesian ) then
+          this%positions(:, ias) = structure%speciesarray(is)%species%atomarray(ia)%atom%coord
+        else
+          this%positions(:, ias) = matmul( structure%crystal%basevect, structure%speciesarray(is)%species%atomarray(ia)%atom%coord )
+        end if
+      end do
+    end do   
+  end subroutine
+
+  subroutine trajectory_update_global_vars( this )
+    class(trajectory), intent(in) :: this
+
+    integer(i32) :: is, ia, ias
+
+    do is = 1, nspecies
+      do ia = 1, natoms (is)
+        ias = idxas (ia, is)
+        atposc(:, ia, is) = this%positions(: , ias)
+      end do
+    end do
+  end subroutine
+
+  !> Trajectory asserts
+  subroutine trajectory_assert_consistency( this )
+    class(trajectory), intent(in) :: this
+
+    call assert( size( this%positions, 1 ) == n_cartesian, "positions must have " // to_char(n_cartesian) // " components along 1st dim")
+    call assert( size( this%velocities, 1 ) == n_cartesian, "velocities must have " // to_char(n_cartesian) // " components along 1st dim")
+    call assert( size( this%velocities, 2 ) == size( this%positions, 2 ), "velocities and positions must have same size along 2nd dim")
+  end subroutine
+
+  pure subroutine trajectory_allocate_arrays( this, n_atoms )
+    class(trajectory), intent(inout) :: this
+    !> Number of atoms
+    integer(i32), intent(in) :: n_atoms
+    
+    call this%deallocate_arrays( )
+    allocate( this%positions(n_cartesian, n_atoms), this%velocities(n_cartesian, n_atoms) )
+  end subroutine
+
+  pure subroutine trajectory_deallocate_arrays( this )
     class(trajectory), intent(inout) :: this
 
     if( allocated(this%positions) ) deallocate( this%positions, this%velocities )
@@ -148,16 +237,15 @@ module MD
 
   !> Obtain force_ext due to an electric field as 
   !> \( \mathbf{F}_{ext} = q\mathbf{E} \)
-  subroutine obtain_force_ext( charge, e_field, force_ext )
+  pure function force_ext( charge, e_field )
     !> Particle charge
     real(dp), intent(in)  :: charge
     !> Electric field with its x, y, and z components
-    real(dp), intent(in)  :: e_field(3)
-    !> Force due to the electric field
-    real(dp), intent(out) :: force_ext(3)
+    type(Electric_Field), intent(in)  :: e_field
+    real(dp) :: force_ext(3)
     
-    force_ext = charge * e_field
-  end subroutine
+    force_ext = charge * e_field%components
+  end function
 
   !> Obtain the Hellmann-Feynman force acting on a specific atom
   !> \[ \mathbf{F}_{HF} = Z\lim_{\mathbf{r}\to 0} \nabla V_C(\mathbf{r}) \]
@@ -176,7 +264,7 @@ module MD
     !> \(V_C = V_{Hartree} + V_{nuclear}\)
     real(dp), intent(in)  :: vc_lm(:, :)
     !> Hellmann-Feynman force
-    real(dp), intent(out) :: force_HF(3)
+    real(dp), intent(out) :: force_HF(n_cartesian)
     ! Local variables
     integer(i32)           :: nr
     integer(i32),parameter :: l_max = 1
@@ -188,10 +276,9 @@ module MD
     call assert( size(vc_lm, 1) >= lm_max, '1st dim of vc_lm must be >= lm_max')
     call assert( size(vc_lm, 2) == nr, '2nd dim of vc_lm must contain nr elements' )
     
-    allocate( grad(lm_max, nr, 3), source = 0._dp )
-
+    allocate( grad(lm_max, nr, n_cartesian), source = 0._dp )
     call gradrfmt( 1, nr, radial_grid, lm_max, nr, vc_lm(1:lm_max, :), grad )
-    force_HF(1:3) = Z * grad(1,1,1:3) * y00
+    force_HF = Z * grad(1, 1, :) * y00
   end subroutine
 
   !> Obtain the core corrections to the force acting on a given atom
@@ -205,7 +292,7 @@ module MD
     !> Muffin-tin part of the Kohn-Sham potential
     real(dp), intent(in)  :: vKS_MT(:, :)
     !> Core corrections
-    real(dp), intent(out) :: force_core(3)
+    real(dp), intent(out) :: force_core(n_cartesian)
     ! Local variables
     integer(i32)           :: nr, j
     integer(i32),parameter :: l_max = 1
@@ -220,15 +307,14 @@ module MD
     call assert( size(vKS_MT, 2) == nr, '2nd dim of vKS_MT must contain nr elements' )
     
     allocate( rho_mt(lm_max, nr), source = 0._dp )
-    allocate( grad(lm_max, nr, 3), source = 0._dp )
+    allocate( grad(lm_max, nr, n_cartesian), source = 0._dp )
 
     rho_mt(1,:) = rho_core(:)/y00
     call gradrfmt(1, nr, radial_grid, lm_max, nr, rho_mt, grad )
-    do j = 1, 3
+    do j = 1, n_cartesian
       force_core(j) = rfmtinp( 1, 1, nr, radial_grid, &
         & lm_max, vKS_MT(1:lm_max, :), grad(:, :, j) )
     end do
-
   end subroutine
 
   !> Obtain the 1st part of the valence corrections to the force acting on a specific atom
@@ -268,13 +354,13 @@ module MD
 
     allocate( rho_val, source = rho_MT )
     allocate( vaux, source = vKS_MT)
-    allocate( grad(lm_max, nr, 3), source = 0._dp )
+    allocate( grad(lm_max, nr, n_cartesian), source = 0._dp )
 
     ! Valence charge = total charge - core charge (rho_core has only l=0 component)
     rho_val(1,:) = rho_val(1,:) - rho_core/y00
     call gradrfmt( l_max, nr, radial_grid, lm_max, nr, rho_val, grad )
     vaux(1,:) = vaux(1,:) + term/y00
-    do j = 1, 3
+    do j = 1, n_cartesian
       force_val1(j) = rfmtinp( 1, l_max, nr, radial_grid, lm_max, vaux, grad(:,:,j) )
     end do
   end subroutine
@@ -291,7 +377,7 @@ module MD
     !> \(f_{j}\): Occupation factors
     real(dp), intent(in)     :: occ(:)
     !> \(F\): Contribution to the valence corrections (as given by the formula)
-    real(dp), intent(out)    :: F(3)
+    real(dp), intent(out)    :: F(n_cartesian)
     ! Local variables
     integer(i32)             :: i, j, m, n
     real(dp), allocatable    :: aux(:)
@@ -302,14 +388,14 @@ module MD
     allocate( diff(m, m), prod(m, n), aux(n) )
     call assert( size(H,1) == m, 'H must have m elements along 1st dim')
     call assert( size(H,2) == m, 'H must have m elements along 2nd dim')
-    call assert( size(H,3) == 3, 'H must have 3 elements along 3rd dim')
+    call assert( size(H,3) == n_cartesian, 'H must have n_cartesian elements along 3rd dim')
     call assert( size(S,1) == m, 'S must have m elements along 1st dim')
     call assert( size(S,2) == m, 'S must have m elements along 2nd dim')
-    call assert( size(S,3) == 3, 'S must have 3 elements along 3rd dim')
+    call assert( size(S,3) == n_cartesian, 'S must have n_cartesian elements along 3rd dim')
     call assert( size(occ) == n, 'occ must have n elements')
 
     ! loop over x, y, z
-    do j = 1, 3
+    do j = 1, n_cartesian
       diff = H(:,:,j) - S(:,:,j)
       call hermitian_matrix_multiply( diff, psi, prod )
       forall (i = 1:n) aux(i) = dble( dot_product( psi(:,i), prod(:,i) ) )

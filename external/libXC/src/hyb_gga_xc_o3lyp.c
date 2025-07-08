@@ -1,89 +1,133 @@
 /*
  Copyright (C) 2006-2007 M.A.L. Marques
+                    2021 Susi Lehtola
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
-  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-  
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "util.h"
+#include "xc_funcs.h"
 
 #define XC_HYB_GGA_XC_O3LYP   404 /* hybrid using the optx functional */
-#define XC_HYB_GGA_XC_X3LYP   411 /* maybe the best hybrid */
+#define XC_HYB_GGA_XC_X3LYP   411 /* hybrid by Xu and Goddard */
 
 
 /*************************************************************/
+#define N_PAR_O3LYP 4
+static const char *names_o3lyp[N_PAR_O3LYP] = {"_a", "_b", "_c", "_clyp"};
+static const char *desc_o3lyp[N_PAR_O3LYP] = {
+  "fraction of HF exchange",
+  "fraction of LDA exchage",
+  "fraction of OPTX gradient correction",
+  "fraction of LYP correlation"
+};
+static const double par_o3lyp[N_PAR_O3LYP] = {0.1161, 0.9262, 0.8133, 0.81};
+
 static void
-gga_xc_o3lyp_init(XC(func_type) *p)
+o3lyp_set_ext_params(xc_func_type *p, const double *ext_params)
 {
-  const FLOAT a0 = 0.1161, b0 = 0.9262, ax = 0.8133, ac = 0.81;
-  static int funcs_id  [4] = {XC_LDA_X, XC_GGA_X_OPTX, XC_LDA_C_VWN, XC_GGA_C_LYP};
-  FLOAT funcs_coef[4];
+  /* This is the fraction of LDA exchange in OPTX */
+  const double a1 = 1.05151;
+  double a, b, c, clyp;
 
-  funcs_coef[0] = b0 - ax;
-  funcs_coef[1] = ax;
-  funcs_coef[2] = 1.0 - ac;
-  funcs_coef[3] = ac;
+  assert(p != NULL);
+  a    = get_ext_param(p, ext_params, 0);
+  b    = get_ext_param(p, ext_params, 1);
+  c    = get_ext_param(p, ext_params, 2);
+  clyp = get_ext_param(p, ext_params, 3);
 
-  XC(mix_init)(p, 4, funcs_id, funcs_coef);
-  XC(lda_c_vwn_set_params)(p->func_aux[2], 1);
-  p->cam_alpha = a0;
+  /* Remove double counting of LDA exchange */
+  p->mix_coef[0] = b - a1*c;
+  p->mix_coef[1] = c;
+  p->mix_coef[2] = 1.0 - clyp;
+  p->mix_coef[3] = clyp;
+
+  p->cam_alpha = a;
 }
 
-const XC(func_info_type) XC(func_info_hyb_gga_xc_o3lyp) = {
+static void
+hyb_gga_xc_o3lyp_init(xc_func_type *p)
+{
+  static int funcs_id[4] = {XC_LDA_X, XC_GGA_X_OPTX, XC_LDA_C_VWN, XC_GGA_C_LYP};
+  double funcs_coef[4] = {0.0, 0.0, 0.0, 0.0};
+  xc_mix_init(p, 4, funcs_id, funcs_coef);
+  xc_hyb_init_hybrid(p, 0.0);
+}
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_o3lyp = {
   XC_HYB_GGA_XC_O3LYP,
   XC_EXCHANGE_CORRELATION,
   "O3LYP",
   XC_FAMILY_HYB_GGA,
-  "AJ Cohen, NC Handy, Mol. Phys. 99 607 (2001)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
-  gga_xc_o3lyp_init,
-  NULL, NULL, NULL
+  {&xc_ref_Hoe2001_319, &xc_ref_Cohen2001_607, NULL, NULL, NULL},
+  XC_FLAGS_3D | XC_FLAGS_I_HAVE_ALL,
+  1e-15,
+  {N_PAR_O3LYP, names_o3lyp, desc_o3lyp, par_o3lyp, o3lyp_set_ext_params},
+  hyb_gga_xc_o3lyp_init,
+  NULL, NULL, NULL, NULL
 };
 
 
 /*************************************************************/
+#define N_PAR_X3LYP 5
+static const char *names_x3lyp[N_PAR_X3LYP] = {"_a0", "_ax", "_ac", "_ax1", "_ax2"};
+static const char *desc_x3lyp[N_PAR_X3LYP] = {
+  "fraction of HF exchange",
+  "fraction of XLYP gradient correction",
+  "fraction of VWN correction",
+  "weight of B88 enhancement in XLYP exchange",
+  "weight of PW91 enhancement in XLYP exchange"
+};
+static const double par_x3lyp[N_PAR_X3LYP] = {0.218, 0.709, 0.871, 0.765, 0.235};
+
 static void
-gga_xc_x3lyp_init(XC(func_type) *p)
+x3lyp_set_ext_params(xc_func_type *p, const double *ext_params)
 {
-  const FLOAT a1=0.675, a2=0.235;
-  const FLOAT a0=0.218, ax=0.709, ac=0.871;
+  double a0, ax, ac, ax1, ax2;
 
-  static int funcs_id[5] = {XC_LDA_X, XC_GGA_X_B88, XC_GGA_X_PW91, XC_LDA_C_VWN_RPA, XC_GGA_C_LYP};
-  FLOAT funcs_coef[5];
+  assert(p != NULL);
+  a0    = get_ext_param(p, ext_params, 0);
+  ax    = get_ext_param(p, ext_params, 1);
+  ac    = get_ext_param(p, ext_params, 2);
+  ax1   = get_ext_param(p, ext_params, 3);
+  ax2   = get_ext_param(p, ext_params, 4);
 
-  funcs_coef[0] = 1.0 - a0 - ax*(a1 + a2);;
-  funcs_coef[1] = ax*a1;
-  funcs_coef[2] = ax*a2;
-  funcs_coef[3] = 1.0 - ac;
-  funcs_coef[4] = ac;
+  p->mix_coef[0] = 1.0 - a0 - ax*(ax1 + ax2);
+  p->mix_coef[1] = ax*ax1;
+  p->mix_coef[2] = ax*ax2;
+  p->mix_coef[3] = 1.0 - ac;
+  p->mix_coef[4] = ac;
 
-  XC(mix_init)(p, 5, funcs_id, funcs_coef);
   p->cam_alpha = a0;
 }
 
-const XC(func_info_type) XC(func_info_hyb_gga_xc_x3lyp) = {
+static void
+hyb_gga_xc_x3lyp_init(xc_func_type *p)
+{
+  static int funcs_id[5] = {XC_LDA_X, XC_GGA_X_B88, XC_GGA_X_PW91, XC_LDA_C_VWN_RPA, XC_GGA_C_LYP};
+  double funcs_coef[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+
+  xc_mix_init(p, 5, funcs_id, funcs_coef);
+  xc_hyb_init_hybrid(p, 0.0);
+}
+
+#ifdef __cplusplus
+extern "C"
+#endif
+const xc_func_info_type xc_func_info_hyb_gga_xc_x3lyp = {
   XC_HYB_GGA_XC_X3LYP,
   XC_EXCHANGE_CORRELATION,
   "X3LYP",
   XC_FAMILY_HYB_GGA,
-  "X Xu, WA Goddard, III, PNAS 101, 2673 (2004)",
-  XC_FLAGS_3D | XC_FLAGS_HAVE_EXC | XC_FLAGS_HAVE_VXC | XC_FLAGS_HAVE_FXC,
-  1e-32, 1e-32, 0.0, 1e-32,
-  gga_xc_x3lyp_init,
-  NULL, NULL, NULL
+  {&xc_ref_Xu2004_2673, NULL, NULL, NULL, NULL},
+  XC_FLAGS_3D | XC_FLAGS_I_HAVE_ALL,
+  1e-15,
+  {N_PAR_X3LYP, names_x3lyp, desc_x3lyp, par_x3lyp, x3lyp_set_ext_params},
+  hyb_gga_xc_x3lyp_init,
+  NULL, NULL, NULL, NULL
 };

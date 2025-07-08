@@ -1,3 +1,14 @@
+"""Replace placeholder "$EXCITINGROOT" in **input.xml** files by actual path.
+
+Located at `excitingscripts/setup/excitingroot.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.setup.excitingroot
+```
+"""
+
 import os
 from argparse import ArgumentParser 
 

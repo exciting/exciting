@@ -52,97 +52,6 @@ module m_common_buffer
   
 contains
 
-  subroutine add_to_buffer(s, buffer, ws_significant)
-    character(len=*), intent(in)   :: s
-    type(buffer_t), intent(inout)  :: buffer
-    logical, intent(in), optional :: ws_significant
-    
-    character(len=(buffer%size+len(s))) :: s2
-    integer :: i, n, len_b
-    logical :: warning, ws_
-
-    ! Is whitespace significant in this context?
-    ! We have to assume so unless told otherwise.
-    if (present(ws_significant)) then
-      ws_ = ws_significant
-    else
-      ws_ = .true.
-    endif
-
-    ! FIXME The algorithm below unilaterally forces all
-    ! line feeds and carriage returns to native EOL, regardless
-    ! of input document. Thus it is impossible to output a
-    ! document containing a literal non-native newline character
-    ! Ideally we would put this under the control of the user.
-
-    ! We check if whitespace is significant. If not, we can 
-    ! adjust the buffer without worrying about it.
-    ! But if we are not told, we warn about it.
-    ! And if we are told it definitely is - then we error out.
-
-    ! If we overreach our buffer size, we will be unable to
-    ! output any more characters without a newline.
-    ! Go through new string, insert newlines
-    ! at spaces just before MAX_BUFF_SIZE chars
-    ! until we have less than MAX_BUFF_SIZE left to go,
-    ! then put that in the buffer.
-
-    ! If no whitespace is found in the newly-added string, then
-    ! insert a new line immediately before it (at the end of the
-    ! current buffer)
-
-    call check_buffer(s, buffer%xml_version)
-
-    s2 = buffer%str(:buffer%size)//s
-
-    ! output as much of this using existing newlines as possible.
-    warning = .false.
-    n = 1
-    do while (n<=len(s2))
-      ! Note this is an XML-1.0 only definition of newline
-      i = scan(s2(n:), achar(10)//achar(13))
-      if (i>0) then
-        ! turn that newline into an output newline ...
-        write(buffer%unit, '(a)') s2(n:n+i-2)
-        n = n + i
-      elseif (n<=len(s2)-MAX_BUFF_SIZE) then
-        ! We need to insert a newline, or we'll overrun the buffer
-        ! No suitable newline, so convert a space or tab into a newline.
-        i = scan(s2(n:n+MAX_BUFF_SIZE-1), achar(9)//achar(32), back=.true.)
-        ! If no space or tab is present, we fail.
-        if (i>0.and..not.present(ws_significant)) then
-          ! We can insert a newline, but we don't know whether it is significant. Warn:
-          if (.not.warning) then
-            ! We only output this warning once.
-            call FoX_warning( &
-            "Fortran made FoX insert a newline. "// &
-            "If whitespace might be significant, check your output.")
-            warning = .true.
-          endif
-        elseif (i==0) then
-          call FoX_error( &
-            "Fortran made FoX insert a newline but it can't. Stopping now.")
-        elseif (ws_) then
-          call FoX_error( &
-            "Fortran made FoX insert a newline but whitespace is significant. Stopping now.")
-        else
-          continue ! without error or warning, because whitespace is not significant
-        endif
-        write(buffer%unit, '(a)') s2(n:n+i-1)
-        n = n + i 
-      else
-        ! We don't need to do anything, just add the remainder to the buffer.
-        exit
-      endif
-    enddo
-
-    len_b = len(s2) - n + 1
-    buffer%str(:len_b) = s2(n:)
-    buffer%size = len_b
-
-  end subroutine add_to_buffer
-
-
   subroutine reset_buffer(buffer, unit, xml_version)
     type(buffer_t), intent(inout)  :: buffer
     integer, intent(in), optional :: unit
@@ -255,6 +164,98 @@ contains
     enddo 
 
   end subroutine check_buffer
+
+
+  subroutine add_to_buffer(s, buffer, ws_significant)
+    character(len=*), intent(in)   :: s
+    type(buffer_t), intent(inout)  :: buffer
+    logical, intent(in), optional :: ws_significant
+
+    character(len=(buffer%size+len(s))) :: s2
+    integer :: i, n, len_b
+    logical :: warning, ws_
+
+    ! Is whitespace significant in this context?
+    ! We have to assume so unless told otherwise.
+    if (present(ws_significant)) then
+      ws_ = ws_significant
+    else
+      ws_ = .true.
+    endif
+
+    ! FIXME The algorithm below unilaterally forces all
+    ! line feeds and carriage returns to native EOL, regardless
+    ! of input document. Thus it is impossible to output a
+    ! document containing a literal non-native newline character
+    ! Ideally we would put this under the control of the user.
+
+    ! We check if whitespace is significant. If not, we can
+    ! adjust the buffer without worrying about it.
+    ! But if we are not told, we warn about it.
+    ! And if we are told it definitely is - then we error out.
+
+    ! If we overreach our buffer size, we will be unable to
+    ! output any more characters without a newline.
+    ! Go through new string, insert newlines
+    ! at spaces just before MAX_BUFF_SIZE chars
+    ! until we have less than MAX_BUFF_SIZE left to go,
+    ! then put that in the buffer.
+
+    ! If no whitespace is found in the newly-added string, then
+    ! insert a new line immediately before it (at the end of the
+    ! current buffer)
+
+    call check_buffer(s, buffer%xml_version)
+
+    s2 = buffer%str(:buffer%size)//s
+
+
+    ! output as much of this using existing newlines as possible.
+    warning = .false.
+    n = 1
+    do while (n<=len(s2))
+      ! Note this is an XML-1.0 only definition of newline
+      i = scan(s2(n:), achar(10)//achar(13))
+      if (i>0) then
+        ! turn that newline into an output newline ...
+        write(buffer%unit, '(a)') s2(n:n+i-2)
+        n = n + i
+      elseif (n<=len(s2)-MAX_BUFF_SIZE) then
+        ! We need to insert a newline, or we'll overrun the buffer
+        ! No suitable newline, so convert a space or tab into a newline.
+        i = scan(s2(n:n+MAX_BUFF_SIZE-1), achar(9)//achar(32), back=.true.)
+        ! If no space or tab is present, we fail.
+        if (i>0.and..not.present(ws_significant)) then
+          ! We can insert a newline, but we don't know whether it is    significant. Warn:
+          if (.not.warning) then
+            ! We only output this warning once.
+            call FoX_warning( &
+            "Fortran made FoX insert a newline. "// &
+            "If whitespace might be significant, check your output.")
+            warning = .true.
+          endif
+        elseif (i==0) then
+          call FoX_error( &
+            "Fortran made FoX insert a newline but it can't. Stopping now.")
+        elseif (ws_) then
+          call FoX_error( &
+            "Fortran made FoX insert a newline but whitespace is  significant. Stopping now.")
+        else
+          continue ! without error or warning, because whitespace is not significant
+        endif
+        write(buffer%unit, '(a)') s2(n:n+i-1)
+        n = n + i
+      else
+        ! We don't need to do anything, just add the remainder to the buffer.
+        exit
+      endif
+    enddo
+
+    len_b = len(s2) - n + 1
+    buffer%str(:len_b) = s2(n:)
+    buffer%size = len_b
+
+  end subroutine add_to_buffer
 
 #endif
 end module m_common_buffer

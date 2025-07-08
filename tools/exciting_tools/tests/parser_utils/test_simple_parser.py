@@ -18,14 +18,14 @@ def test_match_current_return_next_n():
      """
 
     string_match = match_current_return_line_n(input_string, "Screened Coulomb potential:", n_line=1)
-    assert (
-        string_match.strip() == "Full-frequency Random-Phase Approximation"
-    ), "Expect to return the string one line below the match"
+    assert string_match.strip() == "Full-frequency Random-Phase Approximation", (
+        "Expect to return the string one line below the match"
+    )
 
     string_match = match_current_return_line_n(input_string, "Screened Coulomb potential:")
-    assert (
-        string_match.strip() == "Full-frequency Random-Phase Approximation"
-    ), "Expect default behaviour to return the string one line below the match"
+    assert string_match.strip() == "Full-frequency Random-Phase Approximation", (
+        "Expect default behaviour to return the string one line below the match"
+    )
 
     string_match = match_current_return_line_n(input_string, "Screened Coulomb potential:", n_line=2)
     assert string_match.strip() == "Some additional data : 5", "Expect to return the string two lines below the match"

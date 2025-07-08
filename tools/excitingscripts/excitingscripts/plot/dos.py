@@ -1,5 +1,17 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Visualize desisty of states.
+
+More details can be found **[here](https://www.exciting-code.org/home/the-python-script-plot.dos)**.
+
+Located at `excitingscripts/plot/dos.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.dos
+```
+"""
+
+
 #_______________________________________________________________________________
 import argparse as ap
 import os
@@ -391,7 +403,7 @@ def main(input_options):
         dlab = 'Phonon DOS [states/cm$^{-1}$]'
         if funit!= 'icm':
             dlab = 'Phonon DOS [states/'+funit+']'
-            if funit== 'THz': dlab = 'Phonon DOS [states/$\,$' + funit + ']'
+            if funit== 'THz': dlab = r'Phonon DOS [states/$\,$' + funit + ']'
 
     xplot_size = 16*sx
     yplot_size = 9*sy
@@ -573,7 +585,7 @@ def main(input_options):
          (len(legend)>0) ):       
         leg=ax1.legend(handles=my_legend,loc=leg_pos,borderaxespad=0.7,
                       framealpha=0.9,fancybox=True)
-        leg.get_frame().set_linewidth(axes_thickness)
+        leg.get_frame().set_linewidth(float(axes_thickness))
         leg.get_frame().set_edgecolor("grey")
         leg.draw_frame(True)
 

@@ -1,9 +1,0 @@
-include ../make.inc
-include ../libraries.inc
-FC = $(MPIF90) 
-FFLAGS = $(F90_OPTS) $(CPP_ON_OPTS) $(MPIF90_OPTS) -Ifinclude $(INCL)
-LD = $(FC)
-LDFLAGS = $(INCL) $(LIBS) $(MPI_LIBS) $(INTERNALLIBS)
-TMPFILES = *.mod
-SUFFIX=mpi
-

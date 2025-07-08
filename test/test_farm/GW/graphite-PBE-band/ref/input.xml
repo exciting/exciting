@@ -1,0 +1,64 @@
+<input>
+ 
+   <title>Graphite</title>
+ 
+   <structure speciespath="./">
+
+      <crystal scale="4.651">
+         <basevect>  0.5   0.86602540378  0.0 </basevect>
+         <basevect>  0.5  -0.86602540378  0.0 </basevect>
+         <basevect>  0.0   0.00000000000  2.705 </basevect>
+      </crystal>
+      
+      <species speciesfile="C.xml" rmt="1.20">
+         <atom coord="1.00000000  0.00000000  0.0"/>
+         <atom coord="0.66666667  0.33333333  0.0"/>
+         <atom coord="0.66666667  0.33333333  0.5"/>
+         <atom coord="0.33333333  0.66666667  0.5"/>
+      </species>  
+ 
+ 
+   </structure>
+ 
+   <groundstate
+      do="fromscratch"
+      xctype="GGA_PBE"
+      ngridk="3 3 1"
+      rgkmax="4"
+      gmaxvr="14"
+      lmaxapw="5"
+      lmaxmat="5"
+      lmaxvr="5">
+   </groundstate>
+
+   <gw
+      taskname="band"
+      ngridq="3 3 1"
+      nempty="15"
+      qdepw="sum"
+      ibgw="1" 
+      nbgw="20"
+      coreflag="xal">
+      <mixbasis
+         lmaxmb="3"
+         epsmb="1.d-3"
+         gmb="1"/>
+      <freqgrid
+         nomeg="16"/>
+   </gw>
+
+   <properties>
+   <bandstructure>
+     <plot1d>
+        <path steps="2">
+           <point coord=" 0.33333333333333333333333   0.33333333333333333333333   0.000" label="K" />
+           <point coord=" 0.000   0.000   0.000" label="GAMMA" />
+        </path>
+     </plot1d>
+  </bandstructure>
+  </properties>
+
+</input>
+
+
+

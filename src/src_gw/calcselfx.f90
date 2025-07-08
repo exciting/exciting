@@ -1,72 +1,70 @@
-
-subroutine calcselfx(iq)
-!
-! Calculate the q-dependent self-energy contribution
-!
+!> Calculate the q-dependent self-energy contribution for the given k-points.
+!> Remark: To obtain the complete self-energy, it must be then summed over all q-points
+subroutine calcselfx(iq, ikp_first, ikp_last)
+    
+    use constants, only: zzero, zone, pi, real_zero, fourpi
     use modinput, only: input
     use mod_atoms, only: idxas, natmtot
+    use mod_bands, only: evalfv, eveck, eveckp, eveckalm, eveckpalm, numin, nomax
+    use mod_core_states, only: ncg, corind
+    use mod_coulomb_potential, only: barc, barcev, vccut, vmat 
+    use mod_eigensystem, only: nmatmax
     use mod_eigenvalue_occupancy, only: nstfv
     use mod_APW_LO, only: apwordmax
     use mod_muffin_tin, only: lmmaxapw
-    use mod_eigensystem, only: nmatmax
-    use mod_bands, only: numin, nomax, eveckalm, eveckpalm, eveck, eveckp, evalfv
     use mod_product_basis, only: matsiz, mbsiz, minmmat
-    use mod_core_states, only: ncg, corind
-    use mod_coulomb_potential, only: barc, vccut, barcev, vmat
     use mod_misc_gw, only: vi, Gamma
-    use mod_mpi_gw, only : myrank
-    use modgw, only: kset, kqset, Gkqset, ciw, kiw, fdebug, time_selfx
     use mod_selfenergy, only: singc2, selfex
+    use modgw, only: kset, kqset, Gkqset, ciw, kiw, fdebug, time_selfx
+    use modmpi, only: rank
+    
 #include "mod_gw_degeneracies.inc"
+
     use mod_gw_degeneracies, only: get_degenerate_limits_qp_interval_ikp, &
                                    ibgw_including_degeneracy, &
                                    nbgw_including_degeneracy, &
                                    degenerate_subspaces
     use precision, only: i32, dp
-    use constants, only: zone, zzero, real_zero, pi, fourpi
+    use mod_expand_products, only: expand_products_generic
+
+#include "offload.fpp"
 
     implicit none
 
-    ! input/output
+    !> index of the q-point term to evaluate
     integer(i32), intent(in) :: iq
+    !> index of the first k-point (in the reduced BZ) to evaluate the self-energy
+    integer(i32), intent(in) :: ikp_first
+    !> index of the last k-point (in the reduced BZ) to evaluate the self-energy
+    integer(i32), intent(in) :: ikp_last
 
     ! local
-    integer(i32) :: ik, ikp, jk, i
+    integer(i32) :: ik, ikp, jk
     integer(i32) :: mdim
-    real(dp)    :: tstart, tend, t0, t1
     integer(i32) :: ie1, ie2, im
     integer(i32) :: ia, is, ias, ic, icg
-    real(dp)    :: sxs2, fnk
-    complex(dp) :: sx, vc
-    complex(dp) :: mvm     ! Sum_{ij}{M^i*V^c_{ij}*conjg(M^j)}
-    complex(dp), allocatable :: evecfv(:,:)
-    ! For the averaging over degenerate states
     integer(i32) :: ispace_init, ispace_final, ispace, lowband, upband, size_deg
-  
-    ! external routines
+    real(dp)     :: tstart, tend
+    real(dp)     :: sxs2, fnk
+    complex(dp)  :: sx, vc
+    complex(dp)  :: mvm     ! Sum_ij{M^i*V^c_{ij}*conjg(M^j)}
+
+    ! external routine
     complex(dp), external :: zdotc
 
     call timesec(tstart)
 
     ! singular term prefactor (q->0)
     sxs2 = fourpi * vi
+    if( vccut ) sxs2 = real_zero
 
     !----------------------------------------
     ! Set v-diagonal mixed product basis set
     !----------------------------------------
     if (vccut) then
-        sxs2 = real_zero
-        mbsiz = matsiz
-        if (allocated(barc)) deallocate(barc)
-        allocate(barc(matsiz,mbsiz), source=zzero)
-        do im = 1, matsiz
-            if (barcev(im) > 0.0_dp) then
-                vc = cmplx(barcev(im), 0.0_dp, kind=dp)
-                barc(:,im) = vmat(:,im) * sqrt(vc)
-            end if
-        end do
+      call setbarcev( real_zero, .false. )
     else
-        call setbarcev(real_zero)
+      call setbarcev( real_zero, Gamma )
     end if
 
     !--------------------------------------------------
@@ -83,39 +81,30 @@ subroutine calcselfx(iq)
     allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
     allocate(eveck(nmatmax,nstfv))
     allocate(eveckp(nmatmax,nstfv))
+    
+    OMP_OFFLOAD target enter data map(alloc: eveckalm, eveckpalm, eveck, eveckp)
 
     allocate(minmmat(mbsiz,ibgw_including_degeneracy:nbgw_including_degeneracy,1:mdim), source=zzero)
-    ! msize = sizeof(minmmat)*b2mb
-    ! write(*,'(" calcselfx: rank, size(minmmat) (Mb):",i4,f12.2)') myrank, msize
 
     !================================
     ! loop over irreducible k-points
     !================================
-    ! write(*,*)
-    do ikp = 1, kset%nkpt
-      ! write(*,*) 'calcselfx: rank, (iq, ikp):', myrank, iq, ikp
-
+    do ikp = ikp_first, ikp_last
       ! k vector
       ik = kset%ikp2ik(ikp)
       ! k-q vector
       jk = kqset%kqid(ik,iq)
 
       ! get KS eigenvectors
-      allocate(evecfv(nmatmax,nstfv))
-      call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evecfv)
-      eveckp = conjg(evecfv)
-      call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evecfv)
-      call move_alloc(evecfv, eveck)
+      call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), eveckp)
+      eveckp = conjg(eveckp)
+      call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
 
       call expand_evec(ik, 't')
       call expand_evec(jk, 'c')
 
-      ! Obtain the limits for degenerate subspaces for the irreducible point
-      call get_degenerate_limits_qp_interval_ikp(ikp, ispace_init, ispace_final)
-
-      ! Calculate M^i_{nm}+M^i_{cm}
-      call expand_products(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, -1, 1, mdim, nomax, minmmat)
-
+      OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
+      
       !========================================================
       ! Calculate the contribution to the exchange self-energy
       !========================================================
@@ -127,12 +116,18 @@ subroutine calcselfx(iq)
       ! First we compute indices of the subspaces we are interested in
       call get_degenerate_limits_qp_interval_ikp(ikp, ispace_init, ispace_final)
 
+      ! Calculate M^i_{nm}+M^i_{cm}
+      OMP_OFFLOAD target data map(alloc: minmmat)
+      call expand_products_generic(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, 1, 0, 1, nomax, 1, mdim-nomax, minmmat, .true.)
+      OMP_OFFLOAD target update from(minmmat)
+      OMP_OFFLOAD end target data
+
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ie1,ie2,mvm,icg,is,ia,ias,ic,fnk,sx,lowband,upband,size_deg), & 
-!$OMP SHARED(ispace_init,ispace_final,degenerate_subspaces,ikp,mdim,nomax,mbsiz,minmmat,kiw,corind,idxas), &
-!$OMP SHARED(ciw,Gamma,kqset,singc2,selfex,ibgw,nbgw,jk,ik,sxs2)
+!$omp parallel default(none) private(ie1,ie2,mvm,icg,is,ia,ias,ic,fnk,sx,lowband,upband,size_deg), & 
+!$omp shared(ispace_init,ispace_final,degenerate_subspaces,ikp,mdim,nomax,mbsiz,minmmat,kiw,corind,idxas), &
+!$omp shared(ciw,Gamma,kqset,singc2,selfex,ibgw,nbgw,jk,ik,sxs2)
 ! The different subspaces can have different sizes, and thus different computational cost. Therefore, the scheduler is set dynamic
-!$OMP DO SCHEDULE(DYNAMIC)
+!$omp do schedule(dynamic)
 #endif
       do ispace = ispace_init, ispace_final
 
@@ -174,14 +169,14 @@ subroutine calcselfx(iq)
         end do 
         ! That ensures we are in the proper range (in that way states out of
         ! the print range are taken into account for degeneracy stuff, but 
-        ! they are not printed). Macro defined in mod_gw_degeneracies.inc
+        ! they are not printed). Macro defined in mod_gw_degeneracies.inc (uses ibgw,nbgw)
         selfex(QP_ADJUST_RANGE(lowband,upband),ikp) = &
             selfex(QP_ADJUST_RANGE(lowband,upband),ikp) + sx / size_deg
 
       end do
 #ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
+!$omp end do
+!$omp end parallel
 #endif
 
       ! debugging info
@@ -197,6 +192,9 @@ subroutine calcselfx(iq)
     end do ! ikp
 
     deallocate(minmmat)
+
+    OMP_OFFLOAD target exit data map(delete: eveck, eveckp, eveckalm, eveckpalm)
+
     deallocate(eveck)
     deallocate(eveckp)
     deallocate(eveckalm)
@@ -206,6 +204,5 @@ subroutine calcselfx(iq)
     call timesec(tend)
     time_selfx = time_selfx+tend-tstart
 
-    return
 end subroutine
 !EOC

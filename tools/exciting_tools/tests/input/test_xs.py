@@ -28,25 +28,21 @@ def test_class_ExcitingXSInput_xstype_missing():
 @pytest.mark.usefixtures("mock_env_jobflow_missing")
 def test_ExcitingXSInput_as_dict():
     xs_input = ExcitingXSInput(xstype="BSE")
-    ref_dict = {"xml_string": '<xs xstype="BSE"> </xs>'}
+    ref_dict = {"xstype": "BSE"}
     assert xs_input.as_dict() == ref_dict, "expected different dict representation"
 
 
 @pytest.mark.usefixtures("mock_env_jobflow")
 def test_ExcitingXSInput_as_dict_jobflow():
     xs_input = ExcitingXSInput(xstype="BSE")
-    ref_dict = {
-        "@class": "ExcitingXSInput",
-        "@module": "excitingtools.input.input_classes",
-        "xml_string": '<xs xstype="BSE"> </xs>',
-    }
+    ref_dict = {"@class": "ExcitingXSInput", "@module": "excitingtools.input.input_classes", "xstype": "BSE"}
     assert xs_input.as_dict() == ref_dict, "expected different dict representation"
 
 
 def test_ExcitingXSInput_from_dict():
-    ref_dict = {"xml_string": '<xs xstype="BSE"> </xs>'}
+    ref_dict = {"xstype": "BSE"}
     recreated_xs = ExcitingXSInput.from_dict(ref_dict)
-    assert recreated_xs.to_xml_str() == ref_dict["xml_string"]
+    assert recreated_xs.xstype == "BSE"
 
 
 def test_class_ExcitingXSInput_xs():
@@ -212,6 +208,31 @@ def test_class_ExcitingPlanInput():
     assert doonlys[1].items() == [("task", "bse")]
     assert doonlys[2].tag == "doonly"
     assert doonlys[2].items() == [("task", "bsegenspec")]
+
+
+def test_class_ExcitingBseTypeSetInput():
+    bsetypeset_input = ["IP", "RPA", "singlet"]
+
+    xs_input = ExcitingXSInput(xstype="BSE", BseTypeSet=bsetypeset_input)
+
+    xs_xml = xs_input.to_xml()
+    assert xs_xml.tag == "xs"
+
+    elements = list(xs_xml)
+    assert len(elements) == 1
+
+    bsetypeset_xml = elements[0]
+    assert bsetypeset_xml.tag == "BseTypeSet"
+    assert bsetypeset_xml.items() == []
+
+    types = list(bsetypeset_xml)
+    assert len(types) == 3
+    assert types[0].tag == "type"
+    assert types[0].items() == [("name", "IP")]
+    assert types[1].tag == "type"
+    assert types[1].items() == [("name", "RPA")]
+    assert types[2].tag == "type"
+    assert types[2].items() == [("name", "singlet")]
 
 
 def test_class_ExcitingPlanInput_wrong_plan():

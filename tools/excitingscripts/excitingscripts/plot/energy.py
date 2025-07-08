@@ -1,3 +1,15 @@
+"""Visualize energy-vs-strain curves.
+
+Located at `excitingscripts/plot/energy.py`. 
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.energy
+```
+"""
+
+import json
 import os
 import sys
 from argparse import ArgumentParser
@@ -61,17 +73,28 @@ def main() -> None:
         inpf = 'energy-vs-step'
         xlabel = r'Step'
 
+    if os.path.exists('phonon_results.json'):
+        inpf = 'phonon_results.json'
+        xlabel = r'Displacement $u$ [alat]'
+
     if not inpf:
         sys.exit("\nERROR: file " + inpf + " not found!\n")
-
-    lines = np.genfromtxt(inpf)
 
     x = []
     y = []
 
-    for index, line in enumerate(lines):
-        x.append(line[0])
-        y.append(line[1])
+    if inpf == 'phonon_results.json':
+        with open(inpf) as fid:
+            phonon_data: dict = json.load(fid)["results"]
+
+        for displacement_string, result in phonon_data.items():
+            x.append(float(displacement_string))
+            y.append(result["energy"])
+    else:
+        lines = np.genfromtxt(inpf)
+        for index, line in enumerate(lines):
+            x.append(line[0])
+            y.append(line[1])
 
     x_sorted, y_sorted = sortstrain(x, y)
 
@@ -138,7 +161,7 @@ def main() -> None:
 
     yfmt = ptk.ScalarFormatter(useOffset=True, useMathText=True)
 
-    fig = matplotlib.pyplot.figure(1, figsize=(8, 5.5))
+    fig = matplotlib.pyplot.figure(figsize=(8, 5.5))
 
     ax = fig.add_subplot(111)
 
@@ -146,7 +169,7 @@ def main() -> None:
         ax.text(0.5, -0.17, xlabel, size=fontlabel,
                 transform=ax.transAxes, ha='center', va='center', rotation=0)
     else:
-        ax.text(0.5, -0.14, xlabel, size=fontlabel,
+        ax.text(0.5, -0.17, xlabel, size=fontlabel,
                 transform=ax.transAxes, ha='center', va='center', rotation=0)
         ax.text(0.11, 1.03, srmin, size=fonttext,
                 transform=ax.transAxes, ha='left', va='center', rotation=0)
@@ -172,6 +195,9 @@ def main() -> None:
     ax.set_ylim(ymin, ymax)
 
     ax.xaxis.set_major_locator(ptk.MaxNLocator(7))
+
+    if inpf == 'phonon_results.json':
+        ax.xaxis.set_major_locator(ptk.MaxNLocator(6))
 
     ax.set_axisbelow(True)
 

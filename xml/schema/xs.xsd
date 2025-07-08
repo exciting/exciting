@@ -322,11 +322,12 @@
             <xs:annotation>
               <xs:documentation> 
                 'Screenshots' of the time evolution: these can be 
-                <ul>
-                  <li>eigenvalues (see <elementRef>eigenvalues</elementRef>) </li>
-                  <li>projection coefficients (see <elementRef>projectionCoefficients</elementRef>)</li>
-                  <li>occupations ()</li>
-                </ul>
+                <list>
+                  <li>eigenvalues (see <elementref>eigenvalues</elementref>) </li>
+                  <li>projection coefficients (see <elementref>projectionCoefficients</elementref>)</li>
+                  <li>occupations (see <elementref>occupations</elementref>)</li>
+                  <li>charge density (see <elementref>deltadensityplot</elementref>)</li>
+                </list>
               </xs:documentation>
             </xs:annotation>
             <xs:complexType>
@@ -383,7 +384,7 @@
                       type="xs:string" default="F10.5">
                       <xs:annotation>
                         <xs:documentation> 
-                          Determine the Fortran format used to print the projection coefficients.
+                          Fortran format used to print the projection coefficients.
                         </xs:documentation>
                       </xs:annotation>
                     </xs:attribute>
@@ -402,17 +403,54 @@
                     </xs:documentation>
                   </xs:annotation>
                   <xs:complexType>
-                    <xs:attribute ex:importance="expert" ex:unit="atomic units" name="format"
+                    <xs:attribute ex:importance="expert" ex:unit="" name="format"
                       type="xs:string" default="F10.5">
                       <xs:annotation>
                         <xs:documentation> 
-                          Determine the Fortran format used to print the occupation 
-                          numbers.
+                          Fortran format used to print the occupation numbers.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="" name="textFormat"
+                      type="xs:boolean" default="true">
+                      <xs:annotation>
+                        <xs:documentation> 
+                          If <pre>true</pre>, print an output in text format: 
+                          <pre>OCCSV_TXT_i.OUT</pre>, where <pre>i</pre> is an integer 
+                          that encapsulates the number of time steps for the current output.
+                        </xs:documentation>
+                      </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ex:importance="expert" ex:unit="" name="binaryFormat"
+                      type="xs:boolean" default="true">
+                      <xs:annotation>
+                        <xs:documentation> 
+                          If <pre>true</pre>, print an output in binary format:
+                          <pre>OCCSV_i.OUT</pre>; see <attref>textFormat</attref> 
+                          for the meaning of <pre>i</pre>.
                         </xs:documentation>
                       </xs:annotation>
                     </xs:attribute>
                   </xs:complexType>
-                </xs:element>        
+                </xs:element>
+
+                <xs:element ex:importance="expert" ex:unit="" name="deltadensityplot" minOccurs="0" maxOccurs="1">
+                 <xs:annotation>
+                  <xs:documentation> Store changes in the valence charge density in 
+                   <pre>DELTARHO3D_[iteration_number].xsf</pre>. 
+                   The initial total charge density is saved in <pre>RHO3D_0.xsf</pre>. 
+                   Note that the output file format here differs from the one used in 
+                   the <elementref>chargedensityplot</elementref> subelement of the
+                   <elementref>properties</elementref> element (i.e., <pre>.xsf</pre>
+                   versus <pre>.xml</pre>).
+                  </xs:documentation>
+                 </xs:annotation>
+                 <xs:complexType>
+                  <xs:all>
+                   <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" maxOccurs="1"/>
+                  </xs:all>
+                 </xs:complexType>
+               </xs:element>        
               </xs:all>    
               
               <xs:attribute ex:importance="expert" ex:unit="" name="niter" type="xs:integer"
@@ -641,7 +679,7 @@
             </xs:complexType>
           </xs:element>
           
-          <xs:element ex:importance="expert" ex:unit="" name="pmat" minOccurs="1" maxOccurs="1">
+          <xs:element ex:importance="expert" ex:unit="" name="pmat" minOccurs="0" maxOccurs="1">
             <xs:annotation>
               <xs:documentation> 
                 This element defines some details needed in the evaluation of
@@ -693,12 +731,10 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit=""
-              name="calculateTotalEnergy" type="xs:boolean"
-              default="false">
+            <xs:attribute ex:importance="expert" ex:unit="" name="calculateTotalEnergy" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> The total energy is calculated at each
-                  time-step and outputed in the file ETOT_RTTDDFT.OUT
+                  time-step and outputed in the file <pre>TOTENERGY_RTTDDFT.OUT</pre>
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -708,8 +744,24 @@
               <xs:annotation>
                 <xs:documentation> Calculates the number of
                   excited electrons (per unit cell) at each time-step.
-                  Output: NEXC.OUT
+                  Output: <pre>N_EXCITATIONS.OUT</pre>
 		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="restartExtension" type="xs:string" default="">
+              <xs:annotation>
+                <xs:documentation> 
+                  When restarting a calculation, append the specified string 
+                  (as extension) to the following files: <pre>CURRENT.OUT</pre>, 
+                  <pre>POLARIZATION.OUT</pre>, <pre>VECTOR_POTENTIAL.OUT</pre>, 
+                  <pre>ELECTRIC_FIELD.OUT</pre>, <pre>N_EXCITATIONS.OUT</pre>, and 
+                  <pre>TOTENERGY_RTTDDFT.OUT</pre>. Instead of reading from the default 
+                  file name <pre>fname.OUT</pre>, the program will read from 
+                  <pre>fname.OUTstring</pre>, where <pre>string</pre> corresponds 
+                  to the value assigned to <attref>restartExtension</attref>.
+                  This functionality is primarily designed for testing purposes.
+                </xs:documentation>
               </xs:annotation>
             </xs:attribute>
 
@@ -741,13 +793,23 @@
               </xs:annotation>
             </xs:attribute>
 
+            <xs:attribute ex:importance="expert" ex:unit="" name="numberOfFrozenStates"
+              type="xs:integer" default="0">
+              <xs:annotation>
+                <xs:documentation> <pre>numberOfFrozenStates</pre> of the lowest-lying 
+                states will remain in the ground state and not evolve in time. 
+                This number is the same for each k point.
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="subtractJ0"
               type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> Subtracts a residual current. This term
                   ideally should be zero, actually
                   it tends to zero when the number of k-points is increased.
-                  Subtracting J0 might help to eliminate
+                  Subtracting <inlinemath>J_0</inlinemath> might help to eliminate
                   numerical inaccuracies for not-so-dense k-grids.
 		            </xs:documentation>
               </xs:annotation>
@@ -777,10 +839,50 @@
               </xs:simpleType>
             </xs:attribute>
 
+            <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
+              <xs:annotation>
+                <xs:documentation>Define if the calculation starts from scratch (<pre>do="fromscratch"</pre>),
+                or if it continues a previous calculation (<pre>do="fromfile"</pre>).</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="fromscratch"/>
+                  <xs:enumeration value="fromfile"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="restartFilesFormat" default="binary">
+              <xs:annotation>
+                <xs:documentation>Define the format used for output or restart (checkpoint) files. 
+                When setting (<pre>do="fromfile"</pre>), please ensure that the format matches 
+                that of the previous calculation. Although current support for 
+                <pre>HDF5</pre> is in a late beta stage, it is expected to become the 
+                preferred format in future releases.
+                <b>N.B.:</b> Output files in plain text format (<i>e.g.</i>, <pre>CURRENT.OUT</pre>)
+                are not affected by this setting.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="binary"/>
+                  <xs:enumeration value="hdf5"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
             <xs:attribute ex:importance="expert" ex:unit="" name="TaylorOrder" type="xs:integer"
               default="4">
               <xs:annotation>
                 <xs:documentation> The order employed in the Taylor expansion (when it is used).
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="nEigenvectorsEH" type="xs:integer"
+              default="-1">
+              <xs:annotation>
+                <xs:documentation> Number of eigenvectors used as auxiliary basis by the propagators: 
+                <pre>EH</pre> and <pre>EHM</pre>. If a different propagator is employed, this attribute is disregarded. 
+                A negative number is interpreted as: all occupied states + <pre>nempty</pre>.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -798,12 +900,22 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="printAfterIterations"
-              type="xs:integer" default="50">
+            <xs:attribute ex:importance="expert" ex:unit="atomic units" name="saveState"
+              type="xs:boolean" default="true">
               <xs:annotation>
-                <xs:documentation> Sets a number which determines how frequently data
-                  are printed to file. It means that the relevant data (JIND, AVEC, etc.)
-                  are accumulated and then printed at once.
+                <xs:documentation> If <pre>"true"</pre>, print out a restart file every 
+                  <attref>printAfterIterations</attref> steps.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="printAfterIterations"
+              type="xs:integer" default="50"> 
+              <xs:annotation>
+                <xs:documentation> Determine how frequently data
+                  are printed to file. Information regarding the fields (JIND, AVEC, etc.)
+                  is accumulated and then printed at once. If <attref>saveState</attref> is <pre>"true"</pre>, 
+                  a restart file is also printed out every 
+                  <attref>printAfterIterations</attref> steps.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -820,6 +932,66 @@
                   <xs:enumeration value="improvedeuler"/>
                   <xs:enumeration value="midpoint"/>
                   <xs:enumeration value="rk4"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="eeInteraction" default="aDFT">
+              <xs:annotation>
+                <xs:documentation> Approximation used for the time-dependent interelectronic interaction. 
+                  Possible choices are: aDFT (adiabatic density functional theory),
+                      IPA (independent particles approximation: time-dependent Hamiltonian 
+                      <inlinemath>H(t) = H(t = 0) + V_{\rm ext}(t)</inlinemath>, where 
+                      <inlinemath>V_{\rm ext}(t)</inlinemath> describes only the interaction with external fields), 
+                      tdH (time-dependent Hartree approximation): 
+                      <inlinemath>V_{\rm ext}(t)</inlinemath> also includes the time-dependent change in 
+                      Hartree potential. In the linear response limit, it corresponds to the random phase approximation (RPA). 
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="aDFT"/>
+                  <xs:enumeration value="IPA"/>
+                  <xs:enumeration value="tdH"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="basis" default="LAPWlo">
+              <xs:annotation>
+                <xs:documentation> Basis set used for expansion of the time-dependent Kohn-Sham 
+                  orbitals. Possible choices are:
+                  <list>
+                    <li>LAPWlo: global exciting basis;</li>
+                    <li>unperturbedKS: basis defined by the ground-state Kohn-Sham eigenfunctions (its size is 
+                    controlled by <attref parent="xs">nempty</attref> inside <elementref>xs</elementref>).</li>
+                  </list>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="LAPWlo"/>
+                  <xs:enumeration value="unperturbedKS"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="fieldCoupling" default="velocityGauge">
+              <xs:annotation>
+                <xs:documentation> The potential <inlinemath>V^{\rm ext}(t)</inlinemath> employed for
+                  description of the coupling with the external field. Possible choices are:
+                  <list>
+                    <li>minimal coupling in velocity gauge: <inlinemath>V^{\rm ext}(t) = \frac{\mathbf{p} \cdot \mathbf{A}(t)}{c} + 
+                    \frac{\mathbf{A}^2(t)}{2c^2} </inlinemath>;</li>
+                    <li><inlinemath>V^{\rm ext}(t) </inlinemath> is constructed using the dynamical Berry 
+                    phase approach (see [Phys. Rev. B 69, 085106 (2004)], [Phys. Rev. B 88, 235113 (2013)]).</li>
+                  </list>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="velocityGauge"/>
+                  <xs:enumeration value="berryPhase"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
@@ -1259,6 +1431,21 @@
                   <xs:enumeration value="scissor"/>
                 </xs:restriction>
               </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="skipdoneq" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"true"</pre> to skip the calculation for done q points.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="terminate_if_size_is_wrong" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> If <attref>skipdoneq</attref> is <pre>"true"</pre> and <attref>terminate_if_size_is_wrong</attref> set to <pre>"true"</pre> and  exciting terminates 
+                with an error message if the size of the dielectric matrix file of a done q-point is not as expected. Else the q-point is recalculated and the file is overwritten.
+                </xs:documentation>
+              </xs:annotation>
             </xs:attribute>
           </xs:complexType>
         </xs:element>
@@ -1716,6 +1903,7 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            
             <xs:attribute ex:importance="expert" ex:unit="" name="cuttype" default="none">
               <xs:annotation>
                 <xs:documentation>Defines how the Coulomb potential is to be truncated. Used for lower dimentional
@@ -1755,7 +1943,6 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            
           </xs:complexType>
         </xs:element>
 
@@ -2036,6 +2223,7 @@
             </xs:all>
           </xs:complexType>
         </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation> Finite momentum transfer <inlinemath>{ \bf G}+{ \bf q}</inlinemath>\
@@ -2045,6 +2233,7 @@
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
+
         <xs:element ex:importance="expert" ex:unit="" name="tetra" maxOccurs="1" minOccurs="0">
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" name="tetraocc" type="xs:boolean"
@@ -2086,6 +2275,71 @@
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" ref="energywindow" maxOccurs="1" minOccurs="0"> </xs:element>
+
+
+      <xs:element ex:importance="expert" ex:unit="" name="BseTypeSet" minOccurs="0" maxOccurs="1">
+	  <xs:annotation>
+            <xs:documentation> Define a set of BSE types that are calculated in one run of the <attref>bse</attref> task
+            in the <attref>plan</attref> element. This element has no effect on any other tasks.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ex:importance="expert" ex:unit="" name="type" minOccurs="1"
+                maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute ex:importance="expert" ex:unit="" name="name" use="required">
+		    <xs:annotation>
+		      <xs:documentation>Define the BSE type.</xs:documentation>
+                      <xs:appinfo>
+                        <oldname>noreplace</oldname>
+                      </xs:appinfo>
+                    </xs:annotation>
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:enumeration value="IP">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>1</oldnr>
+                            </xs:appinfo>
+			    <xs:documentation>Calculate independent particle approximation.
+		            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>         
+                        <xs:enumeration value="RPA">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>2</oldnr>
+                            </xs:appinfo>
+			    <xs:documentation>Calculate random phase approximation.
+		            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+			<xs:enumeration value="singlet">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>3</oldnr>
+                            </xs:appinfo>
+			    <xs:documentation>Solve BSE for singlet spin configuration.
+		            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>         
+                        <xs:enumeration value="triplet">
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>4</oldnr>
+                            </xs:appinfo>
+			    <xs:documentation>Solve BSE for triplet spin configuration.
+		            </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
 	<xs:element ex:importance="expert" ex:unit="" name="plan" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:sequence>

@@ -1,31 +1,24 @@
 # Top-level Gitlab Continuous Integration Config File for exciting
-#
-# Notes
-# ---------
-# For all builds:
-#   The make.inc is a build stage artifact so the test framework can determine the compiler.
-#   An ENV variable is not used, because this would require setting each time the test
-#   suite is also used locally.
-#
-# Missing build and test for Intel + HDF5
+
+# Notice Cray CI is deactivated as it requires of extra permissions
 
 stages:
-  - build
   - python
+  - build
   - test
   - deploy
 
 # Split configurations into separate files
 include:
-  - local: '/.gitlab/python-libs.yml' 
+  - local: '/.gitlab/python-libs.yml'
   - local: '/.gitlab/docs.yml'
-  - local: '/.gitlab/jupyter-exciting-python-3.7-gcc8-smp.yml'
-  - local: '/.gitlab/exciting-debian-buster-gcc8-serial.yml'
-  - local: '/.gitlab/exciting-debian-buster-gcc8-smp.yml'
-  - local: '/.gitlab/exciting-debian-buster-gcc8-openmpi3-mpismp.yml'
-  - local: '/.gitlab/exciting-ubuntu-gcc11-hdf5-fftw3-smp.yml'
-  - local: '/.gitlab/exciting-ubuntu-gcc11-hdf5-fftw3-mpismp.yml'
+  - local: '/.gitlab/jupyter-exciting-python3-gnu-smp.yml'
+  #- local: '/.gitlab/exciting-fedora-buster-cray.yml'
+  - local: '/.gitlab/exciting-fedora-buster-gnu-serial.yml'
+  - local: '/.gitlab/exciting-fedora-buster-gnu-smp.yml'
+  - local: '/.gitlab/exciting-fedora-buster-gnu-mpismp.yml'
+  - local: '/.gitlab/exciting-fedora-buster-gnu-mpismp-scalapack-hdf5.yml'
   - local: '/.gitlab/exciting-debian-buster-intel2021-serial.yml'
   - local: '/.gitlab/exciting-debian-buster-intel2021-smp.yml'
-  # - local: '/.gitlab/exciting-debian-buster-intel2021-mpismp.yml'
-  # - local: '/.gitlab/exciting-sirius.yml' Alex. Temporarily disable sirius to enable all features to be merged
+  - local: '/.gitlab/exciting-debian-buster-intel2025-serial.yml'
+  - local: '/.gitlab/exciting-debian-buster-intel2025-gpu.yml'

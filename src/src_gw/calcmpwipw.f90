@@ -17,16 +17,17 @@ subroutine calcmpwipw(iq)
     use modgw,   only : Gset, Gqset, Gqbarc, sgi, sgi_fft, mpwipw, &
     &                   fdebug, time_mpwipw
     use modmpi,  only : rank
-    
+    use precision, only: i32, dp
+#include "offload.fpp"
 !!INPUT PARAMETERS:
     implicit none
-    integer(4), intent(in) :: iq
+    integer(i32), intent(in) :: iq
 
 !!LOCAL VARIABLES:
-    integer(4) :: ig, npw, ngq, ipw, igq
-    integer(4), dimension(3) :: igv ! integer coodintates of G-G'
-    complex(8), allocatable  :: tmat(:,:)
-    real(8) :: tstart, tend
+    integer(i32) :: ig, npw, ngq, ipw, igq
+    integer(i32), dimension(3) :: igv ! integer coodintates of G-G'
+    complex(dp), allocatable  :: tmat(:,:)
+    real(dp) :: tstart, tend
  
 !!EXTERNAL ROUTINES: 
     external zgemm
@@ -43,7 +44,10 @@ subroutine calcmpwipw(iq)
     npw = Gqbarc%ngk(1,iq)
     ngq = Gqset%ngk(1,iq)
         
-    if (allocated(mpwipw)) deallocate(mpwipw)
+    if (allocated(mpwipw)) then
+      OMP_OFFLOAD target exit data map(delete: mpwipw)
+      deallocate(mpwipw)
+    end if 
     allocate(mpwipw(ngq,npw))
     mpwipw(:,:) = zzero
 
@@ -78,6 +82,8 @@ subroutine calcmpwipw(iq)
     &           zone,sgi,ngq, &
     &           tmat,ngq, &
     &           zzero,mpwipw,ngq)
+
+    OMP_OFFLOAD target enter data map(always, to: mpwipw)
     
     ! FFT of S^{*}_{Gi}
     !if (allocated(sgi_fft)) deallocate(sgi_fft)

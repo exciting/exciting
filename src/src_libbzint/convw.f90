@@ -42,7 +42,6 @@
 ! !EXTERNAL ROUTINES:
       external intweight1t
       external convw1t
-      external convw1tsurf
       external bloechlcor
 
 ! !SYSTEM ROUTINES:

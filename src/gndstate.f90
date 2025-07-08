@@ -14,6 +14,7 @@ Subroutine gndstate
     Use modmpi
     Use scl_xml_out_Module
     use sirius_api, only : finalize_sirius
+    use species_file_update, only: update_species
 !
 ! !DESCRIPTION:
 !   Computes the self-consistent Kohn-Sham ground-state. General information is
@@ -151,7 +152,7 @@ Subroutine gndstate
     end if
 
 ! (if needed) generate the new species files with the optimized linearization energies
-    if (rank==0) call updatespecies
+    if (rank==0) call update_species
  
 !------------------------------------!
 !   structure optimization

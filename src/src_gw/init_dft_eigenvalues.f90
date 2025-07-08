@@ -1,20 +1,19 @@
 
 subroutine init_dft_eigenvalues()
-
-    use modinput, only: input
-    use mod_LDA_LU, only: ldapu
-    use mod_misc, only: filext
+    use constants,  only: real_zero
     use mod_charge_and_moment, only: chgval
     use mod_corestate, only: evalcr
     use mod_eigenvalue_occupancy, only: nstfv, efermi, occmax, fermidos 
     use mod_eigensystem, only: nmat, nmatmax
-    use modgw, only: kset, kqset, ibgw, nvelgw, fgw, nbandsgw, nbgw
-    use mod_bands, only: numin, nomax, nstdf, nstse, evalfv, occfv
+    use mod_bands, only: numin, nomax, nstdf, nstse, evalfv, occfv, bandstructure_analysis
     use mod_gw_degeneracies, only: initialize_degeneracy_module, absolute_tolerance_gw_degeneracy, &
                                    relative_tolerance_gw_degeneracy
-    use mod_mpi_gw, only : myrank
+    use mod_LDA_LU, only: ldapu
     use mod_hdf5
-    use constants,  only: real_zero
+    use mod_misc, only: filext
+    use modinput, only: input
+    use modgw, only: kset, kqset, ibgw, nvelgw, fgw, nbandsgw, nbgw
+    use modmpi, only: rank
     use precision,  only: i32, dp
 
     implicit none
@@ -80,7 +79,7 @@ subroutine init_dft_eigenvalues()
     nstdf = int(chgval/2.0_dp, kind=i32) + input%gw%nempty + 1
     if (nstdf > nstfv) then
       nstdf = nstfv
-      if (myrank==0) then
+      if (rank==0) then
         write(fgw,*)
         write(fgw,*)'WARNING(init_dft_eigenvalues) nstdf > nstfv !'
         write(fgw,*)
@@ -95,7 +94,7 @@ subroutine init_dft_eigenvalues()
         nstse = int(chgval/2.0_dp, kind=i32) + input%gw%selfenergy%nempty + 1
         if (nstse > nstfv) then
           nstse = nstfv
-          if (myrank==0) then
+          if (rank==0) then
             write(fgw,*)
             write(fgw,*)'WARNING(init_dft_eigenvalues) nstse > nstfv !'
             write(fgw,*)
@@ -112,7 +111,7 @@ subroutine init_dft_eigenvalues()
     !----------------------------------------
     ! Output band structure summary
     !----------------------------------------
-    if (myrank==0) then
+    if (rank==0) then
       call boxmsg(fgw,'-',"Kohn-Sham eigenstates summary")
       write(fgw,*)'Maximum number of LAPW states:             ', nmatmax
       write(fgw,*)'Minimal number of LAPW states:             ', minval(nmat(1,:))
@@ -137,7 +136,7 @@ subroutine init_dft_eigenvalues()
     !---------------------------------------------------------
     ! Search for the indices of VBM and CBM (nomax and numin)
     !---------------------------------------------------------
-    call bandstructure_analysis('Kohn-Sham band structure', 1, nstfv, kset%nkpt, evalfv, efermi)
+    call bandstructure_analysis('Kohn-Sham band structure', 1, evalfv, efermi, .true.)
 
     !-----------------------------------------------------------------
     ! Check for consistency with specified QP bands range [ibgw,nbgw]
@@ -145,7 +144,7 @@ subroutine init_dft_eigenvalues()
     ! lower QP band index
     if ( (ibgw<1) .or. (ibgw>nstfv) ) ibgw = 1
     if (ibgw >= numin) then
-        if (myrank==0) then
+        if (rank==0) then
           write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval!"
           write(*,*) "  ibgw = ", ibgw, " >= CBM = ", numin
         end if
@@ -157,7 +156,7 @@ subroutine init_dft_eigenvalues()
         nbgw = nstfv
     end if
     if (nbgw <= nomax) then
-        if (myrank==0) then
+        if (rank==0) then
           write(*,*) "ERROR(init_dft_eigenvalues): Wrong QP bands interval!"
           write(*,*) "  nbgw = ", nbgw, " <= VBM = ", nomax
         end if
@@ -179,8 +178,6 @@ contains
 
       use math_utils, only: get_degeneracies
 
-      implicit none
-
       !> The truncation limit
       integer(i32), intent(inout) :: ntruncation
       ! Elements to check if we are truncating a degenerated subspace
@@ -188,13 +185,18 @@ contains
       !idx_degeneracies is allocated/deallocated inside the get_degeneracies procedure 
       integer(i32), allocatable :: idx_degeneracies(:,:)
       logical, allocatable      :: degeneracies(:,:)
+      logical :: my_rank_writes_to_output
 
+
+      my_rank_writes_to_output = ( rank == 0 )
       ! Here we check that we are not working with the full space (i.e. the maximum number
       ! of states available)
       if (ntruncation <= nstfv .and. minval(nmat(1,:)) /= nstfv) then
-        write(fgw,*)
-        call boxmsg(fgw,'-',"Checking for possible degenerate subspace truncation")
-        write(fgw,*) "   -Initial band truncation was ", ntruncation
+        if( my_rank_writes_to_output ) then
+          write(fgw,*)
+          call boxmsg(fgw,'-',"Checking for possible degenerate subspace truncation")
+          write(fgw,*) "   -Initial band truncation was ", ntruncation
+        end if
 
         ! Get a complete list of the degenerate states
         ! So degeneracies(ib,ik) is true if the ib-th state of ik-th kpoint
@@ -229,14 +231,18 @@ contains
         deallocate(degeneracies, idx_degeneracies)
 
         ! Print new truncation
-        write(fgw,*) "   -Final band truncation has been adjusted to prevent the cutting of the degenerate subspaces to ", ntruncation
-        write(fgw,*)
+        if( my_rank_writes_to_output ) then
+          write(fgw,*) "   -Final band truncation has been adjusted to prevent the cutting of the degenerate subspaces to ", ntruncation
+          write(fgw,*)
+        end if
       else
         ! We are working with the full space, so no correction is needed.
-        write(fgw,*)
-        call boxmsg(fgw,'-',"Checking for possible degenerate subspace truncation")
-        write(fgw,*) "   -Working with the maximum of our space, nothing to check."
-        write(fgw,*)
+        if( my_rank_writes_to_output ) then
+          write(fgw,*)
+          call boxmsg(fgw,'-',"Checking for possible degenerate subspace truncation")
+          write(fgw,*) "   -Working with the maximum of our space, nothing to check."
+          write(fgw,*)
+        end if
       end if
 
     end subroutine check_degenerate_subspaces

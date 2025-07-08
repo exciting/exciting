@@ -16,6 +16,7 @@ Subroutine writeinfo (fnum)
       use mod_misc, only: filext, versionname, version, compiler_version, githash, &
                           notelns, notes
       use mod_muffin_tin, only: idx_species_fixed_rmt
+      use mgga_init, only: xcdescr_mgga
 #ifdef TETRA
       Use modtetra
 #endif
@@ -328,6 +329,11 @@ Subroutine writeinfo (fnum)
          Write (fnum, '(" Optimised effective potential (OEP) and exact exchange (EXX)")')
          Write (fnum, '("     Phys. Rev. B 53, 7024 (1996)")')
          Write (fnum, '("     Correlation type ", T45, ": ", I7)') Abs(input%groundstate%xctypenumber)
+         Write (fnum, '("     ", A)') trim (xcdescr)
+      Else if (associated(input%groundstate%mgga)) Then
+         Write (fnum, '(" Exchange-correlation type ", T45, ": ", I7)') input%groundstate%xctypenumber
+         Write (fnum, '("     ", A)') trim (xcdescr_mgga)
+         Write (fnum, '(" GGA functional to construct the basis ", T45, ": ", I7)') 
          Write (fnum, '("     ", A)') trim (xcdescr)
       Else
          Write (fnum, '(" Exchange-correlation type ", T45, ": ", I7)') input%groundstate%xctypenumber

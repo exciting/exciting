@@ -19,9 +19,6 @@
 module m_device_world_t
     
     use iso_c_binding
-    use omp_lib
-    use m_device_host_register_fortran, only: device_host_register
-    use mpi
 
     implicit none
 
@@ -39,13 +36,14 @@ module m_device_world_t
         !> Device queue for MAGMA
         type(c_ptr), private  :: queue = c_null_ptr
         !> The number of teams in the device
-        integer, private :: num_teams
+        integer, private :: num_teams = 1
         !> The maximum number of threads per team
-        integer, private :: num_threads
-        !> Device host register
-        type(device_host_register) :: register
+        integer, private :: num_threads = 1 
+        !> Flag to indicate if CPU-only backend is used
+        logical, private :: cpu_backend = .true.
     contains
-        procedure, public :: init, finish, is_queue_set, get_queue, syncronize, get_device, get_num_teams
+        procedure, public :: init, finish, is_queue_set, get_queue, synchronize, get_device, get_num_teams, using_cpu_backend, &
+                             get_num_threads, simd_size, get_stream
     end type device_world_t
 
 contains
@@ -60,21 +58,17 @@ contains
     subroutine init(this, world)
         class(device_world_t), target, intent(inout) :: this
         integer(C_int), intent(in) :: world
-        ! Init register
-        call this%register%init()
     end subroutine init
 
     !> This subroutine finishes the device handler
     !> @param[in] this - the device handler to finish
     subroutine finish(this)
         class(device_world_t), intent(inout) :: this
-        ! Clean register
-        call this%register%finish()
     end subroutine finish
 
     !> This function returns true if the queue is inited
     !> @param[in] this - the world to check if has inited queue
-    pure function is_queue_set(this) result(answer)
+    function is_queue_set(this) result(answer)
         class(device_world_t), intent(in) :: this
         logical :: answer
         answer = .false.
@@ -84,16 +78,16 @@ contains
     !> @param[in] this - the world object from which the queue is retrieved
     function get_queue(this) result(queue)
         class(device_world_t), target, intent(in) :: this
-        type(C_ptr), pointer :: queue
+        type(c_ptr) :: queue
         queue = c_null_ptr
     end function get_queue
 
-    !> This syncronizes the world (in a very agresive way)
+    !> This synchronizes the world (in a very agresive way)
     !> @param[in] this - the device which we want to sync with
-    subroutine syncronize(this)
+    subroutine synchronize(this)
         class(device_world_t), target, intent(in) :: this
         !$omp barrier
-    end subroutine syncronize
+    end subroutine synchronize
 
     !> This provides device id
     !> @param[in] this - return the associated device id
@@ -110,5 +104,31 @@ contains
         integer :: num_teams
         num_teams = this%num_teams
     end function get_num_teams
+
+        !> This provides the number of threads
+    !> @param[in] this - return the number of teams of the device
+    pure function get_num_threads(this) result(num_threads)
+        class(device_world_t), intent(in) :: this
+        integer :: num_threads
+        num_threads = this%num_threads
+    end function get_num_threads
+
+    !> Returns .true. if using the CPU backend
+    pure logical function using_cpu_backend(this)
+        class(device_world_t), intent(in) :: this
+        using_cpu_backend = this%cpu_backend
+    end function using_cpu_backend
+
+    !> Returns the size for SIMD in the device
+    pure integer function simd_size(this)
+        class(device_world_t), intent(in) :: this
+        simd_size = 1
+    end function simd_size
+
+    !> Returns the underlying stream, or object for depend clauses
+    type(c_ptr) function get_stream(this)
+        class(device_world_t), intent(in) :: this
+        get_stream = c_null_ptr
+    end function get_stream
 
 end module m_device_world_t

@@ -4,7 +4,8 @@ subroutine plot_spectral_function()
     use modmain,        only: pi, efermi
     use mod_vxc,        only: vxcnn
     use mod_selfenergy, only: selfex, selfec, freq_selfc, deltaE
-    use modgw,          only: ibgw, nbgw, kset, evalfv
+    use modgw,          only: ibgw, nbgw, kset
+    use mod_bands,      only: evalfv
     implicit none
     integer(4) :: ik, ib, iw, n
     real(8) :: w, sRe, sIm, div
@@ -26,14 +27,14 @@ subroutine plot_spectral_function()
                 ! \Sigma_c(omega-\delta_E)
                 call get_selfc(freq_selfc%nomeg, freq_selfc%freqs, selfec(ib,:,ik), &
                                w-deltaE, sc, dsc)
-                sxc = selfex(ib,ik) + sc - vxcnn(ib,ik)
+                sxc = selfex(ib,ik) + sc - vxcnn%diag_elements(ib,ik)
                 sRe = dble(sxc)
                 sIm = aimag(sxc) + input%gw%selfenergy%swidth
                 div = (w-evalfv(ib,ik)-sRe)**2 + sIm**2
                 sf(ib) = 1.d0/pi * abs(sIm) / div
             end do
             write(70,trim(frmt)) w, sf(ibgw:nbgw)
-            write(71,trim(frmt)) w, dble(w-evalfv(ibgw:nbgw,ik)-selfex(ibgw:nbgw,ik)+vxcnn(ibgw:nbgw,ik))
+            write(71,trim(frmt)) w, dble(w-evalfv(ibgw:nbgw,ik)-selfex(ibgw:nbgw,ik)+vxcnn%diag_elements(ibgw:nbgw,ik))
         end do
         write(70,*); write(70,*)
         write(71,*); write(71,*)

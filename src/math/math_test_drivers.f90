@@ -12,18 +12,26 @@ module math_test_drivers
   use multi_index_conversion_test, only: multi_index_conversion_test_driver
   use seed_generation_test, only: seed_generation_test_driver
   use sh_product_test, only: sh_product_test_driver
+  use projection_test, only: projection_test_driver
+  use matrix_contraction_test, only: matrix_contraction_test_driver
 
   private
   public :: math_test_driver
 
   contains
 
-  subroutine math_test_driver(mpiglobal, kill_on_failure)
+  subroutine math_test_driver(mpiglobal, kill_on_failure_)
     !> mpi information
     type(mpiinfo), intent(in) :: mpiglobal
     !> Kill the program before the test driver finishes
     !> if an assertion fails 
-    logical, optional :: kill_on_failure 
+    logical, optional :: kill_on_failure_ 
+
+    logical :: kill_on_failure
+    logical, parameter :: kill_on_failure_default = .true.
+
+    kill_on_failure = kill_on_failure_default
+    if( present(kill_on_failure_) ) kill_on_failure = kill_on_failure_
 
     ! Call test drivers here
     call math_utils_test_driver(mpiglobal, kill_on_failure)
@@ -36,6 +44,8 @@ module math_test_drivers
     call multi_index_conversion_test_driver(mpiglobal, kill_on_failure)
     call seed_generation_test_driver(mpiglobal, kill_on_failure)
     call sh_product_test_driver(mpiglobal, kill_on_failure)
+    call projection_test_driver(mpiglobal, kill_on_failure)
+    call matrix_contraction_test_driver(mpiglobal, kill_on_failure)
   end subroutine math_test_driver
 
 end module math_test_drivers

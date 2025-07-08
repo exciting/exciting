@@ -1,0 +1,36 @@
+# GNU serial build and tests.
+
+build:fedora-buster-gnu-serial:
+   image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
+   stage: build
+   tags:
+     - docker
+   script:
+     - mkdir build-cmake && cd build-cmake
+     - ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=OFF -DOMP=OFF -DOPENBLAS=ON ..
+     - make -j 4 -l 4
+     - make install
+   artifacts:
+     paths:
+       - install/lib
+       - install/bin/exciting_serial
+       - src/version.inc
+     expire_in: 5 hrs
+
+test-fedora-buster-gnu-serial:
+   image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora-GCC14-hdf5-fftw-scalapack-mpich
+   stage: test
+   dependencies:
+     - build:fedora-buster-gnu-serial
+     - python:regressionframework-python3
+   tags:
+     - docker
+   before_script:
+     - pip3 install numpy termcolor pytest pyyaml
+   script:
+    # Run exciting unit tests
+     - install/bin/exciting_serial -run-unit-tests -kill-on-failure
+    # Install test framework parsers
+     - pip3 install -e tools/exciting_tools
+    # Run exciting app tests
+     - cd test/ && python3 runtest.py -bp $PWD/../install/bin/ -e exciting_serial -repeat-tests 2

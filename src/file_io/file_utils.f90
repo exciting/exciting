@@ -1,10 +1,18 @@
 module file_utils
+  use mod_misc, only: filext
   use modmpi
+  use precision, only: i32, str_256
+  use exciting_mpi, only: xmpi_bcast
 
   implicit none
   private
 
-  public :: file_is_open, close_file, delete_file
+  public :: add_default_extension, &
+            close_file, &
+            copy_text_file, &
+            delete_file, &
+            file_is_open, &
+            read_last_and_penultimate_lines_from_file
 
   interface file_is_open
     procedure :: file_is_open_by_name, file_is_open_by_unit
@@ -111,7 +119,7 @@ module file_utils
 
       ! delete file
       if (comm%rank == 0) call MPI_file_delete(trim(fname), MPI_INFO_NULL, ierr)
-      call MPI_Bcast(ierr, 1, MPI_INTEGER, 0, comm%comm, comm%ierr)
+      call xmpi_bcast( comm, ierr )
 #endif
     end subroutine delete_file_parallel
 
@@ -145,5 +153,66 @@ module file_utils
 
       inquire(unit=fid, opened=isopen, iostat=ierr)
     end function file_is_open_by_unit
+
+    !> Copy a file, from source to destination, line by line. It only works for text files
+    subroutine copy_text_file( source_name, destination_name )
+      !> Name of the source file
+      character(len=*), intent(in) :: source_name
+      !> Name of the destination file
+      character(len=*), intent(in) :: destination_name
+
+      integer(i32) :: unit_source, unit_dest, ios
+      character(len=str_256) :: line
+      logical :: file_exists
+
+      inquire( file=trim(source_name), exist=file_exists )
+      call terminate_if_false( file_exists, "Error: File " // trim(source_name) // " not found" )
+      open( newunit=unit_source, file=source_name, status="old", position="rewind", action="read" )
+      open( newunit=unit_dest, file=destination_name, status="replace", position="rewind", action="write" )
+      do 
+        read( unit_source, '(A)', iostat=ios ) line
+        if ( ios /= 0 ) exit
+        write( unit_dest, '(A)' ) trim( line )
+      end do
+      close( unit_source )
+      close( unit_dest )
+    end subroutine
+
+    !> Read a file and store the content of the last and penultiname lines
+    subroutine read_last_and_penultimate_lines_from_file( file_name, last_line, penultimate_line )
+      !> File name
+      character(len=*), intent(in) :: file_name
+      !> Last line
+      character(len=*), intent(out) :: last_line
+      !> Penultimate line
+      character(len=*), intent(out) :: penultimate_line
+    
+      character(len=str_256) :: line
+      integer(i32) :: unit, ios
+      logical :: file_exists
+    
+      last_line = "empty"; penultimate_line = "empty"
+      inquire( file=trim( file_name ), exist=file_exists )
+      call terminate_if_false( file_exists, "Error: File " // trim(file_name) // " not found" )
+      open( newunit=unit, file=file_name, status="old", action="read")
+      do 
+        read( unit, '(A)', iostat=ios ) line
+        if ( ios /= 0 ) exit
+        penultimate_line = last_line
+        last_line = line
+      end do
+      if( trim(penultimate_line) == "empty" ) call terminate( "Error: file " // file_name // " has less than two lines" )
+      close( unit )
+    end subroutine  
+
+    !> Add the default extension `filext` from the [[mod_misc]] (usually `.OUT`) to a base file name
+    pure function add_default_extension( file_name ) result( name )
+      !> base file name
+      character(len=*), intent(in)  :: file_name
+      !> file name with default extension
+      character(len=:), allocatable :: name
+
+      name = trim( file_name )//trim( filext )
+    end function
 
 end module file_utils

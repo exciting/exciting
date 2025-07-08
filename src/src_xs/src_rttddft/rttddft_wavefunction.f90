@@ -11,302 +11,399 @@
 module rttddft_Wavefunction
   use asserts, only: assert
   use constants, only: zone, zzero, zi
-  use integration, only: RungeKutta4thOrder => ODESolver_RungeKutta4thOrder
-  use matrix_exp, only: &
-      & exp_hermitian => exp_hermitian_matrix_times_vectors, & 
-      & exp_general => exp_general_matrix_times_vectors, &
-      & exphouston_propagator => exphouston_hermitian_matrix_times_vectors
-  use mod_kpoint, only: nkpt
-  use mod_eigensystem, only: nmat
-  use mod_eigenvalue_occupancy, only: nstfv
-  use modmpi
+  use exciting_mpi, only: xmpi_allgather
+  use modmpi, only: mpiglobal
   use normalize, only: normalize_vectors
   use precision, only: dp, i32
-  use rttddft_GlobalVariables, only: ham_time, ham_past, overlap, &
-    & evecfv_time, B_time, B_past, mathcalB
+  use projection, only: project_y_onto_x
+  use to_char_conversion, only: to_char
+  use xlapack, only: hermitian_matrix_multiply, matrix_multiply
 
   implicit none
 
   private
 
-  public :: UpdateWavefunction, Update_basis_derivative, propagator_types, propagator_type, &
-            SE, EH
+  public :: initialize_wavefunction_set, obtain_occupations, obtain_projection_coefficients
+  
+  !> Type for the set of wavefunctions expanded on a basis set
+  type, public, abstract :: wavefunction_set
+    !> Basis expansion coefficients of the frozen states
+    complex(dp), allocatable :: frozen(:, :, :)
+    !> Initial basis expansion coefficients of all states
+    complex(dp), allocatable :: groundstate(:, :, :)
+    !> Basis expansion coefficients of the active states at time \(t\)
+    complex(dp), allocatable :: active(:, :, :)
+    !> Storage for the expansion coefficients of the active states
+    complex(dp), allocatable :: active_save(:, :, :)
 
-  !> Enum with the solver type for the vector potential
-  enum, bind(C)
-    enumerator :: propagator_types
-    enumerator :: SE, EMR, AETRS, CFM4, EH, EHM, RK4
-  end enum
-
-  type, public :: propagator_keys
-    !> Propagator used
-    integer(kind(propagator_types))         :: name
-    !> Size of time step \( \Delta t \) - employed in RT-TDDFT
-    real(dp)                                :: time_step
-    !> If `.true.`, normalize KS wavefunctions in each step
-    logical                                 :: normalize_WF
-    !> Order of the Taylor expansion
-    integer(i32)                            :: order_taylor
-    !> Tolerance required for diagonalization
-    real(dp)                                :: tol
+    contains
+      procedure(initialize_), public, deferred :: initialize
+      procedure :: normalize => normalize_wavefunctions
+      procedure :: has_frozen
+      procedure :: save => save_wavefunctions
+      procedure :: restore => restore_wavefunctions
+      procedure :: n_kpts
+      procedure :: n_active
+      procedure :: first_active
+      procedure :: n_frozen
+      procedure :: n_basis
+      procedure :: n_empty
+      procedure :: n_occupied
+      procedure :: expanded_in_lapwlo
   end type
 
-contains
-  !> Get the enum corresponding to the string
-  !> Caution: the default is defined to be SE
-  pure function propagator_type( string ) result( propagator )
-    character(len=*), intent(in) :: string
-    integer(kind(propagator_types)) :: propagator
+  !> Type to encapsulate the wavefunction set expanded in the LAPW+lo basis
+  type, extends (wavefunction_set) :: wavefunction_set_lapwlo_basis
+  contains
+    procedure :: initialize => initialize_set_in_lapwlo_basis
+  end type
 
-    select case( trim(string) )
-      case('SE')
-        propagator = SE
-      case('EMR')
-        propagator = EMR
-      case('AETRS')
-        propagator = AETRS
-      case('CFM4')
-        propagator = CFM4
-      case('EH')
-        propagator = EH
-      case('EHM')
-        propagator = EHM
-      case('RK4')
-        propagator = RK4
-      case default
-        propagator = SE
+  !> Type to encapsulate the wavefunction set expanded in the KS basis
+  type, extends (wavefunction_set) :: wavefunction_set_ks_basis
+  contains
+    procedure :: initialize => initialize_set_in_ks_basis
+  end type
+
+  abstract interface
+    subroutine initialize_( this, save_needed, n_frozen_, complete_gnd_set_lapwlo, &
+        occupations, occs_tol )
+      import :: wavefunction_set, i32, dp
+      class(wavefunction_set), intent(inout) :: this
+      !> If `.true.`, active_save component should be allocated
+      logical, intent(in) :: save_needed
+      !> Number of the frozen states
+      integer(i32), intent(in) :: n_frozen_
+      !> Initial wavefunction set in the LAPW+lo basis, (n_basis, n_states, n_kpt)
+      complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, :)
+      !> State occupations array (n_states, n_kpt)
+      real(dp), contiguous, intent(in) :: occupations(:, :)
+      !> Minimal value of occupation for the state to be 'occupied'
+      real(dp), intent(in) :: occs_tol
+    end subroutine
+  end interface
+
+contains
+
+  !> Initializes the wavefunction set class ([[wavefunction_set]])
+  !> with a concrete type, depending on the basis set
+  subroutine initialize_wavefunction_set( psi, use_lapwlo_basis, save_needed, n_frozen_, &
+      complete_gnd_set_lapwlo, occupations, occs_tol )
+    class(wavefunction_set), allocatable, intent(out) :: psi
+    !> Whether the LAPW+lo basis should be used
+    logical, intent(in) :: use_lapwlo_basis
+    !> If `.true.`, active_save component should be allocated
+    logical, intent(in) :: save_needed
+    !> Number of the frozen states
+    integer(i32), intent(in) :: n_frozen_
+    !> Initial wavefunction set in the LAPW+lo basis, (n_basis, n_states, n_kpt)
+    complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, :)
+    !> State occupations array (n_states, n_kpt)
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Minimal value of occupation for the state to be 'occupied'
+    real(dp), intent(in) :: occs_tol
+
+    if ( use_lapwlo_basis ) then
+      allocate( wavefunction_set_lapwlo_basis :: psi )
+    else
+      allocate( wavefunction_set_ks_basis :: psi )      
+    end if
+    call psi%initialize( save_needed, n_frozen_, complete_gnd_set_lapwlo, occupations, occs_tol )
+  end subroutine
+
+  !> Initialize the set from the ground state WFs expanded in LAWP+lo basis
+  subroutine initialize_set_in_lapwlo_basis( this, save_needed, n_frozen_, complete_gnd_set_lapwlo, &
+      occupations, occs_tol )
+    class(wavefunction_set_lapwlo_basis), intent(inout) :: this
+    !> If `.true.`, active_save component should be allocated
+    logical, intent(in) :: save_needed
+    !> Number of the frozen states
+    integer(i32), intent(in) :: n_frozen_
+    !> Initial wavefunction set in the LAPW+lo basis, (n_basis, n_states, n_kpt)
+    complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, :)
+    !> State occupations array (n_states, n_kpt)
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Minimal value of occupation for the state to be 'occupied'
+    real(dp), intent(in) :: occs_tol
+
+    integer(i32) :: n_active_states
+    integer(i32), allocatable :: buffer(:)
+
+    call assert( n_frozen_ <= size( complete_gnd_set_lapwlo, 2 ), 'n_frozen_ > n_states')
+    call assert( size( complete_gnd_set_lapwlo, 2 ) == size( occupations, 1 ), &
+      'complete_gnd_set_lapwlo and occupations have different n_states')
+    call assert( size( complete_gnd_set_lapwlo, 3 ) == size( occupations, 2 ), &
+      'complete_gnd_set_lapwlo and occupations have different n_kpts')
+
+    allocate( this%groundstate, source = complete_gnd_set_lapwlo )
+    n_active_states = last_occupied_for_current_rank( occupations, occs_tol )
+    ! Force the same number of active states over all MPI ranks
+    call xmpi_allgather( mpiglobal, n_active_states, buffer )
+    n_active_states = maxval( buffer )
+    allocate( this%active, source = complete_gnd_set_lapwlo(:, n_frozen_ + 1 : n_active_states, :) )
+    if ( save_needed ) allocate( this%active_save, source = this%active )
+    if ( n_frozen_ > 0 ) allocate( this%frozen, source = complete_gnd_set_lapwlo(:, 1 : n_frozen_, :) )
+
+  end subroutine
+
+  !> Initialize the set from the ground state WFs expanded in LAWP+lo basis
+  subroutine initialize_set_in_ks_basis( this, save_needed, n_frozen_, complete_gnd_set_lapwlo, &
+      occupations, occs_tol )
+    class(wavefunction_set_ks_basis), intent(inout) :: this
+    !> If `.true.`, active_save component should be allocated
+    logical, intent(in) :: save_needed
+    !> Number of the frozen states
+    integer(i32), intent(in) :: n_frozen_
+    !> Initial wavefunction set in the LAPW+lo basis, (n_basis, n_states, n_kpt)
+    complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, :)
+    !> State occupations array (n_states, n_kpt)
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Minimal value of occupation for the state to be 'occupied'
+    real(dp), intent(in) :: occs_tol
+
+    integer(i32) :: n_gnd_states, i, n_active_states
+    integer(i32), allocatable :: buffer(:)
+
+    n_gnd_states = size( complete_gnd_set_lapwlo, 2 )
+
+    call assert( n_frozen_ <= n_gnd_states, 'n_frozen_ > n_states')
+    call assert( n_gnd_states == size( occupations, 1 ), &
+      'complete_gnd_set_lapwlo and occupations have different n_states')
+    call assert( size( complete_gnd_set_lapwlo, 3 ) == size( occupations, 2 ), &
+      'complete_gnd_set_lapwlo and occupations have different n_kpts')
+
+    allocate( this%groundstate( n_gnd_states, n_gnd_states, &
+      size( complete_gnd_set_lapwlo, 3 ) ), source = zzero )
+    do i = 1, n_gnd_states
+      this%groundstate(i, i, :) = zone
+    end do
+
+    n_active_states = last_occupied_for_current_rank( occupations, occs_tol )
+    ! Force the same number of active states over all MPI ranks
+    call xmpi_allgather( mpiglobal, n_active_states, buffer )
+    n_active_states = maxval( buffer )
+    allocate( this%active, source = this%groundstate(:, n_frozen_ + 1 : n_active_states, :) )
+    if ( save_needed ) allocate( this%active_save, source = this%active )
+    if ( n_frozen_ > 0 ) allocate( this%frozen, source = this%groundstate(:, 1 : n_frozen_, :) )
+
+  end subroutine
+
+  !> Save current active component into the save component
+  pure subroutine save_wavefunctions( this )
+    class(wavefunction_set), intent(inout) :: this
+
+    this%active_save = this%active
+  end subroutine
+
+  !> Restore active component from the save component
+  pure subroutine restore_wavefunctions( this )
+    class(wavefunction_set), intent(inout) :: this
+
+    this%active = this%active_save
+  end subroutine
+
+  !> Normalize the wavefunctions \(|\Psi_{i\mathbf{k}}\rangle\)
+  !> It is essentially a wrapper to the subroutine [[normalize_vectors]]
+  subroutine normalize_wavefunctions( this, overlap_matrices, normalize_all )
+    class(wavefunction_set), intent(inout) :: this
+    !> Overlap matrices of the basis functions
+    complex(dp), intent(in) :: overlap_matrices(:, :, :)
+    !> If `.true.`, frozen, save, and ground components are also normalized
+    logical, optional, intent(in) :: normalize_all
+
+    integer(i32) :: ik, nkpts
+    logical :: normalize_all_
+
+    normalize_all_ = .false.
+    if ( present( normalize_all ) ) normalize_all_ = normalize_all
+    nkpts = this%n_kpts()
+
+    do ik = 1, nkpts
+      call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=this%active(:, :, ik) )
+    end do
+
+    if ( normalize_all_ ) then
+      
+      do ik = 1, nkpts
+        call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=this%groundstate(:, :, ik) )
+      end do
+
+      if ( this%has_frozen() ) then
+        do ik = 1, nkpts
+          call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=this%frozen(:, :, ik) )
+        end do
+      end if
+
+      if ( allocated( this%active_save ) ) then
+        do ik = 1, nkpts
+          call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=this%active_save(:, :, ik) )
+        end do
+      end if
+
+    end if
+  end subroutine
+
+  !> Tells whether the set is expanded over the LAPW+lo basis
+  logical function expanded_in_lapwlo( this )
+    class(wavefunction_set), intent(in) :: this
+    
+    select type( this )
+    type is( wavefunction_set_lapwlo_basis )
+    expanded_in_lapwlo = .true.
+    type is( wavefunction_set_ks_basis )
+    expanded_in_lapwlo = .false.
+    class default
+      call assert( .false., 'unrecognized type passed to expanded_in_lapwlo' )
     end select
   end function
 
-  !> This subroutine updates KS wavefunctions.  
-  !> Here, we employ a propagator to evolve the Kohn-Sham wavefunctions.  
-  !> Extrapolation scheme for the hamiltonian (predcorr .False.)
-  !> \[ \hat{H}(t+f\Delta t) = (1+f)\hat{H}(t) - f\hat{H}(t-\Delta t). \]
-  !> \(\hat{H}(t)\) is stored in `ham_time`, whereas \(\hat{H}(t -\Delta t)\),
-  !> in `ham_past`
-  !> Extrapolation scheme for the hamiltonian (predcorr .True.)
-  !> \[ \hat{H}(t+f\Delta t) = f\hat{H}(t + \Delta t) + (1-f)\hat{H}(t). \]
-  !> \(\hat{H}(t)\) is stored in `ham_past`, whereas \(\hat{H}(t +\Delta t)\),
-  !> in `ham_time` (which comes from a previous iteration in the predictor corrector
-  !> loop
-  subroutine UpdateWavefunction( prop, predcorr, atoms_velocities )
-    !> Type that encapsulates the information to propagate WFs
-    type(propagator_keys), intent(in) :: prop
-    !> tells if we are in the loop of the predictor-Corrector scheme
-    logical, intent(in)       :: predcorr
-    !> if present, we need to add corrections due to the nuclei movement (which changes the basis set)
-    real(dp), intent(in), optional  :: atoms_velocities(:, :)
 
-    integer(i32)  :: ik, nmatp, first_kpt, last_kpt
-    ! Factors that multiply the hamiltonian in the following propagator:
-    ! Commutator-Free Magnus expansion of 4th order
-    real(dp), parameter       :: f1 =  0.21132486540518713_dp ! 1/2 - sqrt(3)/6
-    real(dp), parameter       :: f2 =  0.78867513459481290_dp ! 1/2 + sqrt(3)/6
-    real(dp), parameter       :: a1 = -0.03867513459481287_dp ! 1/4 - sqrt(3)/6
-    real(dp), parameter       :: a2 =  0.53867513459481290_dp ! 1/4 + sqrt(3)/6f1, f2, a1, a2
-    complex(dp), allocatable  :: overl(:,:), ham(:,:), hamold(:,:)
-    logical                   :: atoms_movement
-    procedure(exp_general), pointer      :: exp_operator
+  !> Tells whether there are frozen states
+  pure logical function has_frozen( this )
+    class(wavefunction_set), intent(in) :: this
 
-    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
+    has_frozen = allocated( this%frozen )
+  end function
 
-    atoms_movement = present( atoms_velocities )
-    if ( atoms_movement ) then
-      call Update_basis_derivative( atoms_velocities, mathcalB, B_time, B_past )
-      exp_operator => exp_general
-      call assert( prop%name /= RK4, 'atoms_movement does not support RK4')
-      call assert( prop%name /= EH .and. prop%name /= EHM, 'atoms_movement does not support EH and EHM')
-      call assert( .not. predcorr, 'atoms_movement does not support predictor-corrector')
-    else
-      exp_operator => exp_hermitian
-    end if
+  !> Returns the number of frozen states
+  pure integer function n_frozen( this )
+    class(wavefunction_set), intent(in) :: this
 
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ik,nmatp,overl,ham,hamold), &
-!$OMP& SHARED(first_kpt, last_kpt,nstfv,nkpt,predcorr), &
-!$OMP& SHARED(prop, nmat, ham_time, ham_past, overlap, evecfv_time) &
-!$OMP& SHARED(B_time, B_past, atoms_movement, exp_operator)
-!$OMP DO
-#endif
-    do ik = first_kpt, last_kpt
-      ! Dimension of the Hamiltonian and Overlap matrices for the current k-point
-      nmatp = nmat(1,ik)
+    n_frozen = 0
+    if ( this%has_frozen() ) n_frozen = size( this%frozen, 2 )
+  end function
 
-      allocate(overl(nmatp,nmatp), source=overlap(1:nmatp,1:nmatp,ik))
-      allocate(ham(nmatp,nmatp))
-
-      select case(prop%name)
-        ! SE (simple exponential)
-        ! CN (Crank-Nicolson)
-        ! EMR (Exponential at midpoint rule)
-        ! AETRS (approximate enforced time-reversal symmetry)
-        ! CFM4 (Commutator-Free Magnus expansion of 4th order)
-        ! EH (exponential using a basis of the hamiltonian-eigenvectors)
-        ! EHM (same as before, but uses the hamiltonian at midpoint)
-        ! RK4 (Runge-Kutta of 4th order)
-        case (SE)
-          ham(1:nmatp,1:nmatp) = ham_time(1:nmatp,1:nmatp,ik)
-          if( atoms_movement ) ham = ham - zi*B_time(1:nmatp,1:nmatp,ik)
-          call exp_operator( prop%order_taylor, &
-              alpha=-zi*prop%time_step, H=ham, S=overl, &
-              vectors=evecfv_time(1:nmatp, :, ik) )
-        case (EMR)
-          if ( .not. predcorr ) then
-            ham(1:nmatp,1:nmatp) = 1.5_dp*ham_time(1:nmatp,1:nmatp,ik) -0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
-            if( atoms_movement ) ham = ham - zi*( 1.5_dp*B_time(1:nmatp,1:nmatp,ik)-0.5_dp*B_past(1:nmatp,1:nmatp,ik) )
-          else
-            ham(1:nmatp,1:nmatp) = 0.5_dp*ham_time(1:nmatp,1:nmatp,ik) +0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
-          end if
-          call exp_operator( prop%order_taylor, &
-            & alpha=-zi*prop%time_step, H=ham, S=overl, &
-            & vectors=evecfv_time(1:nmatp, :, ik) )
-        case (AETRS)
-          if ( .not. predcorr ) then
-            ! 1/2*H(t)
-            ham(1:nmatp,1:nmatp) = 0.5_dp*ham_time(1:nmatp,1:nmatp,ik)
-            if( atoms_movement ) ham = ham - zi*0.5_dp*B_time(1:nmatp,1:nmatp,ik)
-            call exp_operator( prop%order_taylor, &
-              & alpha=-zi*prop%time_step, &
-              & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
-            ! extrapolated 1/2*H(t+\Delta t) as H(t) - 1/2*H(t-\Delta t)
-            ham(1:nmatp,1:nmatp) = ham_time(1:nmatp,1:nmatp,ik)-0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
-            if( atoms_movement ) ham = ham - zi*( B_time(1:nmatp,1:nmatp,ik)-0.5_dp*B_past(1:nmatp,1:nmatp,ik) )
-            call exp_operator( prop%order_taylor, &
-              & alpha=-zi*prop%time_step, &
-              & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
-          else
-            ham(1:nmatp,1:nmatp) = 0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
-            call exp_hermitian( prop%order_taylor, &
-              & alpha=-zi*prop%time_step, &
-              & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
-            ham(1:nmatp,1:nmatp) = 0.5_dp*ham_time(1:nmatp,1:nmatp,ik)
-            call exp_hermitian( prop%order_taylor, &
-              & alpha=-zi*prop%time_step, &
-              & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
-          end if
-        case (CFM4)
-          if ( .not. predcorr ) then
-            ham(1:nmatp,1:nmatp) = (a1*(1+f2) + a2*(1+f1))*ham_time(1:nmatp,1:nmatp,ik) &
-              -(a1*f2 + a2*f1)*ham_past(1:nmatp,1:nmatp,ik)
-            if( atoms_movement ) ham = ham - zi*( (a1*(1+f2) + a2*(1+f1))*B_time(1:nmatp,1:nmatp,ik)&
-              -(a1*f2 + a2*f1)*B_past(1:nmatp,1:nmatp,ik) )
-            call exp_operator( prop%order_taylor, &
-              & alpha=-zi*prop%time_step, &
-              & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
-            ham(1:nmatp,1:nmatp) = (a1*(1+f1) + a2*(1+f2))*ham_time(1:nmatp,1:nmatp,ik) &
-              -(a1*f1 + a2*f2)*ham_past(1:nmatp,1:nmatp,ik)
-            if( atoms_movement ) ham = ham - zi*( (a1*(1+f1) + a2*(1+f2))*B_time(1:nmatp,1:nmatp,ik)&
-              -(a1*f1 + a2*f2)*B_past(1:nmatp,1:nmatp,ik) )
-            call exp_operator( prop%order_taylor, &
-              & alpha=-zi*prop%time_step, &
-              & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
-          else
-            ham(1:nmatp,1:nmatp) = a1*((1-f2)*ham_past(1:nmatp,1:nmatp,ik)+f2*ham_time(1:nmatp,1:nmatp,ik)) + &
-                                   a2*((1-f1)*ham_past(1:nmatp,1:nmatp,ik)+f1*ham_time(1:nmatp,1:nmatp,ik))
-            call exp_hermitian( prop%order_taylor, &
-              & alpha=-zi*prop%time_step,  &
-              & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
-            ham(1:nmatp,1:nmatp) = a1*((1-f1)*ham_past(1:nmatp,1:nmatp,ik)+f1*ham_time(1:nmatp,1:nmatp,ik)) + &
-                                   a2*((1-f2)*ham_past(1:nmatp,1:nmatp,ik)+f2*ham_time(1:nmatp,1:nmatp,ik))
-            call exp_hermitian( prop%order_taylor, &
-              & alpha=-zi*prop%time_step,  &
-              & H=ham, S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
-          end if
-        case (EH)
-          ham(1:nmatp,1:nmatp) = ham_time(1:nmatp,1:nmatp,ik)
-          call exphouston_propagator( alpha=-zi*prop%time_step, &
-            & H=ham, S=overl, &
-            & vectors=evecfv_time(1:nmatp, :, ik), &
-            & tol=prop%tol)
-        case (EHM)
-          if ( .not. predcorr ) then
-            ham(1:nmatp,1:nmatp) = 1.5_dp*ham_time(1:nmatp,1:nmatp,ik) -0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
-          else
-            ham(1:nmatp,1:nmatp) = 0.5_dp*ham_time(1:nmatp,1:nmatp,ik) +0.5_dp*ham_past(1:nmatp,1:nmatp,ik)
-          end if
-          call exphouston_propagator( alpha=-zi*prop%time_step, H=ham, S=overl, &
-            & vectors=evecfv_time(1:nmatp, :, ik), &
-            & tol=prop%tol)
-        case (RK4)
-          ham(1:nmatp,1:nmatp) = ham_time(1:nmatp,1:nmatp,ik)
-          allocate(hamold(1:nmatp,1:nmatp))
-          hamold(1:nmatp,1:nmatp) = ham_past(1:nmatp,1:nmatp,ik)
-          if( .not. predcorr ) then
-            call RungeKutta4thOrder( time_step=prop%time_step, alpha=zi, &
-              & H=ham, H_past=hamold, S=overl, &
-              & x=evecfv_time(1:nmatp, :, ik))
-          else
-            ! Trick: H(t-dt) = 2*H(t)-H(t+dt), where H(t) = hamold, H(t+dt)=ham
-            call RungeKutta4thOrder( time_step=prop%time_step, alpha=zi, &
-              & H=hamold, H_past=2_dp*hamold-ham, S=overl, &
-              & x=evecfv_time(1:nmatp, :, ik))
-          end if
-          deallocate(hamold)
-      end select
-
-      ! Normalize WFs, if this is the case
-      ! The propagator operator should be unitary, so this step would be unnecessary
-      ! However, numerically this is almost never possible
-      ! This normalization may help to avoid numerical issues
-      if ( prop%normalize_WF ) call normalize_vectors( S=overl, vectors=evecfv_time(1:nmatp, :, ik) )
-      deallocate(overl)
-      deallocate(ham)
-    end do
-#ifdef USEOMP
-!$OMP END DO NOWAIT
-!$OMP END PARALLEL
-#endif
-
-  end subroutine UpdateWavefunction
-
-  !> Update \(B_k\) as
-  !> \[ B_\mathbf{k}(t) = \sum_J \dot{\mathbf{R}_J}\cdot 
-  !> \mathcal{B}_{J\mathbf{k}}(t) \]
-  !> where \(J\) indexes the atoms
-  subroutine Update_basis_derivative( atoms_velocities, mathcal_B, B_now, B_old )
-    !> the velocities (in cartesian coordinates) of all atoms
-    real(dp), intent(in)       :: atoms_velocities(:, :)
-    !> `mathcalB` measures how the ions displacements affect overlap elements
-    !> \[ \mathcal{B}_{J\mu'\mu}^{\mathbf{k}} = \left \langle
-    !> \phi_{\mu'}^{\mathbf{k}}\bigg| \frac{\partial}{\partial \mathbf{R}_J}
-    !> \phi_{\mu}^{\mathbf{k}} \right\rangle \]
-    complex(dp), intent(in)    :: mathcal_B(:, :, :, :, :)
-    !> on entry: \(B\) at time \(t-\Delta t\), on exit: \(B\) at time \(t\)
-    complex(dp), intent(inout) :: B_now(:, :, :)
-    !> on exit: \(B\) at time \(t-\Delta t\)
-    complex(dp), intent(out)   :: B_old(:, :, :)
+  !> Returns the number of empty states
+  pure integer function n_empty( this )
+    class(wavefunction_set), intent(in) :: this
     
-    integer :: ias, ik, n_atoms, n_kpt
+    n_empty = size( this%groundstate, 2 ) - this%n_occupied()
+  end function
 
-    call assert( size(atoms_velocities,1)==3, 'atoms_velocities must have size = 3 along dim = 1' )
-    call assert( size(atoms_velocities,2)==size(mathcal_B,4), &
-      'size(atoms_velocities,2) and size(mathcal_B,4) must be equal' )
-    call assert( size(atoms_velocities,2)==size(mathcal_B,4), &
-      'size(atoms_velocities,2) and size(mathcal_B,4) must be equal' )
-    call assert( size(atoms_velocities,2)==size(mathcal_B,4), &
-      'size(atoms_velocities,2) and size(mathcal_B,4) must be equal' )
+  !> Returns the number of occupied states
+  pure integer function n_occupied( this )
+    class(wavefunction_set), intent(in) :: this
+    
+    n_occupied = this%n_frozen() + this%n_active()
+  end function
 
-    n_kpt = size( mathcal_B, 5)
-    n_atoms = size( atoms_velocities, 2 )
-    B_old = B_now
-    B_now = zzero
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) PRIVATE(ik,ias), &
-!$OMP& SHARED(n_kpt,n_atoms,B_now,atoms_velocities,mathcal_B)
-!$OMP DO
-#endif
-    do ik = 1, n_kpt
-      do ias = 1, n_atoms
-        B_now(:,:,ik) = B_now(:,:,ik) + &
-          & atoms_velocities(1,ias)*mathcal_B(:,:,1,ias,ik) + &
-          & atoms_velocities(2,ias)*mathcal_B(:,:,2,ias,ik) + &
-          & atoms_velocities(3,ias)*mathcal_B(:,:,3,ias,ik)
+  !> Returns the number of active states
+  pure integer function n_active( this )
+    class(wavefunction_set), intent(in) :: this
+
+    n_active = size( this%active, 2 )
+  end function
+
+  !> Checks the k dimensions and returns the number of k points
+  integer function n_kpts( this )
+    class(wavefunction_set), intent(in) :: this
+
+    call assert( size( this%active, 3 ) == size( this%groundstate, 3 ), &
+    "active and groundstate must have the same number of elements along 3rd dim." )
+
+    call assert( size( this%active, 3 ) == size( this%active_save, 3 ), &
+    "active and active_save must have the same number of elements along 3rd dim." )
+
+    if ( this%has_frozen() ) call assert( size( this%active, 3 ) == size( this%frozen, 3 ), &
+    "active and frozen must have the same number of elements along 3rd dim." )
+
+    n_kpts = size( this%active, 3 )
+  end function
+
+  !> Returns basis size
+  pure integer function n_basis( this )
+    class(wavefunction_set), intent(in) :: this
+
+    n_basis = size( this%active, 1 )
+  end function
+
+  !> Returns the position of the first active state
+  pure integer function first_active( this )
+    class(wavefunction_set), intent(in) :: this
+    
+    first_active = this%n_frozen() + 1
+  end function
+
+  !> Project the wavefunctions `y` onto `x` and store the projection coefficients.   
+  !> For each `k-point` (3rd dimension), the projection `p` is calculated as
+  !> \[ p_k = x_k^\dagger S_k y_k \]
+  subroutine obtain_projection_coefficients( x, S, y, proj_coeff )
+    !> Wavefunctions onto which the projection is carried out
+    complex(dp), contiguous, intent(in) :: x(:, :, :)
+    !> Overlap matrix
+    complex(dp), contiguous, intent(in) :: S(:, :, :)
+    !> Wavefunctions to be projected
+    complex(dp), contiguous, intent(in) :: y(:, :, :)
+    !> Projection coefficients
+    complex(dp), allocatable, intent(out) :: proj_coeff(:, :, :)
+
+    integer(i32) :: ik
+    complex(dp), allocatable :: aux(:, :)
+
+    associate( mx => size( x, 2 ), my => size( y, 1 ), n => size( y, 2 ), k => size( y, 3 ))
+      call assert( size(S, 3) == k, 'S and y must have same size along 3rd dim.')
+      call assert( size(x, 3) == k, 'x and y must have same size along 3rd dim.')
+
+      allocate( aux(my, n) )
+      allocate( proj_coeff(mx, n, k) )
+      do ik = 1, k
+        call project_y_onto_x( y(:, :, ik), x(:, :, ik), S(:, :, ik), proj_coeff(:, :, ik), aux )
       end do
-    end do
-#ifdef USEOMP
-!$OMP END DO NOWAIT
-!$OMP END PARALLEL
-#endif
+    end associate
   end subroutine
 
+
+  !> Obtain the occupation factors given the projections onto a reference basis set
+  !> Given the projection coefficients \(p_{ijk}\) of \(|\Psi_{jk}\rangle\) onto
+  !> \(|\phi^0_{ik}\rangle\) as
+  !> \[ |\Psi_{jk}\rangle = \sum_{i=1}^m p_{ijk} |\phi^0_{ik}\rangle, \quad j = 1, \ldots, n. \]
+  !> The occupation factors \(f_{ik}\) are obtained as
+  !> \[ f_{ik} = \sum_{j=1}^n f^0_{jk}|p_{ijk}|^2, \quad i = 1, \ldots, m, \]
+  !> where \(f^0_{jk}\) are the original occupation factors of \(|\Psi_{jk}\rangle\) usually taken for \(t=0\)
+  subroutine obtain_occupations( proj, occ_gnd, occ )
+    !> List of projection coefficients. Each set of projection coefficients is a rank-2 array
+    complex(dp), contiguous, intent(in) :: proj(:, :, :)
+    !> List of occupations at \(t=0\). Each set of occupations is a rank-1 array
+    real(dp), contiguous, intent(in) :: occ_gnd(:, :)
+    !> List of new occupations. Each set of occupations is a rank-1 array
+    real(dp), allocatable, intent(out) :: occ(:, :)
+
+    integer(i32) :: ik
+    real(dp), parameter :: tol = 1.e-8_dp
+    
+    associate( m => size(proj, 1), n => size(proj, 2), dim_k => size(proj, 3))
+      call assert( size( occ_gnd, 2) == dim_k , 'occ_gnd and proj must have compatible dimensions' )
+      call assert( size( occ_gnd, 1) == n , 'occ_gnd and proj must have compatible dimensions' )
+      call assert( n <= m , 'n must be <= m' )
+      do ik = 1, dim_k
+        ! \sum_{i=1}^m |p_{ijk}|^2 must be <= 1 (is equal to 1 only if the basis |\phi^0_{ik}\rangle is complete)
+        call assert( maxval( sum(abs(proj(:, :, ik))**2, dim=1) ) <= 1._dp + tol , &
+          'proj cannot represent projection factors along ik = ' // to_char(ik) )
+      end do
+
+      allocate( occ(m, dim_k) )
+      
+      do ik = 1, dim_k
+        call matrix_multiply( abs(proj(:, :, ik))**2, occ_gnd(:, ik), occ(:, ik) )
+      end do
+    end associate
+  end subroutine
+
+  !> Returns the index of the last occupied state for the current rank
+  pure integer function last_occupied_for_current_rank( occupations, occs_tol )
+    !> State occupations array (n_states, n_kpt)
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Minimal value of occupation for the state to be 'occupied'
+    real(dp), intent(in) :: occs_tol
+
+    integer(i32) :: ik, i
+
+    last_occupied_for_current_rank = -1
+    do ik = 1, size( occupations, 2 )
+      do i = size( occupations, 1 ), 1, -1
+        if ( occupations(i, ik) > occs_tol ) exit
+      end do
+      if ( i > last_occupied_for_current_rank ) last_occupied_for_current_rank = i
+    end do
+
+  end function
 end module rttddft_Wavefunction

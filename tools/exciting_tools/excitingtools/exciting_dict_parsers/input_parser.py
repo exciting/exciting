@@ -7,7 +7,7 @@ from xml.etree import ElementTree
 from excitingtools.parser_utils.parser_decorators import xml_root
 from excitingtools.parser_utils.parser_utils import convert_string_dict, find_element
 from excitingtools.utils import valid_attributes as all_valid_attributes
-from excitingtools.utils.valid_attributes import input_valid_attributes
+from excitingtools.utils.valid_attributes import input_attribute_types as input_valid_attributes
 
 
 @xml_root
@@ -141,5 +141,7 @@ special_tags_to_parse_map = {
     "structure": parse_structure,
     "qpointset": lambda root: [[float(x) for x in qpoint.text.split()] for qpoint in root],
     "plan": lambda root: [doonly.attrib["task"] for doonly in root],
+    "BseTypeSet": lambda root: [bsetype.attrib["name"] for bsetype in root],
     "kstlist": lambda root: [[int(x) for x in pointstatepair.text.split()] for pointstatepair in root],
+    "etCoeffComponents": lambda root: [int(x) for x in root.text.split()],
 }

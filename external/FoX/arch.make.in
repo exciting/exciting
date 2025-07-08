@@ -13,15 +13,12 @@ FPP=@FPP@
 FC=@FC@
 RANLIB=@RANLIB@
 
-FFLAGS=@FCFLAGS@
-FPPFLAGS=@FPPFLAGS@
+FFLAGS=@FCFLAGS@ @DEFS@
+FPPFLAGS=@FPPFLAGS@ @DEFS@
 LDFLAGS=@LDFLAGS@
 
-FCFLAGS_free_f90=@FCFLAGS_free_f90@
-FPPFLAGS_free_F90=@FPPFLAGS_free_F90@
-
 INC_PREFIX=-I
-MOD_PREFIX=@FC_MOD_FLAG@
+MOD_PREFIX=@FC_MODINC@
 LIB_PREFIX=-L
 #
 MOD_EXT=@FC_MODEXT@
@@ -30,14 +27,14 @@ INSTALL=@INSTALL@
 OBJEXT=@OBJEXT@
 EXEEXT=@EXEEXT@
 LIBEXT=@LIBEXT@
-LINK_O_FLAG=@LINK_O_FLAG@
+LINK_O_FLAG=-o
 
 #INCFLAGS must be set by the user makefile
 
 #Dependency rules are created by autoconf according to whether
 #discrete preprocessing is necessary or not.
 .F90.@OBJEXT@:
-	@F90_RULE@
+	$(FC) -c $(FFLAGS) $(INCFLAGS) $(FCFLAGS)  $<
 .f90.@OBJEXT@:
-	$(FC) -c $(FFLAGS) $(INCFLAGS) $(FCFLAGS_free_f90)  $<
+	$(FC) -c $(FFLAGS) $(INCFLAGS) $(FCFLAGS)  $<
 

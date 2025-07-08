@@ -1,7 +1,7 @@
 !> Module for unit tests of the functions in [[advanced_matrix_operations]]
 module integration_test
   use integration
-  use math_utils, only: all_close
+  use math_utils, only: all_close, transpose_reshape
   use precision, only: dp
   use unit_test_framework, only : unit_test_type
 
@@ -62,59 +62,62 @@ module integration_test
     
 
     ! Test a normal case
-    psi = transpose(reshape([&
+    psi = transpose_reshape([&
           & 9._dp*zone,    0.7_dp*zone, &
           &    3_dp*zi,    -2._dp*zone, &
-          &      zzero,           zone], [2, 3] ))
-    expected_result = transpose(reshape([&
+          &      zzero,           zone], [2, 3])
+
+    expected_result = transpose_reshape([&
       & (9.14980501921296_dp, -0.372522280864198_dp),     (0.710213643595679_dp, -0.290095949485597_dp), &
       & (-8.105717901234555e-2_dp, 3.46144749591049_dp ), (-1.87477479948560_dp, 0.491909162309671_dp), &
       & zzero,                                            (0.870316026041667_dp, -0.492234854166667_dp) ], &
-      & [2, 3] ))
+      & [2, 3] )
+
     call ODESolver_RungeKutta4thOrder( time_step=0.1_dp, alpha=zi, &
-      & H=transpose(reshape([&
+      & H=transpose_reshape([&
           & zone,           zi,        zzero, &
           &  -zi,   2._dp*zone,        zzero, &
-          & zzero,       zzero,   5._dp*zone ], [3, 3] )), &
-      & H_past=transpose(reshape([& 
+          & zzero,       zzero,   5._dp*zone ], [3, 3] ), &
+      & H_past=transpose_reshape([& 
           &  0.9_dp*zone,      1.1_dp*zi,            zzero,  &
           &   -1.1_dp*zi,    2.1_dp*zone,            zzero,  &
-          &        zzero,          zzero,      4.7_dp*zone ], [3, 3] )), &
-      & S=transpose(reshape([& 
+          &        zzero,          zzero,      4.7_dp*zone ], [3, 3] ), &
+      & S=transpose_reshape([& 
           &     4._dp*zone,   (2._dp,1_dp),    zzero, &
           & (2._dp,-1._dp),      2_dp*zone,    zzero, &
-          &          zzero,          zzero,     zone], [3, 3] )), &
+          &          zzero,          zzero,     zone], [3, 3] ), &
       & x=psi )
     call test_report%assert( all_close( a=psi, b=expected_result, tol=tol ), &
       & message='test_ODESolver_RungeKutta4thOrder - First test failed.')
 
     ! Test when making we obtain by hand H(t-dt) from H(t+dt) and H(t)
-    psi = transpose(reshape([&
+    psi = transpose_reshape([&
         & 9._dp*zone,   0.7_dp*zone, &
         &    3_dp*zi,   -2._dp*zone, &
-        &      zzero,          zone], [2, 3] ))
-    expected_result=transpose(reshape([&
+        &      zzero,          zone], [2, 3] )
+    expected_result=transpose_reshape([&
       & (9.19811194598765_dp, -0.278502205555555_dp),  (0.707046930002572_dp, -0.296011989670782_dp), &
       & (-0.210419102469136_dp, 3.39670194104938_dp),  (-1.87012088066872_dp, 0.506675206342592_dp) , &
-      &  zzero,                                        (0.884690744791667_dp, -0.465985979166667_dp)], [2, 3] ))
-    H=transpose(reshape([& 
+      &  zzero,                                        (0.884690744791667_dp, -0.465985979166667_dp)], [2, 3] )
+    H=transpose_reshape([& 
       &  0.9_dp*zone,      1.1_dp*zi,            zzero,  &
       &   -1.1_dp*zi,    2.1_dp*zone,            zzero,  &
-      &        zzero,          zzero,      4.7_dp*zone ], [3, 3] ))
-    H_future = transpose(reshape([& 
+      &        zzero,          zzero,      4.7_dp*zone ], [3, 3] )
+    H_future = transpose_reshape([& 
       &  zone,           zi,        zzero, &
       &   -zi,   2._dp*zone,        zzero, &
-      & zzero,        zzero,   5._dp*zone ], [3, 3] ))
+      & zzero,        zzero,   5._dp*zone ], [3, 3] )
     call ODESolver_RungeKutta4thOrder( time_step=0.1_dp, alpha=zi, &
       & H_past=2*H-H_future, &
       & H=H, &
-      & S=transpose(reshape([& 
+      & S=transpose_reshape([& 
           &    4._dp*zone,       (2._dp,1_dp),     zzero, &
           & (2._dp,-1._dp),         2_dp*zone,     zzero, &
-          &         zzero,              zzero,      zone], [3, 3] )), &
+          &         zzero,              zzero,      zone], [3, 3] ), &
       & x=psi )
     call test_report%assert( all_close( a=psi, b=expected_result, tol=tol ), &
       message='test_ODESolver_RungeKutta4thOrder - Second test failed.')
   end subroutine
 
 end module integration_test
+

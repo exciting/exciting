@@ -1,309 +1,269 @@
-!----------------------------------------------------
-! MPI variables and interface functions
-! Can be compiled without mpi libraries installed
-!
-! Author: Hong Jiang (FHI-gap code)
-!----------------------------------------------------
+!> Module for MPI features used by GW
 module mod_mpi_gw
+    use asserts, only: assert
+    use exciting_mpi, only: mpiinfo, xmpi_allreduce, xmpi_reduce
+    use modmpi, only: ierr, firstofset, lastofset, distribute_loop, terminate_if_false
+#ifdef MPI
+    ! Remark(Ronaldo): using mpi instead of mpi_f08 leads to a seg. fault when using
+    ! assumed rank arrays in calls to openmpi-MPI subroutines
+    ! A similar remark is in `src/src_xs/src_rttddft/rttddft_io_parallel.f90`
+    use mpi_f08, only: MPI_COMM, MPI_MAX_PROCESSOR_NAME, MPI_INTEGER, MPI_SUM, &
+      MPI_COMM_RANK, MPI_BARRIER, MPI_COMM_WORLD, MPI_DOUBLE_COMPLEX, MPI_IN_PLACE, &
+      MPI_Comm_split, MPI_Allreduce, MPI_Reduce, MPI_Datatype
+#endif
+    use precision, only: dp, i32, long_int
+    use to_char_conversion, only: to_char
 
-    use modmpi
     implicit none
 
-    integer, parameter :: nmax_procs=1000
+    private 
 
-    integer :: myrank     ! the rank in MPI_COMM_WORLD
-    integer :: myrank_row ! the rank of the current process in the row commicator
-    integer :: myrank_col ! the rank of the current process in the column commicator
+    public :: define_mpi_domains, &
+              mpi_sum_array, &
+              pack_parallelization_indexes, &
+              unpack_parallelization_indexes
 
-    integer :: mycomm
-    integer :: mycomm_row ! the communicator corresponding to rows
-    integer :: mycomm_col ! the communicator corresponding to columns
+    integer(i32), public :: iqstart, iqend
+    integer(i32), public :: iomstart, iomend
 
-    integer :: nproc_tot  ! total number of processes
-    integer :: nproc_row  ! the number of process of each row (the number of colunms)
-    integer :: nproc_col  ! the number of process of each colunm (the number of rows)
+    !> Type to encapsulate the first and the last parallelization indexes
+    !> that are treated by an MPI process
+    type, public :: indexes_parallelization
+      !> first index of this MPI process
+      integer(i32) :: my_first
+      !> last index of this MPI process
+      integer(i32) :: my_last
+      !> global first index
+      integer(i32) :: global_first
+      !> global last index
+      integer(i32) :: global_last
+    contains
+      procedure :: set_my_first_last
+      procedure :: set_global_first_last
+      generic :: shift_first_last => shift_first_last_by_an_integer, shift_first_last_with_global_first
+      procedure, private :: shift_first_last_by_an_integer
+      procedure, private :: shift_first_last_with_global_first
+    end type
+    
+    !> Type to encapsulate an MPI domain
+    type, public :: mpi_domain
+      !> Color: is a number to label this MPI Domain
+      integer(i32) :: color
+      !> First and last indexes belonging to this MPI Domain
+      type(indexes_parallelization) :: index
+      !> The MPI environment
+      type(mpiinfo) :: mpi_environment
+    contains
+      procedure, private :: split_from => split_mpi_domain
+    end type
 
-    integer :: iqstart, iqend
-    integer :: iqcnt(0:nmax_procs), iqdsp(0:nmax_procs)
-    integer :: iomstart, iomend
-    integer :: iomcnt(0:nmax_procs), iomdsp(0:nmax_procs)
-
-#ifdef MPI
-    interface mpi_sum_array
-      module procedure mpi_sum4c
-      module procedure mpi_sum3c
-      module procedure mpi_sum2c
-      module procedure mpi_sum1c
+    interface define_mpi_domains
+      module procedure :: define_mpi_domains_AB
+      module procedure :: define_mpi_domains_ABC
     end interface
-#endif
 
 contains
+  pure subroutine set_my_first_last( this, first, last )
+    class(indexes_parallelization), intent(inout) :: this
+    integer(i32), intent(in) :: first
+    integer(i32), intent(in) :: last
 
-  !-----------------------------------------------------------------------------
-    subroutine init_mpi_gw()
+    this%my_first = first
+    this%my_last = last
+  end subroutine
+
+  pure subroutine set_global_first_last( this, first, last )
+    class(indexes_parallelization), intent(inout) :: this
+    integer(i32), intent(in) :: first
+    integer(i32), intent(in) :: last
+
+    this%global_first = first
+    this%global_last = last
+  end subroutine
+
+  !> Apply a shift to `my_first` and `my_last`
+  pure subroutine shift_first_last_by_an_integer( this, shift )
+    class(indexes_parallelization), intent(inout) :: this
+    integer(i32), intent(in) :: shift
+
+    this%my_first = this%my_first + shift
+    this%my_last = this%my_last + shift
+  end subroutine
+
+  !> Use `global_first` to shift `my_first` and `my_last`
+  pure subroutine shift_first_last_with_global_first( this )
+    class(indexes_parallelization), intent(inout) :: this
+
+    call this%shift_first_last_by_an_integer( this%global_first - 1 )
+  end subroutine
+
+  !> Split an MPI domain in subdomains
+  subroutine split_mpi_domain( this, mpi_type_to_split, n_domains )
+    class(mpi_domain), intent(inout) :: this
+    !> Type with the MPI Communicator to be split
+    type(mpiinfo), intent(in)  :: mpi_type_to_split
+    !> Number of MPI (sub)domains to split the current MPI domain
+    integer(i32), intent(in) :: n_domains
+    
+    integer(i32) :: n_tasks
+
+    call assert( this%index%global_first <= this%index%global_last, 'First index must be <= than last one' )
+    call terminate_if_false( mpi_type_to_split%procs >= n_domains, 'There are '// to_char(mpi_type_to_split%procs) // &
+      ' MPI ranks in this MPI domain, which is insufficient to split into ' // to_char(n_domains) // ' domains')
+    n_tasks = this%index%global_last - this%index%global_first + 1
+    this%color = get_color( mpi_type_to_split%procs, n_domains, mpi_type_to_split%rank )
+    call mpi_split( mpi_type_to_split, this%color, this%mpi_environment, .true. )
+    call this%index%set_my_first_last( firstofset( this%color, n_tasks, n_domains ), &
+                                  lastofset( this%color, n_tasks, n_domains ) )
+    call this%index%shift_first_last()
+  end subroutine
+
+  !> Get the color of a rank when splitting `n` MPI processes into `n_domains`.   
+  !> In MPI, a color is an integer used in functions like `MPI_Comm_split` 
+  !> to divide processes into subgroups. Processes with the same color 
+  !> are grouped into the same communicator, while those with different 
+  !> colors are assigned to separate communicators.
+  pure function get_color( n_procs_to_split, n_domains, my_rank ) result(color)
+    !> Number of processes to split
+    integer(i32), intent(in) :: n_procs_to_split
+    !> Number of MPI domains
+    integer(i32), intent(in) :: n_domains
+    !> Rank of this MPI process
+    integer(i32), intent(in) :: my_rank
+    !> Color that this rank will have after splitting.
+    !> This is a label for the MPI Domain that my_rank will belong to
+    integer(i32) :: color
+
+    integer(i32) :: procs_per_group
+    
+    procs_per_group = n_procs_to_split/n_domains
+    if( modulo(n_procs_to_split, n_domains) /= 0 ) procs_per_group = procs_per_group + 1
+    color = my_rank/procs_per_group
+  end function
+  
+  !> Split an MPI communicator into groups.
+  !> This subroutine is basically a wrapper to `MPI_Comm_split`
+  subroutine mpi_split( mpi_type_to_split, color, new_mpi_type, use_rank_as_key )
+    !> Type with the MPI Communicator to be split
+    type(mpiinfo), intent(in)  :: mpi_type_to_split
+    !> Color used to define the MPI domains
+    integer(i32), intent(in)   :: color
+    !> Type that will contain the new MPI communicator after the split
+    type(mpiinfo), intent(out) :: new_mpi_type
+    !> If true, use the rank as key to define the order of ranks in the new MPI domains
+    logical, intent(in) :: use_rank_as_key
+
 #ifdef MPI
-        integer :: fid
-        integer :: namelen
-        character(len=MPI_MAX_PROCESSOR_NAME) :: processor_name
-        mycomm = MPI_COMM_WORLD
-        ! Global MPI environment is already initialized in exciting (modmpi.f90)
-        call MPI_Comm_size(mycomm, nproc_tot, ierr)
-        call MPI_Comm_rank(mycomm, myrank, ierr)
-        call MPI_get_processor_name(processor_name, namelen, ierr)
-        ! write(*,*)
-        ! write(*,*) "Process ", myrank, " of ", nproc_tot, " running on ", trim(processor_name)
-        ! write(*,*)
+    integer(i32) :: ierror, key
+    type(MPI_COMM) :: new_handle
+    
+    key = merge( mpi_type_to_split%rank, 0, use_rank_as_key )
+    call MPI_Comm_split( MPI_COMM(mpi_type_to_split%comm), color, key, new_handle, ierror )
+    call new_mpi_type%init( new_handle%mpi_val )
 #else
-        nproc_tot = 1
-        nproc_col = 1
-        nproc_row = 1
-        myrank = 0
-        myrank_col = 0
-        myrank_row = 0
+    call new_mpi_type%init( mpi_type_to_split%comm )
 #endif
-    end subroutine
+  end subroutine
 
-  !-----------------------------------------------------------------------------
-    subroutine mpi_set_range(np, ip, num, i0, istart, iend, icnts, idisp)
-    ! This is a general subroutine that separate i0..i0+num-1 equally to np processes
-    ! in case mod(num,nranks)==0, the residual is put to last mod(num,np) processes
-    ! This subroutine can be used to set k-point or frequency point range
-        integer, intent(in)  :: np, ip, num, i0
-        integer, intent(out) :: istart, iend
-        integer, intent(out), optional :: icnts(0:), idisp(0:)
-        integer :: icount(nmax_procs)
-        integer :: i
+  !> Define a set of MPI Domains
+  subroutine define_mpi_domains_ABC( mpi_global, n_Domains_A, n_Domains_B, mpi_A, mpi_B, C )
+    !> Type with the global MPI environment
+    type(mpiinfo), intent(in) :: mpi_global
+    !> Number of MPI domains to define `mpi_A`
+    integer(i32), intent(in) :: n_Domains_A 
+    !> Number of MPI domains to define `mpi_B`
+    integer(i32), intent(in) :: n_Domains_B
+    !> The 1st MPI domain to be defined by splitting mpi_global
+    !> On entry, `mpi_A%index%global_first` and `mpi_A%index%global_last` must be already initialized
+    type(mpi_domain), intent(inout) :: mpi_A
+    !> The 2nd MPI domain to be defined by splitting `mpi_A`
+    !> On entry, `mpi_B%index%global_first` and `mpi_B%index%global_last` must be already initialized
+    type(mpi_domain), intent(inout) :: mpi_B
+    !> Type that encapsulates first and last indexes (of a variable C) to be treated in my rank
+    !> On entry, must have `global_first` and `global_last` already initialized
+    type(indexes_parallelization), intent(inout) :: C
 
-        ! Since the calculation for Gamma point, iq=1, at most takes twice
-        ! cpu time than other q-points, we take the folllowing strategy:
-        ! if nkpt is equal to an integral times nproc_tot, then divide nkpt equally
-        ! otherwise, the residual k-points are equally assigned to non-root processes
-        ! starting from the last one
-        if (np==1) then
-          istart = i0
-          iend = i0+num-1
-          icount(1) = num
-        else
-          icount(:) = num/np
-          do i = 1, mod(num,np)
-            icount(np-i+1) = icount(np-i+1)+1
-          end do
-          istart = i0
-          do i = 1, ip
-            istart = istart+icount(i)
-          end do
-          iend = istart+icount(ip+1)-1
-        end if
-        if (present(icnts)) then
-          icnts(0:np-1) = icount(1:np)
-          if (present(idisp)) then
-            idisp(0) = 0
-            do i = 1, np-1
-              idisp(i) = idisp(i-1)+icnts(i-1)
-            end do
-          end if
-        end if
-        return
-    end subroutine
+    integer(i32) :: n_C, i_start, i_end
 
-#ifdef MPI
-  !-----------------------------------------------------------------------------
-    subroutine set_mpi_group(nkp)
-    ! this subroutine is to set up the MPI communicators
-    ! all processes are divided into groups
-        implicit none
-        integer, intent(in) :: nkp
-        integer :: myrow, mycol
-        character(len=10) :: str
+    call mpi_A%split_from( mpi_global, n_Domains_A )
+    call mpi_B%split_from( mpi_A%mpi_environment, n_Domains_B )
+    n_C = C%global_last - C%global_first + 1
+    call distribute_loop( mpi_B%mpi_environment, n_C, i_start, i_end )
+    call C%set_my_first_last( i_start, i_end )
+    call C%shift_first_last()
 
-        nproc_col = 1
-        ! if (myrank==0) then
-        !   call getenv("MPI_NPROC_COL",str)
-        !   ! write(*,*) "Get MPI_NPROC_COL"
-        !   ! write(*,*) "=>", str
-        !   if (str=='') then
-        !     nproc_col = 1
-        !   else
-        !     call str2int(str,nproc_col,ierr)
-        !     if (ierr.ne.0) then
-        !       write(*,*) "WARNING: invalid value for MPI_NPROC_IN_GRP"
-        !       nproc_col = 1
-        !     end if
-        !   end if
-        !   ! if nproc_col is not defined then try to set it in terms of nproc_tot
-        !   ! and nkp automatically
-        !   if ((nproc_col==1) .and. (nproc_tot>nkp)) then
-        !     if (mod(nproc_tot,nkp)==0) then
-        !       nproc_col = nproc_tot/nkp
-        !     else
-        !       nproc_col = nproc_tot/nkp+1
-        !     end if
-        !   end if
-        !   ! write(*,*) "Broadcast MPI_NPROC_COL"
-        ! end if
+  end subroutine
 
-        call MPI_Bcast(nproc_col,1,MPI_INTEGER,0,mycomm,ierr)
-        call MPI_Barrier(mycomm,ierr)
+  !> Define a set of MPI Domains
+  subroutine define_mpi_domains_AB( mpi_global, n_Domains_A, mpi_A, B )
+    !> Type with the global MPI environment
+    type(mpiinfo), intent(in) :: mpi_global
+    !> Number of MPI domains to define `mpi_A`
+    integer(i32), intent(in) :: n_Domains_A 
+    !> The 1st MPI domain to be defined by splitting mpi_global
+    !> On entry, `mpi_A%index%global_first` and `mpi_A%index%global_last` must be already initialized
+    type(mpi_domain), intent(inout) :: mpi_A
+    !> Type that encapsulates first and last indexes (of a variable B) to be treated in my rank
+    !> On entry, must have `global_first` and `global_last` already initialized
+    type(indexes_parallelization), intent(inout) :: B
 
-        if (mod(nproc_tot,nproc_col)==0) then
-          nproc_row = nproc_tot/nproc_col
-        else
-          nproc_row = nproc_tot/nproc_col+1
-        end if
+    integer(i32) :: n_B, i_start, i_end
 
-        ! if (myrank==0) then
-        !   write(*,*) " nproc_tot =", nproc_tot
-        !   write(*,*) " nproc_row =", nproc_row
-        !   write(*,*) " nproc_col =", nproc_col
-        ! end if
+    call mpi_A%split_from( mpi_global, n_Domains_A )
+    n_B = B%global_last - B%global_first + 1
+    call distribute_loop( mpi_A%mpi_environment, n_B, i_start, i_end )
+    call B%set_my_first_last( i_start, i_end )
+    call B%shift_first_last()
 
-        myrow = mod(myrank,nproc_col)
-        mycol = myrank/nproc_col
+  end subroutine
 
-        call MPI_Comm_split(mycomm,myrow,myrank,mycomm_row,ierr)
-        call MPI_Comm_size(mycomm_row,nproc_row,ierr)
-        call MPI_Comm_rank(mycomm_row,myrank_row,ierr)
+  !> Pack the first and last indexes into an array of integers
+  pure function pack_parallelization_indexes( a ) result(indexes_packed)
+    !> Array with the `a`-first and `a`-last indexes
+    type(indexes_parallelization), contiguous, intent(in) :: a(:)
 
-        call MPI_Comm_split(mycomm,mycol,myrank,mycomm_col,ierr)
-        call MPI_Comm_size(mycomm_col,nproc_col,ierr)
-        call MPI_Comm_rank(mycomm_col,myrank_col,ierr)
+    integer(i32) :: i, n
+    integer(i32), allocatable :: indexes_packed(:)
 
-        return
-    end subroutine
+    n = size( a )
+    allocate( indexes_packed(2*n) )
+    do i  = 1, n
+      indexes_packed(2*i-1) = a(i)%my_first 
+      indexes_packed(2*i) = a(i)%my_last
+    end do
+  end function
 
-  !-----------------------------------------------------------------------------
-    subroutine mpi_free_group
-      call MPI_Comm_free(mycomm_row,ierr)
-      call MPI_Comm_free(mycomm_col,ierr)
-    end subroutine
+  !> Unpack first and last indexes from an array of integers to an array of 
+  !> type(indexes_parallelization). It is the opposite of [[pack_parallelization_indexes]]
+  pure function unpack_parallelization_indexes( indexes_packed ) result(a)
+    !> Array with all indexes packed
+    integer(i32), intent(in) :: indexes_packed(:)
+    !> Type with the `a`-first and `a`-last indexes
+    type(indexes_parallelization), allocatable :: a(:)
 
-  !-----------------------------------------------------------------------------
-  ! Routines to reduce the complex arrays of different dimentionalities
-  !-----------------------------------------------------------------------------
+    integer(i32) :: i, n
 
-  !-----------------------------------------------------------------------------
-    subroutine mpi_sum4c(iflag,a,n1,n2,n3,n4,comm)
-    ! This subroutine  is used to sum complex arrays of the form,
-    ! a(1:n1,1:n2,1:n3,1:n4) that is calculated at different processes
-    ! iflag=0 --- reduce to the root process
-        implicit none
-        integer, intent(in) :: iflag
-        integer, intent(in) :: n1, n2, n3, n4
-        complex(8), intent(inout) :: a(n1,n2,n3,n4)
-        integer, intent(inout) :: comm
-        integer(4) :: rank, ierr
+    n = size( indexes_packed )/2
+    allocate( a(n) )
+    do i  = 1, n
+      call a(i)%set_my_first_last( indexes_packed(2*i-1), indexes_packed(2*i) )
+    end do
+  end function
 
-        if (comm<0) comm = MPI_COMM_WORLD
-        call MPI_Comm_rank(comm,rank,ierr)
-        call MPI_Barrier(comm,ierr)
-        if (iflag==0) then
-          if (rank==0) then
-            call MPI_Reduce(MPI_IN_PLACE,a,n1*n2*n3*n4,MPI_DOUBLE_COMPLEX, &
-            &  MPI_SUM,0,comm,ierr)
-          else
-            call MPI_Reduce(a,0,n1*n2*n3*n4,MPI_DOUBLE_COMPLEX, &
-            &  MPI_SUM,0,comm,ierr)
-          end if
-        else
-          call MPI_AllReduce(MPI_IN_PLACE,a,n1*n2*n3*n4,MPI_DOUBLE_COMPLEX, &
-          &  MPI_SUM,comm,ierr)
-        end if
-        return
-    end subroutine
+  !> Wrapper for MPI_Reduce and MPI_Allreduce
+  subroutine mpi_sum_array( array, mpi_env, all_reduce )
+    !> The array to which we want to perform a reduction (sum over all MPI ranks)
+    complex(dp), contiguous, target, intent(inout) :: array(..)
+    !> MPI environment
+    type(mpiinfo), intent(in) :: mpi_env
+    !> Perform MPI_Allreduce, if `all_reduce` is true, or MPI_Reduce, if false.
+    logical, intent(in) :: all_reduce
 
-  !-----------------------------------------------------------------------------
-    subroutine mpi_sum3c(iflag,a,n1,n2,n3,comm)
-    ! This subroutine  is used to sum complex arrays of the form,
-    ! a(1:n1,1:n2,1:n3) that is calculated at different processes
-    ! iflag=0 --- reduce to the root process
-        implicit none
-        integer, intent(in) :: iflag
-        integer, intent(in) :: n1, n2, n3
-        complex(8), intent(inout) :: a(n1,n2,n3)
-        integer, intent(inout) :: comm
-        integer(4) :: rank, ierr
-
-        if (comm<0) comm = MPI_COMM_WORLD
-        call MPI_COMM_RANK(comm,rank,ierr)
-        call MPI_BARRIER(comm,ierr)
-        if (iflag==0) then
-          if (rank==0) then
-            call MPI_REDUCE(MPI_IN_PLACE,a,n1*n2*n3,MPI_DOUBLE_COMPLEX, &
-            &  MPI_SUM,0,comm,ierr)
-          else
-            call MPI_REDUCE(a,0,n1*n2*n3,MPI_DOUBLE_COMPLEX, &
-            &  MPI_SUM,0,comm,ierr)
-          end if
-        else
-          call MPI_ALLREDUCE(MPI_IN_PLACE,a,n1*n2*n3,MPI_DOUBLE_COMPLEX, &
-          &  MPI_SUM,comm,ierr)
-        endif
-        return
-    end subroutine
-
-  !-----------------------------------------------------------------------------
-    subroutine mpi_sum2c(iflag, a, n1, n2, comm)
-    ! This subroutine  is used to sum complex arrays of the form,
-    ! a(1:n1,1:n2) that is calculated at different processes
-    ! iflag=0 --- reduce to the root process
-        implicit none
-        integer, intent(in) :: iflag
-        integer, intent(in) :: n1, n2
-        complex(8), intent(inout) :: a(n1,n2)
-        integer, intent(inout) :: comm
-        integer(4) :: rank, ierr
-
-        if (comm < 0) comm = MPI_COMM_WORLD
-        call MPI_COMM_RANK(comm, rank, ierr)
-        call MPI_BARRIER(comm, ierr)
-
-        if (iflag == 0) then
-            if (rank == 0) then
-                call MPI_REDUCE(MPI_IN_PLACE, &
-                                a, n1*n2, MPI_DOUBLE_COMPLEX, &
-                                MPI_SUM, 0, comm, ierr)
-            else
-                call MPI_REDUCE(a, 0, n1*n2, MPI_DOUBLE_COMPLEX, &
-                                MPI_SUM, 0, comm, ierr)
-            end if
-        else
-            call MPI_ALLREDUCE(MPI_IN_PLACE, &
-                               a, n1*n2, MPI_DOUBLE_COMPLEX, &
-                               MPI_SUM, comm, ierr)
-        end if
-        return
-    end subroutine
-
-  !-----------------------------------------------------------------------------
-    subroutine mpi_sum1c(iflag,a,n1,comm)
-    ! This subroutine  is used to sum complex arrays of the form,
-    ! a(1:n1) that is calculated at different processes
-    ! iflag=0 --- reduce to the root process
-        implicit none
-        integer, intent(in) :: iflag
-        integer, intent(in) :: n1
-        complex(8), intent(inout) :: a(n1)
-        integer, intent(inout) :: comm
-        integer(4) :: rank, ierr
-
-        if (comm<0) comm = MPI_COMM_WORLD
-        call MPI_COMM_RANK(comm,rank,ierr)
-        call MPI_BARRIER(comm,ierr)
-        if (iflag==0) then
-          if (rank==0) then
-            call MPI_REDUCE(MPI_IN_PLACE,a,n1,MPI_DOUBLE_COMPLEX, &
-            &  MPI_SUM,0,comm,ierr)
-          else
-            call MPI_REDUCE(a,0,n1,MPI_DOUBLE_COMPLEX, &
-            &  MPI_SUM,0,comm,ierr)
-          end if
-        else
-          call MPI_ALLREDUCE(MPI_IN_PLACE,a,n1,MPI_DOUBLE_COMPLEX, &
-          &  MPI_SUM,comm,ierr)
-        end if
-        return
-    end subroutine
-
-#endif
+    if ( all_reduce ) then
+      call xmpi_allreduce( array, mpi_env )
+    else
+      call xmpi_reduce( array, mpi_env )
+    end if
+  end subroutine
 
 end module

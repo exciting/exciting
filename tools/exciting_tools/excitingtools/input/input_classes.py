@@ -9,7 +9,7 @@ from excitingtools.input.base_class import AbstractExcitingInput
 from excitingtools.input.dynamic_class import generate_classes_str
 from excitingtools.utils.dict_utils import check_valid_keys
 from excitingtools.utils.utils import list_to_str
-from excitingtools.utils.valid_attributes import valid_plan_entries
+from excitingtools.utils.valid_attributes import doonly_attribute_types, type_attribute_types
 
 # define names of classes which are meant to be available for a user or used directly elsewhere in excitingtools
 # type hint as Any to not conflict with static type checkers as the input classes are generated dynamically
@@ -99,7 +99,7 @@ class ExcitingPlanInput(AbstractExcitingInput):
         Plan doonly elements are passed as a List of strings in the order exciting shall execute them:
             ['bse', 'xseigval', ...]
         """
-        check_valid_keys(plan, valid_plan_entries, self.name)
+        check_valid_keys(plan, doonly_attribute_types["task"][1], self.name)
         self.plan = plan
 
     def to_xml(self) -> ElementTree.Element:
@@ -109,6 +109,30 @@ class ExcitingPlanInput(AbstractExcitingInput):
             ElementTree.SubElement(plan, "doonly", task=task)
 
         return plan
+
+
+class ExcitingBseTypeSetInput(AbstractExcitingInput):
+    """
+    Class for exciting BseTypeSet Input
+    """
+
+    name = "BseTypeSet"
+
+    def __init__(self, bsetypeset: List[str]):
+        """
+        BSE types are passed as a List of strings in the order exciting shall execute them:
+            ['IP', 'singlet', ...]
+        """
+        check_valid_keys(bsetypeset, type_attribute_types["name"][1], self.name)
+        self.bsetypeset = bsetypeset
+
+    def to_xml(self) -> ElementTree.Element:
+        """Special implementation of to_xml for the bsetypeset element."""
+        bsetypeset = ElementTree.Element(self.name)
+        for bsetype in self.bsetypeset:
+            ElementTree.SubElement(bsetypeset, "type", name=bsetype)
+
+        return bsetypeset
 
 
 class ExcitingKstlistInput(AbstractExcitingInput):
@@ -134,3 +158,25 @@ class ExcitingKstlistInput(AbstractExcitingInput):
             ElementTree.SubElement(kstlist, "pointstatepair").text = list_to_str(pointstatepair)
 
         return kstlist
+
+
+class ExcitingEtCoeffComponentsInput(AbstractExcitingInput):
+    """
+    Class for exciting EtCoeffComponents Input
+    """
+
+    name = "etCoeffComponents"
+
+    def __init__(self, etcoeffcomponents: Union[np.ndarray, List[int]]):
+        """
+        EtCoeffComponents should be passed either as numpy array or as a list, so either
+        np.array([1, 1]) or [1, 1].
+        """
+        self.etcoeffcomponents = etcoeffcomponents
+
+    def to_xml(self) -> ElementTree.Element:
+        """Special implementation of to_xml for the etCoeffComponents element."""
+        etcoeffcomponents = ElementTree.Element(self.name)
+        etcoeffcomponents.text = list_to_str(self.etcoeffcomponents)
+
+        return etcoeffcomponents

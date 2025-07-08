@@ -331,7 +331,7 @@ Subroutine hybrids
     end if
     call timesec(ts1)
     timeio=ts1-ts0+timeio
-
+    
 ! TIME - End of fifth IO segment
     Call timesec(tsg1)
     If ((rank .Eq. 0).and.(input%groundstate%outputlevelnumber>1)) then
@@ -389,7 +389,7 @@ Subroutine hybrids
     call exit_hybrids
     nullify(input%gw)
     call rereadinput
-
+    call readspeciesxml() ! only for CDFT
     Return
 End Subroutine
 !EOC

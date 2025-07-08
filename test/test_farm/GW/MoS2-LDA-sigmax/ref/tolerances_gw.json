@@ -1,0 +1,14 @@
+{
+  "SIGMAX_K1.OUT": {
+    "sigmax": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "SIGMAX_K2.OUT": {
+    "sigmax": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }
+}

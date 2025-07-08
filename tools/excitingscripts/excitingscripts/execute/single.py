@@ -1,3 +1,15 @@
+"""Run a single **exciting** calculation.
+
+Located at `excitingscripts/execute/single.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.execute.single -r rundir
+```
+Where <code>rundir</code> is an optional parameter which specifies the running directory. If <code>rundir</code> is not specified, the calculation will run in the directory where the script is called.
+"""
+
 import os
 import pathlib
 from argparse import ArgumentParser
@@ -8,7 +20,7 @@ from excitingtools.runner.runner import BinaryRunner, RunnerCode
 def run_exciting(root_directory: str=os.getcwd(), 
                  excitingroot: str=os.getenv("EXCITINGROOT"), 
                  filename: str="input.xml", 
-                 timeout: int=1200) -> None:
+                 timeout: int=3000) -> None:
     """Execute an exciting calculation in a given running directory.
 
     :param root_directory: Root directory.
@@ -21,7 +33,10 @@ def run_exciting(root_directory: str=os.getcwd(),
             "EXCITINGROOT is not defined as an environment variable in the shell.\n"
             "If using bash please type: `export EXCITINGROOT=<path-to-exciting_smp>`")
 
-    binary = pathlib.Path(excitingroot) / "bin/exciting_smp"
+    binary = pathlib.Path(excitingroot) / "install/bin/exciting_smp"
+    # downward compatibility with old installations of exciting
+    if not os.path.exists(binary):
+        binary = pathlib.Path(excitingroot) / "bin/exciting_smp"
     n_threads = os.cpu_count()
     n_threads = 4 if n_threads is None else n_threads
     runner = BinaryRunner(binary, omp_num_threads=n_threads, time_out=timeout, directory=root_directory, args=[filename])

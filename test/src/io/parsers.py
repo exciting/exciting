@@ -89,19 +89,13 @@ def get_compiler_type() -> Union[Compiler, None]:
     :return compiler: enum compiler type
     """
     exciting_root = get_exciting_root()
-    make_inc = os.path.join(exciting_root, 'build/make.inc')
-    result = grep('F90', make_inc, options = {'w': ' '}).splitlines()
+    print("Trying to process version.inc instead")
+    version_inc = os.path.join(exciting_root, 'src/version.inc')
+    compiler_version_output = grep('COMPILERVERSION', version_inc)
+    for compiler_id in compiler_version_identifier_map.keys():
+        if compiler_id in compiler_version_output:
+            return compiler_version_identifier_map[compiler_id]
 
-    for line in result:
-        file_comment = line[0] == '#'
-        f77_line = 'F77' in line 
-
-        if not file_comment and not f77_line:
-            compiler_version_cmd_str = line.split()[2] + " --version"
-            compiler_version_output = subprocess.check_output(compiler_version_cmd_str, shell=True).decode()
-
-            for compiler_id in compiler_version_identifier_map.keys():
-                if compiler_id in compiler_version_output:
-                    return compiler_version_identifier_map[compiler_id]
+    raise ValueError("Compiler version is not recognized: "+compiler_version_output)
 
     return None

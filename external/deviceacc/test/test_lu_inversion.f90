@@ -20,7 +20,9 @@ program test_lu_inversion
     use iso_c_binding
     use m_device_world_t,        only: device_world_t
     use device_linalg_common_interface, only: get_zgetri_nb_gpu,zgetrf_gpu, zgetri_gpu
+#if defined(DEVICEOFFLOAD)
     use mpi
+#endif
 
     implicit none
 
@@ -39,9 +41,11 @@ program test_lu_inversion
     complex(r64), target, allocatable :: work(:)
     type(c_ptr) :: dwork_ptr, dA_ptr
 
+#if defined(DEVICEOFFLOAD)
     ! Init MPI world
     call mpi_init(err)
     mpi_world = MPI_COMM_WORLD
+#endif
     
     ! Allocating the matrix A
     allocate(A(n,n), source=zzero)
@@ -82,7 +86,7 @@ program test_lu_inversion
 
     deallocate(ipiv)
 
-    call device_world%syncronize()
+    call device_world%synchronize()
 
     ! Checking the results
     write(*,*) '[TEST : test_lu_inversion]' 
@@ -99,7 +103,9 @@ program test_lu_inversion
     end do
 
     call device_world%finish()
+#if defined(DEVICEOFFLOAD)
     call mpi_finalize(err)
+#endif
 
     stop 0
 

@@ -11,37 +11,127 @@
 !> This module deals with the momentum matrix considering as basis (L)APW+lo
 module rttddft_pmat
   use modmpi
-  use modxs, only: ripaa, ripalo, riploa, riplolo
+  use modxs, only: ripaa, ripalo, riploa, riplolo, apwcmt, locmt
   use mod_gkvector, only: ngk, ngkmax, gkc, vgkc, igkig
-  use mod_kpoint, only: nkpt
   use mod_eigensystem, only: nmat, nmatmax, idxlo
   use mod_atoms, only: nspecies, natoms, idxas, natmtot
   use mod_APW_LO, only: apword, apwordmax, nlorb, lorbl, nlotot, nlomax, lolmax
   use mod_muffin_tin, only: idxlm, lmmaxapw
   use modinput, only: input
   use mod_gvector, only: ivg, ivgig, cfunig
-  use rttddft_GlobalVariables, only: pmat, apwalm, pmatmt
-  use constants, only: zzero, zone, zi
-  use precision, only: dp
+  use constants, only: zzero, zone, zi, real_zero
+  use precision, only: dp, i32
 
   implicit none
   private 
 
-  public :: Obtain_Pmat_LAPWLOBasis
+  public :: obtain_pmat_LAPWloBasis, obtain_pmat_KSBasis
 contains
+
+  !> Calculate the momentum matrix elements in the unperturbed KS basis. This routine 
+  !> is essentially a wrapper for `/src/src_xs/genpmatxs.f90`
+  subroutine obtain_pmat_KSBasis( first_kpt, make_hermitian, apwalm, psi_gnd_lapwlo, pmat )
+    !> The first k point
+    integer(i32), intent(in) :: first_kpt
+    !> If .True., for each `ik`, force the x, y, and z components of `pmat` to be hermitian
+    logical, intent(in) :: make_hermitian
+    !> Matching coefficients of the (L)APWs
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    !> All initial KS states in the LAPW+lo basis (nmatmax, n_states, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: psi_gnd_lapwlo(:, :, first_kpt :)
+    !> Momentum matrix elements 
+    !> (n_used_states, n_used_states, 3, first_kpt : last_kpt)
+    complex(dp), intent(out) :: pmat(:, :, :, first_kpt :)
+    
+    integer :: ik, i, last_kpt, n_states, n_used_states, first_used, jl, jr
+    complex(dp), allocatable :: pmat_tmp(:, :, :, :), fake_evecsv(:, :)
+
+    last_kpt = ubound( apwalm, 5 )
+    n_states = size( psi_gnd_lapwlo, 2 )
+    allocate( pmat_tmp(3, n_states, n_states, first_kpt : last_kpt), source = zzero )
+    allocate( fake_evecsv( n_states, n_states ) )
+    n_used_states = size( pmat, 1 )
+    ! we may not need pmat matrix elements for the lowest-lying states
+    call assert( n_used_states <= n_states, 'n_used_states > n_states for pmat' )
+    first_used = 1 + n_states - n_used_states
+
+    pmat = zzero
+    if ( allocated( apwcmt ) ) deallocate( apwcmt )
+    allocate( apwcmt(n_states, apwordmax, lmmaxapw, natmtot), source = zzero )
+    if ( allocated( ripaa ) ) deallocate( ripaa )
+    allocate( ripaa( apwordmax, lmmaxapw, apwordmax, lmmaxapw, natmtot, 3), &
+    source = real_zero )
+    if( nlotot > 0 ) then
+      if ( allocated ( locmt ) ) deallocate( locmt )
+      allocate( locmt(n_states, nlomax,-lolmax : lolmax, natmtot), source = zzero )
+      if ( allocated ( ripalo ) ) deallocate( ripalo )
+      allocate( ripalo(apwordmax, lmmaxapw, nlomax,-lolmax : lolmax, natmtot, 3), &
+      source = real_zero )
+      if ( allocated ( riploa ) ) deallocate( riploa )
+      allocate( riploa(nlomax,-lolmax : lolmax, apwordmax, lmmaxapw, natmtot, 3), &
+      source = real_zero )
+      if ( allocated ( riplolo ) ) deallocate( riplolo )
+      allocate( riplolo(nlomax,-lolmax : lolmax, nlomax,-lolmax : lolmax, natmtot, 3), &
+      source = real_zero )
+    end if
+    call pmatrad()
+
+    do ik = first_kpt, last_kpt
+      call genapwcmt( input%groundstate%lmaxapw, ngk(1, ik), 1, n_states, &
+      apwalm(:, :, :, :, ik), psi_gnd_lapwlo(:, :, ik), apwcmt )
+      if( nlotot > 0 ) call genlocmt( ngk(1, ik), 1, n_states, &
+      psi_gnd_lapwlo(:, :, ik), locmt )
+          
+      call genpmatxs( ngk(1, ik), igkig(:, 1, ik), vgkc(:, :, 1, ik), &
+      psi_gnd_lapwlo(:, :, ik), fake_evecsv, pmat_tmp(:, :, :, ik) )
+
+      do i = 1, 3
+        pmat(:, :, i, ik) = pmat_tmp(i, first_used:, first_used:, ik)
+      end do
+
+      ! Forces the matrix to be hermitian
+      if( make_hermitian ) then
+        do i = 1, 3
+          do jl = 1, n_used_states
+            do jr = jl + 1, n_used_states
+              pmat(jr, jl, i, ik) = conjg( pmat(jl, jr, i, ik) )
+            end do
+          end do
+        end do
+      end if
+
+    end do
+
+    deallocate( apwcmt, ripaa )
+    if ( nlotot > 0 ) deallocate( locmt, ripalo, riploa, riplolo )
+    
+  end subroutine
 
   !> Here, we calculate the momentum matrix elements considering as basis 
   !> (L)APW+lo. We copied most of the code from `/src/src_xs/genpmatxs.F90`, 
   !> but there the basis are the KS-wavefunctions
-  subroutine Obtain_Pmat_LAPWLOBasis( make_hermitian, evaluate_pmat_mt )
+  subroutine obtain_pmat_LAPWloBasis( first_kpt, make_hermitian, apwalm, pmat, pmatmt )
+    !> The first k point
+    integer(i32), intent(in) :: first_kpt
     !> If .True., for each `ik`, force the x, y, and z components of `pmat` to be hermitian
-    logical,intent(in)        :: make_hermitian
-    logical,intent(in)        :: evaluate_pmat_mt
+    logical, intent(in) :: make_hermitian
+    !> Matching coefficients of the (L)APWs
+    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
+    !> (nmatmax, nmatmax, 3, first_kpt : last_kpt)
+    complex(dp), intent(out) :: pmat(:, :, :, first_kpt :)
+    !> Muffin-tin part of the Momentum matrix
+    !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
+    complex(dp), optional, intent(out) :: pmatmt(:, :, :, :, first_kpt :)
 
-    integer                   :: ik, first_kpt, last_kpt
+    integer :: ik, last_kpt
+    logical :: evaluate_pmat_mt
 
-    pmat(:,:,:,:) = zzero
-    if ( evaluate_pmat_mt ) pmatmt(:,:,:,:,:) = zzero
+    pmat = zzero
+    evaluate_pmat_mt = present( pmatmt )
+    if ( evaluate_pmat_mt ) pmatmt = zzero
 
 
     if(allocated(ripaa)) deallocate(ripaa)
@@ -58,7 +148,7 @@ contains
     ! Calculate gradient of radial functions times spherical harmonics
     call pmatrad
 
-    call distribute_loop(mpi_env_k, nkpt, first_kpt, last_kpt)
+    last_kpt = ubound( apwalm, 5 )
     
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(NONE), PRIVATE(ik) SHARED(make_hermitian,pmat,pmatmt) &
@@ -85,7 +175,7 @@ contains
       deallocate(riplolo)
     end if
 
-  end subroutine Obtain_Pmat_LAPWLOBasis
+  end subroutine obtain_pmat_LAPWloBasis
 
   !> Obtain the momentum matrix elements for a given a `k-point`
   subroutine generate_pmat_ik(ik, apwalmk, make_hermitian, pmatk, pmat_mt)

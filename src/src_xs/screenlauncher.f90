@@ -8,7 +8,7 @@
 subroutine screenlauncher
 ! !USES:
   use modmpi
-  use modinput, only: input
+  use modinput, only: input, input_type
   use mod_APW_LO, only: lolmax
   use mod_kpoint, only: nkpt
   use mod_qpoint, only: nqpt
@@ -26,6 +26,11 @@ subroutine screenlauncher
   use m_findgntn0
   use mod_Gkvector, only: gkmax
   use m_ematqk
+  use grid_utils, only: mesh_1d
+  use iso_c_binding, only: c_size_t
+  use precision, only: dp
+
+
 ! !DESCRIPTION:
 !   This is a wrapper routine for the call of \texttt{dfq.f90} in
 !   the screen task of the BSE calculation. It stats the calculation
@@ -49,6 +54,8 @@ subroutine screenlauncher
   real(8) :: pgridoff(3)
   character(256) :: filex, syscommand
   character(*), parameter :: thisname = 'screenlauncher'
+  integer, allocatable :: qlist_todo(:), qlist_todo_rank(:)
+  integer :: iqlist 
 
   ! Initialise universal variables
   call init0
@@ -200,9 +207,12 @@ subroutine screenlauncher
   write(unitout, '(a, i4)') 'Info(' // thisname // '): Starting loop over q-points'
   write(unitout, *)
 
-  ! Loop over q-points 
-  do iq = qpari, qparf
+  qlist_todo = setup_qlist_todo(input)
+  qlist_todo_rank = qlist_todo(firstofset(rank, size(qlist_todo)):lastofset(rank, size(qlist_todo)))
 
+  ! Loop over q-points 
+  do iqlist = 1, size(qlist_todo_rank)
+    iq = qlist_todo_rank(iqlist)
     ! Write q-point number to fileext, filext = "_SCR_QXYZ.OUT"
     call genfilname(scrtype='', iq=iq, fileext=filex)
 
@@ -385,6 +395,96 @@ subroutine screenlauncher
   if(rank == 0) then
     write(unitout, '(a)') "Info(screenlauncher): Screening finished"
   end if
+
+contains 
+
+  !> Return q point indices that are not represented by a file in
+  !> `EPS0/EPS0_QXXXXX.OUT` as a list. 
+  function setup_qlist_todo(input) result(qlist_todo)
+    !> Input file object
+    type(input_type), intent(in) :: input
+
+    integer, allocatable :: qlist_todo(:)
+
+    logical, allocatable :: todo_list(:)
+    logical :: qexists, has_expected_size
+    integer :: iq
+    integer(c_size_t) :: file_size
+    character(256) :: file_name 
+
+    allocate(todo_list(nqpt), source=.true.)
+    if(input%xs%screening%skipdoneq) then
+      do iq=1, nqpt
+        ! Check if file exists
+        write(file_name, '("EPS0/EPS0_Q",I5.5,".OUT")') iq      
+        inquire(file=trim(file_name), exist=qexists)
+        
+        ! Check if file has correct size
+        inquire(file=trim(file_name), size=file_size)
+        has_expected_size = file_size == expected_size_eps0(iq)
+        if(input%xs%screening%terminate_if_size_is_wrong) then
+          call terminate_if_false(has_expected_size, message="Error(screenlauncher): File " // trim(file_name) // " has wrong size.")
+        end if
+        
+        todo_list(iq) = (.not. qexists) .or. (.not. has_expected_size)
+      end do 
+    endif 
+
+    qlist_todo = pack([(iq, iq=1, nqpt)], mask=todo_list)
+
+  end function
+
+  !> Return the expected size of the file `EPS0/EPS0_QXXXXX.OUT`
+  integer(c_size_t) function expected_size_eps0(iq)
+    !> q-point index
+    integer, intent(in) :: iq 
+
+    character(256) :: file_name 
+
+    integer(c_size_t) :: file_size, expected_size
+    logical, external :: tqgamma
+    
+    if(tqgamma(iq)) then ! (q=0) head and wings are saved too 
+      expected_size = &
+        size_in_bytes('integer', 1) &! iq
+      + size_in_bytes('real_dp', 3) &! qvec
+      + size_in_bytes('integer', 1) &! ngq
+      + size_in_bytes('integer', 1) &! iw
+      + size_in_bytes('real_dp', 1) &! w
+      + size_in_bytes('complex_dp', 3*3) &! eps0hd
+      + size_in_bytes('complex_dp', ngq(iq)*2*3) &! eps0wg
+      + size_in_bytes('complex_dp', ngq(iq)*ngq(iq)) ! eps0
+    else ! only body is saved
+      expected_size = &
+        size_in_bytes('integer', 1) &! iq
+      + size_in_bytes('real_dp', 3) &! qvec
+      + size_in_bytes('integer', 1) &! ngq
+      + size_in_bytes('integer', 1) &! iw
+      + size_in_bytes('real_dp', 1) &! w
+      + size_in_bytes('complex_dp', ngq(iq)*ngq(iq)) ! eps0
+    end if 
+    
+    expected_size_eps0 = expected_size * 1 ! multiply by number of frequencies
+  end function
+
+  !> Return the size in bytes of an array of a given type and number of elements.
+  integer function size_in_bytes(type, elements) 
+    character(*), intent(in) :: type
+    integer, intent(in) :: elements
+
+    select case(type)
+    case('integer')
+      size_in_bytes = 4
+    case('real_dp')
+      size_in_bytes = 8
+    case('complex_dp')
+      size_in_bytes = 16
+    case default
+      size_in_bytes = 0
+    end select
+
+    size_in_bytes = size_in_bytes * elements
+  end function
 
 end subroutine screenlauncher
 !EOC

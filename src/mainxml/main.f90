@@ -7,23 +7,34 @@
 !> Unit test driver is run instead, if specified by passing the command
 !> line argument to exciting.
 !>
-!> When the build system gets updated to CMake, unit tests will be compiled
-!> as executables that link to the appropriate exciting modules, removing
-!> the need to call the unit test driver in this manner.
 program main
    use inputdom
    use modinput
    use scl_xml_out_Module
    use modmpi
+   use mod_device_offload, only: init_device_world, finish_device_world
    use mod_misc
    use cmd_line_args, only: cmd_line_args_type
    use unit_test_drivers, only: unit_test_driver
+#ifdef USEOMP
+   use omp_lib
+#endif
    implicit none
 
    !> Command line arguments
    type(cmd_line_args_type) :: args
 
    call initmpi()
+#ifdef USEOMP
+   ! Old OpenMP standards allow for 
+   ! nested parallelism. Since OpenMP 5.0 nested parallelism is
+   ! no longer the default by the standard but the default is left to 
+   ! the compiler. This call to the API ensures that 
+   ! exciting does not use that, sometimes that leads 
+   ! to frozen runs or garbage numbers in the results.
+   call omp_set_max_active_levels(1)
+#endif
+   call init_device_world(mpiglobal%comm)
    call versionfromdate()
    call args%parse(mpiglobal)
    if (args%run_unit_tests) then
@@ -51,6 +62,7 @@ program main
       call tasklauncher()
       call scl_xml_out_close()
    end if
+   call finish_device_world()
    call finitmpi()
 
 end program

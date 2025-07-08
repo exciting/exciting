@@ -2,11 +2,11 @@
 !> task `Coulomb`, used as an element of `taskGroup` in `gw`
 module task_Coulomb
   use exciting_mpi, only: mpiinfo
-  use gw_io, only: write_to_gwinfo, write_to_gwinfo_boxmessage
+  use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
   use modgw, only: fgw, kqset, Gqset
   use modinput, only: input, gw_type
   use modmpi, only: terminate_if_false, mpiglobal, distribute_loop
-  use mod_coulomb_potential, only: calculate_sqrt_bare_coulomb, write_barc_to_file
+  use mod_coulomb_potential, only: calculate_bare_coulomb, write_barcev_vmat_to_file
   use mod_kqpts, only: kpoints_sets
   use mod_misc_gw, only: Gamma, gammapoint
   use mod_product_basis, only: matsiz, locmatsiz, write_sgi_to_file
@@ -23,10 +23,8 @@ module task_Coulomb
   type task_Coulomb_parameters
     !> indexes of the q-points for which the bare Coulomb matrix must be calculated
     type(kpoints_sets) :: q_points
-    !> type of cutoff used to obtain the bare Coulomb matrix
-    character(len=20) :: Coulomb_cutoff_type
-    !> threshold to include/eliminate eigenvectors when building the bare Coulomb matrix
-    real(dp) :: Coulomb_eigenvalue_tol
+    !> Discard eigenvalues of the matrix with the bare Coulomb potential that are smaller than this threshold
+    real(dp) :: eigs_threshold
   contains
     procedure :: parse_input, sanity_checks
   end type
@@ -68,8 +66,8 @@ subroutine execute_task_Coulomb( n_qpoints_max, file_format )
     call write_sgi_to_file( iq, file_format )
     ! Calculates the matrix elements between PW's and orthonormalized IPW's
     call calcmpwipw( iq )
-    call calculate_sqrt_bare_coulomb( iq, input_parameters%Coulomb_eigenvalue_tol )
-    call write_barc_to_file( iq, file_format )
+    call calculate_bare_coulomb( iq )
+    call write_barcev_vmat_to_file( iq, file_format, input_parameters%eigs_threshold )
   end do
 end subroutine
 
@@ -85,8 +83,7 @@ subroutine parse_input( this, gw_inp, n_qpt )
 
   call this%sanity_checks( gw_inp )
   call this%q_points%parse_input( gw_inp%taskGroup%Coulomb%qpointsarray, n_qpt )
-  this%Coulomb_cutoff_type = trim( gw_inp%barecoul%cutofftype )
-  this%Coulomb_eigenvalue_tol = gw_inp%barecoul%barcevtol
+  this%eigs_threshold = gw_inp%taskGroup%Coulomb%eigenvalueThreshold
 end subroutine
 
 !> Perform sanity checks on the input parameters in the `gw` element

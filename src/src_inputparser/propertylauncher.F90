@@ -4,14 +4,17 @@
 ! See the file COPYING for license details.
 
 Subroutine propertylauncher
-      Use modinput
+      use bandstructure, only: bandstr
       Use inputdom
+      Use mod_hdf5, only: fhdf5, hdf5_initialize, hdf5_create_file, hdf5_finalize
+      Use modinput
       Use modmain, Only: task
       Use modmpi, Only: rank
       Use spintexture, Only: calculate_spintexture
       use xhdf5, only: xhdf5_type
-      Use mod_hdf5, only: fhdf5, hdf5_initialize, hdf5_create_file, hdf5_finalize
+      
       Implicit None
+      
       integer :: l, a, b, c, i
       integer:: k 
 

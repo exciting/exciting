@@ -1,3 +1,15 @@
+"""Extract planar-averaged electrostatic potential in a given direction.
+
+Located at `excitingscripts/execute/planar_average.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.execute.planar_average direction
+```
+Where <code>direction</code> is the direction along which the plane-averaged potential will be visualized.
+"""
+
 import pathlib
 import xml.etree.ElementTree as ET
 from argparse import ArgumentParser

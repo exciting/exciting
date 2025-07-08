@@ -1,7 +1,7 @@
 [project]
 name = "excitingtools"
 description = "Utilities for aiding in the construction of exciting inputs and the postprocessing exciting outputs."
-version = "1.7.1"
+version = "1.8.2"
 authors = [
     {name = "Alexander Buccheri", email = "alexander.buccheri@mpsd.mpg.de"},
     {name = "Fabian Peschel", email = "peschelf@physik.hu-berlin.de"}
@@ -19,10 +19,11 @@ dependencies = [
 dev = [
     "pytest",
     "ase>=3.20.0",
-    "ruff",
+    "ruff==0.11.2",
 ]
 schemaparsing = ["xmlschema"]
 h5_parsing = ["h5py"]
+serialisation = ["monty"]
 
 
 [project.urls]
@@ -53,7 +54,6 @@ ignore = [
     "COM812",  # problems with linter
     "ISC001",  # problems with linter, see https://github.com/astral-sh/ruff/issues/8272
     "RET504",  # Unnecessary assignment
-    "SIM115",  # context handler not used for opening files
     "PLR2004",  # magic values, maybe reintroduce at some point
 ]
 extend-select = [

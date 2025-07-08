@@ -18,13 +18,14 @@ subroutine calcselfc_ac()
 
     ! local variables
     type(aaa_approximant) :: aaa_minus, aaa_plus
-    integer(i32) :: iw, ik, ib
-    real(dp)     :: w
+    integer(i32) :: iw, ik, ib, n_kpoints
+    real(dp)    :: w
     complex(dp) :: sc, dsc
     complex(dp), allocatable :: zj(:), fj(:,:,:)
 
     ! imaginary frequency grid
-    allocate(fj(ibgw:nbgw,freq_selfc%nomeg,kset%nkpt))
+    n_kpoints = size( selfec, 3 )
+    allocate( fj(ibgw:nbgw, freq_selfc%nomeg, n_kpoints) )
     fj(:,:,:) = selfec(:,:,:)
     deallocate(selfec)
     allocate(zj(freq_selfc%nomeg))
@@ -42,9 +43,9 @@ subroutine calcselfc_ac()
                            input%gw%selfenergy%wgrid%size, &
                            input%gw%selfenergy%wgrid%wmin, &
                            input%gw%selfenergy%wgrid%wmax)
-    allocate(selfec(ibgw:nbgw,freq_selfc%nomeg,kset%nkpt))
+    allocate( selfec(ibgw:nbgw, freq_selfc%nomeg, n_kpoints) )
 
-    do ik = 1, kset%nkpt
+    do ik = 1, n_kpoints
         do ib = ibgw, nbgw
             
             if (input%gw%selfenergy%actype == 'pade' ) then
@@ -81,11 +82,9 @@ subroutine calcselfc_ac()
         end do ! ie
     end do ! ik
 
-    deallocate(zj, fj)
     if (input%gw%selfenergy%actype == 'aaa') then
         call delete_aaa_approximant(aaa_plus)
         call delete_aaa_approximant(aaa_minus)
     end if
       
-    return
 end subroutine
