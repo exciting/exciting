@@ -1,5 +1,5 @@
-# Please, check https://www.exciting-code.org/the-python-script-plot.multitask
-# to better understand how to use this script
+"""Please, check https://www.exciting-code.org/the-python-script-plot.multitask
+to better understand how to use this script"""
 
 import matplotlib
 import matplotlib.ticker as ptk

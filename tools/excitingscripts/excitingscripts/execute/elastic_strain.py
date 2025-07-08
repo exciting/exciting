@@ -1,3 +1,14 @@
+"""Run a series of **exciting** calculations with different strain values.
+
+Located at `excitingscripts/execute/elastic_strain.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.execute.elastic_strain 
+```
+"""
+
 import os
 import pathlib
 from argparse import ArgumentParser

@@ -427,7 +427,7 @@ def plot_energy(
             "E$_{{min}}$ = {:.7f} Ha\n"
             "V$_{{min}}$ = {:.3f} Bohr$^3$\n"
             "B$_0$ = {:.3f} GPa\n"
-            "B$^\prime$ = {:.5f}"
+            r"B$^\prime$ = {:.5f}"
         ).format(e_min, p[2], p[0], p[1])
     else:
         xlabel = "Physical strain $\\epsilon$"

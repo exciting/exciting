@@ -1,3 +1,15 @@
+"""Generate a set of input files varying the attribute <code><span style="color:mediumblue">cut</span></code>.
+
+Located at `excitingscripts/setup/dft_05.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.setup.dft_05 r_cut_min r_cut_max number_r_cut_steps -s species -r root_dir
+```
+Where <code>r_cut_min</code> and <code>r_cut_max</code> are the minimum and maximum values for r_cut,  <code>number_r_cut_steps</code> is the number of r_cut values for which input files are generated, <code>species</code> is the species with regard to which r_cut is varied and <code>root_dir</code> is the root directory.
+"""
+
 import os
 import pathlib
 from argparse import ArgumentParser

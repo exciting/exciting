@@ -17,5 +17,17 @@ cd $EXCITINGROOT/tools/excitingscripts
 pip install -e .
 ```
 
+## Usage 
+
+You can execute each script as a Python module, e.g., to run a single `exciting` calculation, use 
+
+```bash
+python3 -m excitingscripts.execute.single
+```
+
+Below, we list all scripts, and the functions that are used in each script.
+
+NOTE: This README is automatically generated. To update the listing, change the docstrings on top of each script file, or function, respectively.
+
 ## Script Listing
 

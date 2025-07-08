@@ -1,3 +1,15 @@
+"""Visualize data included in different files and different directories.
+
+More details can be found **[here](https://www.exciting-code.org/home/the-python-script-plot.files)**.
+
+Located at `excitingscripts/plot/files.py`. 
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.files
+```"""
+
 import argparse as ap
 import os
 import sys

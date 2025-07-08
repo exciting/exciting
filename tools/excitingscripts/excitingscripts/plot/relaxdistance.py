@@ -136,9 +136,9 @@ def plot_relative_coordinates(delta_x: List, delta_y: List, delta_z: List,
 
     optimization_step = range(len(delta_x))
 
-    plt.plot(delta_z, 'gd-', label=u'$\Delta$3')
-    plt.plot(delta_y, 'bs-', label=u'$\Delta$2')
-    plt.plot(delta_x, 'ro-', label=u'$\Delta$1')
+    plt.plot(delta_z, 'gd-', label=r'$\Delta$3')
+    plt.plot(delta_y, 'bs-', label=r'$\Delta$2')
+    plt.plot(delta_x, 'ro-', label=r'$\Delta$1')
     ax.set_xlabel('Optimization steps')
     ax.set_ylabel(f'Relative coordinate ({acoord})')
     ax.grid(True, linestyle='--')

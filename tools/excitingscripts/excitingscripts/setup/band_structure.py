@@ -1,3 +1,5 @@
+"""Add band structure element to given input file by getting the band path from the input structure."""
+
 import os
 import pathlib
 from argparse import ArgumentParser

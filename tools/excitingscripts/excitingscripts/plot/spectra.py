@@ -30,7 +30,7 @@ ax1 = fig.add_subplot(111)
 
 ax1.xaxis.set_label_position('bottom')
 ax1.set_xlabel('Energy [eV]', labelpad=19)
-ax1.set_ylabel('Im $\epsilon_M$', labelpad=13)
+ax1.set_ylabel(r'Im $\epsilon_M$', labelpad=13)
 
 ax1.axhline(y=0, linestyle="dashed", linewidth=3, color="black")
 

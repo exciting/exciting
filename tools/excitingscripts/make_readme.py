@@ -3,10 +3,15 @@ import inspect
 import pydoc
 import pkgutil
 import os
+import re
 
 import excitingscripts
 
 TEMPLATE_NAME = "README.template"
+
+def docstring_to_markdown(docstring: str) -> str:
+    '''Replace newlines with two spaces and a newline, to avoid wrapping of lines in markdown.'''
+    return re.sub('\n', '  \n', docstring)
 
 def extract_docs():
     output = ""
@@ -17,7 +22,7 @@ def extract_docs():
             output += f"### {module_info.name}\n\n"
             module_docs = pydoc.getdoc(module_info.name)
             if len(module_docs) > 0:
-                output += f"{module_docs}\n\n"
+                output += f"{docstring_to_markdown(module_docs)}\n\n"
         # the module is a file with code
         else:
             output += f"#### {module_info.name}\n\n"
@@ -25,7 +30,7 @@ def extract_docs():
             module = importlib.import_module(module_info.name)
             module_docs = pydoc.getdoc(module)
             if len(module_docs) > 0:
-                output += f"{module_docs}\n\n"
+                output += f"{docstring_to_markdown(module_docs)}\n\n"
             for mem in inspect.getmembers(module):
                 # ignore the main (because it is only used to indicate what is executed when the module is called as a script)
                 if mem[0] == 'main':
@@ -34,7 +39,7 @@ def extract_docs():
                 try:
                     module_path = inspect.getmodule(mem[1]).__name__.split('.')
                     if module_path[0] == 'excitingscripts' and module_path[:-1] == module_info.name.split('.')[:-1]:
-                        output += f"##### {mem[0]}\n\n{pydoc.getdoc(mem[1])}\n\n"
+                        output += f"##### {mem[0]}\n\n{docstring_to_markdown(pydoc.getdoc(mem[1]))}\n\n"
                 except:  # noqa: E722
                     pass
         output += "\n"
