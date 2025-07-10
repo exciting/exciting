@@ -50,6 +50,7 @@ module rttddft_Wavefunction
       procedure :: n_empty
       procedure :: n_occupied
       procedure :: expanded_in_lapwlo
+      procedure :: obtain_number_excitations
   end type
 
   !> Type to encapsulate the wavefunction set expanded in the LAPW+lo basis
@@ -406,4 +407,80 @@ contains
     end do
 
   end function
+
+  !> Within this subroutine, we obtain the number of excitations, as described
+  !> below.  
+  !> The number of excited electrons after the interaction with a laser pulse
+  !> In RT-TDDFT, the occupation number \( f_{j\mathbf{k}} \) of a KS state is
+  !> kept fixed to its initial value. As the wavefunctions evolve, they are not
+  !> any longer eigenstates of \( \hat{H}(t) \). It is possible to describe
+  !> the number of excitations by projecting \( | \psi_{i\mathbf{k}}(t)\rangle \)
+  !> onto the reference ground state at \( t=0 \).
+  !> For a given k-point, we define the number of electrons that have
+  !> been excited to an unoccupied KS state, labeled  \( j \), as
+  !> \[
+  !> 	m_{j\mathbf{k}}(t)= \sum_{i} f_{i\mathbf{k}}| \langle \psi_{j\mathbf{k}}(0)
+  !>	         | \psi_{i\mathbf{k}}(t)\rangle |^2.
+  !> \]
+  !> Similarly, the number of holes created in an occupied KS \( j' \) state can
+  !> specified as
+  !> 	\[
+  !> 	m_{j'\mathbf{k}}(t)= f_{j'\mathbf{k}} - \sum_{i}
+  !> 	f_{i\mathbf{k}}	| \langle \psi_{j'\mathbf{k}}(0)| \psi_{i\mathbf{k}}(t)\rangle |^2.
+  !> 	\]
+  !> Thus, the total number of excited electrons in a unit cell can be
+  !> obtained by considering all the unoccupied states
+  !> \[
+  !> 	N_{exc}(t)=
+  !> 	\sum_{j\mathbf{k}}^{j\, unocc}
+  !> 	w_\mathbf{k} m_{j\mathbf{k}}(t) = \sum_{j'\mathbf{k}}^{j'\, occ}
+  !> 	w_\mathbf{k} m_{j'\mathbf{k}}(t) .
+  !> 	\]
+  subroutine obtain_number_excitations( this, overlap, eps_occ, occ_gnd, wkpt, mpi_env, &
+    & n_exc, n_gs )
+    use asserts, only: assert
+    use exciting_mpi, only: mpiinfo, xmpi_allreduce
+
+    !> Basis-expansion coefficients of the KS-wavefunctions.
+    class(wavefunction_set), intent(in) :: this
+    !> Overlap matrices
+    complex(dp), contiguous, intent(in) :: overlap(:, :, :)
+    !> Occupation threshold above which a state is considered occupied
+    real(dp), intent(in) :: eps_occ
+    !> List of occupations at \(t=0\)
+    real(dp), contiguous, intent(in) :: occ_gnd(:, :)
+    !> k-point integration weights
+    real(dp), contiguous, intent(in) :: wkpt(:)
+    !> MPI environment
+    type(mpiinfo), intent(in) :: mpi_env
+    !> number of excited electrons
+    real(dp), intent(out) :: n_exc
+    !> number of electrons on the groundstate state
+    real(dp), intent(out) :: n_gs
+
+    integer(i32) :: ik, n_kpt
+    real(dp) :: buffer(2)
+    real(dp), allocatable :: occ(:, :), aux_tot(:), aux_exc(:)
+    complex(dp), allocatable :: proj(:, :, :)
+    
+    n_kpt = this%n_kpts()
+    call assert( size( wkpt ) == n_kpt, 'wkpt must have n_kpt elements')
+
+    allocate( aux_tot(n_kpt), aux_exc(n_kpt) )
+    call obtain_projection_coefficients( this%groundstate, overlap, this%active, proj )
+    call obtain_occupations( proj, occ_gnd(this%first_active(): this%n_occupied(), :), occ )
+    if ( this%has_frozen() ) occ(1 : this%n_frozen(), :) = occ(1 : this%n_frozen(), :) + occ_gnd(1 : this%n_frozen(), :)
+    do concurrent (ik = 1:n_kpt)
+      aux_tot(ik) = sum( occ(:, ik) )
+      aux_exc(ik) = sum( occ(:, ik), occ_gnd(:, ik) <= eps_occ )
+    end do
+    n_exc = dot_product( wkpt, aux_exc )
+    n_gs = dot_product( wkpt, aux_tot ) - n_exc
+    buffer = [ n_exc, n_gs ]
+    call xmpi_allreduce( buffer, mpi_env )
+    n_exc = buffer(1); n_gs = buffer(2)
+
+  end subroutine obtain_number_excitations
+
 end module rttddft_Wavefunction
+
