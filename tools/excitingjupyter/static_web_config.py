@@ -8,7 +8,7 @@ OUTDIR = os.path.join(os.environ["EXCITINGROOT"], "tools", "excitingjupyter", "s
 
 os.makedirs(OUTDIR, exist_ok=True)
 
-c = get_config()  # type:ignore # pylint: disable=E0602
+c = get_config()  # type:ignore # pylint: disable=E0602  # noqa: F821
 
 c.NbConvertApp.notebooks = [
     # Convert all tutorials (may be slow if combined with the --execute flag)
