@@ -11,10 +11,11 @@ module task_sigmac
   use mod_dielectric_function, only: read_inverse_epsilon_from_file, epsilon
   use mod_kqpts, only: kpoints_sets
   use mod_misc_gw, only: Gamma, gammapoint
-  use mod_product_basis, only: read_sgi_from_file
+  use mod_product_basis, only: read_sgi_from_file, mpwipw
   use mod_selfenergy, only: selfec, write_selfec_single_kpoint, & 
     generate_frequency_grid_for_correlation_self_energy
   use precision, only: i32, dp
+#include "offload.fpp"
 
   implicit none
 
@@ -129,11 +130,21 @@ subroutine execute_task_sigmac( n_kpoints_max, qpoints, file_format )
       call read_inverse_epsilon_from_file( iq, Gamma, file_format )
       call sanity_check_frequencies_of_epsilon()
       call sanity_check_epsilon_and_barc()
+      OMP_OFFLOAD target data map(alloc: epsilon)
       call calcselfc(iq, ik, ik)
+      OMP_OFFLOAD end target data
     end do
     call write_selfec_single_kpoint( ik, file_format )
   end do
+
+  ! Delete global arrays
   call delete_coulomb_potential
+  OMP_OFFLOAD target exit data map(delete: barc) if(allocated(barc))
+  if (allocated(barc)) deallocate(barc)
+  OMP_OFFLOAD target exit data map(delete: mpwipw) if(allocated(mpwipw))
+  if (allocated(mpwipw)) deallocate(mpwipw)
+  OMP_OFFLOAD target exit data map(delete: epsilon) if(allocated(epsilon))
+  if (allocated(epsilon)) deallocate(epsilon)
 
 end subroutine
 
