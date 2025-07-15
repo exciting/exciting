@@ -10,7 +10,7 @@ module task_epsilon
     progress_write_epsilon, write_to_gwinfo_table_with_index_map, &
     q_points_numbering, q_points_numbering_abbr, q_points_indexes, q_points_indexes_abbr, &
     k_points_indexes, k_points_indexes_abbr, empty_bands_indexes, empty_bands_abbr
-  use mod_coulomb_potential, only: delete_coulomb_potential, read_barcev_vmat_from_file, calculate_sqrt_bare_coulomb
+  use mod_coulomb_potential, only: barc, delete_coulomb_potential, read_barcev_vmat_from_file, calculate_sqrt_bare_coulomb
   use mod_dielectric_function, only: write_epsilon_to_file, init_dielectric_function, delete_dielectric_function
   use mod_kqpts, only: kpoints_sets
   use mod_misc_gw, only: Gamma, gammapoint
@@ -23,6 +23,7 @@ module task_epsilon
   use modmpi, only: terminate_if_false, mpiglobal
   use precision, only: dp, i32
   use to_char_conversion, only: to_char
+#include "offload.fpp"
 
   implicit none
 
@@ -255,6 +256,10 @@ end function
 subroutine deallocate_global_arrays
   call delete_dielectric_function( Gamma=.true. )
   call delete_coulomb_potential
+  OMP_OFFLOAD target exit data map(delete: barc) if(allocated(barc))
+  if (allocated(barc)) deallocate(barc)
+  OMP_OFFLOAD target exit data map(delete: mpwipw) if(allocated(mpwipw))
+  if (allocated(mpwipw)) deallocate(mpwipw)
 end subroutine
 
 end module
