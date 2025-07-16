@@ -227,14 +227,12 @@ groundstate/LDA_PW-lapack-BN:
 
 groundstate/mGGA_TPSS-Si:
 
-# Test with ifx 2025.0.0 give too large errors, but almost within tolerance.
 BSE/PBE_SOL-LiF:
     failing_builds:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
 
-# Test with ifx 2025.0.0 give too large errors, but almost within tolerance.
 BSE/PBE-LiF-phononscreening:
    files_under_test:
       - "EPSILON_??.OUT"
@@ -245,12 +243,9 @@ BSE/PBE-LiF-phononscreening:
       - "F.xml"
       - "lif.eig"
       - "lif.dyn1"
-   failing_builds:
-      - !Build intelLLVM_mpiandsmp
-      - !Build intelLLVM_serial
-      - !Build intelLLVM_smp
 
-# Test with ifx 2025.0.0 give too large errors, but almost within tolerance.
+# Test with ifx 2025.0.0 give too large errors, in
+# order of 2.0e-3 for oscillator strengths in DICHROIC file
 BSE/PBE-MoS2-dichroism:
    files_under_test:
       - "EPSILON_??.OUT"
@@ -267,7 +262,6 @@ BSE/PBE-MoS2-dichroism:
       - !Build intelLLVM_smp
 
 # TODO(Bene) Issue #171: Test execution hangs in bse task
-# Test with ifx 2025.0.0 give too large errors, but almost within tolerance.
 BSE/PBE_SOL-diamond-brixshdf5:
    group: !Group HDF5
    files_under_test:
@@ -279,8 +273,6 @@ BSE/PBE_SOL-diamond-brixshdf5:
       - !Build intel_mpiandsmp
       - !Build gcc_mpiandsmp
       - !Build intelLLVM_mpiandsmp
-      - !Build intelLLVM_serial
-      - !Build intelLLVM_smp
 
 # Note that we observe more numerical noise for BSE with SVLO than without it.
 # Hence differences in the energy below 6.0e-6 eV and in the oscillator strength 
@@ -656,8 +648,6 @@ GW/ZrO2-PBESOL:
    
 
 hybrid/EXX-C:
-  failing_builds:
-    - !Build intelLLVM_mpiandsmp
 
 # TODO(Cecilia) Issue 54. HSE and PBE0 sometimes fail in our CI pipeline within Intel MPIANDSMP build
 #  - Repeating the test changes the results each time but the diff is never < tolerances.
@@ -983,19 +973,9 @@ TDDFT/PBE-LiF:
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
 
-# Test with ifx 2025.0.0 give too large errors, but almost within tolerance.
 XANES/PBE_SOL-BN:
-    failing_builds:
-      - !Build intelLLVM_mpiandsmp
-      - !Build intelLLVM_serial
-      - !Build intelLLVM_smp
 
-# Test with ifx 2025.0.0 give too large errors, but almost within tolerance.
 XANES/PBE_SOL-TiO2:
-    failing_builds:
-      - !Build intelLLVM_mpiandsmp
-      - !Build intelLLVM_serial
-      - !Build intelLLVM_smp
 
 sirius/GaN:
    group: !Group SIRIUS

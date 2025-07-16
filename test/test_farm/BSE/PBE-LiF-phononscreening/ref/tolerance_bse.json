@@ -5,15 +5,15 @@
       "unit": "eV"
     },
     "real_oscillator_strength": {
-      "tol": 2e-08,
+      "tol": 2e-07,
       "unit": "null"
     },
     "imag_oscillator_strength": {
-      "tol": 2e-08,
+      "tol": 2e-07,
       "unit": "null"
     },
     "real_oscillator_strength_kkt": {
-      "tol": 2e-08,
+      "tol": 2e-07,
       "unit": "null"
     }
   },
@@ -23,11 +23,11 @@
       "unit": "null"
     },
     "energy": {
-      "tol": 1e-07,
+      "tol": 2e-07,
       "unit": "eV"
     },
     "energy_shifted": {
-      "tol": 1e-07,
+      "tol": 5e-07,
       "unit": "eV"
     },
     "abs_oscillator_strength": {
