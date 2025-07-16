@@ -104,14 +104,34 @@ foreach(folder ${EXCITINGLIB_SRC_FOLDERS})
     list(APPEND EXCITINGLIB_SRC_FILES_FIXED ${F90_FILES_IN_FOLDER})
 endforeach()
 
-# IntelLLVM (version 2025.0.0) compiler fails for some reason to automatically set 
-# fixed form for *.f files.
 if (CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
+	# IntelLLVM (version 2025.0.0) compiler fails for some reason to automatically set
+        # fixed form for *.f files.
         foreach(source_file ${EXCITINGLIB_SRC_FILES_FIXED})
                 set_source_files_properties(${source_file} PROPERTIES
                         COMPILE_OPTIONS "-fixed"
                 )
         endforeach()
+        
+	# IntelLLVM version 2025.1.0 or higher have a bug for vectorization + OpenMP in
+        # a test of HDF5 that for some reason affects the whole code
+	# producing code that provides garbage. 
+	# TODO(mrm): Check for version higher than 2025.2.x when available
+        string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)"
+           _ver "${CMAKE_Fortran_COMPILER_VERSION}")
+
+        set(COMPILER_MAJOR_VERSION "${CMAKE_MATCH_1}")
+        set(COMPILER_MINOR_VERSION "${CMAKE_MATCH_2}")
+        set(COMPILER_PATCH_VERSION "${CMAKE_MATCH_3}")
+
+        if ( COMPILER_MAJOR_VERSION AND COMPILER_MAJOR_VERSION VERSION_GREATER_EQUAL "2025" AND
+             COMPILER_MINOR_VERSION AND COMPILER_MINOR_VERSION VERSION_GREATER_EQUAL "1" AND
+             OMP)
+
+            # Lower optimization to -O1 for files
+	    message(STATUS "Intel LLVM:  lowering optimization level for xhdf5_test.f90 to 1 due to a bug of OMP+vectorization propagating via IPO to the full code")
+            set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/xhdf5/xhdf5_test.f90" PROPERTIES COMPILE_FLAGS "-O1")
+        endif()
 endif()
 
 # For Cray compiler get further info about the compilation of complex

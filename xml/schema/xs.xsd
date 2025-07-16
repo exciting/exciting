@@ -1651,13 +1651,13 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="xas" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation> Set to <pre>"true"</pre> to perform BSE X-rasy absorption spectroscopy (XAS) calculation </xs:documentation>
+                <xs:documentation> Set to <pre>"true"</pre> to perform BSE X-rays absorption spectroscopy (XAS) calculation </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="xes" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation> Set to <pre>"true"</pre> to perform BSE X-rasy emission spectroscopy (XES) calculation </xs:documentation>
+                <xs:documentation> Set to <pre>"true"</pre> to perform BSE X-rays emission spectroscopy (XES) calculation </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="xasspecies" type="xs:integer"
