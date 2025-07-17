@@ -16,6 +16,7 @@ module mod_rhoir
   use mod_gkvector, only: ngk, igkig
   use mod_Gvector, only: ngrtot, igfft, ngrid
   use mod_lattice, only: omega
+  use m_zfftifc, only: zfftifc
 
   implicit none
 

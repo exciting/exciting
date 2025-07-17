@@ -9,6 +9,7 @@ subroutine genvxcig
     &                   vxcir, cfunir
     use modgw,   only : Gset
     use mod_vxc
+    use m_zfftifc, only: zfftifc
     
 !!DESCRIPTION:
 !   Generates the Fourier transform of the xc potential in the

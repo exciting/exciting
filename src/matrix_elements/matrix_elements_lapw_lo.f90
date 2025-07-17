@@ -16,6 +16,7 @@ module matrix_elements_lapw_lo
   use modmpi
   use muffin_tin_basis, only: mt_basis_type, generate_non_zero_clebsch_gordan
   use mod_kpointset, only: G_set
+  use m_zfftifc, only: zfftifc
 
   implicit none
   private

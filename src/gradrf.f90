@@ -9,6 +9,7 @@
 Subroutine gradrf (rfmt, rfir, grfmt, grfir)
       Use modmain
       Use modinput
+      use m_zfftifc, only: zfftifc
       Implicit None
       Real (8), Intent (In) :: rfmt (lmmaxvr, nrmtmax, natmtot)
       Real (8), Intent (In) :: rfir (ngrtot)

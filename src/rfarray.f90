@@ -8,6 +8,7 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
       Use modmain
       Use modinput
       use modmpi
+      use m_zfftifc, only: zfftifc
 #ifdef USEOMP
       use omp_lib
 #endif

@@ -10,6 +10,7 @@
 subroutine ggair_sp_1(rhoup, rhodn, grho, gup, gdn, g2up, g2dn, g3rho, g3up, g3dn)
 ! !INPUT/OUTPUT PARAMETERS:
 use mod_Gvector
+use m_zfftifc, only: zfftifc
 !   rhoup : spin-up density (in,real(ngrtot))
 !   rhodn : spin-down density (in,real(ngrtot))
 !   grho  : |grad rho| (out,real(ngrtot))

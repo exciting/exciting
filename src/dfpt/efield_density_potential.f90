@@ -5,6 +5,7 @@ module efield_density_potential
   use dfpt_variables
   use dfpt_density_potential
   use efield_variables
+  use m_zfftifc, only: zfftifc
 
   use precision, only: dp
   use asserts, only: assert

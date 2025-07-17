@@ -5,6 +5,7 @@ module m_ematqk
   use precision,  only: dp
   use mod_ematptr
   use constants, only: pi, fourpi, zzero, zone, zil, zi
+  use m_zfftifc, only: zfftifc
   ! use lapack_f95_interfaces
 
   implicit none

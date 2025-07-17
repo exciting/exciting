@@ -28,6 +28,7 @@
 module phonons_force
   use dfpt_variables
   use phonons_variables
+  use m_zfftifc, only: zfftifc
 
   use precision, only: dp
 

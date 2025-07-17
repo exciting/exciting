@@ -8,6 +8,7 @@ module dfpt_density_potential
   use asserts, only: assert
   use modmpi, only: terminate_if_false
   use mod_kpointset, only: G_set
+  use m_zfftifc, only: zfftifc
 
   implicit none
   private

@@ -9,6 +9,7 @@
 Subroutine gwf2val (ik, evecfv, evecsv, gw2fmt, gw2fir)
       Use modmain
       Use modinput
+      use m_zfftifc, only: zfftifc
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik

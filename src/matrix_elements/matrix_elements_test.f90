@@ -58,6 +58,7 @@ module matrix_elements_test
   use mod_eigensystem, only: idxlo
   use mod_muffin_tin, only: nrmt, rmt, nrmtmax, lmmaxapw, idxlm
   use mod_lattice, only: omega, avec, ainv, bvec
+  use m_zfftifc, only: zfftifc
   use modinput
 
   implicit none

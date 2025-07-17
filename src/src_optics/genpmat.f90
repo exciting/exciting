@@ -14,6 +14,7 @@ Subroutine genpmat (ngp, igpig, vgpc, apwalm, evecfv, evecsv, pmat)
 ! !USES:
       Use modinput
       Use modmain
+      use m_zfftifc, only: zfftifc
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
 !   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))

@@ -12,7 +12,8 @@
 !
 Subroutine genveffig
 ! !USES:
-      Use modmain
+      use modmain
+      use m_zfftifc, only: zfftifc
 ! !DESCRIPTION:
 !   Generates the Fourier transform of the effective potential in the
 !   intersitial region. The potential is first multiplied by the characteristic

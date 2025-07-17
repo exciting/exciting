@@ -14,6 +14,7 @@ Subroutine ggair (grhoir, gupir, gdnir, g2upir, g2dnir, g3rhoir, &
 & g3upir, g3dnir)
 ! !INPUT/OUTPUT PARAMETERS:
       Use modinput
+      use m_zfftifc, only: zfftifc
 !   grhoir  : |grad rho| (out,real(ngrtot))
 !   gupir   : |grad rhoup| (out,real(ngrtot))
 !   gdnir   : |grad rhodn| (out,real(ngrtot))
