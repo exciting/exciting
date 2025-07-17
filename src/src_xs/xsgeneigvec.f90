@@ -11,7 +11,7 @@ subroutine xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
   use modmpi
   use modinput, only: input
   use modxs, only: unitout, vqlmt, vqcmt
-  use mod_misc, only: filext
+  use mod_misc, only: filext, task
   use m_filedel, only: filedel
   use m_genfilname, only: genfilname
 ! !INPUT/OUTPUT PARAMETERS:
@@ -49,6 +49,8 @@ subroutine xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
   ! Local variables
   character(*), parameter :: thisname = 'xsgeneigvec'
   integer(4) :: iq
+
+  logical :: noneq, lscr
 
   ! Check 
   if(qi > nqpts .or. qi < 1) then 
@@ -157,6 +159,33 @@ subroutine xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
       call filedel('SYMMULT_TABLE'//trim(filext))
       call filedel('SYMT2'//trim(filext))
     end if
+
+    ! copy rt-TDDFT occupation files if we are doing a pump-probe BSE
+    ! calculation
+    if ( rank == 0 ) then
+
+      noneq = input%xs%bse%noneqocc
+      lscr  = input%xs%bse%noneqscr
+      ! task 301 = xsgeneigvec
+      if ( task == 301 .and. noneq ) then
+        call system('cp OCCSV_NONEQ.OUT OCCSV_QMT001.OUT')
+      end if
+      ! task 401 = scrgeneigvec
+      if ( task == 401 ) then
+        if ( lscr ) then
+          call system('cp OCCSV_NONEQ.OUT OCCSV_SCR.OUT')
+        else
+          call system('cp OCCSV_EQ.OUT OCCSV_SCR.OUT')
+        end if
+      end if
+
+      ! task 445 = bse
+      if ( task == 445 .and. noneq ) then
+        call system('cp OCCSV_NONEQ.OUT OCCSV_QMT001.OUT')
+      end if
+
+    end if
+
 
   ! End loop over q-points
   end do
