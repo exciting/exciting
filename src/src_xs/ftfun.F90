@@ -14,6 +14,7 @@ Contains
          Use modmain
          use constants, only: fourpi
          Use modxs
+         use m_zfftifc, only: zfftifc
          Implicit None
     ! arguments
          Integer, Intent (In) :: ng

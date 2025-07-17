@@ -3,6 +3,7 @@ subroutine gv2xir(grho, vx, v2xsr)
 use modinput
 use mod_Gvector
 use mod_potential_and_density
+use m_zfftifc, only: zfftifc
 implicit none
 ! arguments
 real(8), intent(in) :: grho(ngrtot)

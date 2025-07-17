@@ -10,6 +10,7 @@ subroutine ggair_1(grho, g2rho, g3rho)
 ! !USES:
 use mod_Gvector
 use mod_potential_and_density
+use m_zfftifc, only: zfftifc
 ! !DESCRIPTION:
 !   Spin-unpolarised version of {\tt ggair\_sp\_1}.
 !   The gradient $(\nabla \rho)\cdot\nabla(|\nabla \rho|)$ is evaluated

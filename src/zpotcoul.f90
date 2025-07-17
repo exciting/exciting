@@ -13,6 +13,7 @@
 Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 & zn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
       Use modinput
+      use m_zfftifc, only: zfftifc
 ! !USES:
       Use modmain
 #ifdef USEOMP

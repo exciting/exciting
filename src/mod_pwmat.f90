@@ -14,6 +14,7 @@ module mod_pwmat
   use mod_misc, only : filext
   use mod_kpointset
   use modxs, only : fftmap_type
+  use m_zfftifc, only: zfftifc
 
   implicit none
   private

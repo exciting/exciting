@@ -31,6 +31,7 @@ contains
 
     subroutine init_misc_gw
         use modmain, only: avec
+        use m_zfftifc, only: zfftifc
         implicit none
         integer :: i, is, ia, ias
         integer :: ig, ifg

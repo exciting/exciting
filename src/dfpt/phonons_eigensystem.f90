@@ -6,6 +6,7 @@ module phonons_eigensystem
   use dfpt_variables
   use dfpt_eigensystem
   use phonons_variables
+  use m_zfftifc, only: zfftifc
 
   use precision, only: dp
 

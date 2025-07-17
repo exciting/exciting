@@ -13,8 +13,9 @@
 Subroutine genwfsv (tocc, ngp, igpig, evalsvp, apwalm, evecfv, evecsv, &
 & wfmt, wfir)
 ! !USES:
-      Use modinput
-      Use modmain
+      use modinput
+      use modmain
+      use m_zfftifc, only: zfftifc
 ! !INPUT/OUTPUT PARAMETERS:
 !   tocc    : .true. if only occupied wavefunctions are required (in,logical)
 !   ngp     : number of G+p-vectors (in,integer)

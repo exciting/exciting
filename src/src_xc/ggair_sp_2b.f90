@@ -14,6 +14,7 @@ subroutine ggair_sp_2b(g2up, g2dn, gvup, gvdn, vxup, vxdn, vcup, vcdn, dxdgu2, d
 use modinput
 ! !USES:
 use mod_Gvector
+use m_zfftifc, only: zfftifc
 ! !DESCRIPTION:
 !   Post processing step of interstitial gradients for GGA type 2. See routine
 !   {\tt ggamt\_sp\_2a} for full details.
