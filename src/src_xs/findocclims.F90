@@ -66,10 +66,15 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
   integer :: ik, ikq, i0, i
   logical :: t
 
+  logical :: noneq
+
   !write(*,*)
   !write(*,*) "findocclims here"
 
   call timesec(t0)
+
+  ! check if we are doing a pump-probe type BSE calculation
+  noneq = input%xs%bse%noneqocc
 
   t = allocated(evalsv0)
   if( .not. t) allocate(evalsv0(nstsv, nkpt))
@@ -101,6 +106,18 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     ! check whether they are (partially) occupied, in the sense that
     ! they contribute to the electron density (epsocc defaults to 10^-8). 
     ! Save for each k+q point the index of the highest (partially) occupied state.
+    ! ---------
+    ! added if for non-equilibrium case, revert to just else portion
+    ! maybe better turning if statment off (noneq -> false)
+    !if ( noneq ) then
+    !  io(ik) = nstsv
+    !else
+    !  do i = 1, nstsv
+    !    if(occsv(i, ikq) .lt. input%groundstate%epsocc) exit
+    !  end do
+    !  io(ik) = i - 1
+    !end if
+
     do i = 1, nstsv
       if(occsv(i, ikq) .lt. input%groundstate%epsocc) exit
     end do
@@ -110,6 +127,17 @@ subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, i
     ! check whether they are (partially) unoccupied and stop if the 
     ! state is fully occupied.
     ! Save for each k+q point the index of the lowest (partially) unoccupied state.
+    ! -----------
+    ! added if for non-equilibrium case, revert to just else portion
+    !if ( noneq ) then
+    !  iu(ik) = 1
+    !else
+    !  do i = nstsv, 1, -1
+    !    if(occsv(i, ikq) .gt. (occmax-input%groundstate%epsocc)) exit
+    !  end do
+    !  iu(ik) = i + 1
+    !end if
+
     do i = nstsv, 1, -1
       if(occsv(i, ikq) .gt. (occmax-input%groundstate%epsocc)) exit
     end do

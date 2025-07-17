@@ -434,6 +434,8 @@ module modbse
       logical :: fxas, fxes, posdiff
       character(*), parameter :: thisname = "select_transitions"
 
+      logical :: noneq
+
       call timesec(t0)
 
       ! Check whether mpi is used for the selection
@@ -539,6 +541,27 @@ module modbse
           iu2= input%xs%bse%nstlbse(4)+istunocc0-1
         end if
 
+      end if
+
+      ! If starting from non equilibrium occupations use nstlbse_noneq
+      ! If not set (default is 0), choose all bands (range from 1 to nstsv)
+      ! Note that all elements of nstlbse_noneq count from the first valence
+      ! band.
+      noneq = input%xs%bse%noneqocc
+      if(noneq) then
+        if(fxas) then 
+          io1 = xasstart
+          io2 = xasstop
+        else 
+          io1=1
+          if (input%xs%bse%nstlbse_noneq(1)>0) iu1=input%xs%bse%nstlbse_noneq(1)
+          io2=nstsv
+          if(input%xs%bse%nstlbse_noneq(2)>0) iu2=input%xs%bse%nstlbse_noneq(2)
+        end if 
+        iu1=1
+        if (input%xs%bse%nstlbse_noneq(3)>0) iu1=input%xs%bse%nstlbse_noneq(3)
+        iu2=nstsv
+        if (input%xs%bse%nstlbse_noneq(4)>0) iu2=input%xs%bse%nstlbse_noneq(4)
       end if
 
       if((istunocc0 < io1) .and. (.not. (fxas .or. fxes))) then
