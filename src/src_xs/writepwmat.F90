@@ -17,6 +17,7 @@ Subroutine writepwmat
       Use m_genfilname
       use mod_hybrids, only: hybridhf
       use constants, only: twopi
+      use mod_gen_lo, only: genlofr
 ! !DESCRIPTION:
 !   Calculates the matrix elements of the plane wave
 !   $e^{-i({\bf G}+{\bf q}){\bf r}}$

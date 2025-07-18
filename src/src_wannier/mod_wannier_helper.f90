@@ -14,6 +14,7 @@ module mod_wannier_helper
   use mod_potential_and_density, only: xctype
   use mod_misc,                  only: filext
   use mod_atoms,                 only: natmtot
+  use mod_gen_lo,                only: genlofr
   use mod_kpoint
   use m_getunit
 

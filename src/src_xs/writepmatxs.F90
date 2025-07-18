@@ -23,6 +23,7 @@ subroutine writepmatxs
                   & riploa, riplolo, apwcmt, locmt,&
                   & unitout, iqmtgamma
   use mod_hybrids, only: hybridhf
+  use mod_gen_lo, only: genlofr
   use m_putpmat
   use m_genfilname
 

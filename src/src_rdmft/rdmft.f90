@@ -10,6 +10,7 @@ Subroutine rdmft
 ! 1-reduced density matrix functional theory
       Use modinput
       Use modmain
+      use mod_gen_lo, only: genlofr
       Implicit None
 ! local variables
       Integer :: ik

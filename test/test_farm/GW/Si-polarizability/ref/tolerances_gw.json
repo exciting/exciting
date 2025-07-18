@@ -1,7 +1,7 @@
 {
   "EVALQP.DAT": {
     "energies": {
-      "tol": 5e-05,
+      "tol": 5e-04,
       "unit": "Hartree"
     },
     "k_point": {

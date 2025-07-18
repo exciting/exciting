@@ -5,6 +5,7 @@ module rttddft_GlobalMDVariables
   use mod_gvector, only: ngvec, vgc, sfacg
   use mod_spin, only: nspnfv
   use precision, only: dp, i32
+  use mod_gen_lo, only: genlofr
 
   implicit none
 

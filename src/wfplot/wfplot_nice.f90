@@ -25,6 +25,7 @@ module wfplot_nice
     use mod_muffin_tin, only: lmmaxapw
     use mod_eigensystem, only: nmatmax
     use mod_eigenvalue_occupancy, only: nstfv, nstsv
+    use mod_gen_lo, only: genlofr
 
    
     !> If the wfplot calculation is in the context of a xs calculation set this flag to true to 

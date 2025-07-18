@@ -10,6 +10,7 @@ Subroutine init2
       Use modxs
 #endif
       use mod_hybrids, only: hybridhf
+      use mod_gen_lo, only: genlofr
       Implicit None
 ! local variables
       logical :: redq, fremapq

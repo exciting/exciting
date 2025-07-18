@@ -10,6 +10,7 @@ Subroutine hybrids
     Use modmpi
     Use scl_xml_out_Module
     Use mod_hybrids
+    use mod_gen_lo, only: genlofr
 !
 ! !DESCRIPTION:
 !   Main routine for Hartree-Fock based hybrid functionals.
@@ -179,7 +180,7 @@ Subroutine hybrids
         call gencore()          ! generate the core wavefunctions and densities
         call linengy()          ! find the new linearization energies
         call genapwfr()         ! generate the APW radial functions
-        call genlofr(.false.)   ! generate the local-orbital radial functions
+        call genlofr()          ! generate the local-orbital radial functions
         call olprad()           ! compute the overlap radial integrals
         call energykncr()       ! core kinetic energy
         !

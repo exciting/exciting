@@ -44,6 +44,7 @@ subroutine bandstr
   use m_write_hdf5, only: hdf5_bandstructure_output
   use precision, only: dp 
   use secular_equation, only: seceqn
+  use mod_gen_lo, only: genlofr
 
   Integer(i32) :: lmax, lmmax, l, m, lm
   Integer(i32) :: ik, ispn, is, ia, ias, iv, ist

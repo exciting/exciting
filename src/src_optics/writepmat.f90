@@ -10,6 +10,7 @@ Subroutine writepmat
       Use modmain
       Use modmpi
       Use modxs
+      use mod_gen_lo, only: genlofr
 
 !!DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and

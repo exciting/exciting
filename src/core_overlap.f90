@@ -27,6 +27,7 @@ Subroutine core_overlap
   Use modxas, only: preml, ucore, ecore, mj2ml, spj, mj, ncg
   Use mod_hdf5
   use secular_equation, only: seceqn
+  use mod_gen_lo, only: genlofr
 
   ! !DESCRIPTION:
   ! Calculates the overlap between a selected group of core states and the 

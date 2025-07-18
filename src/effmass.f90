@@ -12,6 +12,7 @@ Subroutine effmass
       Use Fox_wxml
       use constants, only : zzero
       use secular_equation, only: seceqn
+      use mod_gen_lo, only: genlofr
       Implicit None
 ! local variables
       Integer, Parameter :: lwork = 10

@@ -15,6 +15,7 @@ subroutine init_product_basis()
     use modmpi,                only: mpi_allgatherv_ifc, barrier, rank
     use reallocate
     use precision,             only: i32, dp
+    use mod_gen_lo,            only: genlofr
 #include "offload.fpp"
 
     implicit none
