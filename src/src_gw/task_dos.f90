@@ -149,6 +149,7 @@ contains
       use modmain
       use modxs, only: isreadstate0
       use mod_hybrids, only: hybridhf
+      use mod_gen_lo, only: genlofr
       implicit none
       integer, intent(in)  :: lmax
       integer, intent(in)  :: lmmax

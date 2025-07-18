@@ -10,6 +10,7 @@ Subroutine writelsj
       Use modmain
       Use modinput
       Use Fox_wxml
+      use mod_gen_lo, only: genlofr
       Implicit None
 ! !DESCRIPTION
 ! local variables

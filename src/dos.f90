@@ -15,6 +15,7 @@ Subroutine dos
       use mod_lattice, only: bvec
       use mod_eigenvalue_occupancy, only: occmax, occsv
       Use modmpi, Only: rank, splittfile
+      use mod_gen_lo, only: genlofr
 ! !DESCRIPTION:
 !   Produces a total and partial density of states (DOS) for plotting. The total
 !   DOS is written to the file {\tt TDOS.OUT} while the partial DOS is written

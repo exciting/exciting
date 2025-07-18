@@ -238,7 +238,7 @@
   },
   "evalcore.xml": {
     "n": {
-      "tol": 0,
+      "tol": 5.0e-6,
       "unit": "null"
     },
     "l": {

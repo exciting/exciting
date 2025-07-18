@@ -23,6 +23,7 @@ subroutine macro_polarization( pol, mode)
   use mod_spin, only: nspinor
   use mod_Gvector, only: intgv
   use mod_Gkvector, only: gkmax
+  use mod_gen_lo, only: genlofr
 
   ! !INPUT/OUTPUT PARAMETERS:
   !   pol     : total, electronic, and ionic polarization vector (inout,real(3,3))

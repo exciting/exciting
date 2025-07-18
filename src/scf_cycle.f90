@@ -34,12 +34,14 @@ subroutine scf_cycle(verbosity)
     use total_energy, only: energy
     use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
     use TS_vdW_module, only: C6ab, R0_eff_ab
+    use mod_gen_lo, only: genlofr
     use kinetic_energy_density, only: gen_ked, ked_mt, ked_cr, ked_ir, ked_magmt, ked_magir
     use kinetic_energy_density_vars, only: ked_var_init, ked_var_free, timeked
     use mgga_potxc
     use mgga_poteff
     use mgga_init
     use mGGA_eigensystem
+    
     Implicit None
 
     integer(i32), intent(IN) :: verbosity
@@ -272,7 +274,7 @@ subroutine scf_cycle(verbosity)
           call linengy          ! find the new linearization energies
           if (rank==0) call writelinen
           call genapwfr         ! generate the APW radial functions
-          call genlofr(tlast)   ! generate the local-orbital radial functions
+          call genlofr          ! generate the local-orbital radial functions
           ! compute recommendations for local orbital trial energies
           if ((associated(input%groundstate%lorecommendation)) .and. (tlast)) then
             nodesmax = input%groundstate%lorecommendation%nodesmaxlo

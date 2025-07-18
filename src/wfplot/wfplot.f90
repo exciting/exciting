@@ -14,6 +14,7 @@ Subroutine wfplot(dostm)
     use modmpi, only : rank
     use mod_rhoir, only: genrhoir
     use mod_rhovalk, only: rhovalk
+    use mod_gen_lo, only: genlofr
     Implicit None
     Logical, Intent(in) :: dostm
     ! local variables

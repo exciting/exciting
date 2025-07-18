@@ -15,6 +15,7 @@ Subroutine hartfock
       Use modinput
       use total_energy, only: energy
       use mod_rhovalk, only: rhovalk
+      use mod_gen_lo, only: genlofr
 ! !DESCRIPTION:
 !  Computes the self-consistent Hartree Fock ground state.
 !

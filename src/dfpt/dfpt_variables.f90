@@ -51,6 +51,7 @@ module dfpt_variables
       use mod_lattice, only: bvec
       use mod_Gkvector, only: gkmax
       use mod_kpointset, only: generate_k_vectors, generate_G_vectors, generate_Gk_vectors
+      use mod_gen_lo, only: genlofr
 
       ! initialize global variables
       call init0
