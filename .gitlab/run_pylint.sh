@@ -27,6 +27,13 @@ echo "Running pylint on python files with diff w.r.t. ${reference_branch}:"
 # Apply pylint to python files
 for file in $(echo "$changed_files" | tr " " "\n")
 do
+   # Skip files in any 'external' folder
+   # This is to avoid issues with packages containing python
+   if [[ "$file" == external/* || "$file" == */external/* ]]; then
+    echo "Skipping external file: $file"
+    continue
+  fi
+
   echo "Checking file: $file"
   # F0001 disables import errors. This is a workaround for when files
   # have been deleted between commits (and there's nothing 
