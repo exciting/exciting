@@ -15,11 +15,12 @@ class Compiler(enum.Enum):
     gcc = enum.auto()
     intelLLVM = enum.auto()
     cray = enum.auto()
+    flang = enum.auto()
     all = enum.auto()
 
 
-compiler_enum_map = {'ifort': Compiler.intel, 'ifx': Compiler.intelLLVM, 'gfortran': Compiler.gcc, 'Cray': Compiler.cray}
-compiler_version_identifier_map = {'ifort': Compiler.intel, 'ifx': Compiler.intelLLVM, 'GNU': Compiler.gcc, 'Cray': Compiler.cray}
+compiler_enum_map = {'ifort': Compiler.intel, 'ifx': Compiler.intelLLVM, 'gfortran': Compiler.gcc, 'Cray': Compiler.cray, 'flang': Compiler.flang}
+compiler_version_identifier_map = {'ifort': Compiler.intel, 'ifx': Compiler.intelLLVM, 'GNU': Compiler.gcc, 'Cray': Compiler.cray, 'flang': Compiler.flang}
 
 class BuildType(enum.Enum):
     """

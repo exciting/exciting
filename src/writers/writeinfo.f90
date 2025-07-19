@@ -17,21 +17,22 @@ Subroutine writeinfo (fnum)
                           notelns, notes
       use mod_muffin_tin, only: idx_species_fixed_rmt
       use mgga_init, only: xcdescr_mgga
+      use precision, only: i32, dp, str_1024
 #ifdef TETRA
       Use modtetra
 #endif
 
       Implicit None
       !>  Unit specifier for INFO.OUT file
-      Integer, intent(in) :: fnum
+      integer(i32), intent(in) :: fnum
 
-      Integer :: i, is, ia
+      Integer(i32) :: i, is, ia
 #ifdef TETRA
       logical :: tetocc
 #endif
       Character (10) :: dat, tim, acoord
-      character*(77) :: string
-      real(8) :: dumsum 
+      character(len=str_1024) :: string
+      real(dp) :: dumsum
 
       acoord = "lattice"
       if (input%structure%cartesian) acoord = "cartesian"
