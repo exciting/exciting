@@ -163,8 +163,8 @@ set(CRAY_RELEASE -O2 -ef -g -craype-verbose -e Z -dC -s real64 -s integer32 -fPI
 set(CRAY_DEBUG   -O0 -ef -g -fsanitize=thread -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern)
 
 # Flang compiler
-set(FLANG_RELEASE    -cpp -fno-fast-math -flto)
-set(FLANG_DEBUG   -g -cpp -fno-fast-math -flto)
+set(FLANG_RELEASE -O3 -cpp -fno-fast-math -flto)
+set(FLANG_DEBUG   -O0 -g -cpp -fno-fast-math -flto)
 
 if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
    set(FF_DEBUG ${GCC_DEBUG})

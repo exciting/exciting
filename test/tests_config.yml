@@ -109,6 +109,9 @@ groundstate/LDA_PW-collinear-Fe:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
+      - !Build flang_mpiandsmp
+      - !Build flang_serial
+      - !Build flang_smp
    comments: 'Most energies differ to reference by ~1.e-7. \n
    scl%Sum of eigenvalues by ~ 1.e-6. \n
    DOS at Fermi differs by 5.7e-04. '
@@ -127,6 +130,9 @@ groundstate/LDA_PW-noncollinear-Fe:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
+      - !Build flang_mpiandsmp
+      - !Build flang_serial
+      - !Build flang_smp
    comments: 'Variation in total energy w.r.t. reference is too large.'
 
 groundstate/LDA_PW-PbTiO3:
@@ -141,6 +147,7 @@ groundstate/LDA_PW-PbTiO3:
       - !Build intel_mpiandsmp
       - !Build gcc_mpiandsmp
       - !Build intelLLVM_mpiandsmp
+      - !Build flang_mpiandsmp
 
 groundstate/LDA_VWN-Ar:
 
@@ -294,7 +301,7 @@ BSE/PBE-PbI2-emat_with_BSE:
      - !Build intel_mpiandsmp
      - !Build gcc_mpiandsmp
      - !Build intelLLVM_mpiandsmp
-     
+     - !Build flang_mpiandsmp
       
 GW/ZnO-PBESOL:
    files_under_test:
@@ -656,12 +663,14 @@ hybrid/HSE-Si-exact-singularity:
    failing_builds:
       - !Build intel_mpiandsmp
       - !Build intelLLVM_mpiandsmp
+      - !Build flang_mpiandsmp
    comments: 'Test is flakey when run in the CI with Intel parallel build.'
 
 hybrid/HSE-Si:
    failing_builds:
       - !Build intel_mpiandsmp
       - !Build intelLLVM_mpiandsmp
+      - !Build flang_mpiandsmp
    comments: 'Test is flakey when run in the CI with Intel parallel build.'
 
 # TODO(Cecilia) Issue 54
@@ -669,6 +678,7 @@ hybrid/PBE0-Si:
    failing_builds:
       - !Build intel_mpiandsmp
       - !Build intelLLVM_mpiandsmp
+      - !Build flang_mpiandsmp
    comments: 'Test is flakey when run in the CI with Intel parallel build.'
 
 hybrid/PBEH-spin-Si:
@@ -697,6 +707,9 @@ properties/LDA_PW-ldos-Si:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
+      - !Build flang_mpiandsmp
+      - !Build flang_serial
+      - !Build flang_smp
    comments: 'Numbers are completely different - reference data needs reviewing.'
    files_under_test:
       - "ldos.out"
@@ -718,6 +731,9 @@ properties/LDA_PW-optical_properties-Si:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
+      - !Build flang_mpiandsmp
+      - !Build flang_serial
+      - !Build flang_smp
    comments: 'Epsilon 11 and 33 do not agree with serial reference values. \n
    - CHI_111.OUT also reviews reviewing.'
 
@@ -735,6 +751,9 @@ properties/LDA_PW-SO-spintexture-Si:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
+      - !Build flang_mpiandsmp
+      - !Build flang_serial
+      - !Build flang_smp
    comments: "Reference data needs reviewing"
 
 # TODO(Maria) Issue 55
@@ -749,6 +768,9 @@ properties/LDA_PW-transport-Si:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
+      - !Build flang_mpiandsmp
+      - !Build flang_serial
+      - !Build flang_smp
    comments: 'Test is flakey when run in the CI with GCC builds: Test outputs are not written.\n
      Results with Intel for THERMALCOND_11 and ELECTCOND_11 have large absolute errors.'
 
@@ -764,6 +786,9 @@ properties/LDA_PZ-wannier-SiC:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
+      - !Build flang_mpiandsmp
+      - !Build flang_serial
+      - !Build flang_smp
 
 properties/PBE_SOL-core_overlap-BN:
    files_under_test:
