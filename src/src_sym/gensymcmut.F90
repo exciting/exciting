@@ -8,7 +8,7 @@
 !
 ! !INTERFACE:
 Subroutine gensymcmut (eps, maxsymcrys, nsymcrys, symlat, lsplsymc, &
-& vtlsymc, scmut, tabel, tspainvsym)
+& vtlsymc, scmut, tabel, tspainvsym, inv_sym_no_translation)
 ! !DESCRIPTION:
 !   Sets up the group multiplication table. The table is checked for consistency
 !   in a way that it is required that every elements occurs once and only once
@@ -30,6 +30,7 @@ Subroutine gensymcmut (eps, maxsymcrys, nsymcrys, symlat, lsplsymc, &
       Integer, Intent (Out) :: scmut (nsymcrys, nsymcrys)
       Logical, Intent (Out) :: tabel
       Logical, Intent (Out) :: tspainvsym
+      Logical, Intent (Out) :: inv_sym_no_translation
   ! local variables
       Integer :: isym, jsym, asym, lspli, lsplj, lspla, iv (3), nsis
       Integer :: doner (maxsymcrys), donec (maxsymcrys)
@@ -37,13 +38,19 @@ Subroutine gensymcmut (eps, maxsymcrys, nsymcrys, symlat, lsplsymc, &
      & vtt (3), vtl (3), vtla (3)
       scmut (:, :) = 0
       nsis=0
+      inv_sym_no_translation = .false.
       Do isym = 1, nsymcrys
          lspli = lsplsymc (isym)
          si (:, :) = dble (symlat(:, :, lspli))
          ! check for spatial inversion symmetry
          sj(:,:)=si(:,:) - &
          reshape((/-1.d0,0.d0,0.d0, 0.d0,-1.d0,0.d0, 0.d0,0.d0,-1.d0/), (/3,3/))
-         if ((sum(abs(sj)) .lt. eps)) nsis=nsis+1
+         if (sum(abs(sj)) .lt. eps) then
+             nsis=nsis+1
+             if (sum(abs(vtlsymc (:, isym))) < eps) then
+                 inv_sym_no_translation = .true.
+             end if
+         end if
          Do jsym = 1, nsymcrys
             lsplj = lsplsymc (jsym)
             sj (:, :) = dble (symlat(:, :, lsplj))

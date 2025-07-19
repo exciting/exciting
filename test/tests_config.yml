@@ -234,6 +234,8 @@ groundstate/LDA_PW-lapack-BN:
 
 groundstate/mGGA_TPSS-Si:
 
+groundstate/LDA_PW-inversion-symmetry-CO2:
+
 BSE/PBE_SOL-LiF:
     failing_builds:
       - !Build intelLLVM_mpiandsmp

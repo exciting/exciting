@@ -40,6 +40,8 @@ Subroutine init0
       use sirius_init, only: sirius_options
       use sirius_api, only: setup_sirius, get_mpi_comm_sirius, gengvec_sirius, warn_array_sizes_sirius,&
                             set_periodic_function_ptr_sirius
+      Use modsym, only: spainvsym, inv_sym_no_translation
+      Use mod_secular_equation_inversion_symmetry,only: check_usage_of_inversion_symmetry_solver
 
       Implicit None
 
@@ -268,10 +270,12 @@ Subroutine init0
      & symlat, lsplsymc, vtlsymc, isymlat, scimap)
 ! generate symmetrization array for rank 2 tensors
       Call gensymt2 (maxsymcrys, nsymcrys, symlatc, lsplsymc, symt2)
+#endif
 ! calculate advanced information on symmetry group
       Call setupsym
-#endif
-
+! check if inversion symmetry is present in order to use the real solver, and if the relevant input parameter is
+! defined correctly.
+      Call check_usage_of_inversion_symmetry_solver(spainvsym, inv_sym_no_translation)
 ! automatically determine the muffin-tin radii if required
       If (input%structure%autormt .and. (idx_species_fixed_rmt .gt. 0)) then 
             Call optimal_rmt(rmt, spzn, input%structure%crystal%basevect, atposc,&

@@ -6,13 +6,13 @@
 ! See the file COPYING for license details.
 !
 module secular_equation
-  implicit none 
+  implicit none
 
   private
 
   public :: seceqn
 
-contains 
+contains
 
 ! !REVISION HISTORY:
 !   Created March 2004 (JKD)
@@ -66,8 +66,8 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv, cdft_maximum_overlap)
          Call timesec(ts1)
          timematch=ts1-ts0+timematch
      ! solve the first-variational secular equation
-         Call seceqnfv(ik, nmat(ispn,ik), ngk(ispn,ik), &
-        &  igkig(:,ispn,ik), vgkc(:,:,ispn,ik), apwalm(:,:,:,:,ispn), &
+         Call seceqnfv(ik, ispn, nmat(ispn,ik), ngk(ispn,ik), &
+        &  igkig(:,ispn,ik), vgkc(:,:,ispn,ik), apwalm(:,:,:,:,ispn), sfacgk(:, :, ispn, ik), tpgkc(:, :, ispn, ik), &
         &  is_maximum_overlap_method_used, &
         & evalfv(:,ispn), evecfv(:,:,ispn))
       End Do
