@@ -162,7 +162,7 @@ add_library(excitingLib_objects OBJECT ${SRC_DEVICEACC} ${EXCITINGLIB_SRC_FILES}
                                     
 include_directories(${CMAKE_Fortran_MODULE_DIRECTORY})
 # Check exciting has all dependencies compiled
-add_dependencies(excitingLib_objects XC FoX_dom FoX_sax FoX_utils FoX_wcml FoX_wxml FoX_fsys FoX_common)
+add_dependencies(excitingLib_objects libIDieL XC FoX_dom FoX_sax FoX_utils FoX_wcml FoX_wxml FoX_fsys FoX_common)
 target_include_directories(excitingLib_objects PRIVATE ${GX_MODULES})
 
 # Here create exciting library
@@ -179,9 +179,9 @@ target_link_libraries(FoX INTERFACE FoX_dom FoX_sax FoX_wxml FoX_common FoX_util
 
 #Link exciting library with other libs
 target_link_libraries(excitingLib PUBLIC leblaik lbfgsb XC GXCommon LibGXMiniMax bzint
-	                          FoX ${SCALAPACK_LIB} ${SIRIUS_LIB}
-                                  ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBS}
-                                  ${FFTW3_LIBRARIES} ${MPI_LIBS} ${LINKS_DEVICEACC})
+	                                 FoX libIDieL ${SCALAPACK_LIB} ${SIRIUS_LIB}
+                                         ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBS}
+                                         ${FFTW3_LIBRARIES} ${MPI_LIBS} ${LINKS_DEVICEACC})
 
 # Set the linker to Fortran, otherwise C++ might be used in some cases
 set_property(TARGET excitingLib PROPERTY LINKER_LANGUAGE Fortran)
@@ -213,7 +213,7 @@ set_property(TARGET ${exciting_name} PROPERTY LINKER_LANGUAGE Fortran)
 # Ensure that the libraries are found
 if(MAGMA_DIR)
     set_target_properties(${exciting_name} PROPERTIES
-                INSTALL_RPATH "${MAGMA_DIR}/lib/libmagma.so"
+                INSTALL_RPATH "${MAGMA_DIR}/lib/"
                 INSTALL_RPATH_USE_LINK_PATH TRUE)
 else()
     set_target_properties(${exciting_name} PROPERTIES
@@ -233,7 +233,7 @@ install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}
 
 # Install exciting library
 set_target_properties(excitingLib PROPERTIES
-    INSTALL_RPATH "${MAGMA_DIR}/lib/"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libL:${MAGMA_DIR}/lib/"
     INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
