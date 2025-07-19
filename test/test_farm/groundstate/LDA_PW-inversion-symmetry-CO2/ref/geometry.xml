@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>CO2 molecule</title>
+  <structure speciespath="/home/mara/exciting/species" cartesian="true">
+    <crystal>
+      <basevect>   10.00000000       0.000000000       0.000000000</basevect>
+      <basevect>   0.000000000       5.000000000       0.000000000</basevect>
+      <basevect>   0.000000000       0.000000000       5.000000000</basevect>
+    </crystal>
+    <species speciesfile="C.xml" rmt="1.0000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    </species>
+    <species speciesfile="O.xml" rmt="1.0000">
+      <atom coord="2.5000000000      0.0000000000      0.0000000000"/>
+      <atom coord="7.5000000000      0.0000000000      0.0000000000"/>
+    </species>
+  </structure>
+</input>

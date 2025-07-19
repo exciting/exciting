@@ -15,6 +15,9 @@ Module modsym
       Logical :: abelsg
   ! true if symmetry group contains spatial inversion symmetry
       Logical :: spainvsym
+  ! Space-group symmetry operations are composed of a rotational (or linear) part and a translational part.
+  ! This variable is true if the translational part of the inversion symmetry operation is equal to zero.
+      Logical :: inv_sym_no_translation
   ! symmetry group multiplication table
       Integer, Allocatable :: sgmut (:, :)
 !

@@ -778,6 +778,7 @@
                  <xs:restriction base="xs:string">
                    <xs:enumeration value="Lapack"/>
                    <xs:enumeration value="Davidson"/>
+                   <xs:enumeration value="inversionsymmetry"/>
                  </xs:restriction>
                </xs:simpleType>
             </xs:attribute>

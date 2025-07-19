@@ -29,6 +29,8 @@ Subroutine init1
       use sirius_init, only: use_sirius_gkvec
       use sirius_api,  only: setup_sirius_gs_handler, get_gkvec_arrays_sirius, &
                              get_max_num_gkvec_sirius
+      Use mod_secular_equation_inversion_symmetry, only: build_coefficient_matrix_lo, &
+                                                         set_lo_transformation_matrix_inv_sym
 
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
@@ -54,6 +56,7 @@ Subroutine init1
       ! +/-1 for sign of spin-dependent term
       real (8) :: sign
       Integer :: num_of_basis_functions_sv
+      Complex(dp), allocatable :: coeff_matrix(:,:), lo_transformation_matrix_inv_sym(:,:,:,:)
       call stopwatch("exciting:init1", 1)
 
       wannierband = .false.
@@ -495,6 +498,7 @@ Subroutine init1
       Allocate (npmat(nspnfv, nkpt))
       nmatmax = 0
       nmatmax_ptr => nmatmax
+      Allocate(lo_transformation_matrix_inv_sym(nlotot, nlotot, nspnfv, nkpt))
       Do ik = 1, nkpt
          Do ispn = 1, nspnfv
             nmat (ispn, ik) = ngk (ispn, ik) + nlotot
@@ -505,6 +509,18 @@ Subroutine init1
             nstfv = Min (nstfv, nmat(ispn, ik))
          End Do
       End Do
+
+! build LO coefficient matrix needed for the real solver in the case of inversion symmetry
+      If (input%groundstate%solver%type == 'inversionsymmetry') then
+          Do ik = 1, nkpt
+             Do ispn = 1, nspnfv
+                Call build_coefficient_matrix_lo(nspecies, natoms, idxas, lmmaxapw, nlorb, lorbl, nlotot, &
+                ngk(ispn, ik), idxlm, idxlo, sfacgk(:, :, ispn, ik), tpgkc(:, :, ispn, ik), coeff_matrix)
+                lo_transformation_matrix_inv_sym(:,:,ispn,ik) = coeff_matrix
+             End Do
+          End Do
+          Call set_lo_transformation_matrix_inv_sym(lo_transformation_matrix_inv_sym)
+      End If
 
 ! In the standard second-variation implementation, the number of basis functions 
 ! is equal to the number of first variational states. 

@@ -247,7 +247,7 @@ solver_attribute_types = {"constructHS": (bool, 1),
                           "evaltol": (float, 1),
                           "minenergy": (float, 1),
                           "packedmatrixstorage": (bool, 1),
-                          "type": (str, ["Davidson", "Lapack"])} 
+                          "type": (str, ["Davidson", "Lapack", "inversionsymmetry"])} 
 
 OEP_attribute_types = {"convoep": (float, 1), "maxitoep": (int, 1), "tauoep": (float, 3)} 
 

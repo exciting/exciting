@@ -2,7 +2,7 @@
 ! See the file COPYING for license details.
 ! Copyright (C) exciting Code, SOL group. 2025
 
-! Created April 2025 (Mara)
+! Created April 2025 (Mara Voiculescu)
 
 !> Module for taking advantage of inversion symmetry when solving the secular equation.
 !>
@@ -28,11 +28,14 @@ module mod_secular_equation_inversion_symmetry
   use modfvsystem, only: evsystem
   use generalized_hermitian_eigenproblem, only: solve_generalized_hermitian_eigenproblem
   use modfvsystem, only: deletesystem
+  use modmpi, only: terminate_if_false
+  use xstring, only: newline
 
   implicit none
   private
   public :: get_lo_transformation_matrix_inv_sym, set_lo_transformation_matrix_inv_sym, build_coefficient_matrix_lo, &
-       solve_secular_equation_inversion_symmetry, transform_eigenvectors_inversion_symmetry
+       solve_secular_equation_inversion_symmetry, transform_eigenvectors_inversion_symmetry, &
+       check_usage_of_inversion_symmetry_solver
 
 
   !> Coefficients for attaching the LOs to fictitious planewaves
@@ -314,5 +317,41 @@ contains
     eigenvectors_out(ngp+1:nmatp,:)=eigenvectors_lo(:,:)
 
   end subroutine transform_eigenvectors_inversion_symmetry
+
+  !> Checks the use of the inversion-symmetry solver as specified in the input file.
+  !>
+  !> If the inversion-symmetry solver is selected, the code checks that:
+  !>   - The structure exhibits inversion symmetry.
+  !>   - The inversion center is located at the origin of the unit cell.
+  !>
+  !> If either condition is not met, the code terminates with a relevant error message.
+  !>
+  !> Conversely, if the standard solver is used but the structure does possess inversion symmetry with the correct
+  !> placement of the inversion center, a warning is written in the WARNINGS.OUT file recommending the use of the
+  !> inversion-symmetry solver.
+  subroutine check_usage_of_inversion_symmetry_solver(spainvsym, inv_sym_no_translation)
+    !> spainvsym is .true. if symmetry group contains spatial inversion symmetry
+    logical, intent(in) :: spainvsym
+    !> inv_sym_no_translation is .true. if corresponding translation vector of inversion symmetry operation is zero
+    logical, intent(in) :: inv_sym_no_translation
+
+    ! Local variables
+    character(:), allocatable :: error_message
+
+    if (input%groundstate%solver%type == 'Lapack' .and. spainvsym .and. &
+         inv_sym_no_translation) then
+       call warning('Inversion symmetry is present. Consider using input%groundstate%solver%type = "inversionsymmetry"')
+    elseif (input%groundstate%solver%type == 'inversionsymmetry' .and. .not. spainvsym) then
+       error_message = 'System does not possess inversion symmetry.' // newline // &
+            'Use input%groundstate%solver%type = "Lapack".'
+       call terminate_if_false(.false., error_message)
+    elseif (input%groundstate%solver%type == 'inversionsymmetry' .and. spainvsym .and. &
+         .not. inv_sym_no_translation) then
+       error_message = 'Inversion center is not in the origin of the unit cell.' // newline // &
+            'Update the structure manually or use input%groundstate%solver%type = "Lapack".'
+       call terminate_if_false(.false., error_message)
+    endif
+
+  end subroutine check_usage_of_inversion_symmetry_solver
 
 end module mod_secular_equation_inversion_symmetry
