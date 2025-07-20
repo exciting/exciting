@@ -4,7 +4,8 @@ module task_group
   use modgw, only: kqset, kset, ibgw, nbgw, kiw, ciw, Gset, Gkset, Gqset, Gqbarc, freq, nvelgw, nbandsgw
   use modinput, only: input, gw_type, isspinorb
   use modmpi, only: mpiglobal, terminate_if_false, barrier
-  use mod_bands, only: evalfv, numin, nstdf
+  use mod_bands, only: evalfv, numin, nstdf, nstse
+  use mod_core_states, only: n_core_states => ncg
   use mod_coulomb_potential, only: calculate_singularities_coeff
   use mod_dielectric_function, only: delete_dielectric_function
   use mod_frequency, only: delete_freqgrid
@@ -50,6 +51,7 @@ module task_group
     logical :: task_vxc
     logical :: task_QPEigenvalues
     logical :: analytical_limit
+    logical :: dry_run
   contains
     procedure :: parse_input
   end type
@@ -59,11 +61,11 @@ contains
   !> `taskGroup` element (within `gw`)
   subroutine execute_task_group
     type(task_group_parameters) :: input_parameters
-    integer(i32) :: n_qpoints, n_kpoints, first_empty_state, last_empty_state
+    integer(i32) :: n_qpoints, n_kpoints, first_state, first_empty_state, last_empty_state, m_dim
     integer(i32) :: n_qpoints_invertepsilon, n_qpoints_epsilon, i
 
     call input_parameters%parse_input( input%gw )
-    call initialize
+    call initialize()
     n_qpoints         = kqset%nkpt
     n_kpoints         = kset%nkpt
 
@@ -74,7 +76,7 @@ contains
       call execute_task_vxc( ibgw, nbgw, kset%vkl(:, 1:kset%nkpt), input_parameters%output_format, mpiglobal )
 
     ! clean not used anymore global exciting variables
-    call clean_gndstate
+    call clean_gndstate()
 
     if( input_parameters%task_Coulomb ) &
       call execute_task_Coulomb( n_qpoints, input_parameters%output_format )
@@ -106,9 +108,9 @@ contains
       ! A barrier is necessary to ensure that all processes have completed outputting the bare Coulomb matrix
       call barrier( mpiglobal )
       if (input_parameters%usingIrreducibleWedge_in_task_epsilon) then
-        call execute_task_epsilon( kqset%vqc, kset%ikp2ik(1:kset%nkpt), kqset%nkpt, first_empty_state, last_empty_state, input_parameters%output_format )
+        call execute_task_epsilon( kqset%vqc, kset%ikp2ik(1:kset%nkpt), kqset%nkpt, first_empty_state, last_empty_state, input_parameters%output_format, input_parameters%dry_run )
       else
-        call execute_task_epsilon( kqset%vqc, [(i, i = 1, kqset%nkpt)], kqset%nkpt, first_empty_state, last_empty_state, input_parameters%output_format )
+        call execute_task_epsilon( kqset%vqc, [(i, i = 1, kqset%nkpt)], kqset%nkpt, first_empty_state, last_empty_state, input_parameters%output_format, input_parameters%dry_run )
       end if
     end if
 
@@ -134,12 +136,17 @@ contains
       call execute_task_irreducibleMapping(n_kpoints, input_parameters%output_format)
     end if
 
+    ! Here, the number of empty states may be different from that used to obtain epsilon
+    first_state = 1
+    last_empty_state = nstse
+    m_dim = last_empty_state
+    if( input%gw%coreflag == 'all' ) m_dim = m_dim + n_core_states
     if( input_parameters%task_sigmac ) then
       ! A barrier is necessary to ensure that all processes have completed outputting the inverse of the epsilon
       ! in the full BZ
       call barrier( mpiglobal )
       if( input_parameters%analytical_limit ) call set_singc12
-      call execute_task_sigmac( n_kpoints, kqset%vqc, input_parameters%output_format )
+      call execute_task_sigmac( n_kpoints, kqset%vqc, first_state, first_state+m_dim-1, input_parameters%output_format )
     end if
     
     if( input_parameters%task_QPEigenvalues ) then
@@ -148,15 +155,15 @@ contains
       call execute_task_QPEigenvalues( ibgw, nbgw, kset, input_parameters%output_format )
     end if
 
-    call delete_selfenergy
+    call delete_selfenergy()
 
   end subroutine
 
 
   !> Initialize global parameters needed for a GW calculation
-  subroutine initialize
+  subroutine initialize()
     ! prepare GW global data
-    call init_gw
+    call init_gw()
       
     call kintw()
     singc1 = 0.0_dp
@@ -193,6 +200,7 @@ contains
     this%task_vxc = associated( gw_inp%taskGroup%vxc )
     this%task_QPEigenvalues = associated( gw_inp%taskGroup%QPEigenvalues )
     this%analytical_limit = ( trim(gw_inp%scrcoul%averaging) == '2d' )
+    this%dry_run = gw_inp%taskGroup%dryRun
 
     call deallocate_global_arrays
 

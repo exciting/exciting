@@ -2,7 +2,7 @@
 ! Calculates the q-dependent correlation term of the self-energy
 ! using the frequency convolution
 !==================================================================
-subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
+subroutine calcselfc_freqconv_ac(ikp, iq)
     use modinput, only: input
     use mod_atoms, only: idxas
     use mod_eigenvalue_occupancy, only: efermi
@@ -16,19 +16,19 @@ subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
     use mod_gw_degeneracies, only: get_degenerate_limits_qp_interval_ikp, &
                                    degenerate_subspaces
     use precision, only: i32, dp
-    ! input variables
+
     implicit none
+
     integer(i32), intent(in) :: ikp
     integer(i32), intent(in) :: iq
-    integer(i32), intent(in) :: mdim
-    ! local variables
+    
     integer(i32) :: ik, jk, jkp
     integer(i32) :: ia, is, ias, ic, icg
-    integer(i32) :: ie1, ie2, i1, i2, n, m
-    integer(i32) :: iom, jom, kom
-    real(dp)     :: enk, wdiff, w_sc, f1, f2
-    complex(dp) :: xnm(1:freq%nomeg)
-    complex(dp) :: sc, zt1, zt2
+    integer(i32) :: ie1, ie2
+    integer(i32) :: iom, jom
+    real(dp)     :: enk, wdiff, w_sc
+    complex(dp)  :: xnm(1:freq%nomeg)
+    complex(dp)  :: sc, zt1, zt2
     ! For the averaging over degenerate states
     integer(i32) :: ispace_init, ispace_final, ispace, lowband, upband, size_deg
 
@@ -53,7 +53,7 @@ subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
       ! Sum over states in the degenerate subspace
       do ie1 = lowband, upband
         
-        do ie2 = 1, mdim
+        do ie2 = lbound( mwm, 2 ), ubound( mwm, 2 )
 
           if ( ie2 <= nstse ) then
             !=============================
@@ -75,7 +75,7 @@ subroutine calcselfc_freqconv_ac(ikp,iq,mdim)
           xnm(:) = mwm(ie1,ie2,:)
 
           ! for each frequency
-          do iom = 1, freq_selfc%nomeg
+          do iom = lbound( selfec, 2 ), ubound( selfec, 2 )
 
             w_sc = freq_selfc%freqs(iom)
 

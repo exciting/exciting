@@ -912,6 +912,7 @@ gw_attribute_types = {"GBatchCount": (int, 1),
                       "nbgw": (int, 1),
                       "nempty": (int, 1),
                       "ngridq": (int, 3),
+                      "printKpoints": (bool, 1),
                       "printSelfC": (bool, 1),
                       "printSpectralFunction": (bool, 1),
                       "qdepw": (str, 1),
@@ -960,7 +961,7 @@ scrcoul_attribute_types = {"averaging": (str, ["2d", "isotropic"]),
                            "scrtype": (str, 1),
                            "subgrid_q0": (int, 3)} 
 
-taskGroup_attribute_types = {"outputFormat": (str, ["binary", "text"])} 
+taskGroup_attribute_types = {"dryRun": (bool, 1), "outputFormat": (str, ["binary", "text"])} 
 taskGroup_valid_subtrees = ["Coulomb", "polarizability", "epsilon", "invertEpsilon", "irreducibleMapping", "sigmac",
                             "sigmax", "vxc", "QPEigenvalues"] 
 
@@ -992,6 +993,7 @@ irreducibleMapping_valid_subtrees = ["qpoints"]
 irreducibleMapping_mandatory_attributes = ["qpoints"] 
 irreducibleMapping_multiple_children = ["qpoints"] 
 
+sigmac_attribute_types = {"MPIDomainsKpoints": (int, 1), "MPIDomainsQpoints": (int, 1)} 
 sigmac_valid_subtrees = ["kpoints"] 
 sigmac_mandatory_attributes = ["kpoints"] 
 sigmac_multiple_children = ["kpoints"] 

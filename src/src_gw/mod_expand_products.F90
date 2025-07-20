@@ -108,8 +108,6 @@ contains
 
     call assert( dim_n_val + dim_n_core == dim_n, &
          'Dimension mismatch for n in M^i_{nm}' )
-    call assert( dim_m_val + dim_m_core == dim_m, &
-         'Dimension mismatch for m in M^i_{nm}' )
 
     !> Zero full array (Intel-optimized if available)
     OMP_OFFLOAD target
@@ -135,7 +133,7 @@ contains
     end if
     if(n_val_start<=n_val_end .and. m_core_start<=m_core_end) then
        call expand_products_block_wrapper(ik,iq,n_val_start,n_val_end,m_core_start,m_core_end, &
-            FLAG_VC,minm, 0, dim_m_val, apply_barc)
+            FLAG_VC,minm, 0, m_val_end, apply_barc)
     end if
     if(n_core_start<=n_core_end .and. m_core_start<=m_core_end) then
        call expand_products_block_wrapper(ik,iq,n_core_start,n_core_end,m_core_start,m_core_end, &

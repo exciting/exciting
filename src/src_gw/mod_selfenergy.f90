@@ -1,9 +1,11 @@
 
 module mod_selfenergy
+    use asserts, only: assert
     use constants, only: zzero
     use gw_io, only: build_file_name, read_from_file, write_to_file, read_bounds_from_file
     use mod_frequency, only: frequency, generate_freqgrid
     use precision, only: i32, dp
+    use to_char_conversion, only: to_char
 
     implicit none
 
@@ -352,31 +354,32 @@ contains
     end subroutine
 
     !---------------------------------------------------------------------------
-    subroutine plot_selfc()
-      integer(i32) :: ik, nk, nb, iw
-      real(dp) :: w
-      character(22) :: frmt
-      nb = size(selfec,1)
-      nk = size(selfec,3)
-      !--------------------------------------
-      ! Self-energy along the real axis
-      !--------------------------------------
-      open(71, file='SelfC-Re.dat', form='FORMATTED', status='UNKNOWN', action='WRITE')
-      open(72, file='SelfC-Im.dat', form='FORMATTED', status='UNKNOWN', action='WRITE')
-      write(frmt, '("(",i8,"f14.6)")') 1+nb
-      do ik = 1, nk
-          write(71,*) '# ik = ', ik
-          write(72,*) '# ik = ', ik
-          do iw = 1, freq_selfc%nomeg
-            w = freq_selfc%freqs(iw)
-            write(71,trim(frmt)) w, dble(selfec(:,iw,ik))
-            write(72,trim(frmt)) w, aimag(selfec(:,iw,ik))
+    subroutine plot_selfc(frequencies, list_kpt_idx, sigmac, first_band)
+      !> Array with the frequencies (in most cases, assumed to be along the real axis)
+      real(dp), contiguous, intent(in) :: frequencies(:)
+      !> Array containing the indexes of k-points
+      integer(i32), contiguous, intent(in) :: list_kpt_idx(:)
+      !> First band used to compute `sigmac`
+      integer(i32), intent(in) :: first_band
+      !> Correlation part of the self-energy \(\Sigma_C\)
+      complex(dp), contiguous, intent(in) :: sigmac(first_band:, :, :)
+      
+      character(len=*), parameter :: file_name_selfc = 'SELFENERGY_C_K'
+      character(len=*), parameter :: default_extension ='.OUT'
+      integer(i32) :: i, ik, i_band, i_freq, i_unit
+
+      call assert( size(frequencies) == size(sigmac, 2), "frequencies and sigmac have incompatible sizes")
+      call assert( size(list_kpt_idx) == size(sigmac, 3), "list_kpt_idx and sigmac have incompatible sizes")
+      do i = 1, size(sigmac, 3)
+        ik = list_kpt_idx(i)
+        open( newunit=i_unit, file=file_name_selfc//to_char(ik)//default_extension, action="write" )
+        do i_band = first_band, size(sigmac, 1)
+          do i_freq = 1, size(frequencies)
+            write( i_unit, '(2I5, F10.6, 2F16.10)' ), i_band, i_freq, frequencies(i_freq), selfec(i_band, i_freq, i)
+          end do
         end do
-        write(71,*); write(72,*)
-        write(71,*); write(72,*)
+        close( i_unit )
       end do
-      close(71)
-      close(72)
     end subroutine
 
 end module

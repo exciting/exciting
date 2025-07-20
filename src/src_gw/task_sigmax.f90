@@ -9,8 +9,8 @@ module task_sigmax
     q_points_indexes, q_points_indexes_abbr
   use math_utils, only: all_zero
   use modinput, only: input, gw_type
-  use modmpi, only: mpiglobal, distribute_loop, terminate_if_false
-  use mod_coulomb_potential, only: delete_coulomb_potential, read_barcev_vmat_from_file, barc
+  use modmpi, only: mpiglobal, terminate_if_false
+  use mod_coulomb_potential, only: barc, delete_coulomb_potential, read_barcev_vmat_from_file
   use mod_kqpts, only: kpoints_sets
   use mod_misc_gw, only: Gamma, gammapoint
   use mod_mpi_gw, only: mpi_domain, indexes_parallelization, define_mpi_domains, &

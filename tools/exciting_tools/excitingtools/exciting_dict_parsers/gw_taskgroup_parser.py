@@ -66,7 +66,7 @@ def __parse_already_opened_file_with_matrix(file: IO[str]) -> NDArray[np.complex
     """
     dim = int(file.readline().split()[0])
     m_ini, n_ini, m_end, n_end = (int(x) for x in file.readline().split())
-    assert dim == 2 and m_ini == 1 and n_ini == 1, "file should contain a full matrix"
+    assert dim == 2 and m_ini <= m_end and n_ini <= n_end, "file should contain a full matrix"
     matrix = np.zeros((m_end, n_end), dtype=complex)
 
     counter = 0
