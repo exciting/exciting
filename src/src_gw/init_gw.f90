@@ -72,9 +72,6 @@ subroutine init_gw()
 
         if (rank == 0) then
           ! safely remove unnecessary files
-          call filedel('EIGVAL'//trim(filext))
-          call filedel('LINENGY'//trim(filext))
-          call filedel('EVALCORE'//trim(filext))
           call filedel('OCCSV'//trim(filext))
           call filedel('EFERMI'//trim(filext))
           call filedel('BROYDEN.OUT')

@@ -334,7 +334,7 @@
               <xs:element ex:importance="experimental" ex:unit="" name="Coulomb" maxOccurs="1" minOccurs="0">
                 <xs:annotation>
                   <xs:documentation>
-                    Setup for the Setup for the task <pre>="Coulomb"</pre>.
+                    Setup for the task <pre>="Coulomb"</pre>.
                     The bare Coulomb matrix is calculated for each 
                     <inlinemath>\mathbf{q}</inlinemath>-point and printed out in 
                     <pre>BARC_*.OUT</pre>, where <pre>*</pre> is the index of the
@@ -504,12 +504,30 @@
                     <inlinemath>\mathbf{k}</inlinemath>-point and printed out in 
                     <pre>SIGMAC_K*.OUT</pre>, where <pre>*</pre> is the index of the
                     <inlinemath>\mathbf{k}</inlinemath>-point.
+                    Parallelization strategy: the MPI processes are splitted first into 
+                    Domains in the following order
+                    <list>
+                      <li><pre>MPIDomainsKpoints</pre></li>
+                      <li><pre>MPIDomainsQpoints</pre></li>
+                    </list>
+                    A reasonable choice may be to set <attref>MPIDomainsKpoints</attref> 
+                    equal to the number of nodes.
                   </xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element ref="kpoints" minOccurs="1" maxOccurs="unbounded"/>
                   </xs:sequence>
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="MPIDomainsQpoints" type="xs:integer" default="1">
+                    <xs:annotation>
+                      <xs:documentation>Number of MPI Domains used over <inlinemath>\mathbf{q}</inlinemath>-points.</xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute ex:importance="experimental" ex:unit="" name="MPIDomainsKpoints" type="xs:integer" default="1">
+                    <xs:annotation>
+                      <xs:documentation>Number of MPI Domains used over <inlinemath>\mathbf{k}</inlinemath>-points.</xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
                 </xs:complexType>
               </xs:element>
 
@@ -613,6 +631,14 @@
                   <xs:enumeration value="text"/>
                 </xs:restriction>
               </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="dryRun" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  If <pre>true</pre>, print out information about memory usage 
+                  for each task listed in <elementref>taskGroup</elementref>.
+                </xs:documentation>
+              </xs:annotation>
             </xs:attribute>
 
           </xs:complexType>
@@ -771,6 +797,12 @@
 	  Skip the recalculation of KS eigenvalues and eigenvectors for the specified k/q-point grids (restart option).
 	</xs:documentation></xs:annotation>
       </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="printKpoints" type="xs:boolean" default="false" use="optional">
+        <xs:annotation><xs:documentation>
+            If <pre>true</pre>, detailed information about the <b>k</b>-points will be printed to the file <pre>GW_KPOINTS.OUT</pre>.
+        </xs:documentation></xs:annotation>
+      </xs:attribute>
       
       <xs:attribute ex:importance="expert" ex:unit="" name="enforceDegeneracy" type="xs:boolean" default="true" use="optional">
         <xs:annotation><xs:documentation>
@@ -790,15 +822,15 @@
         <xs:annotation><xs:documentation>
           When <pre>enforceDegeneracy</pre> is <pre>true</pre>, this controls the absolute tolerance for considering two states degenerate.
           Systems with flat bands and/or bunch of degenerate states in the vicinity of the Fermi level might require lower values.
-	</xs:documentation></xs:annotation>
+	      </xs:documentation></xs:annotation>
       </xs:attribute>
-
       <xs:attribute ex:importance="expert" ex:unit="" name="degeneracyRelativeTolerance" type="fortrandouble" default="1.0d-5" use="optional">
         <xs:annotation><xs:documentation>
           When <pre>enforceDegeneracy</pre> is <pre>true</pre>, this controls the relative tolerance for considering two states degenerate.
           Systems with degenerate flat bands might require lower values.
-	</xs:documentation></xs:annotation>
+	      </xs:documentation></xs:annotation>
       </xs:attribute>
+
 
       <xs:attribute ex:importance="expert" ex:unit="" name="enforceCrystalSymmetryTetrahedron" type="xs:boolean" default="false" use="optional">
         <xs:annotation><xs:documentation>
@@ -877,10 +909,16 @@
 	</xs:documentation></xs:annotation>
       </xs:attribute>
 
-      <xs:attribute ex:importance="expert" ex:unit="" name="printSelfC" type="xs:boolean" default="false" use="optional">
-        <xs:annotation><xs:documentation>
-	  Output the correlation self-energy.
-	</xs:documentation></xs:annotation>
+      <xs:attribute ex:importance="experimental" ex:unit="" name="printSelfC" type="xs:boolean" default="false" use="optional">
+        <xs:annotation>
+          <xs:documentation>
+            If <pre>true</pre>, print out <inlinemath>\Sigma_{Cn\mathbf{k}}(\omega) </inlinemath>
+            as used to compute QP-corrected eigenvalues.
+            Output file is <pre>SELFENERGY_C_K*.OUT</pre> in text format, 
+            where <pre>*</pre> is the index of the
+            <inlinemath>\mathbf{k}</inlinemath>-point.
+          </xs:documentation>
+        </xs:annotation>
       </xs:attribute>
 
     </xs:complexType>

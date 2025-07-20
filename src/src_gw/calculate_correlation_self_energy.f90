@@ -1,40 +1,52 @@
+module calculate_correlation_self_energy
+  use mod_APW_LO, only: apwordmax
+  use mod_atoms, only: natmtot
+  use mod_bands, only: eveck, eveckp, eveckalm, eveckpalm, n_states => nstse, evalfv
+  use mod_dielectric_function, only: epsilon
+  use mod_eigensystem, only: nmatmax
+  use mod_eigenvalue_occupancy, only: nstfv
+  use mod_expand_products, only: expand_products_generic, split_interval
+  use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
+  use mod_mpi_gw, only : indexes_parallelization
+  use mod_misc_gw, only: Gamma
+  use mod_muffin_tin, only: lmmaxapw
+  use mod_product_basis, only: minmmat, mbsiz
+  use mod_selfenergy, only: mwm, selfec, freq_selfc
+  use modinput, only: input
+  use modgw, only: kset, kqset, Gkqset, time_selfc, ibgw, nbgw, mblksiz, freq, fdebug
+  use precision, only: i32, dp
+
+  implicit none
+
+  private
+
+  public :: calcselfc
+
+  type, public :: sigmac_indexes
+    type(indexes_parallelization) :: k_points
+    type(indexes_parallelization) :: bands
+  end type
+
+contains
 !> Obtain the correlation part of the self energy for the given k-points, 
 !> evaluating the one term (of a sum) corresponding to a given q-point
-subroutine calcselfc(iq, ikp_first, ikp_last)
-    use constants,  only: zzero
-    use mod_APW_LO, only: apwordmax
-    use mod_atoms, only: natmtot
-    use mod_bands, only: eveckalm, eveckpalm, eveckp, eveck, nstse, evalfv
-    use mod_core_states, only: ncg
-    use mod_dielectric_function, only: epsilon
-    use mod_eigensystem, only: nmatmax
-    use mod_eigenvalue_occupancy, only: nstfv
-    use mod_expand_products, only: expand_products_generic, split_interval
-    use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
-    use mod_misc_gw, only: Gamma
-    use mod_muffin_tin, only: lmmaxapw
-    use mod_product_basis, only: minmmat, mbsiz
-    use mod_selfenergy, only: mwm, freq_selfc, selfec
-    use modinput, only: input
-    use modgw, only: time_selfc, kqset, kset, Gkqset, b2mb, ibgw, nbgw, freq, mblksiz, msize, fdebug
-    use modmpi, only: rank
-    use precision, only: i32, dp
+subroutine calcselfc( iq, indexes )
+    
 #include "offload.fpp"
-
-    implicit none
 
     !> index of the q-point term to evaluate
     integer(i32), intent(in) :: iq
-    !> index of the first k-point (in the reduced BZ) to evaluate the self-energy
-    integer(i32), intent(in) :: ikp_first
-    !> index of the last k-point (in the reduced BZ) to evaluate the self-energy
-    integer(i32), intent(in) :: ikp_last
-
+    !> Set of indexes (k-points, bands) used to calculate sigmac
+    type(sigmac_indexes), intent(in) :: indexes
+    
     ! local
     integer(i32) :: ik, ikp, jk, ie1, iom
     integer(i32) :: mdim, iblk, nblk, mstart, mend
+    integer(i32) :: first_state, last_state, last_empty_state
     integer(i32) :: m_val_start, m_val_end, m_core_start, m_core_end
     real(dp) :: tstart, tend
+    complex(dp), allocatable :: evec_aux(:, :)
+    logical :: only_core_states_in_my_rank
 
     call timesec(tstart)
 
@@ -44,11 +56,13 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     !------------------------
     ! total number of states
     !------------------------
-    if (input%gw%coreflag=='all') then
-      mdim = nstse+ncg
-    else
-      mdim = nstse
-    end if
+    first_state = indexes%bands%my_first
+    ! last_state may include core states, depending on choice given in input.xml
+    last_state = indexes%bands%my_last
+    last_empty_state = min( last_state, n_states )
+    mdim = last_state - first_state + 1
+    ! Check if this MPI rank only treats core states along the m-dimension
+    only_core_states_in_my_rank = (first_state>last_empty_state)
 
     !-------------------------------------------------------
     ! determine the number of blocks used in minm operation
@@ -63,48 +77,54 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
     !-------------------------------------------
     ! products M*W^c*M
     !-------------------------------------------
-    allocate(mwm(ibgw_including_degeneracy:nbgw_including_degeneracy,1:mdim,1:freq%nomeg))
+    allocate( mwm(ibgw_including_degeneracy:nbgw_including_degeneracy, first_state:last_state, 1:freq%nomeg) )
+    allocate( eveckalm(ibgw_including_degeneracy:nbgw_including_degeneracy, apwordmax, lmmaxapw, natmtot) )
+    allocate( eveck(nmatmax, ibgw_including_degeneracy:nbgw_including_degeneracy) )
+    if( .not. only_core_states_in_my_rank ) then
+      allocate( eveckpalm(first_state:last_empty_state, apwordmax, lmmaxapw, natmtot) )
+      allocate( eveckp(nmatmax, first_state:last_empty_state) )
+      OMP_OFFLOAD target enter data map(alloc: eveckpalm, eveckp)
+    end if
+    allocate( evec_aux(nmatmax, nstfv) )
 
-    allocate(eveckalm(nstfv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveckpalm(nstfv,apwordmax,lmmaxapw,natmtot))
-    allocate(eveck(nmatmax,nstfv))
-    allocate(eveckp(nmatmax,nstfv))
-
-    OMP_OFFLOAD target enter data map(alloc: mwm, eveckalm, eveckpalm, eveck, eveckp)
+    OMP_OFFLOAD target enter data map(alloc: mwm, eveckalm, eveck)
 
     !================================
     ! loop over irreducible k-points
     !================================
-    ! write(*,*)
-    do ikp = ikp_first, ikp_last
+    do ikp = indexes%k_points%my_first, indexes%k_points%my_last
       ! k vector
       ik = kset%ikp2ik(ikp)
       ! k-q vector
       jk = kqset%kqid(ik,iq)
 
       ! get KS eigenvectors
-      call get_evec_gw(kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), eveck)
-      eveckp = conjg(eveck)
-      call get_evec_gw(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
+      if( .not. only_core_states_in_my_rank ) then
+        call get_evec_gw( kqset%vkl(:,jk), Gkqset%vgkl(:,:,:,jk), evec_aux )
+        eveckp = conjg( evec_aux(:, first_state:last_empty_state) )
+      end if 
+      call get_evec_gw( kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evec_aux )
+      eveck = evec_aux(:, ibgw_including_degeneracy:nbgw_including_degeneracy)
 
       call expand_evec(ik, 't')
-      call expand_evec(jk, 'c')
-
-      OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
+      if( .not. only_core_states_in_my_rank ) then 
+        call expand_evec(jk, 'c')
+        OMP_OFFLOAD target update to(eveckp, eveckpalm)
+      end if
+      OMP_OFFLOAD target update to(eveck, eveckalm)
 
       !=================================
       ! Loop over m-blocks in M^i_{nm}
       !=================================
       do iblk = 1, nblk
 
-        mstart = 1 + (iblk-1)*mblksiz
-        mend = min(mdim, mstart+mblksiz-1)
+        mstart = first_state + (iblk-1)*mblksiz
+        mend = min( last_state, mstart+mblksiz-1 )
 
         ! m-block M^i_{nm}
         allocate(minmmat(mbsiz,ibgw_including_degeneracy:nbgw_including_degeneracy,mstart:mend))
-        msize = sizeof(minmmat)*b2mb
         OMP_OFFLOAD target data map(alloc: minmmat)
-        call split_interval( mstart, mend, nstse, m_val_start, m_val_end, m_core_start, m_core_end)
+        call split_interval( mstart, mend, n_states, m_val_start, m_val_end, m_core_start, m_core_end )
         call expand_products_generic(ik, iq, ibgw_including_degeneracy, nbgw_including_degeneracy, 1, 0,  m_val_start, m_val_end, m_core_start, m_core_end, minmmat, .true.)
         ! For Gamma we retrieve the minmmat from the device
         ! because MWM corrections for head and wings are computed 
@@ -133,7 +153,7 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
           call calcselfc_freqconv_cd(ikp, iq, mdim)
         else if (input%gw%selfenergy%method == 'ac') then
           ! Imaginary frequency formalism
-          call calcselfc_freqconv_ac(ikp, iq, mdim)
+          call calcselfc_freqconv_ac(ikp, iq)
         end if
       end if
 
@@ -150,19 +170,20 @@ subroutine calcselfc(iq, ikp_first, ikp_last)
 
     end do ! ikp
 
-    OMP_OFFLOAD target exit data map(delete: eveck, eveckp, eveckalm, eveckpalm, mwm)
+    OMP_OFFLOAD target exit data map(delete: eveck, eveckalm, mwm)
 
     deallocate(eveck)
-    deallocate(eveckp)
     deallocate(eveckalm)
-    deallocate(eveckpalm)
-    
-    ! delete MWM
     deallocate(mwm)
+    if( .not. only_core_states_in_my_rank ) then 
+      deallocate(eveckp)
+      deallocate(eveckpalm)
+      OMP_OFFLOAD target exit data map(delete: eveckp, eveckpalm)
+    end if
 
     ! timing
     call timesec(tend)
     time_selfc = time_selfc+tend-tstart
 
-    return
 end subroutine
+end module

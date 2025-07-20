@@ -81,7 +81,7 @@ subroutine task_evalqp()
       ! Calculate the quasiparticle energies
       !======================================
       call calcevalqp
-      if (input%gw%printSelfC)            call plot_selfc()
+      if (input%gw%printSelfC)            call plot_selfc(freq_selfc%freqs, [(ik, ik=1,kset%nkpt)], selfec, first_band=1)
       if (input%gw%printSpectralFunction) call plot_spectral_function()
 
       !------------------------------------------------------

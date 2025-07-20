@@ -12,10 +12,12 @@ subroutine task_gw()
 ! quasiparticle energies.
 !
 !!USES:
+    use calculate_correlation_self_energy, only: calcselfc, sigmac_indexes
     use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use constants, only: zzero
     use invert_dielectric_function, only: calcinveps
-    use mod_bands, only: bandstructure_analysis, delete_bands, evalfv, nstdf, numin, occfv
+    use mod_bands, only: bandstructure_analysis, delete_bands, evalfv, nstdf, nstse, numin, occfv
+    use mod_core_states, only: n_core_states => ncg
     use mod_coulomb_potential, only: barc, delete_coulomb_potential, calculate_singularities_coeff
     use mod_dielectric_function, only: eps00, epsh, epsw1, epsw2, epsilon, init_dielectric_function, &
       delete_dielectric_function
@@ -46,9 +48,7 @@ subroutine task_gw()
 !!LOCAL VARIABLES:
     implicit none
 
-    integer(i32) :: iq, ik
-    real(dp)    :: t0, t1
-
+    integer(i32) :: iq, ik, mdim
 
 !!REVISION HISTORY:
 !
@@ -62,19 +62,22 @@ subroutine task_gw()
 
     ! prepare GW global data
     call init_gw()
+    if (input%gw%coreflag=='all') then
+      mdim = nstse+n_core_states
+    else
+      mdim = nstse
+    end if
 
     !=================================================
     ! Calculate the diagonal matrix elements of the
     ! DFT exchange-correlation potential
     !=================================================
     ! it is better to do it here to deallocate cfunir and vxcir arrays
-    call timesec(t0)
     call calcvxcnn( ibgw_including_degeneracy, nbgw_including_degeneracy, [(ik, ik=1,kset%nkpt)], kset%vkl(:, 1:kset%nkpt), mpiglobal )
     if (rank==0) then
       call write_vxcnn( 'binary', ibgw, nbgw )
       call write_vxcnn( 'text', ibgw, nbgw )
     end if
-    call timesec(t1)
 
     ! clean not used anymore global exciting variables
     call clean_gndstate
@@ -160,17 +163,20 @@ subroutine task_gw()
             !==========================================
             ! Calculate the screened Coulomb potential
             !==========================================
-            if( gamma ) then
+            if( gamma ) then 
               call calcinveps(iomstart, iomend, gamma, input%gw%scrcoul, freq%fconv, symt2,&
                               &epsilon, epsw1, epsw2, epsh, eps00, time_dfinv)
             else
-              call calcinveps(iomstart, iomend, gamma, freqtype=freq%fconv, epsilon=epsilon, time_dfinv=time_dfinv)
-            end if
+              call calcinveps( iomstart, iomend, gamma, freqtype=freq%fconv, epsilon=epsilon, time_dfinv=time_dfinv )
+            end if 
         end select
         !========================================
         ! Calculate the q-dependent self-energy
         !========================================
-        call calcselfc( iq, 1, kset%nkpt )
+        call calcselfc( iq, sigmac_indexes( indexes_parallelization( 1, kset%nkpt, 1, kset%nkpt ), &
+                                            indexes_parallelization( 1, mdim, 1, mdim ) &
+                                          ) &
+                      )
         call delete_dielectric_function(Gamma)
         if (allocated(kcw)) deallocate(kcw)
         if (allocated(unw)) deallocate(unw)
@@ -225,8 +231,6 @@ subroutine task_gw()
 
       ! KS band structure
       evalks(ibgw:nbgw,:) = evalfv(ibgw:nbgw,:)
-      ! call bandstructure_analysis('KS', &
-      !     ibgw, nbgw, kset%nkpt, evalks(ibgw:nbgw,:), efermi)
 
       ! solve QP equation
       call calcevalqp()
@@ -256,7 +260,7 @@ subroutine task_gw()
       if (.not.isspinorb()) then
 
         if (input%gw%taskname /= 'g0w0-x') then
-          if (input%gw%printSelfC)            call plot_selfc()
+          if (input%gw%printSelfC)            call plot_selfc(freq_selfc%freqs, [(ik, ik=1,kset%nkpt)], selfec, first_band=1)
           if (input%gw%printSpectralFunction) call plot_spectral_function()
         end if
 
@@ -313,6 +317,5 @@ subroutine task_gw()
 
     OMP_OFFLOAD target exit data map(delete: idxas, idxlo, idxlm, lorbl, apword, nlorb)
 
-    return
 end subroutine
 !EOC

@@ -1,7 +1,5 @@
 
 subroutine calcmwm(nstart, nend, mstart, mend, minm)
-
-    use modinput
     use constants, only: zone, zzero, pi
     use modgw,   only: vi, kqset, Gamma, singc1, singc2, mbsiz, &
                        epsilon, epsh, epsw1, epsw2, mwm

@@ -39,6 +39,7 @@
       enforceDegeneracy="true"
       ngridq="9 9 1"
       nempty="20"
+      GBatchCount="22"
       qdepw="sum"
       ibgw="1"
       nbgw="20">

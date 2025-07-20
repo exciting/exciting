@@ -1,5 +1,6 @@
 !> Module designed for the task QPEigenvalues
 module task_QPEigenvalues
+  use asserts, only: assert
   use constants, only: zzero
   use exciting_mpi, only: mpiinfo
   use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
@@ -7,8 +8,8 @@ module task_QPEigenvalues
   use mod_eigenvalue_occupancy, only: efermi
   use mod_kpointset, only: k_set
   use mod_kqpts, only: kpoints_sets
-  use mod_selfenergy, only: evalks, evalqp, selfex, sigc, znorm, read_selfec_from_files, &
-    read_selfex_from_files, generate_frequency_grid_for_correlation_self_energy
+  use mod_selfenergy, only: evalks, evalqp, selfex, selfec, freq_selfc, sigc, znorm, read_selfec_from_files, &
+    read_selfex_from_files, generate_frequency_grid_for_correlation_self_energy, plot_selfc
   use mod_vxc, only: read_vxcnn, vxcnn
   use modgw, only: nvelgw
   use modinput, only: input, gw_type
@@ -34,6 +35,7 @@ module task_QPEigenvalues
   type task_QPEigenvalues_parameters
     private
     type(kpoints_sets) :: k_points
+    logical :: print_sigma_c
     integer(kind(method_to_obtain_Fermi_level)) :: method_Fermi_level
   contains
     procedure :: parse_input, sanity_checks => task_QPEigenvalues_sanity_checks
@@ -67,6 +69,7 @@ subroutine parse_input( this, gw_inp, n_kpt )
 
   call this%sanity_checks( gw_inp )
   call this%k_points%parse_input( gw_inp%taskGroup%QPEigenvalues%kpointsarray, n_kpt )
+  this%print_sigma_c = gw_inp%printSelfC
   this%method_Fermi_level = string_to_method_to_obtain_Fermi_level( gw_inp%taskGroup%QPEigenvalues%FermiLevel )
 end subroutine
 
@@ -93,7 +96,7 @@ subroutine execute_task_QPEigenvalues( first_band, last_band, k_points_irreducib
   !> Format of input/ouput files
   character(len=*), intent(in) :: file_format
 
-  integer(i32) :: i_start, i_end, i_VBM, i_CBm
+  integer(i32) :: i_start, i_end, i_VBM, i_CBm, unit
   real(dp) :: E_Fermi_GW, E_gap, dos_fermi
   type(task_QPEigenvalues_parameters) :: input_parameters
   type(k_set) :: k_points_used
@@ -125,6 +128,8 @@ subroutine execute_task_QPEigenvalues( first_band, last_band, k_points_irreducib
       call generate_frequency_grid_for_correlation_self_energy( input%gw )
       call calcselfc_ac()
     end if
+
+    if( input_parameters%print_sigma_c .and. myrank_writes_to_outputs) call plot_selfc( freq_selfc%freqs, list_kpt(i_start:i_end), selfec, first_band )
   
     if ( allocated(sigc) ) deallocate(sigc)
     allocate( sigc(first_band:last_band, i_start:i_end), source=zzero )
