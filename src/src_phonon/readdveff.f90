@@ -18,82 +18,95 @@ Subroutine readdveff (iq, is, ia, ip, dveffmt, dveffir)
       Complex (8), Intent (Out) :: dveffmt (lmmaxvr, nrcmtmax, natmtot)
       Complex (8), Intent (Out) :: dveffir (ngrtot)
 ! local variables
-      Integer :: js, iostat
-      Integer :: version_ (3), nspecies_, lmmaxvr_
-      Integer :: natoms_, nrcmt_, ngrid_ (3)
       Character (256) :: fext
       Character (256) :: chdummy
       Call phfext (iq, is, ia, ip, 0, 1, chdummy, fext, chdummy)
-      Open (50, File='DVEFF'//trim(fext), Action='READ', Form='UNFORMAT&
-     &TED', Status='OLD', IoStat=IoStat)
-      If (iostat .Ne. 0) Then
-         Write (*,*)
-         Write (*, '("Error(readdveff): error opening ", A)') 'STATE' &
-        & // trim (filext)
-         Write (*,*)
-         Stop
-      End If
-      Read (50) version_
-      If ((version(1) .Ne. version_(1)) .Or. (version(2) .Ne. &
-     & version_(2)) .Or. (version(3) .Ne. version_(3))) Then
-         Write (70,*)
-         Write (70, '("Warning(readdveff): different versions")')
-         Write (70, '(" current	 : ", I3.3, ".", I3.3, ".", I3.3)') &
-        & version
-         Write (70, '(" DVEFF.OUT : ", I3.3, ".", I3.3, ".", I3.3)') &
-        & version_
-      End If
-      Read (50) nspecies_
-      If (nspecies .Ne. nspecies_) Then
-         Write (*,*)
-         Write (*, '("Error(readdveff): differing nspecies")')
-         Write (*, '(" current	 : ", I4)') nspecies
-         Write (*, '(" DVEFF.OUT : ", I4)') nspecies_
-         Write (*,*)
-         Stop
-      End If
-      Read (50) lmmaxvr_
-      If (lmmaxvr .Ne. lmmaxvr_) Then
-         Write (*,*)
-         Write (*, '("Error(readdveff): differing lmmaxvr")')
-         Write (*, '(" current	 : ", I4)') lmmaxvr
-         Write (*, '(" DVEFF.OUT : ", I4)') lmmaxvr_
-         Write (*,*)
-         Stop
-      End If
-      Do js = 1, nspecies
-         Read (50) natoms_
-         If (natoms(js) .Ne. natoms_) Then
-            Write (*,*)
-            Write (*, '("Error(readdveff): differing natoms for species&
-           & ", I4)') js
-            Write (*, '(" current   : ", I4)') natoms (js)
-            Write (*, '(" DVEFF.OUT : ", I4)') natoms_
-            Write (*,*)
-            Stop
-         End If
-         Read (50) nrcmt_
-         If (nrcmt(js) .Ne. nrcmt_) Then
-            Write (*,*)
-            Write (*, '("Error(readdveff): differing nrcmt for species &
-           &", I4)') js
-            Write (*, '(" current   : ", I6)') nrcmt (js)
-            Write (*, '(" DVEFF.OUT : ", I6)') nrcmt_
-            Write (*,*)
-            Stop
-         End If
-      End Do
-      Read (50) ngrid_
-      If ((ngrid(1) .Ne. ngrid_(1)) .Or. (ngrid(2) .Ne. ngrid_(2)) .Or. &
-     & (ngrid(3) .Ne. ngrid_(3))) Then
-         Write (*,*)
-         Write (*, '("Error(readdveff): differing ngrid")')
-         Write (*, '(" current	 : ", 3I6)') ngrid
-         Write (*, '(" DVEFF.OUT : ", 3I6)') ngrid_
-         Write (*,*)
-         Stop
-      End If
-      Read (50) dveffmt, dveffir
-      Close (50)
-      Return
+      call read_potential_response( 'DVEFF'//trim(fext), nspecies, natoms(1:nspecies), nrcmt(1:nspecies), input%groundstate%lmaxvr, ngrid, &
+        dveffmt, shape( dveffmt ), dveffir, shape( dveffir ) )
 End Subroutine
+
+subroutine read_potential_response( path, nspecies, natoms, nrmt, lmax, ngrid, dveffmt, shapemt, dveffir, shapeir )
+  use, intrinsic :: iso_fortran_env, only: output_unit
+  use precision, only: dp
+  use asserts, only: assert
+  use modmpi, only: terminate_if_false
+  use os_utils, only: path_exists
+  use mod_misc, only: version
+  character(*), intent(in) :: path
+  integer, intent(in) :: nspecies
+  integer, intent(in) :: natoms(nspecies)
+  integer, intent(in) :: nrmt(nspecies)
+  integer, intent(in) :: lmax
+  integer, intent(in) :: ngrid(3)
+  integer, intent(in) :: shapemt(3), shapeir(1)
+  complex(dp), intent(out) :: dveffmt(shapemt(1), shapemt(2), shapemt(3))
+  complex(dp), intent(out) :: dveffir(shapeir(1))
+
+  integer :: nrmtmax, natmtot, lmmax, ngrtot
+  integer :: un, ierr, is
+  integer :: version_f(3), nspecies_f, lmmax_f, natoms_f, nrmt_f, ngrid_f(3)
+  character(1024) :: errmsg
+
+  nrmtmax = maxval( nrmt(1:nspecies) )
+  natmtot = sum( natoms(1:nspecies) )
+  lmmax = (lmax + 1)**2
+  ngrtot = product( ngrid )
+
+  call assert( shapemt(1) == lmmax, &
+    'Inconsistent 1st dimension of argument `dveffmt`.' )
+  call assert( shapemt(2) == nrmtmax, &
+    'Inconsistent 2nd dimension of argument `dveffmt`.' )
+  call assert( shapemt(3) == natmtot, &
+    'Inconsistent 3rd dimension of argument `dveffmt`.' )
+  call assert( shapeir(1) == ngrtot, &
+    'Inconsistent size of argument `dveffir`.' )
+  
+  call terminate_if_false( path_exists( path, ierr ), '(read_potential_response) &
+    Requested file path does not exist.' )
+
+  open( newunit=un, file=trim( path ), action='read', form='unformatted', status='old', iostat=ierr )
+
+  read( un ) version_f
+  if( any( version_f /= version ) ) then
+    write( output_unit , * )
+    write( output_unit, '("Warning(read_potential_response): different version")' )
+    write( output_unit, '(" current	 : ", i3.3, ".", i3.3, ".", i3.3)' ) version
+    write( output_unit, '(" file   	 : ", i3.3, ".", i3.3, ".", i3.3)' ) version_f
+  end if
+
+  read( un ) nspecies_f
+  write( errmsg, '("Different values for variable `",a,"` in file ",a," and input argument.",a," &
+    input: ",i6,a,"&
+    file : ",i6)' ) 'nspecies', trim( path ), new_line( 'a' ), nspecies, new_line( 'a' ), nspecies_f
+  call terminate_if_false( nspecies_f == nspecies, '(read_potential_response)'//new_line( 'a' )//trim( errmsg ) )
+
+  read( un ) lmmax_f
+  write( errmsg, '("Different values for variable `",a,"` in file ",a," and input argument.",a," &
+    input: ",i6,a,"&
+    file : ",i6)' ) 'lmmax', trim( path ), new_line( 'a' ), lmmax, new_line( 'a' ), lmmax_f
+  call terminate_if_false( lmmax_f == lmmax, '(read_potential_response)'//new_line( 'a' )//trim( errmsg ) )
+
+  do is = 1, nspecies
+    read( un ) natoms_f
+    write( errmsg, '("Different values for variable `",a,"` in file ",a," and input argument.",a," &
+      input: ",i6,a,"&
+      file : ",i6)' ) 'natoms', trim( path ), new_line( 'a' ), natoms(is), new_line( 'a' ), natoms_f
+    call terminate_if_false( natoms_f == natoms(is), '(read_potential_response)'//new_line( 'a' )//trim( errmsg ) )
+
+    read( un ) nrmt_f
+    write( errmsg, '("Different values for variable `",a,"` in file ",a," and input argument.",a," &
+      input: ",i6,a,"&
+      file : ",i6)' ) 'nrmt', trim( path ), new_line( 'a' ), nrmt(is), new_line( 'a' ), nrmt_f
+    call terminate_if_false( nrmt_f == nrmt(is), '(read_potential_response)'//new_line( 'a' )//trim( errmsg ) )
+  end do
+
+  read( un ) ngrid_f
+  write( errmsg, '("Different values for variable `",a,"` in file ",a," and input argument.",a," &
+    input: ",3i6,a,"&
+    file : ",3i6)' ) 'ngrid', trim( path ), new_line( 'a' ), ngrid, new_line( 'a' ), ngrid_f
+  call terminate_if_false( all( ngrid_f == ngrid ), '(read_potential_response)'//new_line( 'a' )//trim( errmsg ) )
+
+  read( un ) dveffmt, dveffir
+
+  close( un )
+end subroutine read_potential_response

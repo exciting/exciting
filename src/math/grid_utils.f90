@@ -10,7 +10,7 @@ module grid_utils
   
   private
   public :: mesh_1d, &
-            linspace, &
+            linspace, spacing_from_density, &
             concatenate, &
             grid_3d, &
             phase, &
@@ -105,6 +105,7 @@ contains
     integer, allocatable :: mesh(:)
 
     integer :: i, spacing_local, dx, N
+    external :: sign
 
     spacing_local = 1
     if (present(spacing)) spacing_local = spacing
@@ -157,7 +158,7 @@ contains
       return
     end if
 
-    N = floor(abs(last - first) / spacing) + 1
+    N = floor(abs(last - first) / ((1.0_dp - 1e-16_dp)*spacing)) + 1
     allocate(grid(N)) 
 
     sign = 1 
@@ -677,5 +678,44 @@ contains
 
     last_element = sum(n_elements(:i))
   end function last_element
+
+  !> Generate a non-uniform 1D sampling \(\lbrace x_i\, :\, i=1,\dots,N \rbrace\) from a given point density
+  !> \(y(x) > 0\). \(x_i\) is in the same range as \(x\) and it is densely sampled, where \(y(x)\) is large
+  !> and sparsely sampled, where \(y(x)\) is small.
+  function spacing_from_density( x, y, N ) result( xi )
+    use math_utils, only: interp1d
+    !> sampling points of the density \(x\)
+    real(dp), intent(in) :: x(:)
+    !> point density \(y(x)\)
+    real(dp), intent(in) :: y(:)
+    !> number of sampling points \(x_i\) to generate
+    integer, intent(in) :: N
+    !> sampling points \(x_i\)
+    real(dp), allocatable :: xi(:)
+
+    integer :: nx, i
+    real(dp) :: yi(1)
+
+    real(dp), allocatable :: y_int(:), cf(:,:)
+
+    nx = size( x )
+    call assert( size( y ) == nx, 'Lengths of `x` and `y` do not match.' )
+    call assert( all( y > 0.0_dp ), '`y` must be positive.' )
+    call assert( N >= 2, '`N` must be at least 2.' )
+
+    ! get normalized integrated density
+    allocate( y_int(nx), cf(3, nx) )
+    call fderiv( -1, nx, x, y, y_int, cf )
+    y_int = y_int * (dble( N - 1 ) / y_int(nx))
+
+    ! get sampling points
+    allocate( xi(N) )
+    xi(1) = x(1)
+    do i = 2, N - 1
+      call interp1d( x, y_int, xi(i-1:i-1), yi, 'linear' )
+      call interp1d( y_int-yi(1), x, [1.0_dp], xi(i:i), 'linear' )
+    end do
+    xi(N) = x(nx)
+  end function spacing_from_density
 
 end module grid_utils

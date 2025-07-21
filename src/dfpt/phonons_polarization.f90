@@ -54,11 +54,11 @@ module phonons_polarization
     !> This subroutine calculates the contribution to the polarization 
     !> response coming from the given \({\bf k}\)-point.
     !>
-    !> The calulcation is based on the Berry phase approach to the macroscopic polarizatiob
+    !> The calulcation is based on the Berry phase approach to the macroscopic polarization
     !> outlined in 
     !> [King-Smith, Vanderbilt, *Phys. Rev. B* **47**, 1651-1654 (1993).](https://doi.org/10.1103/PhysRevB.47.1651)
     !>
-    !> Ther berry phase along a 1D thread through the BZ is given by
+    !> The berry phase along a 1D thread through the BZ is given by
     !> \[ \varphi({\bf k}_\parallel) = 2\, \Im \left[ \ln \prod_{j=0}^{J-1} 
     !> \det \langle u_{{\bf k}_j} | u_{{\bf k}_{j+1}} \rangle \right] \;. \]
     !> Using Jacobi's formula for the derivative of the determinant, we find for the variation of the

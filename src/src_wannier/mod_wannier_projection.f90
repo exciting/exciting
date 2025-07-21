@@ -37,9 +37,11 @@ module mod_wannier_projection
     subroutine wfpro_neighcells
       integer :: i, j, k, is, ia, ias, jas, igroup, vi(3)
       real(8) :: a(3,3), b(3,3), d, vac1(3), val1(3), vac2(3), val2(3), vd(3), vr1(3), vr2(3), vr(3), aposc( 3, natmtot)
-      integer(4) :: natom, nbond, nlbond, atoms( 27*natmtot), acell( 3, 27*natmtot), bonds( 2, 27*natmtot), lbonds( 27*natmtot)
-      real(8) :: btol, d0, dist( natmtot, natmtot), bondv( 3, 27*natmtot), lbondv( 3, 27*natmtot)
+      integer(4) :: natom, nbond, nlbond
+      real(8) :: btol, d0, dist( natmtot, natmtot), bondv( 3, 27*natmtot)
       logical :: added
+      integer(4), allocatable :: atoms(:), acell(:,:), bonds(:,:), lbonds(:)
+      real(8), allocatable :: lbondv(:,:)
 
       btol = 0.2d0
 
@@ -50,6 +52,8 @@ module mod_wannier_projection
 
       wfpro_vn = 0
       wfpro_nn = 0
+
+      allocate( atoms(27*natmtot), acell(3, 27*natmtot), bonds(2, 27*natmtot), lbonds(27*natmtot), lbondv(3, 27*natmtot) )
 
       added = .false.
       do igroup = 1, wf_ngroups

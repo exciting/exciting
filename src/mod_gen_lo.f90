@@ -177,8 +177,8 @@ subroutine get_normalized_radial_functions_and_matching_coefficients(matching_co
                     p0s(1:nr) = 0.0_dp
                     p1s(1:nr) = 0.0_dp
                     do io1 = 1, lorbord(ilo, is)
-                        p0s(1:nr) = p0s + matching_coefficients(ias, ilo, io1) * p0(1:nr, ias, ilo, io1)
-                        p1s(1:nr) = p1s + matching_coefficients(ias, ilo, io1) * p1(1:nr, ias, ilo, io1)
+                        p0s(1:nr) = p0s(1:nr) + matching_coefficients(ias, ilo, io1) * p0(1:nr, ias, ilo, io1)
+                        p1s(1:nr) = p1s(1:nr) + matching_coefficients(ias, ilo, io1) * p1(1:nr, ias, ilo, io1)
                     end do !io1
 
                     local_orbitals(1:nr, 1, ilo, ias) = p0s (1:nr) * r_inv(1:nr)

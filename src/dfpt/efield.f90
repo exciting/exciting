@@ -73,6 +73,7 @@ module efield
       use mod_eigenvalue_occupancy, only: nstfv, occmax, efermi
       use mod_charge_and_moment, only: chgval
       use mod_Gkvector, only: ngkmax_ptr
+      use mod_occupy, only: find_fermi
       use modinput
       !> create and write info output files (default: `.true.`)
       logical, optional, intent(in) :: info_output
@@ -126,7 +127,7 @@ module efield
       occk = 0.0_dp
       call find_fermi( dfpt_kset%nkpt, dfpt_kset%wkpt, nstfv, evalk(1:nstfv, :), chgval, occmax, &
              input%groundstate%stypenumber, input%groundstate%swidth, input%groundstate%epsocc, &
-             efermi, occk(1:nstfv, :) )
+             efermi, occk(1:nstfv, :), dfpt_tset )
       ! initialize eigensystem response
       call ef_eig_init
       ! compute constant part of Hamiltonian response
@@ -256,6 +257,7 @@ module efield
       use mod_eigenvalue_occupancy, only: nstfv, occmax, efermi
       use mod_Gkvector, only: ngkmax_ptr
       use mod_symmetry, only: nsymcrys
+      use mod_occupy, only: find_dfermi
       use modinput
       !> write info output files (default: `.true.`)
       logical, optional, intent(in) :: info_output
@@ -377,7 +379,7 @@ module efield
             do ip = 1, 3
               call find_dfermi( dfpt_kset%nkpt, dfpt_kset%wkpt, nstfv, evalk(1:nstfv, :), devalk(:, :, ip), 0.0_dp, occmax, efermi, &
                      input%groundstate%stypenumber, input%groundstate%swidth, input%groundstate%epsocc, &
-                     defermi, docck(:, :, ip) )
+                     defermi, docck(:, :, ip), dfpt_tset )
               do ik = 1, dfpt_kset%nkpt
                 call fdevalk%write( (ik-1)*3+ip, devalk(:, ik, ip) )
                 call fdocck%write( (ik-1)*3+ip, docck(:, ik, ip) )

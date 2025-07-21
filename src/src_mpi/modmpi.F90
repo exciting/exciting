@@ -447,6 +447,54 @@ contains
     end function lastofset
     !EOC
 
+    !> This subroutine distributes two nested do loops among a given set of processes.
+    !> 
+    !> Use as
+    !> ```Fortran
+    !> outer: do o = orange_rank(1), orange_rank(2)
+    !>   inner: do i = irange_rank(1, o), irange_rank(2, o)
+    !>     ...
+    !>   end do inner
+    !> end do outer
+    !> ```
+    subroutine distribute_double_loop( rank, nproc, orange, irange, orange_rank, irange_rank )
+      !> rank of process (in interval [0, `nproc`-1])
+      integer, intent(in) :: rank
+      !> number of processes
+      integer, intent(in) :: nproc
+      !> index range of outer loop
+      integer, intent(in) :: orange(2)
+      !> index range of inner loop
+      integer, intent(in) :: irange(2)
+      !> index range of outer loop for given rank
+      integer, intent(out) :: orange_rank(2)
+      !> index range of inner loop for given rank (dependent on outer loop index)
+      integer, allocatable, intent(out) :: irange_rank(:, :)
+
+      integer :: i, fst, lst, no, ni, ntot
+      integer, allocatable :: n(:)
+
+      ! get range of elements
+      no = orange(2) - orange(1) + 1
+      ni = irange(2) - irange(1) + 1
+      ntot = no * ni
+      fst = firstofset( rank, ntot, procs )
+      lst = lastofset( rank, ntot, procs )
+      ! get index range for outer loop
+      orange_rank(1) = (fst - 1) / ni + 1
+      orange_rank(2) = (lst - 1) / ni + 1
+      ! get index range for inner loop
+      if (allocated(irange_rank)) deallocate( irange_rank )
+      allocate( irange_rank(2, orange_rank(1):orange_rank(2)) )
+      irange_rank(1, orange_rank(1)) = mod( fst - 1, ni ) + 1 
+      irange_rank(2, orange_rank(1)) = min( irange(2), irange_rank(1, orange_rank(1)) + lst - fst )
+      do i = orange_rank(1)+1, orange_rank(2)-1
+        irange_rank(:, i) = irange
+      end do
+      irange_rank(2, orange_rank(2)) = mod( lst - 1, ni ) + 1
+      irange_rank(1, orange_rank(2)) = max( 1, irange_rank(2, orange_rank(2)) - lst + fst )
+    end subroutine distribute_double_loop
+
     !BOP
     ! !ROUTINE: procofindex
     ! !INTERFACE:
@@ -1858,7 +1906,102 @@ end subroutine find_2d_grid
     last = lastofset(mpi_env%rank, n_elements, mpi_env%procs)
   end subroutine distribute_loop
 
+  !> Distributes a rectangular grid in a given number of rectangular patches of approximately equal size.
+  pure recursive subroutine patchwork_distribution( rows, cols, patches, row_indices, col_indices )
+    !> number of rows in grid
+    integer, intent(in) :: rows
+    !> number of columns in grid
+    integer, intent(in) :: cols
+    !> number of patches to find
+    integer, intent(in) :: patches
+    !> array of size `(3, patches)` giving start and end row and number of rows for each patch
+    integer, allocatable, intent(out) :: row_indices(:,:)
+    !> array of size `(3, patches)` giving start and end columns and number of columns for each patch
+    integer, allocatable, intent(out) :: col_indices(:,:)
 
+    logical :: trans
+    integer :: nx, ny, ntot, nopt, np, patch1(4), patch2(4), mx, my, nx1, nx2, ny1, ny2, p1, p2, i
+    integer, allocatable :: x_indices1(:,:), x_indices2(:,:), y_indices1(:,:), y_indices2(:,:)
 
+    if (patches < 1) then
+      allocate( row_indices(3, 0), col_indices(3, 0) )
+      return
+    else if (patches == 1) then
+      allocate( row_indices(3, 1), col_indices(3, 1) )
+      row_indices(:, 1) = [1, rows, rows]
+      col_indices(:, 1) = [1, cols, cols]
+      return
+    end if
+
+    ! find optimal number of elements per patch
+    trans = cols > rows
+    nx = min( rows, cols )
+    ny = max( rows, cols )
+    ntot = nx * ny
+    np = min( ntot, patches )
+    nopt = nint( (dble(ntot) + 0.25) / dble(np) )
+    ! split rectangle in two sub patches
+    if (nopt > ny) then
+      mx = nint( (dble(nopt) + 0.25) / dble(nx) )
+      my = nint( (dble(nopt) + 0.25) / dble(ny) )
+      if (mx*nx-nopt < my*ny-nopt) then
+        patch1 = [1, nx,    1, mx]
+        patch2 = [1, nx, mx+1, ny]
+      else
+        patch1 = [   1, my, 1, ny]
+        patch2 = [my+1, nx, 1, ny]
+      end if
+    else if (nopt == ny) then
+      patch1 = [1,  1, 1, ny]
+      patch2 = [2, nx, 1, ny]
+    else if (nopt > nx) then
+      patch1 = [1, nx,      1, nopt]
+      patch2 = [1, nx, nopt+1, ny  ]
+    else if (nopt == nx) then
+      patch1 = [1, nx, 1,  1]
+      patch2 = [1, nx, 2, ny]
+    else
+      patch1 = [     1, nopt, 1, ny]
+      patch2 = [nopt+1, nx,   1, ny]
+    end if
+    ! find optimal distribution of total number of patches among both sub patches
+    nx1 = patch1(2) - patch1(1) + 1
+    ny1 = patch1(4) - patch1(3) + 1
+    nx2 = patch2(2) - patch2(1) + 1
+    ny2 = patch2(4) - patch2(3) + 1
+    p1 = nint( (dble(nx1*ny1 * np) + 0.25) / dble(nx1*ny1 + nx2*ny2) )
+    p2 = np - p1
+    ! distribute both sub patches
+    if (trans) then
+      call patchwork_distribution( nx1, ny1, p1, y_indices1, x_indices1 )
+      call patchwork_distribution( nx2, ny2, p2, y_indices2, x_indices2 )
+      y_indices1(:2, :) = y_indices1(:2, :) + patch1(1) - 1 
+      x_indices1(:2, :) = x_indices1(:2, :) + patch1(3) - 1 
+      y_indices2(:2, :) = y_indices2(:2, :) + patch2(1) - 1 
+      x_indices2(:2, :) = x_indices2(:2, :) + patch2(3) - 1 
+    else
+      call patchwork_distribution( nx1, ny1, p1, x_indices1, y_indices1 )
+      call patchwork_distribution( nx2, ny2, p2, x_indices2, y_indices2 )
+      x_indices1(:2, :) = x_indices1(:2, :) + patch1(1) - 1 
+      y_indices1(:2, :) = y_indices1(:2, :) + patch1(3) - 1 
+      x_indices2(:2, :) = x_indices2(:2, :) + patch2(1) - 1 
+      y_indices2(:2, :) = y_indices2(:2, :) + patch2(3) - 1 
+    end if
+    ! collect results
+    allocate( row_indices(3, patches), col_indices(3, patches) )
+    row_indices(:,    1:p1) = y_indices1
+    row_indices(:, p1+1:np) = y_indices2
+    col_indices(:,    1:p1) = x_indices1
+    col_indices(:, p1+1:np) = x_indices2
+    do i = np+1, patches
+      row_indices(:, i) = [0, -1, 0]
+      col_indices(:, i) = [0, -1, 0]
+    end do
+    ! sanity check
+    if (sum( row_indices(3, :) * col_indices(3, :) ) /= ntot) &
+      error stop '(patchwork_distribution) Sanity check for total grid size failed.'
+
+    deallocate( x_indices1, x_indices2, y_indices1, y_indices2 )
+  end subroutine patchwork_distribution
 
 end module modmpi

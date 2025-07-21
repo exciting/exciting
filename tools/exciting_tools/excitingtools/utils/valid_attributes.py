@@ -59,6 +59,12 @@ qpoints_attribute_types = {"qf": (int, 1), "qi": (int, 1)}
 
 kpoints_attribute_types = {"kf": (int, 1), "ki": (int, 1)} 
 
+freq_grid_attribute_types = {"lorentzwidth": (float, 1),
+                             "numpoints": (int, 1),
+                             "padding": (float, 1),
+                             "range": (float, 2),
+                             "type": (str, ["density", "uniform"])} 
+
 
 # structure information 
 structure_attribute_types = {"autormt": (bool, 1),
@@ -338,6 +344,7 @@ phonons_attribute_types = {"canonical": (bool, 1),
                            "deltaph": (float, 1),
                            "do": (str, ["dry", "fromfile", "fromscratch", "skip"]),
                            "drynumprocs": (int, 1),
+                           "epsdeg": (float, 1),
                            "gamma": (str, ["onestep", "standard", "twostep"]),
                            "maxprocsperpart": (int, 1),
                            "method": (str, ["dfpt", "sc"]),
@@ -356,6 +363,7 @@ phonondos_attribute_types = {"inttype": (str, ["sum", "tetra"]),
                              "ntemp": (int, 1),
                              "nwdos": (int, 1)} 
 
+phonondispplot_attribute_types = {"json": (bool, 1)} 
 phonondispplot_valid_subtrees = ["plot1d"] 
 phonondispplot_mandatory_attributes = ["plot1d"] 
 
@@ -1026,23 +1034,36 @@ MD_attribute_types = {"basisDerivative": (bool, 1),
 
 
 # eph information 
-eph_attribute_types = {"debugeph": (bool, 1),
-                       "ibeph": (int, 1),
-                       "ibsumeph": (int, 1),
-                       "nbeph": (int, 1),
-                       "nbsumeph": (int, 1),
-                       "nemptyeph": (int, 1),
-                       "ngridqeph": (int, 3),
-                       "tasknameeph": (str, 1),
-                       "vqloffeph": (float, 3)} 
-eph_valid_subtrees = ["freqgrideph", "selfenergyeph"] 
+eph_attribute_types = {"efermi": (float, 1),
+                       "elphbolt": (bool, 1),
+                       "scissor": (float, 1),
+                       "scissor_direction": (str, ["occupied", "symmetric", "unoccupied"]),
+                       "wfrange": (int, 2)} 
+eph_valid_subtrees = ["ephmat", "el_interpolation", "ph_interpolation", "eph_interpolation", "el_self_energy", "target"] 
 
-freqgrideph_attribute_types = {"freqmaxeph": (float, 1), "nomegeph": (int, 1)} 
+ephmat_attribute_types = {"do": (str, ["fromscratch", "skip"]), "standard": (bool, 1)} 
 
-selfenergyeph_valid_subtrees = ["SpectralFunctionPloteph"] 
+el_interpolation_attribute_types = {"format": (str, ["json", "text"])} 
 
-SpectralFunctionPloteph_attribute_types = {"axis": (str, 1),
-                                           "eta": (float, 1),
-                                           "nwgrid": (int, 1),
-                                           "wmax": (float, 1),
-                                           "wmin": (float, 1)} 
+ph_interpolation_attribute_types = {"format": (str, ["json", "text"])} 
+
+eph_interpolation_attribute_types = {"epsdegel": (float, 1),
+                                     "epsdegph": (float, 1),
+                                     "fix": (str, ["k", "q"]),
+                                     "format": (str, ["json", "text"]),
+                                     "include_polar": (bool, 1),
+                                     "vplfix": (float, 3)} 
+
+el_self_energy_attribute_types = {"do": (str, ["fromfile", "fromscratch", "skip"]),
+                                  "integration": (str, ["kramers-kronig", "smearing"]),
+                                  "ngridbz": (int, 3),
+                                  "swidth": (float, 1),
+                                  "tempset": (float, 3),
+                                  "vbzoff": (float, 3)} 
+el_self_energy_valid_subtrees = ["freq_grid", "output_settings"] 
+
+output_settings_attribute_types = {"directory": (str, 1), "interpolation_method": (str, ["linear", "spline"])} 
+output_settings_valid_subtrees = ["freq_grid"] 
+
+target_attribute_types = {"ngridp": (int, 3), "reducep": (bool, 1), "vploff": (float, 3)} 
+target_valid_subtrees = ["plot1d"] 

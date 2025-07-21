@@ -822,7 +822,7 @@ module mod_wannier_interpolate
       !BOC
 
       logical :: genpdos, genjdos, pdoslonly
-      integer :: lmmax, ias, l, m, lm, ist, jst, iq, q1, q2, ie, nk(3), lammax, n
+      integer :: lmmax, ias, l, m, lm, ist, jst, iq, q1, q2, ie, nk(3), lammax, n, stype
       real(8) :: dosscissor, tmpfermi
       character(64) :: integraltype
       type( k_set) :: tmp_kset
@@ -853,10 +853,9 @@ module mod_wannier_interpolate
       ! we don't want to use the libzint routine in case of Hybrids (too slow for dense grids)
       ! in case of Hybrids, stypenumber < 0 --> libzint k-point generation is invoked inside generate_k_vectors
       ! temporarilly set stypenumber = 1 to invoke exciting internal k-point generation
-      l = input%groundstate%stypenumber
+      stype = input%groundstate%stypenumber
       input%groundstate%stypenumber = 1
-      call generate_k_vectors( tmp_kset, bvec, intgrid, wf_kset%vkloff, .true., uselibzint=.false.)
-      input%groundstate%stypenumber = l
+      call generate_k_vectors( tmp_kset, bvec, intgrid, [0.d0, 0.d0, 0.d0], .true., uselibzint=.false.)
       nk(:) = max( neffk/tmp_kset%ngridk, 1)
 
       allocate( e( nsube))
@@ -867,6 +866,7 @@ module mod_wannier_interpolate
       call wfint_init( tmp_kset)
 
       call wfint_interpolate_occupancy( usetetra=(integraltype == 'tetra'))
+      input%groundstate%stypenumber = stype
       
       allocate( energies( wf_nwf, wfint_kset%nkpt))
       energies = wfint_eval
