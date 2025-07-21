@@ -9,6 +9,7 @@
 Subroutine genepmat (iq, vpl, dveffmt, dveffir, epmat)
       Use modmain
       Use modinput
+      use m_zfftifc, only: zfftifc
       Implicit None
 ! arguments
       Integer, Intent (In) :: iq

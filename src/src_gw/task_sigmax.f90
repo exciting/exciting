@@ -9,17 +9,17 @@ module task_sigmax
     q_points_indexes, q_points_indexes_abbr
   use math_utils, only: all_zero
   use modinput, only: input, gw_type
-  use modmpi, only: mpiglobal, distribute_loop, terminate_if_false
-  use mod_coulomb_potential, only: delete_coulomb_potential, read_barcev_vmat_from_file
+  use modmpi, only: mpiglobal, terminate_if_false
+  use mod_coulomb_potential, only: barc, delete_coulomb_potential, read_barcev_vmat_from_file
   use mod_kqpts, only: kpoints_sets
   use mod_misc_gw, only: Gamma, gammapoint
   use mod_mpi_gw, only: mpi_domain, indexes_parallelization, define_mpi_domains, &
     mpi_sum_array, pack_parallelization_indexes, unpack_parallelization_indexes
-  use mod_product_basis, only: read_sgi_from_file
+  use mod_product_basis, only: read_sgi_from_file, mpwipw
   use mod_selfenergy, only: selfex, write_selfex_single_kpoint
   use precision, only: dp, i32
   use to_char_conversion, only: to_char
-
+#include "offload.fpp"
   implicit none
 
   private
@@ -135,7 +135,14 @@ subroutine execute_task_sigmax( first_band, last_band, n_kpoints_max, qpoints, f
     if( myrank_writes_SIGMAX ) call write_selfex_single_kpoint( ik, file_format )
     if( myrank_writes_GWINFO ) call write_to_gwinfo( '' )
   end do
+  
+  ! Clean global variables
   call delete_coulomb_potential
+  OMP_OFFLOAD target exit data map(delete: barc) if(allocated(barc))
+  if (allocated(barc)) deallocate(barc)
+  OMP_OFFLOAD target exit data map(delete: mpwipw) if(allocated(mpwipw))
+  if (allocated(mpwipw)) deallocate(mpwipw)
+
 
 end subroutine
 

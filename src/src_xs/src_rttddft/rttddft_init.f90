@@ -61,6 +61,8 @@ module rttddft_init
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
   use rttddft_Wavefunction, only: wavefunction_set, initialize_wavefunction_set
   use to_char_conversion, only: to_char
+  use mod_gen_lo, only: genlofr
+  use m_zfftifc, only: zfftifc
 
   implicit none
   

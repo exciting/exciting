@@ -13,9 +13,10 @@ Subroutine phdisp
       use phonons_io_util, only: ph_io_read_dielten, ph_io_read_borncharge
       use bz_path
       use matrix_fourier_interpolation, only: mfi_type
+      use xjson, only: to_json
       Implicit None
 ! local variables
-      Integer :: iq, i, n, iv
+      Integer :: iq, i, n, iv, un
       Real (8) :: wmin, wmax, dielten(3, 3)
       type(mfi_type) :: mfi
       type(bz_path_type) :: path
@@ -102,6 +103,14 @@ Subroutine phdisp
       Write (*, '(" phonon dispersion written to PHDISP.OUT")')
       Write (*, '(" vertex location lines written to PHDLINES.OUT")')
       Write (*,*)
+! ouput JSON
+      if( input%phonons%phonondispplot%json ) then
+        open( newunit=un, file='ph_disp.json', action='write', form='formatted' )
+        write( un, '("{",a,": ",a,", ")', advance='no' ) '"path"', path%to_json()
+        write( un, '(a,": ",a,"}")' ) '"bands"', to_json( wp, precision=4 )
+        close( un )
+      end if
+
       Deallocate (wp, ev, dynp, dynr)
       call mfi%destroy
 10    continue

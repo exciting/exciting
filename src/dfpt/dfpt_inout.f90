@@ -46,7 +46,6 @@ module dfpt_inout
     !> See also [[dfpt_io_read_zfun(subroutine)]].
     subroutine dfpt_io_write_zfun( zfmt, zfir, fname, success, &
         file_extension, directory )
-      use m_getunit
       !> complex muffin-tin function given as a complex spherical harmonics expansion
       complex(dp), intent(in) :: zfmt(:,:,:)
       !> complex interstitial function on a real space grid
@@ -75,8 +74,7 @@ module dfpt_inout
       natmtot = size( zfmt, dim=3 )  ! total number of atoms
       ngrtot  = size( zfir, dim=1 )  ! total number of real-space grid points
 
-      call getunit( un )
-      open( un, file=trim( dirname )//trim( fname )//trim( fxt )//'.OUT', action='write', form='unformatted', iostat=stat )
+      open( newunit=un, file=trim( dirname )//trim( fname )//trim( fxt )//'.OUT', action='write', form='unformatted', iostat=stat )
       success = (stat == 0)
       if( .not. success ) return
       write( un, iostat=stat ) lmmax, nrmtmax, natmtot, ngrtot
@@ -90,7 +88,6 @@ module dfpt_inout
     !> See also [[dfpt_io_write_zfun(subroutine)]].
     subroutine dfpt_io_read_zfun( zfmt, zfir, fname, success, &
         file_extension, directory, error_message )
-      use m_getunit
       !> complex muffin-tin function given as a complex spherical harmonics expansion
       complex(dp), intent(out) :: zfmt(:,:,:)
       !> complex interstitial function on a real space grid
@@ -104,7 +101,7 @@ module dfpt_inout
       !> path to directory (default: current directory)
       character(*), optional, intent(in) :: directory
       !> error message in case of unsuccessful reading
-      character(*), optional, intent(out) :: error_message
+      character(:), allocatable, optional, intent(out) :: error_message
 
       character(64) :: fxt
       character(256) :: dirname
@@ -117,10 +114,13 @@ module dfpt_inout
       if( present( directory ) ) write( dirname, '(a)' ) trim( directory )
       dirname = trim( dirname )//'/'
 
-      call getunit( un )
-      open( un, file=trim( dirname )//trim( fname )//trim( fxt )//'.OUT', action='read', form='unformatted', iostat=stat )
+      open( newunit=un, file=trim( dirname )//trim( fname )//trim( fxt )//'.OUT', action='read', form='unformatted', iostat=stat )
       success = (stat == 0)
-      if( .not. success ) return
+      if (.not. success) then
+        if (present( error_message )) &
+          error_message = '(dfpt_io_read_zfun): Failed to open file.'//new_line( 'a' )//'file: '//trim( dirname )//trim( fname )//trim( fxt )//'.OUT'
+        return
+      end if
       read( un, iostat=stat ) lmmax, nrmtmax, natmtot, ngrtot
       success = success .and. (stat == 0)
 
@@ -154,14 +154,13 @@ module dfpt_inout
       read( un, iostat=stat ) zfmt, zfir
       success = success .and. (stat == 0)
       if( .not. success .and. present( error_message ) ) &
-        error_message = '(dfpt_io_read_zfun): Uknown error in reading function from file.'
+        error_message = '(dfpt_io_read_zfun): Unknown error in reading function from file.'
       close( un )
     end subroutine dfpt_io_read_zfun
 
     !> This subroutine opens and initializes the general info output file (human readable and xml).
     subroutine dfpt_io_info_init( &
         file_extension, directory )
-      use m_getunit
       use mod_misc, only: versionname, githash
       use modinput
       !> file extension
@@ -183,8 +182,7 @@ module dfpt_inout
 
       ! create files
       ! human readable
-      call getunit( info_out_unit )
-      open( info_out_unit, file=trim( dirname )//trim( prefix_upper )//'_INFO'//trim( fxt )//'.OUT', action='write', form='formatted', iostat=stat )
+      open( newunit=info_out_unit, file=trim( dirname )//trim( prefix_upper )//'_INFO'//trim( fxt )//'.OUT', action='write', form='formatted', iostat=stat )
       info_is_open = (stat == 0)
       ! xml
       call xml_OpenFile( trim( dirname )//trim( prefix_lower )//'_info'//trim( fxt )//'.xml', info_out_xml, replace=.true., pretty_print=.true. )

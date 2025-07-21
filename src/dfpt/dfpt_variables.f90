@@ -3,6 +3,7 @@ module dfpt_variables
   use precision, only: dp
   use modinput
   use mod_kpointset, only: k_set, G_set, Gk_set
+  use mod_opt_tetra, only: t_set
   use muffin_tin_basis, only: mt_basis_type
   use block_data_file, only: block_data_file_type
 
@@ -12,6 +13,8 @@ module dfpt_variables
   ! ** reciprocal space
   !> set of electronic \({\bf k}\) vectors
   type(k_set), public :: dfpt_kset
+  !> set of tetrahedra for BZ integration
+  type(t_set), public :: dfpt_tset
 
   ! ** interstitial wave function and operator expansion
   !> set of \({\bf G}\) vectors for the expansion of Fourier series
@@ -51,6 +54,8 @@ module dfpt_variables
       use mod_lattice, only: bvec
       use mod_Gkvector, only: gkmax
       use mod_kpointset, only: generate_k_vectors, generate_G_vectors, generate_Gk_vectors
+      use mod_gen_lo, only: genlofr
+      use mod_opt_tetra, only: opt_tetra_init
 
       ! initialize global variables
       call init0
@@ -81,7 +86,10 @@ module dfpt_variables
              input%groundstate%ngridk, &
              input%groundstate%vkloff, &
              input%groundstate%reducek, &
-             uselibzint=.false. )
+             uselibzint=(input%groundstate%stypenumber == -1) )
+
+      ! generate tetrahedra
+      if (input%groundstate%stypenumber == -2) call opt_tetra_init( dfpt_tset, dfpt_kset, 1, reduce=dfpt_kset%isreduced )
            
       ! generate G+k vectors
       call generate_Gk_vectors( dfpt_Gkset, dfpt_kset, dfpt_Gset, gkmax )
@@ -90,10 +98,12 @@ module dfpt_variables
     !> This subroutine frees memory from global variables.
     subroutine dfpt_var_free
       use mod_kpointset, only: delete_k_vectors, delete_G_vectors, delete_Gk_vectors
+      use mod_opt_tetra, only: opt_tetra_destroy
       call delete_k_vectors( dfpt_kset )
       call delete_G_vectors( dfpt_Gset )
       call delete_G_vectors( dfpt_2Gset )
       call delete_Gk_vectors( dfpt_Gkset )
+      call opt_tetra_destroy( dfpt_tset )
       call mt_basis%destroy
     end subroutine dfpt_var_free
 

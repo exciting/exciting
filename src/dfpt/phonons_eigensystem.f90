@@ -6,6 +6,7 @@ module phonons_eigensystem
   use dfpt_variables
   use dfpt_eigensystem
   use phonons_variables
+  use m_zfftifc, only: zfftifc
 
   use precision, only: dp
 
@@ -145,18 +146,14 @@ module phonons_eigensystem
     !> are the response of the overlap and Hamiltonian matrix, respectively, as obtained from
     !> [[ph_eig_gen_dSHmat(subroutine)]].
     !>
-    !> If `projector=.true.`, then the eigenvector response corresponding to the projection of the
-    !> wavefunction response onto the manifold of unoccupied states, 
-    !> \(\hat{\bf P}_u \delta^{\bf q}_{I \mu} \psi_{n{\bf k}}({\bf r})\), is computed. This is 
-    !> sufficient to compute the density response and ensures (given that \(n\) corresponds to
-    !> an occupied state) that the energie differences \(\epsilon_{m{\bf k+q}} - \epsilon_{n{\bf k}}\)
-    !> are always greater than zero.
+    !> This routine implements a solver that also works for fractional occupations (metals) and treats 
+    !> degenerate states explicitely.
     subroutine ph_eig_sternheimer( ik, Gkqset, fst, lst, evalk, occk, evalkq, occkq, eveckq, dSmat, dHmat, gamma, deval, devec, &
-        projector, eps_deg )
+        devecf )
       use constants, only: zzero, zone
       use mod_kpointset, only: Gk_set
       use mod_APW_LO, only: nlotot
-      use mod_eigenvalue_occupancy, only: occmax
+      use mod_eigenvalue_occupancy, only: occmax, efermi
       use modinput
       !> index of the \({\bf k}\) point
       integer, intent(in) :: ik
@@ -178,63 +175,79 @@ module phonons_eigensystem
       real(dp), intent(out) :: deval(:)
       !> eigenvector response at \({\bf k}\)
       complex(dp), intent(out) :: devec(:,:)
-      !> calculate the eigenvector response corresponding to the projection
-      !> of the wavefunction response onto the manifold of unoccupied states
-      !> (default: `.true.`)
-      logical, optional, intent(in) :: projector
-      !> tolerance for degenerate eigenvalues (default: `1e-5`)
-      real(dp), optional, intent(in) :: eps_deg
+      !> additional eigenvector response for force response at \({\bf k}\)
+      complex(dp), optional, intent(out) :: devecf(:,:)
 
-      integer :: nmatkq, ist, jst, nst
-      real(dp) :: eps, dev, sig, t1, t2
-      logical :: proj
+      integer :: nmatkq, ist, jst, nst, stype
+      real(dp) :: dev, sigma, t1, t2
 
       complex(dp), allocatable :: dX(:,:)
 
-      proj = .true.
-      if( present( projector ) ) proj = projector
-      eps = 1e-5_dp
-      if( present( eps_deg ) ) eps = eps_deg
+      real(8), external :: stheta, sdelta
 
       nmatkq = Gkqset%ngk(1, ik) + nlotot
       nst = lst - fst + 1
+      stype = input%groundstate%stypenumber
+      if (stype < 0) stype = 3 ! Fermi-Dirac
+      sigma = 1.0_dp / input%groundstate%swidth
 
       allocate( dX(nmatkq, fst:lst) )
 
       deval = 0.0_dp
+      dX = zzero
       do ist = fst, lst
-        dX(:, ist) = dHmat(1:nmatkq, ist) - evalk(ist) * dSmat(1:nmatkq, ist)
-        if( gamma ) deval(ist) = dble( dX(ist, ist) )
-        if( occk(ist) < input%groundstate%epsocc ) cycle
+        if (gamma) deval(ist) = dble( dHmat(ist, ist) - evalk(ist) * dSmat(ist, ist) )
+        !$omp parallel default(shared) private(dev, t1, t2)
+        !$omp do
         do jst = 1, nmatkq
-          dev = evalk(ist) - evalkq(jst)
-          sig = sign( 1.0_dp, dev )
-          dev = abs( dev )
-          if( proj ) then
-            if( dev < eps ) then
-              t1 = 0.0_dp; t2 = -0.5_dp
-            else
-              t1 = sig * max( 0.0_dp, occmax - occkq(jst) ) / (dev + eps)
-              t2 = -0.5_dp * occkq(jst)
-            end if
-            t1 = t1 / occmax; t2 = t2 / occmax
+          dev = evalkq(jst) - evalk(ist)
+          t1 = stheta( stype, dev * sigma )
+          ! degenerate states
+          if (abs(dev) < input%phonons%epsdeg) then
+            t2 = occmax * sdelta( stype, (efermi - evalk(ist)) * sigma ) * sigma
+            dX(jst, ist) = - stheta( stype, 0.0_dp ) * &
+              (t2 * (dHmat(jst, ist) - evalk(ist) * dSmat(jst, ist)) &
+               + occk(ist) * dSmat(jst, ist))
+          ! non-degenerate states
           else
-            if( gamma .and. ist == jst ) then
-              t1 = 0.0_dp; t2 = 0.0_dp
-            else if( dev < eps ) then
-              t1 = 0.0_dp; t2 = -0.5_dp
-            else
-              t1 = sig / dev; t2 = 0.0_dp
-            end if
+            dX(jst, ist) = - t1 * ((occk(ist)  * (dHmat(jst, ist) - evalk(ist)  * dSmat(jst, ist)) - &
+                                    occkq(jst) * (dHmat(jst, ist) - evalkq(jst) * dSmat(jst, ist))) / dev)
           end if
-          dX(jst, ist) = t1 * dX(jst, ist) + t2 * dSmat(jst, ist)
         end do
+        !$omp end do
+        !$omp end parallel
       end do
-
       call zgemm( 'n', 'n', nmatkq, nst, nmatkq, zone, &
              eveckq, size( eveckq, dim=1 ), &
              dX, nmatkq, zzero, &
-             devec, size( devec, dim=1 ) )
+             devec(1, fst), size( devec, dim=1 ) )
+
+      if (present(devecf)) then
+        dX = zzero
+        !$omp parallel default(shared) private(dev, t1, t2)
+        !$omp do collapse(2)
+        do ist = fst, lst
+          do jst = 1, nmatkq
+            dev = evalkq(jst) - evalk(ist)
+            t1 = stheta( stype, dev * sigma )
+            if (abs(dev) < input%phonons%epsdeg) then
+              t2 = occmax * sdelta( stype, (efermi - evalk(ist)) * sigma ) * sigma
+              dX(jst, ist) = - stheta( stype, 0.0_dp ) * &
+                (t2 * evalk(ist) * (dHmat(jst, ist) - evalk(ist) * dSmat(jst, ist)) &
+                 - occk(ist) * (dHmat(jst, ist) - 2 * evalk(ist) * dSmat(jst, ist)))
+            else
+              dX(jst, ist) = - t1 * ((evalk(ist)  * occk(ist)  * (dHmat(jst, ist) - evalk(ist)  * dSmat(jst, ist)) - &
+                                      evalkq(jst) * occkq(jst) * (dHmat(jst, ist) - evalkq(jst) * dSmat(jst, ist))) / dev)
+            end if
+          end do
+        end do
+        !$omp end do
+        !$omp end parallel
+        call zgemm( 'n', 'n', nmatkq, nst, nmatkq, zone, &
+               eveckq, size( eveckq, dim=1 ), &
+               dX, nmatkq, zzero, &
+               devecf(1, fst), size( devecf, dim=1 ) )
+      end if
 
       deallocate( dX )
     end subroutine ph_eig_sternheimer

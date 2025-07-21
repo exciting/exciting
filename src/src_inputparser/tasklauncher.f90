@@ -27,4 +27,7 @@ subroutine tasklauncher()
         call xstasklauncher()
     endif 
 
+    if (associated(input%eph)) then
+        call ephtasklauncher()
+    endif 
 end subroutine

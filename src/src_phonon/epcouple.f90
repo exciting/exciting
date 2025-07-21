@@ -9,6 +9,7 @@
 Subroutine epcouple
       Use modmain
       Use modinput
+      use mod_gen_lo, only:genlofr
       Implicit None
 ! local variables
       Integer :: is, ia, ias, ip

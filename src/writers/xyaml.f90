@@ -2,7 +2,7 @@
 !> All writing has an instantanious effect on the file on the disc.
 module xyaml
   use asserts, only: assert
-  use precision, only: sp, dp, str_64, str_256
+  use precision, only: sp, dp, str_64, str_256, i32, long_int
   use to_char_conversion, only: to_char
   use modmpi, only: terminate_if_false
 
@@ -41,7 +41,6 @@ module xyaml
 
   !> Open or create a `yaml` file for writing to it. 
   !>
-  !> If the file already exists but is closed, it is opened again. Name and unit are not mutated! 
   !> If the file does not exist yet, it is created and opened. 
   !> If the file is already open, the routine has no effect at all.
   subroutine open_file(this, file_unit, file_name)
@@ -63,15 +62,16 @@ module xyaml
       open(unit=this%file_unit, file=this%file_name, iostat=ios, action='write', position='APPEND')
 
     else
-      call assert(present(file_unit), 'file_unit is not given for uninitialized yaml file.')
-      call assert(file_unit > 0, 'file_unit < 0')
-      this%file_unit = file_unit
-
       call assert(present(file_name), 'file_name is not given for uninitialized yaml file.')
       this%file_name = trim(adjustl(file_name))
-
-      open(unit=this%file_unit,  file=this%file_name, iostat=ios)
-      write(err_msg, '("File ", A, " cannot be opened in unit ", I3, ".")') file_name, file_unit
+      if( present( file_unit ) ) then
+        call assert(file_unit > 0, 'file_unit < 0')
+        this%file_unit = file_unit
+        open(unit=this%file_unit, file=this%file_name, iostat=ios)
+      else
+        open(newunit=this%file_unit, file=trim(this%file_name), iostat=ios, action='write')
+      end if
+      write(err_msg, '("File ", A, " cannot be opened in unit ", I3, ".")') file_name, this%file_unit
       call terminate_if_false(ios == 0, err_msg)
       this%is_open = .true.
       this%is_initialized = .true.
@@ -117,7 +117,6 @@ module xyaml
 
   !> Write a scalar to a yaml file field.
   !> 
-  !> All native fortran types are supported.
   subroutine write_field_scalar(this, element_name, input)
     !> `yaml` file container
     class(yaml_type), intent(in) :: this
@@ -131,7 +130,9 @@ module xyaml
     select type(input)
     type is(logical)
       input_string = to_char(input)
-    type is(integer)
+    type is(integer(i32))
+      input_string = to_char(input)
+    type is(integer(long_int))
       input_string = to_char(input)
     type is(real(sp))
       input_string = to_char(input)
@@ -153,7 +154,6 @@ module xyaml
 
   !> Write a vector to a yaml file field.
   !> 
-  !> All native fortran types are supported expect **character** vectors.
   subroutine write_field_vector(this, element_name, input)
     !> `yaml` file container
     class(yaml_type), intent(in) :: this
@@ -167,7 +167,9 @@ module xyaml
     select type(input)
     type is(logical)
       input_string = to_char(input)
-    type is(integer)
+    type is(integer(i32))
+      input_string = to_char(input)
+    type is(integer(long_int))
       input_string = to_char(input)
     type is(real(sp))
       input_string = to_char(input)
@@ -187,7 +189,6 @@ module xyaml
 
   !> Write a matrix to a yaml file field.
   !> 
-  !> Only **real(dp)** and **complex(dp)** are supported (Issue #128).
   subroutine write_field_matrix(this, element_name, input)
     !> `yaml` file container
     class(yaml_type), intent(in) :: this

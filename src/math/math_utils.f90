@@ -50,7 +50,8 @@ module math_utils
             is_close, &
             get_integer_indexes, &
             fill_random, &
-            transpose_reshape
+            transpose_reshape, &
+            interp1d
 
 
   !> Default tolerance
@@ -2069,6 +2070,85 @@ end subroutine fill_random_rank2_complex_dp
       reshaped_array = reshape(flattened_array, N)
       reshaped_array = transpose(reshaped_array)
   end function transpose_reshape
+
+  !> Given the values \(y_i\) of a function \(y(x)\) at sampling points \(x_i\) return
+  !> the interpolated function values \(y_j \approx y(x_j)\) at a different set of sampling points \(x_j\).
+  !> Currently supported interpolation methods are
+  !> * linear interpolation (`linear`)
+  !> * cubic spline interpolation (`spline`)
+  subroutine interp1d( xi, yi, xj, yj, method )
+    use sorting, only: sort_index_1d
+    !> input samping points \(x_i\) in increasing order
+    real(dp), intent(in) :: xi(:)
+    !> input function values \(y_i\)
+    real(dp), intent(in) :: yi(:)
+    !> output samping points \(x_j\)
+    real(dp), intent(in) :: xj(:)
+    !> output function values \(y_i\)
+    real(dp), intent(out) :: yj(:)
+    !> interpolation method
+    character(*), intent(in) :: method
+
+    integer :: ni, nj, i, j
+    real(dp) :: d
+
+    integer, allocatable :: srt(:), ivl(:)
+    real(dp), allocatable :: cf(:, :)
+
+    ni = size( xi )
+    call assert( size( yi ) == ni, 'Input arrays `xi` and `yi` have different length.' )
+    nj = size( xj )
+    call assert( size( yj ) == nj, 'Input arrays `xj` and `yj` have different length.' )
+    call assert( any( trim( method ) == ['linear', 'spline'] ), 'Invalid interpolation method.' )
+
+    ! sort output points
+    srt = sort_index_1d( nj, xj )
+    ! find intervals output points are contained in
+    allocate( ivl(0:nj), source=0 )
+    outer:do j = 1, nj
+      if( xj(srt(j)) >= xi(ni) ) then
+        ivl(j) = ni
+        cycle outer
+      end if
+      do i = max( ivl(j-1), 1 ), ni - 1
+        if( xj(srt(j)) >= xi(i) .and. xj(srt(j)) < xi(i+1) ) then
+          ivl(j) = i
+          cycle outer
+        end if
+      end do
+    end do outer
+
+    yj = 0.0_dp
+    select case( trim( method ) )
+      case( 'linear' )
+        do j = 1, nj
+          if( ivl(j) == 0 ) then
+            yj(srt(j)) = yi(1)
+          else if( ivl(j) == ni ) then
+            yj(srt(j)) = yi(ni)
+          else
+            d = xj(srt(j)) - xi(ivl(j))
+            yj(srt(j)) = yi(ivl(j)) + d * (yi(ivl(j)+1) - yi(ivl(j))) / (xi(ivl(j)+1) - xi(ivl(j)))
+          end if
+        end do
+      case( 'spline' )
+        allocate( cf(3, ni) )
+        call spline( ni, xi, 1, yi, cf )
+        do j = 1, nj
+          if( ivl(j) == 0 ) then
+            yj(srt(j)) = yi(1)
+          else if( ivl(j) == ni ) then
+            yj(srt(j)) = yi(ni)
+          else
+            d = xj(srt(j)) - xi(ivl(j))
+            yj(srt(j)) = yi(ivl(j)) + d * (cf(1, ivl(j)) + d * (cf(2, ivl(j)) + d * cf(3, ivl(j))))
+          end if
+        end do
+        deallocate( cf )
+    end select
+
+    deallocate( srt, ivl )
+  end subroutine interp1d
 
 end module math_utils
 

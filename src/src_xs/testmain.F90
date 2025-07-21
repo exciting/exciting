@@ -6,6 +6,7 @@
 Subroutine testmain
       Use modmain
       Use modxs
+      use m_zfftifc, only: zfftifc
       Implicit None
       integer, parameter :: nd=1
       integer, parameter :: n(nd)=(/3/)

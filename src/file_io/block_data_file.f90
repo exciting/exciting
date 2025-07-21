@@ -238,18 +238,24 @@ module block_data_file
     end function get_block_shape
 
     !> write integer data block to file
-    subroutine write_integer(this, record, data_block)
+    subroutine write_integer(this, record, data_block, check_size_only)
       use iso_c_binding
       class(block_data_file_type), intent(inout) :: this
       !> record number / index of data block
       integer, intent(in) :: record
       !> data block to write
       integer, target, intent(in) :: data_block(..)
+      !> check only the size but not the shape of `data_block` (default: `.false.`)
+      logical, optional, intent(in) :: check_size_only
 
       integer :: ierr, n
+      logical :: check_size
       integer, allocatable :: shp(:)
       integer, pointer :: buffer(:)
       character(:), allocatable :: errmsg
+
+      check_size = .false.
+      if( present( check_size_only ) ) check_size = check_size_only
 
       ! check if file object hosts integers
       dummytype: select type( t => this%type_dummy)
@@ -263,10 +269,15 @@ module block_data_file
 
       ! check block size
       allocate( shp, source=shape( data_block ) )
-      call assert( size( shp ) == this%block_rank, &
-        'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-      call assert( all( shp == this%block_shape ), &
-        'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      if (check_size) then
+        call assert( product( shp ) == n, &
+          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+      else
+        call assert( size( shp ) == this%block_rank, &
+          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        call assert( all( shp == this%block_shape ), &
+          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      end if
 
       ! write rank and shape
       call write_rank_and_shape(this, record)
@@ -285,18 +296,24 @@ module block_data_file
     end subroutine write_integer
 
     !> write double real data block to file
-    subroutine write_double(this, record, data_block)
+    subroutine write_double(this, record, data_block, check_size_only)
       use iso_c_binding
       class(block_data_file_type), intent(inout) :: this
       !> record number / index of data block
       integer, intent(in) :: record
       !> data block to read
       real(dp), target, intent(in) :: data_block(..)
+      !> check only the size but not the shape of `data_block` (default: `.false.`)
+      logical, optional, intent(in) :: check_size_only
 
       integer :: ierr, n
+      logical :: check_size
       integer, allocatable :: shp(:)
       real(dp), pointer :: buffer(:)
       character(:), allocatable :: errmsg
+
+      check_size = .false.
+      if( present( check_size_only ) ) check_size = check_size_only
 
       ! check if file object hosts integers
       dummytype: select type( t => this%type_dummy)
@@ -310,10 +327,15 @@ module block_data_file
 
       ! check block size
       allocate( shp, source=shape( data_block ) )
-      call assert( size( shp ) == this%block_rank, &
-        'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-      call assert( all( shp == this%block_shape ), &
-        'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      if (check_size) then
+        call assert( product( shp ) == n, &
+          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+      else
+        call assert( size( shp ) == this%block_rank, &
+          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        call assert( all( shp == this%block_shape ), &
+          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      end if
 
       ! write rank and shape
       call write_rank_and_shape(this, record)
@@ -332,18 +354,24 @@ module block_data_file
     end subroutine write_double
 
     !> write double complex data block to file
-    subroutine write_double_complex(this, record, data_block)
+    subroutine write_double_complex(this, record, data_block, check_size_only)
       use iso_c_binding
       class(block_data_file_type), intent(inout) :: this
       !> record number / index of data block
       integer, intent(in) :: record
       !> data block to read
       complex(dp), target, intent(in) :: data_block(..)
+      !> check only the size but not the shape of `data_block` (default: `.false.`)
+      logical, optional, intent(in) :: check_size_only
 
       integer :: ierr, n
+      logical :: check_size
       integer, allocatable :: shp(:)
       complex(dp), pointer :: buffer(:)
       character(:), allocatable :: errmsg
+
+      check_size = .false.
+      if( present( check_size_only ) ) check_size = check_size_only
 
       ! check if file object hosts integers
       dummytype: select type( t => this%type_dummy)
@@ -353,14 +381,19 @@ module block_data_file
           call assert( .false., 'block_data_file_type object not set up to handle data of type double complex.')
       end select dummytype
 
+      n = product(this%block_shape)
+
       ! check block size
       allocate( shp, source=shape( data_block ) )
-      call assert( size( shp ) == this%block_rank, &
-        'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-      call assert( all( shp == this%block_shape ), &
-        'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
-
-      n = product(this%block_shape)
+      if (check_size) then
+        call assert( product( shp ) == n, &
+          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+      else
+        call assert( size( shp ) == this%block_rank, &
+          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        call assert( all( shp == this%block_shape ), &
+          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      end if
 
       ! write rank and shape
       call write_rank_and_shape(this, record)
@@ -380,18 +413,24 @@ module block_data_file
     end subroutine write_double_complex
 
     !> read integer data block from file
-    subroutine read_integer(this, record, data_block)
+    subroutine read_integer(this, record, data_block, check_size_only )
       use iso_c_binding
       class(block_data_file_type), intent(inout) :: this
       !> record number / index of data block
       integer, intent(in) :: record
       !> data block to read
       integer, target, intent(out) :: data_block(..)
+      !> check only the size but not the shape of `data_block` (default: `.false.`)
+      logical, optional, intent(in) :: check_size_only
 
       integer :: ierr, n, block_rank, block_shape(this%block_rank)
+      logical :: check_size
       integer, allocatable :: shp(:)
       integer, pointer :: buffer(:)
       character(:), allocatable :: errmsg
+
+      check_size = .false.
+      if( present( check_size_only ) ) check_size = check_size_only
 
       ! check if file object hosts integers
       dummytype: select type( t => this%type_dummy)
@@ -405,10 +444,15 @@ module block_data_file
 
       ! check block size
       allocate( shp, source=shape( data_block ) )
-      call assert( size( shp ) == this%block_rank, &
-        'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-      call assert( all( shp == this%block_shape ), &
-        'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      if (check_size) then
+        call assert( product( shp ) == n, &
+          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+      else
+        call assert( size( shp ) == this%block_rank, &
+          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        call assert( all( shp == this%block_shape ), &
+          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      end if
 
       ! read block rank and shape
       call read_rank_and_shape(this, record, block_rank, block_shape)
@@ -428,18 +472,24 @@ module block_data_file
     end subroutine read_integer
 
     !> read double real data block from file
-    subroutine read_double(this, record, data_block)
+    subroutine read_double(this, record, data_block, check_size_only)
       use iso_c_binding
       class(block_data_file_type), intent(inout) :: this
       !> record number / index of data block
       integer, intent(in) :: record
       !> data block to read
       real(dp), target, intent(out) :: data_block(..)
+      !> check only the size but not the shape of `data_block` (default: `.false.`)
+      logical, optional, intent(in) :: check_size_only
 
       integer :: ierr, n, block_rank, block_shape(this%block_rank)
+      logical :: check_size
       integer, allocatable :: shp(:)
       real(dp), pointer :: buffer(:)
       character(:), allocatable :: errmsg
+
+      check_size = .false.
+      if( present( check_size_only ) ) check_size = check_size_only
 
       ! check if file object hosts integers
       dummytype: select type( t => this%type_dummy)
@@ -453,10 +503,15 @@ module block_data_file
 
       ! check block size
       allocate( shp, source=shape( data_block ) )
-      call assert( size( shp ) == this%block_rank, &
-        'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-      call assert( all( shp == this%block_shape ), &
-        'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      if (check_size) then
+        call assert( product( shp ) == n, &
+          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+      else
+        call assert( size( shp ) == this%block_rank, &
+          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        call assert( all( shp == this%block_shape ), &
+          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      end if
 
       ! read block rank and shape
       call read_rank_and_shape(this, record, block_rank, block_shape)
@@ -476,35 +531,46 @@ module block_data_file
     end subroutine read_double
 
     !> read double complex data block from file
-    subroutine read_double_complex(this, record, data_block)
+    subroutine read_double_complex(this, record, data_block, check_size_only)
       use iso_c_binding
       class(block_data_file_type), intent(inout) :: this
       !> record number / index of data block
       integer, intent(in) :: record
       !> data block to read
       complex(dp), target, intent(out) :: data_block(..)
+      !> check only the size but not the shape of `data_block` (default: `.false.`)
+      logical, optional, intent(in) :: check_size_only
 
       integer :: ierr, n, block_rank, block_shape(this%block_rank)
+      logical :: check_size
       integer, allocatable :: shp(:)
       complex(dp), pointer :: buffer(:)
       character(:), allocatable :: errmsg
+
+      check_size = .false.
+      if( present( check_size_only ) ) check_size = check_size_only
 
       ! check if file object hosts integers
       dummytype: select type( t => this%type_dummy)
         type is(complex(dp))
           exit dummytype
         class default
-          call terminate_if_false( .false., '(read_double_complex) Block data file not initialized for double reals.')
+          call terminate_if_false( .false., '(read_double_complex) Block data file not initialized for double complex.')
       end select dummytype
 
       n = product(this%block_shape)
 
       ! check block size
       allocate( shp, source=shape( data_block ) )
-      call assert( size( shp ) == this%block_rank, &
-        'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-      call assert( all( shp == this%block_shape ), &
-        'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      if (check_size) then
+        call assert( product( shp ) == n, &
+          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+      else
+        call assert( size( shp ) == this%block_rank, &
+          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        call assert( all( shp == this%block_shape ), &
+          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+      end if
 
       ! read block rank and shape
       call read_rank_and_shape(this, record, block_rank, block_shape)

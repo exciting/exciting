@@ -76,8 +76,11 @@ def test_get_band_edges(band_data):
     assert i_cbm == 1
 
     band_data.e_fermi = 1.0
-    with pytest.raises(ValueError, match="Fermi level 1.0 larger than highest band energy 0.59664939"):
-        band_data.get_band_edges(), "ValueError is returned in case of erroneously large Fermi level"
+    with pytest.warns(
+        UserWarning,
+        match="Fermi level 1.0 larger than highest band energy 0.59664939. Band gap methods will return incorrect values.",
+    ):
+        band_data.get_band_edges(), "UserWarning is returned in case of erroneously large Fermi level"
 
 
 def test_get_valence_band_maximum(band_data):

@@ -392,4 +392,57 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element ex:importance="expert" ex:unit="" name="freq_grid">
+    <xs:annotation>
+      <xs:documentation>
+        Frequency grid
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute ex:importance="essential" ex:unit="" name="type" default="uniform">
+        <xs:annotation>
+          <xs:documentation>
+            <pre>uniform</pre> - uniformly sampled frequencies <br/>
+            <pre>density</pre> - densely sampled around fixed energies and sparse away from it
+          </xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="uniform"/>
+            <xs:enumeration value="density"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="" name="numpoints" type="xs:integer" default="500">
+        <xs:annotation>
+          <xs:documentation>
+            Number of frequencies
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="essential" ex:unit="Hartree" name="range" type="vect2d" default="0.0d0 0.0d0">
+        <xs:annotation>
+          <xs:documentation>
+            Frequency range as pair of minimum and maximum energy. Automatic determination as default.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="Hartree" name="padding" type="fortrandouble" default="0.0d0">
+        <xs:annotation>
+          <xs:documentation>
+            Frequency padding that is added to the minimum and maximum frequency.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="Hartree" name="lorentzwidth" type="fortrandouble" default="0.02d0">
+        <xs:annotation>
+          <xs:documentation>
+            If <pre>type</pre> is set to <pre>density</pre> this argument defines the width of the Lorentzian frequency density 
+            around fixed energies (e.g. single particle energies). The smaller the value, the closer the frequencies are to the fixed energies.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+
+  </xs:element>
 </xs:schema>

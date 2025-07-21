@@ -9,6 +9,7 @@ subroutine HapwSapw(n,npw,nwf,system,fftmap,cfir,vir,mir,x,Hx,Sx)
       use modmain
       use modxs
       Use modfvsystem
+      use m_zfftifc, only: zfftifc
       Use modmpi, only: terminate_mpi_env, mpiglobal 
       implicit none
       integer, intent(in) :: n              ! leading dimension of |psi>

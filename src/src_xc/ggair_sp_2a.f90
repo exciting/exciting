@@ -13,6 +13,7 @@ subroutine ggair_sp_2a(rhoup, rhodn, g2up, g2dn, gvup, gvdn, gup2, gdn2, gupdn)
 ! !USES:
 use modinput
 use mod_Gvector
+use m_zfftifc, only: zfftifc
 ! !DESCRIPTION:
 !   Computes the interstitial gradients $\nabla^2\rho^{\uparrow}$,
 !   $\nabla^2\rho^{\downarrow}$, $\nabla\rho^{\uparrow}$,

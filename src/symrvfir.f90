@@ -13,6 +13,7 @@ Subroutine symrvfir (ngv, rvfir)
 ! !USES:
       Use modinput
       Use modmain
+      use m_zfftifc, only: zfftifc
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngv   : number of G-vectors to be used for the Fourier space rotation
 !           (in,integer)

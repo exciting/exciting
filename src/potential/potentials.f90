@@ -39,6 +39,8 @@ module potentials
       use mod_potential_and_density, only: vmad
       use mod_convergence, only: iscl
       use weinert
+      use m_zfftifc, only: zfftifc
+
       !> number or radial grid points for each species
       integer, intent(in) :: nr(:)
       !> radial grid for each species

@@ -14,6 +14,7 @@ subroutine ggair_2b(g2rho, gvrho, vx, vc, dxdg2, dcdg2)
 use modinput
 use mod_Gvector
 use mod_potential_and_density
+use m_zfftifc, only: zfftifc
 ! !DESCRIPTION:
 !   Spin-unpolarised version of {\tt ggair\_sp\_2b}.
 !

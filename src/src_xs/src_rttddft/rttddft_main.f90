@@ -47,7 +47,6 @@ module rttddft_main
     MD_allocate_global_arrays => allocate_global_arrays, &
     MD_deallocate_global_arrays => deallocate_global_arrays, &
     MD_evaluate_charge_val => evaluate_charge_val
-  use rttddft_NumberExcitations, only: obtain_number_excitations
   use rttddft_Polarization, only: Polarization
   use rttddft_pmat, only: obtain_pmat_LAPWLOBasis
   use rttddft_potential, only: update_potential
@@ -264,7 +263,7 @@ contains
 
     ! Number of excitations
     if ( rt%calculate_n_exc .and. rt%do_from_scratch() ) then
-      call obtain_number_excitations( psi, overlap, eps_occ, occupations, &
+      call psi%obtain_number_excitations( overlap, eps_occ, occupations, &
         kset%wkpt(first_kpt:last_kpt), mpi_env_k, n_exc(1), n_gs(1) )
       if( my_rank_writes_to_output ) call write_nexc( .True., [time], [n_exc(1)], [n_gs(1)] )
     end if
@@ -416,7 +415,7 @@ contains
       ! Obtain the number of excited electrons, if requested
       if( rt%calculate_n_exc ) then
         if ( rt%printTimings%detailed() ) call timesec( timei )
-        call obtain_number_excitations( psi, overlap, eps_occ, &
+        call psi%obtain_number_excitations( overlap, eps_occ, &
           & occupations, kset%wkpt(first_kpt:last_kpt), mpi_env_k, n_exc(i_print), n_gs(i_print))
         if( rt%printTimings%detailed() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%n_exc )
       end if

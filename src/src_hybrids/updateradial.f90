@@ -5,7 +5,8 @@
 !
 Subroutine updateradial
 ! !USES:
-    Use modmain
+  Use modmain
+  use mod_gen_lo, only: genlofr
 ! !DESCRIPTION:
 !   Update of radial functions during the Hartree-Fock hybrids run.
 !
@@ -55,7 +56,7 @@ Subroutine updateradial
 ! update radial functions  
 !----------------------------------------------------------
           call genapwfr         ! generate the APW radial functions
-          call genlofr(tlast)   ! generate the local-orbital radial functions
+          call genlofr          ! generate the local-orbital radial functions
           call olprad           ! compute the overlap radial integrals
 !----------------------------------------------------------
 ! remove fake from effective potential  

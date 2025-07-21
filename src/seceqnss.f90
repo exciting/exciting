@@ -9,6 +9,7 @@
 Subroutine seceqnss (ik, apwalm, evalfv, evecfv, evecsv)
       Use modmain
       Use modinput
+      use m_zfftifc, only: zfftifc
       Implicit None
 ! arguments
       Integer, Intent (In) :: ik

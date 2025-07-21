@@ -6,8 +6,9 @@ module dfpt_density_potential
 
   use precision, only: dp, long_int
   use asserts, only: assert
-  use modmpi, only: terminate_if_false
+  use modmpi, only: mpiglobal, terminate_if_false
   use mod_kpointset, only: G_set
+  use m_zfftifc, only: zfftifc
 
   implicit none
   private
@@ -49,7 +50,7 @@ module dfpt_density_potential
     !> * setting of module variables
     !> * calculation of the exchange-correlation kernel \(f_{\rm xc}({\bf r},{\bf r}')\)
     subroutine dfpt_rhopot_init
-      use mod_potential_and_density, only: rhomt, rhoir
+      use mod_potential_and_density, only: rho_mt => rhomt, rho_ir => rhoir
       use mod_SHT, only: gen_rshtmat
 
       ! G-set for products of functions
@@ -63,7 +64,7 @@ module dfpt_density_potential
       call gen_rshtmat( prod_lmax, rfsht, rbsht )
 
       ! generate xc kernel
-      call gen_xc_kernel( rhomt, rhoir, xc_kernel_mt, xc_kernel_ir )
+      call gen_xc_kernel( rho_mt, rho_ir, xc_kernel_mt, xc_kernel_ir )
     end subroutine dfpt_rhopot_init
 
     !> This subroutine frees memory from the module variables.
@@ -607,10 +608,14 @@ module dfpt_density_potential
         case( 30 )   ! GGA Armiento-Mattsson
           xctype_libxc(1) = XC_GGA_X_AM05
           xctype_libxc(2) = XC_GGA_C_AM05
-        ! this would be available in a newer version of LIBXC
-        !case( 300 )  ! GGA acPBE
-        !  xctype_libxc(1) = XC_GGA_X_BCGP
-        !  xctype_libxc(2) = XC_GGA_C_ACGGA
+        case( 300 )  ! GGA acPBE
+          xctype_libxc(1) = XC_GGA_X_BCGP
+          xctype_libxc(2) = XC_GGA_C_ACGGA
+        case( 406, 408 )  ! HYBRID PBE0, HSE06
+          xctype_libxc(1) = XC_GGA_X_PBE
+          xctype_libxc(2) = XC_GGA_C_PBE
+          if (mpiglobal%rank == 0) &
+            write( *, '(a)' ) 'Warning: (gen_xc_kernel) DFPT for hybrids not implemented. Use PBE xc kernel instead.'
         case default
           call terminate_if_false( .false., '(gen_xc_kernel) &
             xc kernel not available for this xc-type. '// &
@@ -625,6 +630,7 @@ module dfpt_density_potential
         xcf = xc_f03_family_from_id( xctype_libxc(i) )
         select case( xcf )
           case( XC_FAMILY_LDA )
+            gga = .false.
             k = 1 ! only one part for LDA
           case( XC_FAMILY_GGA, XC_FAMILY_HYB_GGA )
             gga = .true.

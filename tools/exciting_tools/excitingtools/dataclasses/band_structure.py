@@ -1,5 +1,6 @@
 """Band structure class."""
 
+import warnings
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -98,7 +99,9 @@ class BandData:
         i_vbm = n_occupied - 1
 
         if i_vbm + 1 >= self.n_bands:
-            raise ValueError(f"Fermi level {self.e_fermi} larger than highest band energy {np.amax(self.bands)}")
+            warnings.warn(
+                f"Fermi level {self.e_fermi} larger than highest band energy {np.amax(self.bands)}. Band gap methods will return incorrect values."
+            )
 
         return i_vbm, i_vbm + 1
 

@@ -414,7 +414,7 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   !$omp end teams distribute parallel do
   OMP_OFFLOAD end target
 
-  ngq_max_block_size = merge(Gqset%ngk(1,iq), min(input%gw%GBatchCount, Gqset%ngk(1,iq)), input%gw%GBatchCount == 0)
+  ngq_max_block_size = merge(Gqset%ngk(1,iq), min(input%gw%GBatchCount, Gqset%ngk(1,iq)), input%gw%GBatchCount <= 0)
   nblocks_ngq        = ceiling(real(Gqset%ngk(1,iq), kind = dp) /  ngq_max_block_size)
 
   call allocate_device_memory(eveck_int_cptr, ngk1 * ndim * bytes_double_complex, my_device)

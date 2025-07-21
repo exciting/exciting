@@ -99,9 +99,9 @@ module mod_wannier_util
       ! generate ouput
       if( mpiglobal%rank .eq. 0) then
         if( input%properties%wannier%input .eq. "gw") then
-          call xml_OpenFile( "bandstructure-wannier-gw.xml", xf, replace=.true., pretty_print=.true.)
+          call xml_OpenFile( "bandstructure_wannier-gw.xml", xf, replace=.true., pretty_print=.true.)
         else
-          call xml_OpenFile( "bandstructure-wannier.xml", xf, replace=.true., pretty_print=.true.)
+          call xml_OpenFile( "bandstructure_wannier.xml", xf, replace=.true., pretty_print=.true.)
         end if
         call xml_AddXMLPI( xf, "xml-stylesheet", 'href="'//trim(input%xsltpath)//'/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"')
         call xml_NewElement( xf, "bandstructure")

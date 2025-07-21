@@ -17,8 +17,7 @@
 # Exciting binaries 
 # Found in the respective build folder
 # Kept paths as 'exciting' is quite a general name 
-/build/
-/build-cmake/
+/build*/
 # Bin directory, covering all executables
 /install/
 

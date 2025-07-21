@@ -14,6 +14,7 @@ Subroutine kinetic_energy(ik,evecfv,apwalm,ngp,vgpc,igpig)
 ! !USES:
       Use modinput
       Use modmain
+      use m_zfftifc, only: zfftifc
 ! !DESCRIPTION:
 !   Calculates the kinetic energy directly.
 !

@@ -14,6 +14,7 @@ Subroutine rhoinit
 ! !USES:
       Use modinput
       Use modmain
+      use m_zfftifc, only: zfftifc
 #ifdef USEOMP
       use omp_lib
 #endif

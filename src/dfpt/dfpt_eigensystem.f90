@@ -92,6 +92,7 @@ module dfpt_eigensystem
       end select
       call me_ir_alloc( kin_cfun_ig )
       call me_ir_prepare( zone, kin_ir, zzero, kin_cfun_ig )
+      deallocate( kin_ir )
     end subroutine dfpt_eig_init
 
     !> This subroutine frees memory from the module variables
@@ -178,7 +179,7 @@ module dfpt_eigensystem
           call dfpt_eig_geteval( pset%vkl(:, ip), feval, p0set, [1, n], rbuff )
           call dfpt_eig_getevec( pset%vkl(:, ip), Gpset%vgkl(:, :, 1, ip), fevec, p0set, Gp0set, [1, n], zbuff )
           eval(1:n) = rbuff
-          evec(:, 1:n) = zbuff
+          evec(1:size(zbuff, dim=1), 1:n) = zbuff
           if( allocated( rbuff ) ) deallocate( rbuff )
           if( allocated( zbuff ) ) deallocate( zbuff )
           return
@@ -210,7 +211,7 @@ module dfpt_eigensystem
       !* solve eigensystem
       call zhegdiag( H, S, eval(1:n), evec=evec(1:nmatp, 1:n), irange=[1,n] )
       ! we fix a unige gauge of the eigenvectors
-      call zhegauge( eval(1:n), evec(1:nmatp, 1:n), eps=1e-6_dp )
+      !call zhegauge( eval(1:n), evec(1:nmatp, 1:n), eps=1e-6_dp )
       ! deallocate local variables
       deallocate( apwalm, S, H )
     end subroutine dfpt_eig_ks
@@ -314,7 +315,7 @@ module dfpt_eigensystem
       type(Gk_set), intent(in) :: Gpset1, Gpset2
       !> first and last state on the left for which the matrix elements are calculated
       integer, intent(in) :: fst1, lst1
-      !> first and last state on the left for which the matrix elements are calculated
+      !> first and last state on the right for which the matrix elements are calculated
       integer, intent(in) :: fst2, lst2
       !> eigenvectors on the left and right
       complex(dp), intent(in) :: evec1(:,:), evec2(:,:)
@@ -402,7 +403,7 @@ module dfpt_eigensystem
 
       real(dp), allocatable :: rdata(:)
 
-      ! allocate eigenvectors
+      ! allocate eigenvalues
       edim = feval%get_block_shape()
       allocate( eval(band_range(1):band_range(2)) )
       allocate( rdata(edim(1)) )
@@ -410,7 +411,7 @@ module dfpt_eigensystem
       call findkptinset( vpl, pset, isym, ip )
       call terminate_if_false( ip > 0, '(dfpt_eig_geteval) &
         Requested point not found in set.' )
-      ! read eigenvectors
+      ! read eigenvalues
       call feval%read( ip, rdata )
       eval = rdata(band_range(1):band_range(2))
       deallocate( rdata )
@@ -419,6 +420,7 @@ module dfpt_eigensystem
     subroutine dfpt_eig_getevec( vpl, vgpl, fevec, pset, Gpset, band_range, evec )
       use block_data_file, only: block_data_file_type
       use mod_kpointset, only: k_set, Gk_set
+      use mod_APW_LO, only: nlotot
       !> wavevector \({\bf p}_0\) in lattice coordinates
       real(dp), intent(in) :: vpl(3)
       !> \({\bf G+p}_0\) vectors in lattice coordinates
@@ -434,23 +436,24 @@ module dfpt_eigensystem
       !> eigenvectors at \({\bf p}_0\)
       complex(dp), allocatable, intent(out) :: evec(:,:)
 
-      integer :: ip, isym, vdim(2)
+      integer :: ip, isym, nmat, vdim(2)
 
       complex(dp), allocatable :: zdata(:,:)
 
-      ! allocate eigenvectors
-      vdim = fevec%get_block_shape()
-      allocate( evec(vdim(1), band_range(1):band_range(2)) )
-      allocate( zdata(vdim(1), vdim(2)) )
       ! find p-point in set
       call findkptinset( vpl, pset, isym, ip )
       call terminate_if_false( ip > 0, '(dfpt_eig_getevec) &
         Requested point not found in set.' )
+      ! allocate eigenvectors
+      vdim = fevec%get_block_shape()
+      nmat = Gpset%ngk(1, ip) + nlotot
+      allocate( evec(nmat, band_range(1):band_range(2)) )
+      allocate( zdata(vdim(1), vdim(2)) )
       ! read eigenvectors
       call fevec%read( ip, zdata )
-      evec = zdata(:, band_range(1):band_range(2))
+      evec = zdata(1:nmat, band_range(1):band_range(2))
       deallocate( zdata )
-      if( all( abs( vpl - pset%vkl(:, ip) ) < 1e-6_dp ) ) return
+      if (all( abs( vpl - pset%vkl(:, ip) ) < 1e-6_dp )) return
       ! rotate eigenvectors
       call rotate_evecfv( isym, pset%vkl(:, ip), vpl, &
              Gpset%ngk(1, ip), Gpset%vgkl(:, :, 1, ip), vgpl, &

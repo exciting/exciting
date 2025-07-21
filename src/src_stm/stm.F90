@@ -13,6 +13,7 @@ Subroutine stm
   use modplotlabels
   use mod_rhoir, only: genrhoir
   use mod_rhovalk, only: rhovalk
+  use mod_gen_lo, only: genlofr
   Implicit None
   ! local variables
   Integer :: ik

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eigval>
+  <kpt ik="1" vkl="0.000000000000e0 0.000000000000e0 0.000000000000e0">
+    <state ist="1" eigenvalue="-7.505919561223e-1" occupancy="2.000000000000e0"/>
+    <state ist="2" eigenvalue="-7.009144022773e-1" occupancy="2.000000000000e0"/>
+    <state ist="3" eigenvalue="-2.950895332818e-1" occupancy="2.000000000000e0"/>
+    <state ist="4" eigenvalue="-1.527553375109e-1" occupancy="2.000000000000e0"/>
+    <state ist="5" eigenvalue="-6.636184195141e-2" occupancy="2.000000000000e0"/>
+    <state ist="6" eigenvalue="-6.636184195140e-2" occupancy="2.000000000000e0"/>
+    <state ist="7" eigenvalue="5.110372025396e-2" occupancy="2.000000000000e0"/>
+    <state ist="8" eigenvalue="5.110372025396e-2" occupancy="2.000000000000e0"/>
+    <state ist="9" eigenvalue="1.244190205691e-1" occupancy="0.000000000000e0"/>
+    <state ist="10" eigenvalue="2.624768409857e-1" occupancy="0.000000000000e0"/>
+    <state ist="11" eigenvalue="2.624768409857e-1" occupancy="0.000000000000e0"/>
+    <state ist="12" eigenvalue="4.518657881279e-1" occupancy="0.000000000000e0"/>
+    <state ist="13" eigenvalue="4.822324860129e-1" occupancy="0.000000000000e0"/>
+    <state ist="14" eigenvalue="4.868864105896e-1" occupancy="0.000000000000e0"/>
+  </kpt>
+</eigval>

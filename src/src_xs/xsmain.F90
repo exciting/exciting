@@ -59,6 +59,16 @@ subroutine xsmain(plan, nxstasks)
   character(:), allocatable :: ghdf5
   type(xhdf5_type) :: h5
 
+
+#if defined(__INTEL_LLVM_COMPILER)
+  ! Printing warning for IFX
+  call warning("BSE calculations are known to have lower precision with" // &
+               " Intel LLVM Fortran compiler (i.e. ifx)." // &
+               "Results might be not reliable, especially for cases beyond" // &
+               "basic bare spin-degenerate BSE, e.g.: dichroism, BSE with spin." // &
+               "We recommend using other compilers.")
+#endif
+
   ! initialization of hdf5 output
   fhdf5 = trim( adjustl( input%xs%h5fname ))
   ghdf5 = trim( adjustl( input%xs%h5gname ))

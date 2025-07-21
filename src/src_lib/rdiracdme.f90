@@ -79,7 +79,9 @@ use mod_timing
          End Do
       End If
       call timesec(ts1)
+      !$omp critical
       time_rdirac=ts1-ts0+time_rdirac
+      !$omp end critical
       Return
 End Subroutine
 !EOC

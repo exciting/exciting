@@ -6,6 +6,7 @@ Subroutine writeexpiqr
       Use modmain
       Use modinput
       Use FoX_wxml
+      use mod_gen_lo, only: genlofr
       Implicit None
 ! local variables
       Integer :: nk, ik, jk, i, j

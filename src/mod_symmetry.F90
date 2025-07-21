@@ -141,7 +141,8 @@ module mod_symmetry
         f, ng, ivg, intgv, ivgig, igfft, isym)
 
       use constants, only: zzero
-      
+      use m_zfftifc, only: zfftifc
+
       !> on input: real function; 
       !> on output: symmetrized real function
       real(dp), intent(inout) :: f(:)

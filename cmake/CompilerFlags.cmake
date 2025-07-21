@@ -116,16 +116,7 @@ set(ARCH_MARCH "native")
 CheckIfIntelCPU(IS_INTEL_CPU)
 CheckForAVX512Support(AVX512_SUPPORTED)
 CheckForAVX2Support(AVX2_SUPPORTED)
-set(INTEL_CODE_NAME "None" CACHE STRING "Code name for Intel processors")
-if(INTEL_CODE_NAME MATCHES "None")
-    if(AVX512_SUPPORTED)
-        set(INTEL_CODE_NAME "CORE-AVX512")
-    elseif(AVX2_SUPPORTED)
-	set(INTEL_CODE_NAME "CORE-AVX2")
-    else()
-	set(INTEL_CODE_NAME "SSE4.2")
-    endif()
-endif()
+set(INTEL_CODE_NAME "Host" CACHE STRING "Code name for Intel processors")
 message(STATUS "Compiling for an Intel CPU: ${IS_INTEL_CPU} (Intel code name: ${INTEL_CODE_NAME})")
 message(STATUS "CPU intruction support for AVX2: ${AVX2_SUPPORTED}")
 message(STATUS "CPU intruction support for AVX512: ${AVX512_SUPPORTED}")
@@ -161,19 +152,20 @@ set(INTEL_DEBUG
     -check all    # Checks for all runtime failures.
     -check bounds # Generates code to perform runtime checks on array subscript and character substring expressions.
     -check nouninit #  Disables runtime checking for uninitialized variables (necessary for ifx 2025.1.1)
+    -check noarg_temp_created
     -ftrapuv      #  Set unassigned scalars as a very large integer or an invalid address
     -fpe3         # control over floating-point exception (divide by zero, overflow, invalid operation, underflow, denormalized number, positive infinity, negative infinity or a NaN)
     )
 
-set(INTEL_RELEASE -O3 -g -fPIC -fpp -allow nofpp_comments -save-temps -no-wrap-margin -fp-model source )
+set(INTEL_RELEASE -O3 -g -fPIC -fpp -allow nofpp_comments -no-wrap-margin -fp-model=source)
 
 # Cray compiler (add -hlist=m -h keepfiles to save the temporary files)
 set(CRAY_RELEASE -O2 -ef -g -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern)
 set(CRAY_DEBUG   -O0 -ef -g -fsanitize=thread -craype-verbose -e Z -dC -s real64 -s integer32 -fPIC -hipa0 -h flex_mp=strict -hnopattern)
 
 # Flang compiler
-set(FLANG_RELEASE    -cpp -fno-fast-math -flto)
-set(FLANG_DEBUG   -g -cpp -fno-fast-math -flto)
+set(FLANG_RELEASE -O3 -cpp -fno-fast-math -flto)
+set(FLANG_DEBUG   -O0 -g -cpp -fno-fast-math -flto)
 
 if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
    set(FF_DEBUG ${GCC_DEBUG})
@@ -200,9 +192,9 @@ elseif (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
 	 set(IFX_IPO "")
       endif()
       if (IS_INTEL_CPU AND AVX512_SUPPORTED)
-	 set(INTEL_OPTIMIZATION "-xHost ${IFX_IPO} -mprefer-vector-width=512 -ax${INTEL_CODE_NAME}")
+	 set(INTEL_OPTIMIZATION "${IFX_IPO} -mprefer-vector-width=512 -x${INTEL_CODE_NAME}")
       elseif(IS_INTEL_CPU AND NOT AVX512_SUPPORTED)
-         set(INTEL_OPTIMIZATION "-xHost ${IFX_IPO} -ax${INTEL_CODE_NAME}")
+         set(INTEL_OPTIMIZATION "-march=x86-64-v2")#${IFX_IPO} -x${INTEL_CODE_NAME}")
       elseif(NOT IS_INTEL_CPU AND AVX512_SUPPORTED)
          set(INTEL_OPTIMIZATION "-march=x86-64-v4")
       elseif(NOT IS_INTEL_CPU AND NOT AVX512_SUPPORTED AND AVX2_SUPPORTED)

@@ -9,6 +9,7 @@ module kinetic_energy_density_ir
     use constants, only: zzero, zi
     use kinetic_energy_density_vars, only: ked_Gkset, ked_kset, ked_Gset
     use general_matrix_multiplication, only: matrix_multiply
+    use m_zfftifc, only: zfftifc
 
     implicit none 
     private

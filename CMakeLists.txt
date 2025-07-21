@@ -104,6 +104,12 @@ include(external/deviceacc/include.cmake)
 # Create files needed for CMake compilation
 include(cmake/create_files.cmake)
 
+# Spglib
+include(cmake/spglib.cmake)
+
+# IDieL (it requires all options in previous includes)
+include(cmake/idiel.cmake)
+
 # Option controling if we build exciting and needed libraries
 # Useful if we only want to build the documentation
 option(BUILD_EXCITING "Do we build exciting" ON)

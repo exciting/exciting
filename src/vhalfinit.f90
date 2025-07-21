@@ -15,6 +15,7 @@ Subroutine vhalfinit
       Use modinput
       Use modmain
       use constants, only: fourpi, pi
+      use m_zfftifc, only: zfftifc
 #ifdef USEOMP
       use omp_lib
 #endif

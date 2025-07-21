@@ -1,0 +1,31 @@
+<input>
+
+   <title>CO2 molecule</title>
+
+   <structure speciespath="." cartesian="true">
+      <crystal>
+         <basevect> 10.0  0.0  0.0 </basevect>
+         <basevect>  0.0  5.0  0.0 </basevect>
+         <basevect>  0.0  0.0  5.0 </basevect>
+      </crystal>
+      <species speciesfile="C.xml" rmt="1.0">
+         <atom coord=" 0.00  0.00  0.00"/>
+      </species>
+      <species speciesfile="O.xml" rmt="1.0">
+         <atom coord=" 2.50  0.00  0.00"/>
+         <atom coord="-2.50  0.00  0.00"/>
+      </species>
+   </structure>
+
+   <groundstate
+      xctype="LDA_PW"
+      gmaxvr="16"
+      rgkmax="4">
+   >
+      <solver
+    type='inversionsymmetry'
+    />
+   </groundstate>
+
+</input>
+

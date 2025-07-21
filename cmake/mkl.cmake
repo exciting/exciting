@@ -25,7 +25,7 @@ if(MKL)
     message(STATUS "SCALAPACK support with MKL: ${SCALAPACK}")
 
     # Here in case we want serial version we need to search for sequential
-    if (NOT ${OMP})
+    if (NOT OMP)
         set(MKL_THREADING "sequential")
     endif()
 

@@ -10,7 +10,7 @@ module task_epsilon
     progress_write_epsilon, write_to_gwinfo_table_with_index_map, &
     q_points_numbering, q_points_numbering_abbr, q_points_indexes, q_points_indexes_abbr, &
     k_points_indexes, k_points_indexes_abbr, empty_bands_indexes, empty_bands_abbr
-  use mod_coulomb_potential, only: delete_coulomb_potential, read_barcev_vmat_from_file, calculate_sqrt_bare_coulomb
+  use mod_coulomb_potential, only: barc, delete_coulomb_potential, read_barcev_vmat_from_file, calculate_sqrt_bare_coulomb
   use mod_dielectric_function, only: write_epsilon_to_file, init_dielectric_function, delete_dielectric_function
   use mod_kqpts, only: kpoints_sets
   use mod_misc_gw, only: Gamma, gammapoint
@@ -23,6 +23,7 @@ module task_epsilon
   use modmpi, only: terminate_if_false, mpiglobal
   use precision, only: dp, i32
   use to_char_conversion, only: to_char
+#include "offload.fpp"
 
   implicit none
 
@@ -99,7 +100,7 @@ end subroutine
 
 
 !> Subroutine to be invoked when task `epsilon` must be executed
-subroutine execute_task_epsilon( all_q_points, idx_reduced_qpt, n_kpoints, first_empty_state, last_empty_state, file_format )
+subroutine execute_task_epsilon( all_q_points, idx_reduced_qpt, n_kpoints, first_empty_state, last_empty_state, file_format, dry_run )
   !> Array containing all q-points
   real(dp), intent(in) :: all_q_points(:, :)
   !> Array containing all reduced q-points needed in this calculation
@@ -112,6 +113,8 @@ subroutine execute_task_epsilon( all_q_points, idx_reduced_qpt, n_kpoints, first
   integer(i32), intent(in) :: last_empty_state
   !> Format of input/output files
   character(len=*), intent(in) :: file_format
+  !> If `.true.`, a dry-run only is required
+  logical, intent(in) :: dry_run
 
   integer(i32) :: iq, iq_reducible, iq_io, i, omega_i, omega_f
   integer(i32) :: rank_to_write
@@ -150,56 +153,60 @@ subroutine execute_task_epsilon( all_q_points, idx_reduced_qpt, n_kpoints, first
   omega_f = input_parameters%n_omega
   frequencies = indexes_parallelization( omega_i, omega_f, 1, input_parameters%n_omega )
   eigenvalue_cutoff = max( real_zero, input_parameters%eigenvalue_cutoff_Coulomb_matrix )
-  
-  ! Attention: calcpmatgw makes use of MPI parallelization and calls a mpi_barrier
-  ! In the case of building the dielectric matrix from polarizability
-  ! the momentum transfer matrix elements should already be present in the folder, 
-  ! as they are required by the polarizability task 
-  if( isGammaInList( all_q_points(:,input_parameters%q_points%list_of_indexes) ) .and. & 
-    .not. input_parameters%buildFromPolarizability ) call calcpmatgw
-  do i = mpi_qpoints%index%my_first, mpi_qpoints%index%my_last
-    iq = input_parameters%q_points%list_of_indexes(i)
-    if (input_parameters%usingIrreducibleWedge) then
-      iq_reducible = idx_reduced_qpt(iq) ! iq is the index of the irreducible q-point; iq_reducible is the index in the reducible q-point list
-      iq_io = iq ! We are outputing the files with the irreducible wedge numbering
-      if( myrank_writes_GWINFO ) then
-        call write_to_gwinfo( '('//task_name//'): q-point cycle, '// &
-          trim(q_points_numbering_abbr) // ' = ' // to_char(i) // ', ' // &
-          trim(q_points_indexes_abbr) // ' (irreducible) = ' // to_char(iq) )
-        call write_to_gwinfo_progress( progress_sgi )
+
+  if( dry_run ) then
+    if( myrank_writes_GWINFO ) call write_dry_run_info( last_empty_state-first_empty_state+1, input_parameters%n_omega )
+  else
+    ! Attention: calcpmatgw makes use of MPI parallelization and calls a mpi_barrier
+    ! In the case of building the dielectric matrix from polarizability
+    ! the momentum transfer matrix elements should already be present in the folder, 
+    ! as they are required by the polarizability task 
+    if( isGammaInList( all_q_points(:,input_parameters%q_points%list_of_indexes) ) .and. & 
+      .not. input_parameters%buildFromPolarizability ) call calcpmatgw
+    do i = mpi_qpoints%index%my_first, mpi_qpoints%index%my_last
+      iq = input_parameters%q_points%list_of_indexes(i)
+      if (input_parameters%usingIrreducibleWedge) then
+        iq_reducible = idx_reduced_qpt(iq) ! iq is the index of the irreducible q-point; iq_reducible is the index in the reducible q-point list
+        iq_io = iq ! We are outputing the files with the irreducible wedge numbering
+        if( myrank_writes_GWINFO ) then
+          call write_to_gwinfo( '('//task_name//'): q-point cycle, '// &
+            trim(q_points_numbering_abbr) // ' = ' // to_char(i) // ', ' // &
+            trim(q_points_indexes_abbr) // ' (irreducible) = ' // to_char(iq) )
+          call write_to_gwinfo_progress( progress_sgi )
+        end if
+      else
+        iq_reducible = idx_reduced_qpt(iq) ! iq is the index in the full BZ
+        iq_io = iq_reducible ! We are outputing files with full BZ 
+        if( myrank_writes_GWINFO ) then
+          call write_to_gwinfo( '('//task_name//'): q-point cycle, '// &
+            trim(q_points_numbering_abbr) // ' = ' // to_char(i) // ', ' // &
+            trim(q_points_indexes_abbr) // ' = ' // to_char(iq) )
+          call write_to_gwinfo_progress( progress_sgi )
+        end if
       end if
-    else
-      iq_reducible = idx_reduced_qpt(iq) ! iq is the index in the full BZ
-      iq_io = iq_reducible ! We are outputing files with full BZ 
-      if( myrank_writes_GWINFO ) then
-        call write_to_gwinfo( '('//task_name//'): q-point cycle, '// &
-          trim(q_points_numbering_abbr) // ' = ' // to_char(i) // ', ' // &
-          trim(q_points_indexes_abbr) // ' = ' // to_char(iq) )
-        call write_to_gwinfo_progress( progress_sgi )
+      call read_sgi_from_file( iq_reducible, file_format )
+      if( myrank_writes_GWINFO ) call write_to_gwinfo_progress( progress_ipw )
+      call calcmpwipw( iq_reducible )
+      if( myrank_writes_GWINFO ) call write_to_gwinfo_progress( progress_coulomb )
+      call read_barcev_vmat_from_file( iq_reducible, file_format )
+      Gamma = gammapoint( all_q_points(:, iq_reducible), tol=tol )
+      call calculate_sqrt_bare_coulomb( iq_reducible, eigenvalue_cutoff, Gamma )
+      call init_dielectric_function( mbsiz, omega_i, omega_f, Gamma )
+      if( myrank_writes_GWINFO ) call write_to_gwinfo_progress( progress_calculate_epsilon )
+      if (.not. input_parameters%buildFromPolarizability ) then
+        call calcepsilon( iq_reducible, epsilon_indexes( mpi_kpoints%index, empty_states, frequencies ), &
+          write_progress, mpi_qpoints%mpi_environment, input_parameters%print_Polarizability_Factor, file_format )
+      else
+        call init_polarizability( matsiz, omega_i, omega_f, .false.)
+        call read_polarizability_from_file(iq_io, Gamma, file_format, input_parameters%usingIrreducibleWedge)
+        call from_polarizability_to_epsilon(iq_reducible, Gamma, omega_i, omega_f)
+        call delete_polarizability()
       end if
-    end if
-    call read_sgi_from_file( iq_reducible, file_format )
-    if( myrank_writes_GWINFO ) call write_to_gwinfo_progress( progress_ipw )
-    call calcmpwipw( iq_reducible )
-    if( myrank_writes_GWINFO ) call write_to_gwinfo_progress( progress_coulomb )
-    call read_barcev_vmat_from_file( iq_reducible, file_format )
-    Gamma = gammapoint( all_q_points(:, iq_reducible), tol=tol )
-    call calculate_sqrt_bare_coulomb( iq_reducible, eigenvalue_cutoff, Gamma )
-    call init_dielectric_function( mbsiz, omega_i, omega_f, Gamma )
-    if( myrank_writes_GWINFO ) call write_to_gwinfo_progress( progress_calculate_epsilon )
-    if (.not. input_parameters%buildFromPolarizability ) then
-      call calcepsilon( iq_reducible, epsilon_indexes( mpi_kpoints%index, empty_states, frequencies ), &
-        write_progress, mpi_qpoints%mpi_environment, input_parameters%print_Polarizability_Factor, file_format )
-    else
-      call init_polarizability( matsiz, omega_i, omega_f, .false.)
-      call read_polarizability_from_file(iq_io, Gamma, file_format, input_parameters%usingIrreducibleWedge)
-      call from_polarizability_to_epsilon(iq_reducible, Gamma, omega_i, omega_f)
-      call delete_polarizability()
-    end if
-    if( myrank_writes_GWINFO ) call write_to_gwinfo_progress( progress_write_epsilon )
-    if( myrank_writes_EPSILON ) call write_epsilon_to_file( iq_io, Gamma, file_format, input_parameters%usingIrreducibleWedge )
-    if( myrank_writes_GWINFO ) call write_to_gwinfo('')
-  end do
+      if( myrank_writes_GWINFO ) call write_to_gwinfo_progress( progress_write_epsilon )
+      if( myrank_writes_EPSILON ) call write_epsilon_to_file( iq_io, Gamma, file_format, input_parameters%usingIrreducibleWedge )
+      if( myrank_writes_GWINFO ) call write_to_gwinfo('')
+    end do
+  end if
 
   call deallocate_global_arrays
 end subroutine
@@ -250,11 +257,50 @@ pure logical function isGammaInList( q_points )
   end do
 end function
 
-
 !> Deallocate global arrays needed to obtain the dielectric matrix
 subroutine deallocate_global_arrays
   call delete_dielectric_function( Gamma=.true. )
   call delete_coulomb_potential
+  OMP_OFFLOAD target exit data map(delete: barc) if(allocated(barc))
+  if (allocated(barc)) deallocate(barc)
+  OMP_OFFLOAD target exit data map(delete: mpwipw) if(allocated(mpwipw))
+  if (allocated(mpwipw)) deallocate(mpwipw)
+end subroutine
+
+!> (private) Write general information about memory usage in the context of a dry run
+subroutine write_dry_run_info( n_empty_states, n_omega )
+  use gw_memory, only: close_file_memory_usage, open_file_memory_usage, write_memory_usage, &
+    field_and_values, field_sgi, field_mpwipw, field_vmat, field_epsilon, field_fnm, field_minmmat, &
+    field_minm, field_temp_calcminm2
+  use mod_bands, only: n_occupied_bands => nomax
+  use mod_core_states, only: n_core_states => ncg
+  use mod_product_basis, only: matsizmax
+  use modgw, only: Gkqset, Gqbarc, Gqset, kqset, mblksiz
+  use modinput, only: input
+
+  integer(i32), intent(in) :: n_empty_states
+  integer(i32), intent(in) :: n_omega
+
+  integer(i32), parameter :: mega_byte = 1024**2
+  integer(i32) :: n_dim, m_dim, ngq_block_size
+  integer(i32), parameter :: n_descriptors = 8
+  type(field_and_values) :: descriptors(n_descriptors)
+
+  call open_file_memory_usage( )
+  call descriptors(1)%init( field_sgi, [Gqset%ngkmax, Gqset%ngkmax], mega_byte )
+  call descriptors(2)%init( field_mpwipw, [Gqset%ngkmax, Gqbarc%ngkmax], mega_byte )
+  call descriptors(3)%init( field_vmat, [matsizmax, matsizmax], mega_byte )
+  call descriptors(4)%init( field_epsilon, [matsizmax, matsizmax, n_omega], mega_byte )
+  n_dim = n_occupied_bands
+  if (input%gw%coreflag=='all') n_dim = n_dim + n_core_states
+  call descriptors(5)%init( field_fnm, [n_dim, n_empty_states, n_omega, kqset%nkpt], mega_byte ) 
+  m_dim = min(n_empty_states, mblksiz)
+  call descriptors(6)%init( field_minmmat, [matsizmax, n_dim, m_dim], mega_byte ) 
+  call descriptors(7)%init( field_minm, [matsizmax, n_dim, m_dim], mega_byte ) 
+  ngq_block_size = merge(Gqset%ngkmax, min(input%gw%GBatchCount, Gqset%ngkmax), input%gw%GBatchCount <= 0)
+  call descriptors(8)%init( field_temp_calcminm2, [Gkqset%ngkmax, Gkqset%ngkmax, ngq_block_size], mega_byte ) 
+  call write_memory_usage( "task = " // task_name // ", Memory estimates (in MB)", descriptors )
+  call close_file_memory_usage( )
 end subroutine
 
 end module

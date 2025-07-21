@@ -30,6 +30,7 @@ Subroutine singularcomponents (mpi_env, system, ik)
       Use mod_eigenvalue_occupancy, Only: nstfv
       Use mod_kpoint, Only: nkpt
       use modxs, only : fftmap_type
+      use m_zfftifc, only: zfftifc
 
       Implicit None
 

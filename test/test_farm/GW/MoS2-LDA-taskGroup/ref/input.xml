@@ -38,8 +38,10 @@
       skipgnd="false"
       enforceDegeneracy="false"
       ngridq="2 1 1"
-      nempty="10"
-      qdepw="sum"
+      nempty="10" 
+      GBatchCount="22" 
+      mblksiz="5"
+      qdepw="sum" 
       ibgw="1"
       nbgw="20">
       <taskGroup outputFormat="binary">

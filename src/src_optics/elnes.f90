@@ -7,6 +7,7 @@ Subroutine elnes
    Use modmain
    Use modinput
    use modmpi, only: rank
+   use mod_gen_lo, only: genlofr
    Implicit None
 
    Integer :: ik, ist, jst

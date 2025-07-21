@@ -324,7 +324,7 @@ def parse_band_structure_dat(name: path_type) -> dict:
         header = f.readline()
 
     n_kpts = int(header.split()[3])
-    n_bands = int(header.split()[2])
+    n_bands = int(header.split()[2]) - int(header.split()[1]) + 1
     dimensions = 3
 
     k_points = np.empty(shape=(n_kpts, dimensions))

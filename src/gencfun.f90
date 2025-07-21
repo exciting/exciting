@@ -12,8 +12,9 @@
 !
 Subroutine gencfun
 ! !USES:
-      Use modinput
-      Use modmain
+      use modinput
+      use modmain
+      use m_zfftifc, only: zfftifc
       use constants, only: fourpi, zzero
       use sirius_api, only: get_step_function
       use sirius_init, only: sirius_options

@@ -27,7 +27,7 @@ module phonons
   !> eigenvalue and occupation response at single \({\bf k}\) point
   real(dp), allocatable :: devalk(:,:,:), docck(:,:,:)
   !> eigenvector response at single \({\bf k}\) point
-  complex(dp), allocatable :: deveck(:,:)
+  complex(dp), allocatable :: deveck(:,:), deveckf(:,:)
   !> overlap matrix response at all \({\bf k}\) points and irrep members
   complex(dp), allocatable :: dSmat(:,:,:,:)
   !> constant part of Hamiltonian matrix response at all \({\bf k}\) points and irrep members
@@ -67,8 +67,8 @@ module phonons
 
   public :: ph_prepare, ph_finalize, ph_dry_run
   public :: ph_part_prepare, ph_part_finalize, ph_part_scf, ph_part_force, ph_part_polarization
-  public :: ph_write_dyn_canonical, ph_write_dpot_canonical, ph_write_borncharge_canonical
-  public :: ph_dynmat_canonical_from_file, ph_dpot_canonical_from_file, ph_borncharge_canonical_from_file
+  public :: ph_write_dyn_canonical, ph_write_response_canonical, ph_write_borncharge_canonical
+  public :: ph_dynmat_canonical_from_file, ph_response_canonical_from_file, ph_borncharge_canonical_from_file
 
   contains
 
@@ -107,7 +107,7 @@ module phonons
     !> * calculation of the constant parts for density and potential response
     subroutine ph_prepare( &
         do_force )
-      use dfpt_eigensystem, only: dfpt_eig_ks
+      use dfpt_eigensystem, only: dfpt_eig_geteval, dfpt_eig_getevec
       use phonons_parallelization, only: ph_par_distribute, ph_par_parts_from_schedule
       use phonons_density_potential, only: ph_rhopot_init
       use phonons_force, only: ph_frc_dpulay_k, ph_frc_dsurf_k, ph_frc_symmetrize
@@ -119,6 +119,7 @@ module phonons
       use mod_eigenvalue_occupancy, only: nstfv, occmax, efermi
       use mod_charge_and_moment, only: chgval
       use mod_Gkvector, only: ngkmax_ptr
+      use mod_occupy, only: find_fermi
       use modinput
       !> prepare the constant part of the force response (default: `.false.`)
       logical, optional, intent(in) :: do_force
@@ -126,6 +127,8 @@ module phonons
       integer :: ik, ik1, ik2, nmatmaxk, ip
       integer, target :: ngkmaxk
       logical :: force, exists, success
+
+      real(dp), allocatable :: evalt(:)
 
       force = .false.
       if( present( do_force ) ) force = do_force
@@ -165,12 +168,11 @@ module phonons
         nmatmaxk = ngkmaxk + nlotot
         allocate( evalk(nmatmaxk, dfpt_kset%nkpt), source=0.0_dp )
         allocate( occk(nstfv, dfpt_kset%nkpt) )
-        allocate( eveck(nmatmaxk, nmatmaxk) )
         allocate( apwalmk(ngkmaxk, apwordmax, lmmaxapw, natmtot) )
         ! read eigenvalues from file
         do ik = ik1, ik2
-          call dfpt_eig_ks( ik, dfpt_kset, dfpt_Gset, dfpt_Gkset, nmatmaxk, evalk(:,ik), eveck, &
-                 p0set=dfpt_kset, Gp0set=dfpt_Gkset, feval=fevalk0, fevec=feveck0 )
+          call dfpt_eig_geteval( dfpt_kset%vkl(:, ik), fevalk0, dfpt_kset, [1, nmatmaxk], evalt )
+          evalk(:, ik) = evalt
         end do
         ! gather eigenvalues at all processes
         call mpi_allgatherv_ifc( dfpt_kset%nkpt, rlen=nmatmaxk, inplace=.true., comm=mpiglobal, rbuf=evalk )
@@ -178,22 +180,22 @@ module phonons
         occk = 0.0_dp
         call find_fermi( dfpt_kset%nkpt, dfpt_kset%wkpt, nstfv, evalk(1:nstfv, :), chgval, occmax, &
                input%groundstate%stypenumber, input%groundstate%swidth, input%groundstate%epsocc, &
-               efermi, occk )
+               efermi, occk, ph_tset )
         do ik = ik1, ik2
           ! get matching coefficients at k
           ngkmax_ptr => ngkmaxk
           call match( dfpt_Gkset%ngk(1, ik), dfpt_Gkset%gkc(:, 1, ik), dfpt_Gkset%tpgkc(:, :, 1, ik), dfpt_Gkset%sfacgk(:, :, 1, ik), &
                       apwalmk )
           ! read eigenvectors
-          call feveck0%read( ik, eveck )
+          call dfpt_eig_getevec( dfpt_kset%vkl(:, ik), dfpt_Gkset%vgkl(:, :, 1, ik), feveck0, dfpt_kset, dfpt_Gkset, [1, nstfv], eveck )
           ! add k-point contribution to force response
           do ip = 1, 3
             call ph_frc_dpulay_k( ik, dfpt_kset, dfpt_Gkset, dfpt_Gkset, 1, nstfv, &
-                   evalk(:, ik), evalk(:, ik), occk(:, ik), occk(:, ik), eveck, eveck, apwalmk, apwalmk, &
+                   evalk(:, ik), evalk(:, ik), occk(:, ik), occk(:, ik), eveck, eveck, eveck, apwalmk, apwalmk, &
                    ph_irrep_basis(0)%irreps(1)%pat(:, :, ip), .false., &
                    dforce_const(:, :, ip), order=1 )
             call ph_frc_dsurf_k( ik, dfpt_kset, dfpt_Gkset, dfpt_Gkset, 1, nstfv, &
-                   evalk(:, ik), evalk(:, ik), occk(:, ik), occk(:, ik), eveck, eveck, &
+                   evalk(:, ik), evalk(:, ik), occk(:, ik), occk(:, ik), eveck, eveck, eveck, &
                    ph_irrep_basis(0)%irreps(1)%pat(:, :, ip), .false., &
                    dforce_const(:, :, ip), order=1 )
           end do
@@ -228,7 +230,6 @@ module phonons
       use phonons_density_potential, only: ph_rhopot_free
       if( allocated( dforce_const ) ) deallocate( dforce_const )
       call ph_rhopot_free
-      call ph_var_free
     end subroutine ph_finalize
 
     !> This subroutine executes preparative tasks for an independent part
@@ -260,6 +261,7 @@ module phonons
       use mod_charge_and_moment, only: chgval
       use mod_Gkvector, only: ngkmax_ptr
       use mod_misc, only: scrpath
+      use mod_occupy, only: find_fermi
       use modinput
       !> index of the independent part
       integer, intent(in) :: ipart
@@ -327,7 +329,7 @@ module phonons
       ! allocate local variables
       allocate( evalk(nstfv, ph_kset%nkpt), evalkq(nmatmaxkq, ph_kqset%nkpt), devalk(nstfv, ph_kset%nkpt, dirrep) )
       allocate( occk(nstfv, ph_kset%nkpt), occkq(nmatmaxkq, ph_kqset%nkpt), docck(nstfv, ph_kset%nkpt, dirrep) )
-      allocate( eveck(nmatmaxk, nstfv), eveckq(nmatmaxkq, nmatmaxkq), deveck(nmatmaxkq, nstfv) )
+      allocate( eveck(nmatmaxk, nstfv), eveckq(nmatmaxkq, nmatmaxkq), deveck(nmatmaxkq, nstfv), deveckf(nmatmaxkq, nstfv) )
       allocate( apwalmk(ngkmaxk, apwordmax, lmmaxapw, natmtot), apwalmkq(ngkmaxkq, apwordmax, lmmaxapw, natmtot) )
       allocate( dSmat(nmatmaxkq, nstfv, ik1:ik2, id1:id2) )
       allocate( dHmat_const(nmatmaxkq, nstfv, ik1:ik2, id1:id2) )
@@ -368,11 +370,11 @@ module phonons
       occk = 0.0_dp
       call find_fermi( ph_kset%nkpt, ph_kset%wkpt, nstfv, evalk, chgval, occmax, &
              input%groundstate%stypenumber, input%groundstate%swidth, input%groundstate%epsocc, &
-             efermi, occk )
+             efermi, occk, ph_tset )
       occkq = 0.0_dp
       call find_fermi( ph_kqset%nkpt, ph_kqset%wkpt, nstfv, evalkq(1:nstfv,:), chgval, occmax, &
              input%groundstate%stypenumber, input%groundstate%swidth, input%groundstate%epsocc, &
-             efermi, occkq(1:nstfv,:) )
+             efermi, occkq(1:nstfv, :), ph_tset )
       ! compute overlap response and constant part of Hamiltonian response
       ! for all k points and irrep members
       dSmat = zzero; dHmat_const = zzero
@@ -483,6 +485,7 @@ module phonons
       if( allocated( devalk ) ) deallocate( devalk )
       if( allocated( docck ) ) deallocate( docck )
       if( allocated( deveck ) ) deallocate( deveck )
+      if( allocated( deveckf ) ) deallocate( deveckf )
       if( allocated( dSmat ) ) deallocate( dSmat )
       if( allocated( dHmat_const ) ) deallocate( dHmat_const )
       if( allocated( dHmat ) ) deallocate( dHmat )
@@ -529,6 +532,7 @@ module phonons
       use mod_convergence, only: iscl
       use mod_eigenvalue_occupancy, only: nstfv, occmax, efermi
       use mod_Gkvector, only: ngkmax_ptr
+      use mod_occupy, only: find_dfermi
       use modinput
       !> index of the independent part
       integer, intent(in) :: ipart
@@ -649,7 +653,7 @@ module phonons
               ! solve Sternheimer equation
               call ph_eig_sternheimer( ik, ph_Gkqset, 1, nstfv, &
                      evalk(:, ik), occk(:, ik), evalkq(:, ik), occkq(:, ik), eveckq, dSmat(:, :, ik, id), dHmat, gamma, &
-                     devalk(:, ik, id), deveck, projector=.true. )
+                     devalk(:, ik, id), deveck )
               ! write eigenvector response to file
               call fdeveck%write( ph_parts(ipart)%get_dk_offset(id, ik)+1, deveck )
               ! add k-point contribution to density response
@@ -699,7 +703,7 @@ module phonons
               do id = 1, dirrep
                 call find_dfermi( ph_kset%nkpt, ph_kset%wkpt, nstfv, evalk, devalk(:, :, id), 0.0_dp, occmax, efermi, &
                        input%groundstate%stypenumber, input%groundstate%swidth, input%groundstate%epsocc, &
-                       defermi, docck(:, :, id) )
+                       defermi, docck(:, :, id), ph_tset )
                 do ik = 1, ph_kset%nkpt
                   call fdevalk%write( ph_parts(ipart)%get_dk_offset(id, ik) + 1, devalk(:, ik, id) )
                   call fdocck%write( ph_parts(ipart)%get_dk_offset(id, ik) + 1, docck(:, ik, id) )
@@ -865,16 +869,18 @@ module phonons
           ! solve Sternheimer equation without projection
           call ph_eig_sternheimer( ik, ph_Gkqset, 1, nstfv, &
                  evalk(:, ik), occk(:, ik), evalkq(:, ik), occkq(:, ik), eveckq, dSmat(:, :, ik, id), dHmat, gamma, &
-                 devalk(:, ik, id), deveck, projector=.false. )
+                 devalk(:, ik, id), deveck, devecf=deveckf )
           ! add k-point contribution to force response
+          ! TODO: For some reason, the results improve when dismissing the Gamma point contributions to the force response.
+          !       Therefore, we pass `gamma=.false.`. However, this needs further understanding.
           call ph_frc_dpulay_k( ik, ph_kset, ph_Gkset, ph_Gkqset, 1, nstfv, &
-                 evalk(:, ik), devalk(:, ik, id), occk(:, ik), docck(:, ik, id), eveck, deveck, apwalmk, apwalmkq, &
-                 ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id), gamma, &
+                 evalk(:, ik), devalk(:, ik, id), occk(:, ik), docck(:, ik, id), eveck, deveck, deveckf, apwalmk, apwalmkq, &
+                 ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id), .false., &
                  dforce(:, :, id), &
                  dHmat_mt_basis=dHmat_mt_basis(:, :, :, id) )
           call ph_frc_dsurf_k( ik, ph_kset, ph_Gkset, ph_Gkqset, 1, nstfv, &
-                 evalk(:, ik), devalk(:, ik, id), occk(:, ik), docck(:, ik, id), eveck, deveck, &
-                 ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id), gamma, &
+                 evalk(:, ik), devalk(:, ik, id), occk(:, ik), docck(:, ik, id), eveck, deveck, deveckf, &
+                 ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id), .false., &
                  dforce(:, :, id), &
                  dpot_ir=dpot_ir(:, id) )
         end do
@@ -995,6 +1001,7 @@ module phonons
           call ph_sym_rotate_devec( ph_irrep_basis(iq), iirrep, isym, ph_kset%vkl(:, ik), ph_kset%vklnr(:, iknr), &
             ph_Gkset%ngk(1, ik), ph_Gkset%vgkl(:, :, 1, ik), ph_Gkset%vgknrl(:, :, 1, iknr), &
             devecknr, size( devecknr, dim=1 ), size( devecknr, dim=2 ), nst )
+          devecknr = devecknr / occmax ! eigenvector response already contains occupation
           ! find vector k+b and its equivalent in reduced set
           ivkb = ph_kset%ivknr(:, iknr)
           ivkb(ip) = modulo( ivkb(ip) + 1, ph_kset%ngridk(ip) )
@@ -1014,6 +1021,7 @@ module phonons
           call ph_sym_rotate_devec( ph_irrep_basis(iq), iirrep, isym, ph_kset%vkl(:, ikb), ph_kset%vklnr(:, ikbnr), &
             ph_Gkset%ngk(1, ikb), ph_Gkset%vgkl(:, :, 1, ikb), ph_Gkset%vgknrl(:, :, 1, ikbnr), &
             deveckbnr, size( deveckbnr, dim=1 ), size( deveckbnr, dim=2 ), nst )
+          deveckbnr = deveckbnr / occmax ! eigenvector response already contains occupation
 
           ! add k-point contribution to polarization response
           do id = 1, dirrep
@@ -1188,60 +1196,63 @@ module phonons
     !> from the irrep displacement patterns \(p^{I \mu}_{\kappa\alpha}({\bf q})\) by
     !> \[ \delta^{\bf q}_{\kappa\alpha}V_{\rm eff}({\bf r}) = 
     !>    \sum_{I, \mu} {p^{I \mu}_{\kappa\alpha}}^\ast ({\bf q}) \, \delta^{\bf q}_{I \mu}V_{\rm eff}({\bf r}) \;. \]
-    subroutine ph_write_dpot_canonical
+    subroutine ph_write_response_canonical( fname )
+      use dfpt_inout, only: dfpt_io_write_zfun
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
-      use mod_phonon, only: natoms0, natmtot0, ngrid0, ngrtot0
+      use mod_muffin_tin, only: nrmt
+      !> file name prefix
+      character(*), intent(in) :: fname
 
       integer :: iq, is, ia, ias, ip
+      logical :: success
 
-      complex(dp), allocatable :: dpot_mt(:,:,:,:,:), dpot_ir(:,:,:)
+      character(:), allocatable :: fxt
+      complex(dp), allocatable :: response_mt(:,:,:,:,:), response_ir(:,:,:)
 
-      if( mpiglobal%rank /= 0 ) return
-
-      ! for needed super cell phonon globals
-      natoms0(1:nspecies) = natoms(1:nspecies)
-      natmtot0 = natmtot
-      ngrid0 = dfpt_Gset%ngrid
-      ngrtot0 = dfpt_Gset%ngrtot
-      call init2
+      if (mpiglobal%rank /= 0) return
 
       do iq = 1, ph_qset%nkpt
-        call ph_dpot_canonical_from_file( ph_qset%vkl(:, iq), dpot_mt, dpot_ir )
+        call ph_response_canonical_from_file( fname, ph_qset%vkl(:, iq), response_mt, response_ir )
         do is = 1, nspecies
           do ia = 1, natoms(is)
             ias = idxas(ia, is)
             do ip = 1, 3
-              call writedveff( iq, is, ia, ip, dpot_mt(:, :, :, ip, ias), dpot_ir(:, ip, ias) )
+              call ph_io_canon_fxt( iq, is, ia, ip, fxt ) 
+              call write_potential_response( trim(fname)//'_'//trim(fxt)//'.OUT', nspecies, natoms(1:nspecies), nrmt(1:nspecies), dfpt_lmaxvr, dfpt_Gset%ngrid, &
+                response_mt(:, :, :, ip, ias), [size(response_mt, dim=1), size(response_mt, dim=2), size(response_mt, dim=3)], &
+                response_ir(:, ip, ias), [size(response_ir, dim=1)] )
             end do
           end do
         end do
       end do
 
-      if( allocated( dpot_mt ) ) deallocate( dpot_mt )
-      if( allocated( dpot_ir ) ) deallocate( dpot_ir )
-    end subroutine ph_write_dpot_canonical
+      if (allocated( response_mt )) deallocate( response_mt )
+      if (allocated( response_ir )) deallocate( response_ir )
+    end subroutine ph_write_response_canonical
 
-    !> For a given phonon wavevector \({\bf q}\), this subroutine tries to read the effective potential
+    !> For a given phonon wavevector \({\bf q}\), this subroutine tries to read the effective potential or density
     !> response in irrep coordinates from a previous SCF run and transforms it into the canonical (Cartesian) basis.
     !>
     !> First, for the given \({\bf q}\) its symmetry equivalent point \({\bf q}_0\) in the set of
-    !> \({\bf q}\)-vectors and the connecting symmetry operation is found. Then, the potential response
+    !> \({\bf q}\)-vectors and the connecting symmetry operation is found. Then, the response
     !> in irrep coordinates at \({\bf q}_0\) is read from file, transformed into canonical coordinates via
-    !> \[ \delta^{{\bf q}_0}_{\kappa\alpha}V_{\rm eff}({\bf r}) = 
-    !>    \sum_{I, \mu} {p^{I \mu}_{\kappa\alpha}}^\ast ({\bf q}_0) \, \delta^{{\bf q}_0}_{I \mu}V_{\rm eff}({\bf r}) \;, \]
+    !> \[ \delta^{{\bf q}_0}_{\kappa\alpha}f({\bf r}) = 
+    !>    \sum_{I, \mu} {p^{I \mu}_{\kappa\alpha}}^\ast ({\bf q}_0) \, \delta^{{\bf q}_0}_{I \mu}f({\bf r}) \;, \]
     !> where \(p^{I \mu}_{\kappa\alpha}({\bf q})\) are the irrep displacement patterns,
     !> and possibly rotated into \({\bf q}\) using [[ph_rhopot_rotate_q_canonical(subroutine)]].
-    subroutine ph_dpot_canonical_from_file( vql, dpot_mt, dpot_ir )
+    subroutine ph_response_canonical_from_file( fname, vql, response_mt, response_ir )
       use phonons_density_potential, only: ph_rhopot_rotate_q_canonical
       use constants, only: zzero
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
       use mod_muffin_tin, only: nrmtmax
+      !> file name prefix
+      character(*), intent(in) :: fname
       !> phonon wavevector \({\bf q}\) in lattice coordinates
       real(dp), intent(in) :: vql(3)
       !> muffin-tin potential response
-      complex(dp), allocatable, intent(out) :: dpot_mt(:,:,:,:,:)
+      complex(dp), allocatable, intent(out) :: response_mt(:,:,:,:,:)
       !> interstitial potential response
-      complex(dp), allocatable, intent(out) :: dpot_ir(:,:,:)
+      complex(dp), allocatable, intent(out) :: response_ir(:,:,:)
 
       integer :: iq, isym, iirrep, dirrep, id, &
                  is, ia, ias, ip
@@ -1249,16 +1260,16 @@ module phonons
       character(:), allocatable :: qidirname, fxt
       logical :: success
       
-      complex(dp), allocatable :: dpot_mt_i(:,:,:), dpot_ir_i(:)
+      complex(dp), allocatable :: response_mt_i(:,:,:), response_ir_i(:)
 
       ! allocate output arrays
-      if( allocated( dpot_mt ) ) deallocate( dpot_mt )
-      allocate( dpot_mt(dfpt_lmmaxvr, nrmtmax, natmtot, 3, natmtot), source=zzero )
-      if( allocated( dpot_ir ) ) deallocate( dpot_ir )
-      allocate( dpot_ir(dfpt_Gset%ngrtot, 3, natmtot), source=zzero )
+      if( allocated( response_mt ) ) deallocate( response_mt )
+      allocate( response_mt(dfpt_lmmaxvr, nrmtmax, natmtot, 3, natmtot), source=zzero )
+      if( allocated( response_ir ) ) deallocate( response_ir )
+      allocate( response_ir(dfpt_Gset%ngrtot, 3, natmtot), source=zzero )
       ! allocate local arrays
-      allocate( dpot_mt_i(dfpt_lmmaxvr, nrmtmax, natmtot) )
-      allocate( dpot_ir_i(dfpt_Gset%ngrtot) )
+      allocate( response_mt_i(dfpt_lmmaxvr, nrmtmax, natmtot) )
+      allocate( response_ir_i(dfpt_Gset%ngrtot) )
 
       ! find equivalent q-point q0 in set and connecting symmetry
       call findkptinset( vql, ph_qset, isym, iq )
@@ -1273,11 +1284,11 @@ module phonons
           ! get file extension of part
           call ph_io_irrep_fxt( iq, iirrep, id, fxt )
           ! try to read potential response from file
-          call dfpt_io_read_zfun( dpot_mt_i, dpot_ir_i, 'PHONON_DVEFF', success, &
+          call dfpt_io_read_zfun( response_mt_i, response_ir_i, 'PHONON_'//fname, success, &
                  file_extension=fxt, directory=qidirname )
-          call terminate_if_false( success, '(ph_dpot_canonical_from_file) &
+          call terminate_if_false( success, '(ph_response_canonical_from_file) &
             Was not able to read potential response supposed to be in file '//&
-            new_line( 'a' )//trim( qidirname )//'/PHONON_DVEFF_'//trim(fxt)//'.OUT' )
+            new_line( 'a' )//trim( qidirname )//'/PHONON_'//fname//'_'//trim(fxt)//'.OUT' )
           ! store irrep displacement pattern
           pat = ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id)
           ! add contribution to potential response in canonical basis
@@ -1285,20 +1296,20 @@ module phonons
             do ia = 1, natoms(is)
               ias = idxas(ia, is)
               do ip = 1, 3
-                dpot_mt(:, :, :, ip, ias) = dpot_mt(:, :, :, ip, ias) + conjg( pat(ip, ias) ) * dpot_mt_i
-                dpot_ir(:, ip, ias) = dpot_ir(:, ip, ias) + conjg( pat(ip, ias) ) * dpot_ir_i
+                response_mt(:, :, :, ip, ias) = response_mt(:, :, :, ip, ias) + conjg( pat(ip, ias) ) * response_mt_i
+                response_ir(:, ip, ias) = response_ir(:, ip, ias) + conjg( pat(ip, ias) ) * response_ir_i
               end do
             end do
           end do
         end do
       end do
 
-      deallocate( dpot_mt_i, dpot_ir_i )
+      deallocate( response_mt_i, response_ir_i )
 
       ! rotate potential response from q0 into q if symmetry is not the identity
       if( isym /= 1 ) &
-        call ph_rhopot_rotate_q_canonical( ph_qset%vkl(:, iq), vql, isym, dpot_mt, dpot_ir )
-    end subroutine ph_dpot_canonical_from_file
+        call ph_rhopot_rotate_q_canonical( ph_qset%vkl(:, iq), vql, isym, dfpt_lmaxvr, response_mt, dfpt_Gset, response_ir )
+    end subroutine ph_response_canonical_from_file
 
     !> This subroutine tries to read the Born effective charges in irrep coordinates
     !> from a previous SCF run and transforms them into the canonical (Cartesian) basis

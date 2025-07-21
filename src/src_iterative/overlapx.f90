@@ -10,6 +10,7 @@ subroutine OverlapX(n,npw,nwf,system,fftmap,cfir,x,Sx)
       use modxs
       Use modfvsystem
       use modmpi
+      use m_zfftifc, only: zfftifc
       implicit none
       integer, intent(in) :: n              ! leading dimension of |psi>
       integer, intent(in) :: nwf            ! number of trial wavefunctions |psi> 

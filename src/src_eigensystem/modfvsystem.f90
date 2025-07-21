@@ -588,6 +588,7 @@ Contains
         use modinput
         Use mod_Gvector, only : ngrid,ngrtot,igfft
         use mod_gkvector, only : ngk
+        use m_zfftifc, only: zfftifc
         implicit none
         type(evsystem)::system
         integer::nstfv

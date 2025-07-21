@@ -4,9 +4,10 @@
 ! See the file COPYING for license details.
 
 Subroutine genexpiqr (ik, emat)
-      Use modmain
-      Use modinput
+      use modmain
+      use modinput
       use constants, only: fourpi
+      use m_zfftifc, only: zfftifc
       use wigner3j_symbol, only: gaunt_yyy
       Implicit None
 ! arguments

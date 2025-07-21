@@ -104,14 +104,34 @@ foreach(folder ${EXCITINGLIB_SRC_FOLDERS})
     list(APPEND EXCITINGLIB_SRC_FILES_FIXED ${F90_FILES_IN_FOLDER})
 endforeach()
 
-# IntelLLVM (version 2025.0.0) compiler fails for some reason to automatically set 
-# fixed form for *.f files.
 if (CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
+	# IntelLLVM (version 2025.0.0) compiler fails for some reason to automatically set
+        # fixed form for *.f files.
         foreach(source_file ${EXCITINGLIB_SRC_FILES_FIXED})
                 set_source_files_properties(${source_file} PROPERTIES
                         COMPILE_OPTIONS "-fixed"
                 )
         endforeach()
+        
+	# IntelLLVM version 2025.1.0 or higher have a bug for vectorization + OpenMP in
+        # a test of HDF5 that for some reason affects the whole code
+	# producing code that provides garbage. 
+	# TODO(mrm): Check for version higher than 2025.2.x when available
+        string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)"
+           _ver "${CMAKE_Fortran_COMPILER_VERSION}")
+
+        set(COMPILER_MAJOR_VERSION "${CMAKE_MATCH_1}")
+        set(COMPILER_MINOR_VERSION "${CMAKE_MATCH_2}")
+        set(COMPILER_PATCH_VERSION "${CMAKE_MATCH_3}")
+
+        if ( COMPILER_MAJOR_VERSION AND COMPILER_MAJOR_VERSION VERSION_GREATER_EQUAL "2025" AND
+             COMPILER_MINOR_VERSION AND COMPILER_MINOR_VERSION VERSION_GREATER_EQUAL "1" AND
+             OMP)
+
+            # Lower optimization to -O1 for files
+	    message(STATUS "Intel LLVM:  lowering optimization level for xhdf5_test.f90 to 1 due to a bug of OMP+vectorization propagating via IPO to the full code")
+            set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/xhdf5/xhdf5_test.f90" PROPERTIES COMPILE_FLAGS "-O1")
+        endif()
 endif()
 
 # For Cray compiler get further info about the compilation of complex
@@ -142,7 +162,7 @@ add_library(excitingLib_objects OBJECT ${SRC_DEVICEACC} ${EXCITINGLIB_SRC_FILES}
                                     
 include_directories(${CMAKE_Fortran_MODULE_DIRECTORY})
 # Check exciting has all dependencies compiled
-add_dependencies(excitingLib_objects XC FoX_dom FoX_sax FoX_utils FoX_wcml FoX_wxml FoX_fsys FoX_common)
+add_dependencies(excitingLib_objects libIDieL XC FoX_dom FoX_sax FoX_utils FoX_wcml FoX_wxml FoX_fsys FoX_common)
 target_include_directories(excitingLib_objects PRIVATE ${GX_MODULES})
 
 # Here create exciting library
@@ -159,9 +179,9 @@ target_link_libraries(FoX INTERFACE FoX_dom FoX_sax FoX_wxml FoX_common FoX_util
 
 #Link exciting library with other libs
 target_link_libraries(excitingLib PUBLIC leblaik lbfgsb XC GXCommon LibGXMiniMax bzint
-	                          FoX ${SCALAPACK_LIB} ${SIRIUS_LIB}
-                                  ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBS}
-                                  ${FFTW3_LIBRARIES} ${MPI_LIBS} ${LINKS_DEVICEACC})
+	                                 FoX libIDieL ${SCALAPACK_LIB} ${SIRIUS_LIB}
+                                         ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBS}
+                                         ${FFTW3_LIBRARIES} ${MPI_LIBS} ${LINKS_DEVICEACC})
 
 # Set the linker to Fortran, otherwise C++ might be used in some cases
 set_property(TARGET excitingLib PROPERTY LINKER_LANGUAGE Fortran)
@@ -193,7 +213,7 @@ set_property(TARGET ${exciting_name} PROPERTY LINKER_LANGUAGE Fortran)
 # Ensure that the libraries are found
 if(MAGMA_DIR)
     set_target_properties(${exciting_name} PROPERTIES
-                INSTALL_RPATH "${MAGMA_DIR}/lib/libmagma.so"
+                INSTALL_RPATH "${MAGMA_DIR}/lib/"
                 INSTALL_RPATH_USE_LINK_PATH TRUE)
 else()
     set_target_properties(${exciting_name} PROPERTIES
@@ -213,7 +233,7 @@ install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}
 
 # Install exciting library
 set_target_properties(excitingLib PROPERTIES
-    INSTALL_RPATH "${MAGMA_DIR}/lib/"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libL:${MAGMA_DIR}/lib/"
     INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 

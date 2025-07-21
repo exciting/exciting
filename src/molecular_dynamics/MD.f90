@@ -197,7 +197,7 @@ contains
     call assert( size( this%velocities, 2 ) == size( this%positions, 2 ), "velocities and positions must have same size along 2nd dim")
   end subroutine
 
-  pure subroutine trajectory_allocate_arrays( this, n_atoms )
+  subroutine trajectory_allocate_arrays( this, n_atoms )
     class(trajectory), intent(inout) :: this
     !> Number of atoms
     integer(i32), intent(in) :: n_atoms
@@ -206,7 +206,7 @@ contains
     allocate( this%positions(n_cartesian, n_atoms), this%velocities(n_cartesian, n_atoms) )
   end subroutine
 
-  pure subroutine trajectory_deallocate_arrays( this )
+  subroutine trajectory_deallocate_arrays( this )
     class(trajectory), intent(inout) :: this
 
     if( allocated(this%positions) ) deallocate( this%positions, this%velocities )

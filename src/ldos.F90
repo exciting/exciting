@@ -12,6 +12,7 @@ subroutine ldos()
     use mod_xsf_format
     use mod_cube_format
     use modmpi
+    use mod_gen_lo, only: genlofr
 
     implicit none
     integer(4) :: ik, ib
@@ -46,7 +47,7 @@ subroutine ldos()
     call readfermi
     call linengy
     call genapwfr
-    call genlofr(.False.)
+    call genlofr
 
     ! lengths of the unit cell basis vectors
     do i1 = 1, 3

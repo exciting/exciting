@@ -28,10 +28,11 @@ subroutine init_kqpoint_set()
     &                       input%gw%vqloff, &
     &                       input%groundstate%reducek)
 
-    if ((input%gw%debug).and.(rank==0)) then
+    if ((input%gw%printKpoints).and.(rank==0)) then
       call getunit(fid)
       open(fid,file='GW_KPOINTS.OUT',action='Write',status='Unknown')
       call print_k_vectors(kset,fid)
+      close(fid)
     end if
 
     !========================

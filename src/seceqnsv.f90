@@ -27,6 +27,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Use generation_wavefunction, only: generate_basisfunction_secondvariation_MT
       Use svlo, only: get_num_of_basis_functions_sv, construct_H_and_S_in_evecfv_plus_lo_basis
       Use modfvsystem, only: newsystem, evsystem, deletesystem, solvewithlapack
+      use m_zfftifc, only: zfftifc
 
       Implicit None
 ! arguments

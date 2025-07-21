@@ -1,0 +1,218 @@
+[build-system]
+# Numpy build and runtime dependencies are linked to ABI compatibility
+# A new wheel rebuild is needed when changing these
+requires = ["scikit-build-core>=0.11", "numpy~=2.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "spglib"
+requires-python = ">=3.9"
+description = "This is the spglib module."
+license = "BSD-3-Clause"
+license-files = ["COPYING"]
+readme = "python/README.rst"
+dynamic = ["version"]
+dependencies = [
+    "numpy>=1.20,<3",
+    "importlib-resources; python_version<'3.10'",
+    "typing-extensions>=4.9.0; python_version<'3.13'",
+]
+authors = [
+    {name="Atsushi Togo", email="atz.togo@gmail.com"},
+]
+maintainers = [
+    {name="Atsushi Togo", email="atz.togo@gmail.com"},
+    {name="Cristian Le", email="git@lecris.dev"},
+    {name="Kohei Shinohara", email="kshinohara0508@gmail.com"},
+]
+classifiers = [
+    "Topic :: Scientific/Engineering :: Physics",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: C",
+    "Operating System :: Unix",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: C",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 5 - Production/Stable",
+]
+
+[project.urls]
+homepage = "https://spglib.readthedocs.io/"
+documentation = "https://spglib.readthedocs.io/"
+repository = "https://github.com/spglib/spglib"
+changelog = "https://spglib.readthedocs.io/en/latest/releases.html"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pyyaml",
+]
+docs = [
+    "Sphinx >= 7.0",
+    "sphinxcontrib-bibtex >= 2.5",
+    "sphinx-book-theme",
+    "sphinx-autodoc-typehints",
+    "myst-parser >= 2.0",
+    "linkify-it-py",
+    "sphinx-tippy",
+]
+test-cov = [
+    "spglib[test]",
+    "pytest-cov",
+]
+test-benchmark = [
+    "spglib[test]",
+    "pytest-benchmark",
+]
+dev = [
+    "spglib[test]",
+    "pre-commit",
+]
+# Alternative names for compatibility
+doc = [
+    "spglib[docs]",
+]
+testing = [
+    "spglib[test]",
+]
+
+[tool.scikit-build]
+cmake.source-dir = "python"
+wheel.install-dir = "spglib"
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+sdist.include = ["python/spglib/_version.py"]
+
+[tool.scikit-build.cmake.define]
+SPGLIB_WITH_Python = "ON"
+SPGLIB_WITH_TESTS = "OFF"
+SPGLIB_USE_OMP = "OFF"
+
+[[tool.scikit-build.overrides]]
+if.env.CIBUILDWHEEL = true
+# Make sure cibuildwheel builds with a bundled spglib
+cmake.define.CMAKE_DISABLE_FIND_PACKAGE_Spglib = "ON"
+
+[tool.setuptools_scm]
+write_to = "python/spglib/_version.py"
+
+[tool.cibuildwheel]
+# pp, win32, i686, muslinux: Remove 32bit variants, PyPY interpreter and unnecessary musl variant
+skip = ["pp*", "*-win32", "*-manylinux_i686", "*-musllinux*"]
+test-extras = "test"
+test-command = "pytest {package}/test/functional/python"
+
+[tool.pytest.ini_options]
+addopts = "-Werror -m 'not benchmark'"
+testpaths = ["test/functional/python"]
+markers = [
+    # Define benchmark marker to avoid warnings of marker not defined
+    "benchmark: benchmarking tets",
+]
+
+[tool.coverage.run]
+command_line = '-m pytest'
+# TODO: Cannot report relative to project path because we cannot do editable installs yet
+#source = ['python/spglib']
+source = ['spglib']
+
+[tool.ruff]
+line-length = 88
+exclude = [
+    "database/*"
+]
+
+[tool.ruff.lint]
+extend-select = [
+    "F",           # pyflakes
+    # "W",           # pycodestyle-warnings
+    "E",           # pycodestyle-errors
+    # "C90",         # mccabe
+    "I",           # isort
+    # "N",           # pep8-naming
+    "D",           # pydocstyle
+    # "UP",          # pyupgrade
+    # "YTT",         # flake8-2020
+    # "ANN",         # flake8-annotations
+    # "S",           # flake8-bandit
+    # "BLE",         # flake8-blind-except
+    # "FBT",         # flake8-boolean-trap
+    # "B",           # flake8-bugbear
+    # "A",           # flake8-builtins
+    # "COM",         # flake8-comma
+    # "C4",          # flake8-comprehensions
+    # "T10",         # flake8-debugger
+    # "EM",          # flake8-errmsg
+    # "FA",          # flake8-future-annotations
+    # "ISC",         # flake8-implicit-str-concat
+    # "ICN",         # flake8-import-conventions
+    # "G",           # flake8-logging-format
+    # "PIE",         # flake8-pie
+    # "T20",         # flake8-print
+    # "PYI",         # flake8-pyi
+    # "PT",          # flake8-pytest-style
+    # "Q",           # flake8-quotes
+    # "RSE",         # flake8-raise
+    # "RET",         # flake8-return
+    # "SLF",         # flake8-self
+    # "SIM",         # flake8-simplify
+    # "TID",         # flake8-tidy-imports
+    # "TCH",         # flake8-type-checking
+    # "ARG",         # flake8-unused-arguments
+    # "PTH",         # flake8-use-pathlib
+    # "TD",          # flake8-todos
+    # "ERA",         # eradicate
+    # "PD",          # pandas-vet
+    # "PGH",         # pygrep-hooks
+    # "PL",          # pylint
+    # "TRY",         # tryceratops
+    # "FLY",         # flynt
+    # "NPY",         # NumPy
+    # "PERF",        # perflint
+    # "FURB",        # refurb
+    # "RUF",         # Ruff-specific
+]
+extend-ignore = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D203",  # Conflict with D211
+    "D205",
+    "D213",  # Conflict with D212
+]
+exclude = [
+    "database",
+]
+
+[tool.mypy]
+mypy_path = ["python"]
+files = ["python", "test/functional/python", "example/python_api"]
+python_version = "3.12"
+warn_unused_configs = true
+show_error_codes = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+no_strict_optional = true
+# TODO: Cannot handle examples and tests strictly yet
+strict = false
+# For tests, we don't need type-annotation on test fixtures
+# Haven't seen `mypy.overrides` used with `files` instead of `modules`,
+# so adding these options globally
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+# For the main library we want to be as strict as possible
+module = ["spglib.*"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[tool.codespell]
+ignore-words = "docs/codespell.txt"
+skip = "docs/references.bib"
