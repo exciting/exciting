@@ -124,7 +124,7 @@
           </xs:complexType>
         </xs:element>
 
-        <xs:element ex:importance="expert" ex:unit="" name="phonondispplot" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="essential" ex:unit="" name="phonondispplot" maxOccurs="1" minOccurs="0">
           <xs:annotation>
             <xs:documentation>
               Produce a phonon dispersion plot by interpolating phonon frequencies for points on
@@ -134,9 +134,17 @@
             </xs:documentation>
           </xs:annotation>
           <xs:complexType>
-            <xs:sequence>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot1d"/>
-            </xs:sequence>
+            <xs:all>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot1d"/>
+            </xs:all>
+
+            <xs:attribute ex:importance="experimental" ex:unit="" name="json" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Output phonon dispersion as JSON file.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
 
@@ -299,6 +307,15 @@
             <p>Applies to <pre>method="dfpt"</pre> only!</p>
             If the attribute <pre>sumrule</pre> is set to <pre>"true"</pre>,
             the acoustic sum rule is imposed on the Gamma point phonons.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsdeg" type="fortrandouble" default="1.0d-6">
+        <xs:annotation>
+          <xs:documentation>
+            <p>Applies to <pre>method="dfpt"</pre> only!</p>
+            <p>States with eigenvalues that differ less than this number are considerred degenerate.</p> 
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>

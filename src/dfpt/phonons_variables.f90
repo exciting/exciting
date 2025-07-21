@@ -8,6 +8,7 @@ module phonons_variables
   use modmpi
   use asserts, only: assert
   use mod_kpointset, only: k_set, Gk_set, G_set
+  use mod_opt_tetra, only: t_set
 
   implicit none
   private
@@ -29,6 +30,8 @@ module phonons_variables
   type(k_set), public :: ph_kset
   !> the set of \({\bf k+q}\)-points
   type(k_set), public :: ph_kqset
+  !> set of tetrahedra for BZ integration
+  type(t_set), public :: ph_tset
 
   ! ** interstitial wave function and operator expansion
   !> set of \({\bf G+q}\) vectors corresponding to `dfpt_Gset`
@@ -79,7 +82,7 @@ module phonons_variables
       use mod_atoms, only: natmtot
       use modinput
 
-      integer :: iq
+      integer :: iq, stype
       real(dp) :: v1(3), v2(3)
 
       ! check if canonical displacement patterns should be used
@@ -88,12 +91,15 @@ module phonons_variables
       ! check if polar material is assumed
       ph_polar = input%phonons%polar
 
-      ! generate q-point set
+      ! generate q-point set (disable libbzint order)
+      stype = input%groundstate%stypenumber
+      input%groundstate%stypenumber = 1 ! any number >0 works to switch off libbzint
       call generate_k_vectors( ph_qset, dfpt_kset%bvec, &
              input%phonons%ngridq, &
              [0.0_dp, 0.0_dp, 0.0_dp], &
              input%phonons%reduceq, &
              uselibzint=.false. )
+      input%groundstate%stypenumber = stype
 
       ! check if k- and q-point set are commensurate
       v1 = dble( dfpt_kset%ngridk ) / dble( ph_qset%ngridk )
@@ -140,6 +146,7 @@ module phonons_variables
     !> This subroutine initializes global variables that are \({\bf q}\)-dependent.
     subroutine ph_var_init_q( iq )
       use mod_kpointset, only: generate_k_vectors, generate_Gk_vectors, generate_G_vectors
+      use mod_opt_tetra, only: opt_tetra_init
       use mod_symmetry, only: maxsymcrys, lsplsymc, nsymcrys
       use mod_muffin_tin, only: rmt
       use mod_atoms, only: natmtot, nspecies, natoms, idxas, atposc
@@ -178,6 +185,9 @@ module phonons_variables
              dfpt_kset%isreduced, &
              uselibzint=.false. )
 
+      ! generate tetrahedra
+      if (input%groundstate%stypenumber == -2) call opt_tetra_init( ph_tset, ph_kset, 1, reduce=ph_kset%isreduced )
+           
       ! generate G+k vectors
       call generate_Gk_vectors( ph_Gkset, ph_kset, dfpt_Gset, dfpt_Gkset%gkmax )
 
@@ -225,12 +235,14 @@ module phonons_variables
     !> This subroutine frees memory from global \({\bf q}\)-dependent variables.
     subroutine ph_var_free_q
       use mod_kpointset, only: delete_k_vectors, delete_G_vectors, delete_Gk_vectors
+      use mod_opt_tetra, only: opt_tetra_destroy
       call delete_k_vectors( ph_kset )
       call delete_k_vectors( ph_kqset )
       call delete_Gk_vectors( ph_Gkset )
       call delete_Gk_vectors( ph_Gkqset )
       call delete_G_vectors( ph_Gqset )
       call delete_G_vectors( ph_2Gqset )
+      call opt_tetra_destroy( ph_tset )
       if( allocated( ph_jlgqr ) ) deallocate( ph_jlgqr )
       if( allocated( ph_ylmgq ) ) deallocate( ph_ylmgq )
       if( allocated( ph_sfacgq ) ) deallocate( ph_sfacgq )

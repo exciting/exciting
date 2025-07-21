@@ -737,16 +737,17 @@ module mod_wannier
       complex(8), allocatable, intent( out)        :: pkr(:,:)
 
       integer :: i, j, k, is, js, ks, ir, ik, cnt
-      integer :: tmpvec( 3, 4*kset%nkpt), tmpmul( 4*kset%nkpt), idx( 4*kset%nkpt)
-      real(8) :: v1(3), v2(3), vs(3), vc(3), d, dist(125), length( 4*kset%nkpt)
+      real(8) :: v1(3), v2(3), vs(3), vc(3), d, dist(125)
       real(8) :: ilatvec(3,3)
+      integer, allocatable :: tmpvec(:,:), tmpmul(:), idx(:)
+      real(8), allocatable :: length(:)
 
       call r3minv( latvec, ilatvec)
 
-      tmpvec = 0
-      tmpmul = 0
-      idx = 0
-      length = 0.d0
+      allocate( tmpvec(3, 4*kset%nkpt), source=0 )
+      allocate( tmpmul(4*kset%nkpt), source=0 )
+      allocate( idx(4*kset%nkpt), source=0 )
+      allocate( length(4*kset%nkpt), source=0.d0 )
       ! map R vectors from canonical SZ into its Wigner-Seitz cell
       ! and count equivalent vectors
       nrpt = 0
@@ -802,6 +803,7 @@ module mod_wannier
         end do
       end do
 
+      deallocate( tmpvec, tmpmul, idx, length )
       return
     end subroutine wannier_rvectors
 

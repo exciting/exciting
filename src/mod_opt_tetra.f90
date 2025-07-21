@@ -17,6 +17,8 @@
 module mod_opt_tetra
   use mod_kpointset
   use modmpi
+  use asserts, only: assert
+  use precision, only: dp
   implicit none
   private
   
@@ -39,6 +41,12 @@ module mod_opt_tetra
             opt_tetra_wgt_deltadiff, opt_tetra_int_deltadiff, &
             opt_tetra_wgt_dbldelta,  opt_tetra_int_dbldelta, &
             opt_tetra_efermi
+
+  !> Compute integrals of type
+  !> \[ \int\limits_{\rm BZ} I_{mn}(\omega) = \frac{{\rm d}{\bf k}}{V_{\rm BZ}} f_{mn}({\bf k})\, \delta(\epsilon_{n{\bf k}} - \omega) \]
+  interface opt_tetra_int_delta
+    module procedure :: int_delta_real, int_delta_complex
+  end interface opt_tetra_int_delta
   
   contains
 
@@ -290,6 +298,7 @@ module mod_opt_tetra
     real(8), intent( out)         :: wgt( nb, nk, *)  ! integration weights
 
     integer :: nn, i, it, ib, ie, idx(4)
+    logical :: all_zero
     real(8) :: et(4), wt(4), add(20)
 
     nn = 20
@@ -309,7 +318,7 @@ module mod_opt_tetra
         call opt_tetra_sort4( et, idx)
         et = et( idx)
         do ie = 1, ne
-          call opt_tetra_getwgt_delta( et-e( ie), wt)
+          call opt_tetra_getwgt_delta( et-e( ie), wt, all_zero )
           wt( idx) = self%tetwgt( it)*wt
           if( maxval( abs( wt)) .gt. eps) then
             if( self%ttype .eq. 1) then
@@ -331,158 +340,176 @@ module mod_opt_tetra
     return
   end subroutine opt_tetra_wgt_delta
 
-  subroutine opt_tetra_int_delta( self, nk, nb, eb, ne, e, ld, resr, matr, resc, matc)
-    type( t_set), intent( in)          :: self              ! tetrahedron set
-    integer, intent( in)               :: nk                ! number of k-points
-    integer, intent( in)               :: nb                ! number of bands
-    real(8), intent( in)               :: eb( nb, nk)       ! band energies
-    integer, intent( in)               :: ne                ! number of energies/frequencies
-    real(8), intent( in)               :: e( ne)            ! energies/frequencies to evaluate at
-    integer, intent( in)               :: ld                ! leading dimension of matrix elements
-    real(8), optional, intent( out)    :: resr( ne, ld, nb) ! the resulting integral (real)
-    real(8), optional, intent( in)     :: matr( ld, nb, nk) ! the matrix elements (real)
-    complex(8), optional, intent( out) :: resc( ne, ld, nb) ! the resulting integral (complex)
-    complex(8), optional, intent( in)  :: matc( ld, nb, nk) ! the matrix elements (complex)
+  !> Compute integrals of type
+  !> \[ \int\limits_{\rm BZ} I_{mn}(\omega) = \frac{{\rm d}{\bf k}}{V_{\rm BZ}} f_{mn}({\bf k})\, \delta(\epsilon_{n{\bf k}} - \omega) \]
+  subroutine int_delta_real( tset, nk, nband, eband, nfreq, freqs, nfun, integral, fun )
+    !> set of tetrahedra
+    type(t_set), intent(in) :: tset
+    !> number of \({\bf k}\)-points
+    integer, intent(in) :: nk
+    !> number of bands \(n\)
+    integer, intent(in) :: nband
+    !> band energies \(\epsilon_{n{\bf k}}\)
+    real(kind=dp), intent(in) :: eband(nband, nk)
+    !> number of frequencies \(\omega\)
+    integer, intent(in) :: nfreq
+    !> frequencies \(\omega\)
+    real(kind=dp), intent(in) :: freqs(nfreq)
+    !> number of functions \(m\)
+    integer, intent(in) :: nfun
+    !> resulting integral \(I_{mn}(\omega)\)
+    real(kind=dp), intent(out) :: integral(nfreq, nfun, nband)
+    !> functions \(f_{mn}({\bf k})\) (default: \(f_{mn}({\bf k}) = 1\))
+    real(kind=dp), optional, intent(in) :: fun(nfun, nband, nk)
+  
+    integer :: it, iband, ifreq, ifun, idx(4)
+    logical :: all_zero
+    real(kind=dp) :: eb(4), wt(4)
 
-    integer :: nn, it, ib, ie, idx(4)
-    real(8) :: et(nb,4), eti(4), wti(4)
-    real(8) :: mtir(ld,4)
-    complex(8) :: mtic(ld,4)
-    logical :: r
-    real(8), allocatable    :: mtr(:,:,:), mttr(:,:,:)
-    complex(8), allocatable :: mtc(:,:,:), mttc(:,:,:)
+    real(kind=dp), allocatable :: fn(:,:)
 
-    r = .false.
-    if( present( resr)) r = .true.
-    if( (.not. r) .and. (.not. present( resc))) then
-      write(*,*)
-      write(*,'("Error (opt_tetra_int_delta): Either a real or a complex result array must be provided.")')
-      stop
-    end if
+    if (present(fun)) allocate( fn(4, nfun) )
+    integral = real( 0, dp )
 
-    nn = 20
-    if( self%ttype .eq. 1) nn = 4
-    if( r) then
-      resr = 0.d0
-    else
-      resc = cmplx( 0.d0, 0.d0, 8)
-    end if
-#ifdef USEOMP
-!$omp parallel default( shared) private( it, ib, ie, et, mtr, mttr, mtc, mttc, mtir, mtic, idx, eti, wti)
-#endif
-    if( present( matr)) then
-      allocate( mtr( ld, nb, 4))
-      if( self%ttype .eq. 2) allocate( mttr( ld, nb, nn))
-      mtr = 1.d0
-    else if( present( matc)) then
-      allocate( mtc( ld, nb, 4))
-      if( self%ttype .eq. 2) allocate( mttc( ld, nb, nn))
-      mtc = cmplx( 1.d0, 0.d0, 8)
-    end if
-#ifdef USEOMP
-!$omp do
-#endif
-    do it = 1, self%ntetra
-      if( self%ttype .eq. 1) then
-        et = eb( :, self%tetra(1:4,it))
-        if(         r .and. present( matr)) mtr = matr(:,:,self%tetra(1:4,it))
-        if( (.not. r) .and. present( matc)) mtc = matc(:,:,self%tetra(1:4,it))
-      else
-        et = matmul( eb( :, self%tetra(:,it)), transpose( self%wlsm))
-        if(         r .and. present( matr)) then
-          mttr = matr(:,:,self%tetra(:,it))
-          call dgemm( 'n', 't', ld*nb, 4, nn, 1.d0, &
-                 mttr, ld*nb, &
-                 self%wlsm, 4, 0.d0, &
-                 mtr, ld*nb)
-        end if
-        if( (.not. r) .and. present( matc)) then
-          mttc = matc(:,:,self%tetra(:,it))
-          call zgemm( 'n', 't', ld*nb, 4, nn, cmplx( 1.d0, 0.d0, 8), &
-                 mttc, ld*nb, &
-                 cmplx( self%wlsm, 0.d0, 8), 4, cmplx( 0.d0, 0.d0, 8), &
-                 mtc, ld*nb)
-        end if
-      end if
-      do ib = 1, nb
-        eti = et( ib, :)
-        call opt_tetra_sort4( eti, idx)
-        eti = eti( idx)
-        if( r) then
-          mtir = mtr( :, ib, idx)
+    ! loop over tetrahedra and bands
+    !$omp parallel default( shared ) private( it, eb, fn, idx, ifreq, wt, all_zero, ifun )
+    !$omp do
+    do iband = 1, nband
+      do it = 1, tset%ntetra
+        ! get energies and function values at corners of tetrahedra
+        if (tset%ttype == 1) then
+          eb = eband(iband, tset%tetra(1:4, it))
+          if (present(fun)) fn = transpose( fun(:, iband, tset%tetra(1:4, it)) )
         else
-          mtic = mtc( :, ib, idx)
+          eb = matmul( tset%wlsm, eband(iband, tset%tetra(:, it)) )
+          if (present(fun)) fn = matmul( tset%wlsm, transpose( fun(:, iband, tset%tetra(:, it)) ) )
         end if
-        do ie = 1, ne
-          call opt_tetra_getwgt_delta( eti-e( ie), wti)
-          if( maxval( abs( wti)) .gt. eps) then
-            if( r) then
-#ifdef USEOMP
-!$omp critical
-#endif
-              call dgemv( 'n', ld, 4, self%tetwgt( it), &
-                     mtir, ld, &
-                     wti, 1, 1.d0, &
-                     resr( ie, :, ib), 1)
-#ifdef USEOMP
-!$omp end critical
-#endif
-            else
-#ifdef USEOMP
-!$omp critical
-#endif
-              call zgemv( 'n', ld, 4, cmplx( self%tetwgt( it), 0.d0, 8), &
-                     mtic, ld, &
-                     cmplx( wti, 0.d0, 8), 1, cmplx( 1.d0, 0.d0, 8), &
-                     resc( ie, :, ib), 1)
-#ifdef USEOMP
-!$omp end critical
-#endif
-            end if
+        ! sort energies and function values
+        call opt_tetra_sort4( eb, idx )
+        eb = eb(idx)
+        if (present(fun)) fn = fn(idx, :)
+        ! loop over frequencies
+        do ifreq = 1, nfreq
+          ! get weights
+          call opt_tetra_getwgt_delta( eb - freqs(ifreq), wt, all_zero )
+          if (all_zero) cycle
+          ! add to result
+          wt = wt * tset%tetwgt(it)
+          if (present(fun)) then
+            do ifun = 1, nfun
+              integral(ifreq, ifun, iband) = integral(ifreq, ifun, iband) + dot_product( wt, fn(:, ifun) )
+            end do
+          else
+            wt(1) = sum( wt )
+            do ifun = 1, nfun
+              integral(ifreq, ifun, iband) = integral(ifreq, ifun, iband) + wt(1)
+            end do
           end if
         end do
       end do
     end do
-#ifdef USEOMP
-!$omp end do
-#endif
-    if( present( matr)) then
-      deallocate( mtr)
-      if( self%ttype .eq. 2) deallocate( mttr)
-    else if( present( matc)) then
-      deallocate( mtc)
-      if( self%ttype .eq. 2) deallocate( mttc)
-    end if
-#ifdef USEOMP
-!$omp end parallel
-#endif
+    !$omp end do
+    !$omp end parallel
+    if (present(fun)) deallocate( fn )
+  end subroutine int_delta_real
 
-    return
-  end subroutine opt_tetra_int_delta
+  !> Compute integrals of type
+  !> \[ \int\limits_{\rm BZ} I_{mn}(\omega) = \frac{{\rm d}{\bf k}}{V_{\rm BZ}} f_{mn}({\bf k})\, \delta(\epsilon_{n{\bf k}} - \omega) \]
+  subroutine int_delta_complex( tset, nk, nband, eband, nfreq, freqs, nfun, integral, fun )
+    !> set of tetrahedra
+    type(t_set), intent(in) :: tset
+    !> number of \({\bf k}\)-points
+    integer, intent(in) :: nk
+    !> number of bands \(n\)
+    integer, intent(in) :: nband
+    !> band energies \(\epsilon_{n{\bf k}}\)
+    real(kind=dp), intent(in) :: eband(nband, nk)
+    !> number of frequencies \(\omega\)
+    integer, intent(in) :: nfreq
+    !> frequencies \(\omega\)
+    real(kind=dp), intent(in) :: freqs(nfreq)
+    !> number of functions \(m\)
+    integer, intent(in) :: nfun
+    !> resulting integral \(I_{mn}(\omega)\)
+    complex(kind=dp), intent(out) :: integral(nfreq, nfun, nband)
+    !> functions \(f_{mn}({\bf k})\) (default: \(f_{mn}({\bf k}) = 1\))
+    complex(kind=dp), optional, intent(in) :: fun(nfun, nband, nk)
+  
+    integer :: it, iband, ifreq, ifun, idx(4)
+    logical :: all_zero
+    real(kind=dp) :: eb(4), wt(4)
 
-  subroutine opt_tetra_getwgt_delta( e, wt)
-    real(8), intent( in)  :: e(4)
-    real(8), intent( out) :: wt(4)
+    complex(kind=dp), allocatable :: fn(:,:)
+
+    if (present(fun)) allocate( fn(4, nfun) )
+    integral = cmplx( 0, 0, dp )
+
+    ! loop over tetrahedra and bands
+    !$omp parallel default( shared ) private( it, eb, fn, idx, ifreq, wt, all_zero, ifun )
+    !$omp do
+    do iband = 1, nband
+      do it = 1, tset%ntetra
+        ! get energies and function values at corners of tetrahedra
+        if (tset%ttype == 1) then
+          eb = eband(iband, tset%tetra(1:4, it))
+          if (present(fun)) fn = transpose( fun(:, iband, tset%tetra(1:4, it)) )
+        else
+          eb = matmul( tset%wlsm, eband(iband, tset%tetra(:, it)) )
+          if (present(fun)) fn = matmul( tset%wlsm, transpose( fun(:, iband, tset%tetra(:, it)) ) )
+        end if
+        ! sort energies and function values
+        call opt_tetra_sort4( eb, idx )
+        eb = eb(idx)
+        if (present(fun)) fn = fn(idx, :)
+        ! loop over frequencies
+        do ifreq = 1, nfreq
+          ! get weights
+          call opt_tetra_getwgt_delta( eb - freqs(ifreq), wt, all_zero )
+          if (all_zero) cycle
+          ! add to result
+          wt = wt * tset%tetwgt(it)
+          if (present(fun)) then
+            do ifun = 1, nfun
+              integral(ifreq, ifun, iband) = integral(ifreq, ifun, iband) + dot_product( wt, fn(:, ifun) )
+            end do
+          else
+            wt(1) = sum( wt )
+            do ifun = 1, nfun
+              integral(ifreq, ifun, iband) = integral(ifreq, ifun, iband) + wt(1)
+            end do
+          end if
+        end do
+      end do
+    end do
+    !$omp end do
+    !$omp end parallel
+    if (present(fun)) deallocate( fn )
+  end subroutine int_delta_complex
+
+  subroutine opt_tetra_getwgt_delta( e, wt, all_zero )
+    real(dp), intent(in)  :: e(4)
+    real(dp), intent(out) :: wt(4)
+    logical, intent(out) :: all_zero
     
-    real(8) :: c, w(3,4), a(4,4)
+    real(dp) :: c, w(3,4), a(4,4)
 
-    wt = 0.d0 
-    if( (0.d0 .le. e(1)) .or. (0.d0 .ge. e(4))) return
-    a = coeff(4,e)
-    if( (e(1) .lt. 0.d0) .and. (0.d0 .lt. e(2))) then
-      call trian_a1( e, a, c, w)
-      wt = c*sum( w, 1)
-      return
-    else if( (e(2) .le. 0.d0) .and. (0.d0 .lt. e(3))) then
-      call trian_b1( e, a, c, w)
-      wt = c*sum( w, 1)
-      call trian_b2( e, a, c, w)
-      wt = wt + c*sum( w, 1)
-      return
-    else if( (e(3) .le. 0.d0) .and. (0.d0 .lt. e(4))) then
-      call trian_c1( e, a, c, w)
-      wt = c*sum( w, 1)
-      return
+    wt = 0.0_dp
+    all_zero = .true.
+    if (e(1) >= 0.0_dp .or. e(4) <= 0.0_dp) return
+
+    all_zero = .false.
+    a = coeff(4, e)
+    if ((e(1) <= 0.0_dp) .and. (0.0_dp < e(2))) then
+      call trian_a1( e, a, c, w )
+      wt = c * sum( w, 1 )
+    else if ((e(2) <= 0.0_dp) .and. (0.0_dp < e(3))) then
+      call trian_b1( e, a, c, w )
+      wt = c * sum( w, 1 )
+      call trian_b2( e, a, c, w )
+      wt = wt + c * sum( w, 1 )
+    else if ((e(3) <= 0.0_dp) .and. (0.0_dp < e(4))) then
+      call trian_c1( e, a, c, w )
+      wt = c * sum( w, 1 )
     end if
   end subroutine opt_tetra_getwgt_delta
 
@@ -500,6 +527,7 @@ module mod_opt_tetra
     real(8), intent( out)     :: wgt( nb1, nb2, nk, *)  ! integration weights
 
     integer :: nn, i, it, ib1, ib2, ie, idx(4)
+    logical :: all_zero
     real(8) :: et1(nb1,4), et2(nb2,4), eti(4), wti(4), add(20)
 
     nn = 20
@@ -523,7 +551,7 @@ module mod_opt_tetra
           call opt_tetra_sort4( eti, idx)
           eti = eti( idx)
           do ie = 1, ne
-            call opt_tetra_getwgt_delta( eti-e( ie), wti)
+            call opt_tetra_getwgt_delta( eti-e( ie), wti, all_zero )
             wti( idx) = self%tetwgt( it)*wti
             if( maxval( abs( wti)) .gt. eps) then
               if( self%ttype .eq. 1) then
@@ -561,6 +589,7 @@ module mod_opt_tetra
     complex(8), optional, intent( in)  :: matc( ld, nb1, nb2, nk)      ! the matrix elements (complex)
 
     integer :: nn, it, ib1, ib2, ie, idx(4)
+    logical :: all_zero
     real(8) :: et1(nb1,4), et2(nb2,4), eti(4), wti(4), mtdr(ld,4)
     complex(8) :: mtdc(ld,4)
     logical :: r
@@ -632,7 +661,7 @@ module mod_opt_tetra
             mtdc = mtc( :, ib1, ib2, idx)
           end if
           do ie = 1, ne
-            call opt_tetra_getwgt_delta( eti-e( ie), wti)
+            call opt_tetra_getwgt_delta( eti-e( ie), wti, all_zero )
             if( maxval( abs( wti)) .gt. eps) then
               if( r) then
 #ifdef USEOMP

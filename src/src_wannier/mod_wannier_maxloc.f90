@@ -170,8 +170,9 @@ module mod_wannier_maxloc
 
       change = .false.
 
-      nw = input%properties%wannier%grouparray( wf_group)%group%nwrite
-      if( (nw > 0) .and. (mod( it, nw) == 0)) call wffile_writetransform
+      nw = max(0, input%properties%wannier%grouparray( wf_group)%group%nwrite)
+      if (nw == 0) nw = huge(1)
+      if( mod( it, nw) == 0) call wffile_writetransform
       if( mod( it, 1) /= -1) return
       change = .true.
       call wfmax_XY2U( xy, dxyo, kxy, dxy, &

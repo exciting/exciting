@@ -317,7 +317,7 @@ module phonons_density_potential
       if( gamma ) then
         bands = pack( [(i, i=fst, lst)], &
                       [(wgt1(i) > input%groundstate%epsocc .or. &
-                        wgt2(i) > input%groundstate%epsocc, i=fst, lst)] )
+                        abs( wgt2(i) ) > input%groundstate%epsocc, i=fst, lst)] )
       else
         bands = pack( [(i, i=fst, lst)], &
                       [(wgt1(i) > input%groundstate%epsocc, i=fst, lst)] )
@@ -350,15 +350,15 @@ module phonons_density_potential
             deallocate( evecmt2 )
           end if
           ! sum up MT eigenvectors over occupied states
-          do i = 1, nst
-            ist = bands(i)
-            evecmt1(:, i) = wgt1(ist) * evecmt1(:, i)
-          end do
-          call zgemm( 'n', 'c', mt_basis%n_basis_fun(is), mt_basis%n_basis_fun(is), nst, zone, &
+          call zgemm( 'n', 'c', mt_basis%n_basis_fun(is), mt_basis%n_basis_fun(is), nst, cmplx( 2*kset%wkpt(ik), kind=dp ), &
                  devecmt, size(devecmt, dim=1), &
                  evecmt1, size(evecmt1, dim=1), zone, &
                  evecsum, mt_basis%n_basis_fun_max )
           if( sum( abs( pat(:, ias) ) ) > 1e-12_dp ) then
+            do i = 1, nst
+              ist = bands(i)
+              evecmt1(:, i) = wgt1(ist) * evecmt1(:, i)
+            end do
             ! get perturbed matching coefficients at k
             call gen_dapwalm( ngk, Gkset%vgkc(:, :, 1, ik), pat(:, ias), apwalmk(:, :, :, ias), dapwalmk )
             call mt_basis%transform_evec( is, ngk, nlotot, idxlo(:, :, ias), dapwalmk, eveck(:, bands), evecmt2, &
@@ -381,7 +381,7 @@ module phonons_density_potential
       allocate( zfft(dfpt_Gset%ngrtot, 2) )
       do i = 1, nst
         ist = bands(i)
-        t1 = wgt1(ist) / omega
+        t1 = 2 * kset%wkpt(ik) / omega
         t2 = wgt2(ist) / omega
         zfft = zzero
         ! Fourier transform wavefunction to real space
@@ -781,7 +781,6 @@ module phonons_density_potential
     !> This subroutine computes the gradient of the exchange correlation potential
     !> in the muffin-tin spheres and stores them in `gpot_xc_mt`.
     subroutine gen_gpot_xc
-      !use dfpt_density_potential, only: apply_xckernel_mt
       use mod_potential_and_density, only: pot_xc_mt => vxcmt
       use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
       use mod_muffin_tin, only: nrmtmax, nrmt
@@ -814,8 +813,9 @@ module phonons_density_potential
     !>      \sum_{\kappa',\beta} \delta^{{\bf q}_0}_{\kappa'\,\beta} f(\mathcal{S}^{-1}{\bf r})\,
     !>      \Gamma^\ast_{\kappa\,\alpha,\kappa'\,\beta}(\mathcal{S};{\bf q}_0) \;, \]
     !> with the phonon symmetry matrix \({\bf \Gamma}(\mathcal{S};{\bf q}_0)\) (see [[ph_util_symmetry_G(subroutine)]]).
-    subroutine ph_rhopot_rotate_q_canonical( vql0, vql, isym, dfun_mt, dfun_ir )
+    subroutine ph_rhopot_rotate_q_canonical( vql0, vql, isym, lmaxvr, dfun_mt, Gqset, dfun_ir )
       use constants, only: zzero, zone, twopi
+      use mod_kpointset, only: G_set
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
       use mod_symmetry, only: lsplsymc, symlat, symlatc, vtlsymc, ieqatom, symapp_zfig
       use mod_muffin_tin, only: nrmt
@@ -827,9 +827,13 @@ module phonons_density_potential
       real(dp), intent(in) :: vql(3)
       !> global symmetry index of \(\mathcal{S}\)
       integer, intent(in) :: isym
+      !> maximum angular momentum \(l\) used in muffin-tin response expansion
+      integer, intent(in) :: lmaxvr
       !> on input: muffin-tin response at \({\bf q}_0\); 
       !> on output: muffin-tin response at \({\bf q}\)
       complex(dp), intent(inout) :: dfun_mt(:,:,:,:,:)
+      !> set of \({\bf G}+{\bf q}\) vectors used in interstitial response expansion
+      type(G_set), intent(in) :: Gqset
       !> on input: interstitial response at \({\bf q}_0\); 
       !> on output: interstitial response at \({\bf q}\)
       complex(dp), intent(inout) :: dfun_ir(:,:,:)
@@ -851,7 +855,6 @@ module phonons_density_potential
         '`vql` and `vql0` are not related by given symmetry.' )
 
       ! get symmetry matrix Gamma
-      allocate( sym_G(3*natmtot, 3*natmtot) )
       sym_G = ph_util_symmetry_G( isym, vql0 )
 
       ! apply symmetry to potential response
@@ -870,18 +873,18 @@ module phonons_density_potential
                 call r3mv( dble( symlat(:, :, lspl) ), a, b )
                 b = input%structure%speciesarray(js)%species%atomarray(ja)%atom%coord - b
                 phi = twopi * dot_product( vql, b )
-                call rotzflm( symlatc(:, :, lspl), dfpt_lmaxvr, nrmt(is), dfpt_lmmaxvr, &
+                call rotzflm( symlatc(:, :, lspl), lmaxvr, nrmt(is), (lmaxvr+1)**2, &
                        dfun_mt(:, :, kas, ip, ias), dfun_mt_rot(:, :, jas, ip, ias) )
                 dfun_mt_rot(:, :, jas, ip, ias) = dfun_mt_rot(:, :, jas, ip, ias) * cmplx( cos( phi ), sin( phi ), dp )
               end do
             end do
             ! interstitial region
             dfun_ir_rot(:, ip, ias) = zzero
-            call zfftifc( 3, dfpt_Gset%ngrid, -1, dfun_ir(:, ip, ias) )
+            call zfftifc( 3, Gqset%ngrid, -1, dfun_ir(:, ip, ias) )
             call symapp_zfig( symlat(:, :, lspl), vtlsymc(:, isym), vql0, &
-                   dfun_ir(:, ip, ias), dfpt_Gset%ngrtot, dfpt_Gset%ivg, dfpt_Gset%igfft, .true., &
-                   dfun_ir_rot(:, ip, ias), dfpt_Gset%intgv, dfpt_Gset%ivgig, dfpt_Gset%igfft, .true. )
-            call zfftifc( 3, dfpt_Gset%ngrid, 1, dfun_ir_rot(:, ip, ias) )
+                   dfun_ir(:, ip, ias), Gqset%ngrtot, Gqset%ivg, Gqset%igfft, .true., &
+                   dfun_ir_rot(:, ip, ias), Gqset%intgv, Gqset%ivgig, Gqset%igfft, .true. )
+            call zfftifc( 3, Gqset%ngrid, 1, dfun_ir_rot(:, ip, ias) )
 
           end do
         end do

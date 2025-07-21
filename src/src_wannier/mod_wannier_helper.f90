@@ -41,14 +41,14 @@ module mod_wannier_helper
             wf_kset%vkl = vkl
             wf_kset%vkc = vkc
           end if
-          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true., .false.)
+          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
           nstfv = min( minval( nmat_ptr), int( chgval/2.d0) + input%groundstate%nempty + 1)
         case( "gw")
           input%groundstate%stypenumber = -1 ! turn on LIBBZINT
           if (xctype(1) >= 400) then
             ! GW@hybrids
             nstfv = min( minval( nmat_ptr), int( chgval/2.d0) + input%groundstate%nempty + 1)
-            call init1()
+            call init1
             call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
             call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
           else
@@ -61,7 +61,7 @@ module mod_wannier_helper
             input%groundstate%vkloff = input%gw%vqloff
             nempty = input%groundstate%nempty
             input%groundstate%nempty = input%gw%nempty
-            call init1()
+            call init1
             input%groundstate%reducek = reducek
             input%groundstate%ngridk = ngridk
             input%groundstate%vkloff = vkloff
@@ -87,7 +87,7 @@ module mod_wannier_helper
         case( "hybrid")
           nstfv = min( minval( nmat_ptr), int( chgval/2.d0) + input%groundstate%nempty + 1)
           input%groundstate%stypenumber = -1 ! turn on LIBBZINT
-          call init1()
+          call init1
           call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
           call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
         case default
@@ -317,12 +317,13 @@ module mod_wannier_helper
     ! for a given set of eigenenergies
     subroutine wfhelp_occupy( kset, eval, fst, lst, efermi, occ, tetra)
       use mod_opt_tetra
+      use mod_occupy, only: find_fermi
 
       type( k_set), intent( in)           :: kset
       integer, intent( in)                :: fst, lst
-      real(8), intent( in)                :: eval( lst-fst+1, kset%nkpt)
+      real(8), intent( in)                :: eval(fst:lst, kset%nkpt)
       real(8), intent( out)               :: efermi
-      real(8), intent( out)               :: occ( lst-fst+1, kset%nkpt)
+      real(8), intent( out)               :: occ(fst:lst, kset%nkpt)
       type( t_set), optional, intent( in) :: tetra
 
       integer, parameter :: maxit = 1000
@@ -353,7 +354,7 @@ module mod_wannier_helper
           write( *, '("Warning (wfhelp_occupy): No valence bands given. All bands are considered to be unoccupied. Fermi energy set to lowest energy given.")')
         end if
         occ = 0.d0
-        efermi = minval( eval(1,:))
+        efermi = minval( eval(fst,:))
         return
       end if
       if( (lst .le. nvm)) then
@@ -362,12 +363,12 @@ module mod_wannier_helper
           write( *, '("Warning (wfhelp_occupy): At least one conduction band has to be given in order to determine occupancies. All bands given are considered to be fully occupied. Fermi energy set to highest energy given.")')
         end if
         occ = occmax
-        efermi = maxval( eval(nst,:))
+        efermi = maxval( eval(lst,:))
         return
       end if
       ! check for insulator or semiconductor
-      e0 = maxval( eval( nvm-fst+1, :))
-      e1 = minval( eval( nvm-fst+2, :))
+      e0 = maxval( eval( nvm, :))
+      e1 = minval( eval( nvm+1, :))
       efermi = 0.5*(e0 + e1)
 
       chg = chg0
@@ -376,7 +377,7 @@ module mod_wannier_helper
 !$OMP DO
 #endif
       do iq = 1, kset%nkpt
-        do ist = 1, nst
+        do ist = fst, lst
           if( eval( ist, iq) .le. efermi) occ( ist, iq) = occmax
           chg = chg + kset%wkpt( iq)*occ( ist, iq)
         end do
@@ -385,69 +386,14 @@ module mod_wannier_helper
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
-      if( (e1 .ge. e0) .and. (abs( chg - chgval) .lt. input%groundstate%epsocc)) then
-        usetetra = .false.
-      else
-        ! metal found
-        if( input%groundstate%stypenumber .ge. 0 ) then
-          t1 = 1.d0/input%groundstate%swidth
-          it = 0
-          e0 = eval(1,1)
-          e1 = e0
-          do ist = 1, nst
-            e0 = min( e0, minval( eval(ist,:)))
-            e1 = max( e1, maxval( eval(ist,:)))
-          end do
 
-          do while( it .lt. maxit)
-            efermi = 0.5*(e0 + e1)
-            chg = chg0
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iq, ist, x) reduction(+: chg)
-!$OMP DO
-#endif
-            do iq = 1, kset%nkpt
-              do ist = 1, nst
-                x = (efermi - eval( ist, iq))*t1
-                occ( ist, iq) = occmax*stheta( input%groundstate%stypenumber, x)
-                chg = chg + kset%wkpt( iq)*occ( ist, iq)
-              end do
-            end do
-#ifdef USEOMP
-!$OMP END DO
-!$OMP END PARALLEL
-#endif
-            if( chg .lt. chgval) then
-              e0 = efermi
-            else
-              e1 = efermi
-            end if
-            if( (e1-e0) .lt. input%groundstate%epsocc) then
-              it = maxit+1
-            else
-              it = it + 1
-            end if
-          end do
+      ! system has gap
+      if( (e1 .ge. e0) .and. (abs( chg - chgval) .lt. input%groundstate%epsocc)) &
+        return
 
-          if( it .eq. maxit) then
-            if( mpiglobal%rank .eq. 0) then
-              write(*,*)
-              write( *, '("Error (wfhelp_occupy): Fermi energy could not be found.")')
-            end if
-            stop
-          end if
-        else
-          if( .not. usetetra) then
-            if( mpiglobal%rank .eq. 0) then
-              write(*,*)
-              write( *, '("Error (wfhelp_occupy): Not implemented for this stype.")')
-            end if
-            stop
-          end if
-        end if
-      end if
-
-      if( usetetra) then
+      ! system is metallic
+      ! use improved tetrahedron integration
+      if( usetetra .or. input%groundstate%stypenumber == -2) then
         if( mpiglobal%rank .eq. 0) then
           write(*,*)
           write( *, '("Info (wfhelp_occupy): Use tetrahedron method in determining efermi and occupation")')
@@ -455,6 +401,24 @@ module mod_wannier_helper
         call opt_tetra_efermi( tetra, chgval/dble( occmax)-fst+1, kset%nkpt, nst, eval, efermi, occ, ef0=efermi, df0=df)
         do iq = 1, kset%nkpt
           occ(:,iq) = occmax*occ(:,iq)/kset%wkpt(iq)
+        end do
+      ! use standard smearing method
+      else if( input%groundstate%stypenumber >= 0 ) then
+        call find_fermi( kset%nkpt, kset%wkpt, nst, eval, chgval-chg0, occmax, &
+          input%groundstate%stypenumber, input%groundstate%swidth, input%groundstate%epsocc, &
+          efermi, occ )
+      ! use libbzint
+      else if( input%groundstate%stypenumber == -1) then
+        ! Calculate the Fermi energy
+        call fermi_exciting( .false., chgval-chg0, nst, kset%nkpt, eval, &
+                             kset%ntet, kset%tnodes, kset%wtet, kset%tvol, &
+                             efermi, e0, e1)                               
+        ! Calculate state occupation numbers
+        call tetiw( kset%nkpt, kset%ntet, nst, eval, kset%tnodes, kset%wtet, kset%tvol, efermi, occ)
+        do iq = 1, kset%nkpt
+          do ist = 1, nst
+            occ(ist,iq) = occmax/kset%wkpt(iq)*occ(ist,iq)
+          end do
         end do
       end if
 

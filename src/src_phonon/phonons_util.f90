@@ -173,7 +173,7 @@ module phonons_util
              S, 3*natmtot, zone, &
              dyns, size( dyns, dim=1 ) )
 
-      deallocate( S, aux)
+      deallocate( S, aux )
     end subroutine ph_util_symapp_dyn
 
     !> Get the symmetry matrix \({\bf \Gamma}({\bf p})\) for a given
@@ -389,7 +389,7 @@ module phonons_util
     !> matrices in real space `dynmatr` (interatomic force constants), \(D({\bf R})\). 
     !> To interpolate back to reciprocal space \(D({\bf p})\), use [[ph_util_interpolate(subroutine)]].
     subroutine ph_util_setup_interpolation( bvec, ngridq, nq, ivq, vql, mfi, dynmatr, &
-        sumrule, symmetrize, dielten, borncharge, directory, dynmatq )
+        sumrule, symmetrize, dielten, borncharge, directory, dynmatq, elphbolt_compatible )
       use constants, only: zzero, zone
       use phonons_io_util, only: ph_io_read_dynmat_grid
       use matrix_fourier_interpolation, only: mfi_type
@@ -422,10 +422,13 @@ module phonons_util
       character(*), optional, intent(in) :: directory
       !> dynamical matrices on \({\bf q}\)-grid
       complex(dp), optional, intent(in) :: dynmatq(3*natmtot, 3*natmtot, nq)
+      !> elphbolt compatible run
+      logical, optional, intent(in) :: elphbolt_compatible
 
-      integer :: iq, ias, i, j, k
+      integer :: iq, i, j, k
       real(dp) :: vql_off(3)
-      logical :: smrl, symm, success
+      logical :: smrl, symm, success, elphbolt
+      character(len=64) :: buff
 
       integer, allocatable  :: iq_idx(:), isym_idx(:)
       real(dp), allocatable :: vql_full(:, :)
@@ -435,6 +438,8 @@ module phonons_util
       if( present( sumrule ) ) smrl = sumrule
       symm = .true.
       if( present( symmetrize) ) symm = symmetrize
+      elphbolt = .false.
+      if( present( elphbolt_compatible ) ) elphbolt = elphbolt_compatible
 
       ! check if dynamical matrices were given, otherwise try to read from file
       if( present( dynmatq ) ) then
@@ -447,7 +452,7 @@ module phonons_util
           call ph_io_read_dynmat_grid( ivq, ngridq, nspecies, natoms, dynq, success )
         end if
         call terminate_if_false( success, '(ph_util_setup_interpolation): &
-          failed to read dynamical matrices from file.' )
+          Failed to read dynamical matrices from file.' )
       end if
 
       ! symmetrize dynamical matrices
@@ -463,8 +468,13 @@ module phonons_util
         call ph_util_sumrule_dyn( vql(:, 1:nq), dynq )
 
       ! subtract non-analytic part for polar materials
-      if( present( dielten ) .and. present( borncharge ) ) &
-        call ph_util_dynmat_lr( bvec, nq, vql, dielten, borncharge, -zone, dynq )
+      if( present( dielten ) .and. present( borncharge ) ) then
+        if( elphbolt ) then
+          call ph_util_dynmat_lr_elphbolt( bvec, nq, vql, dielten, borncharge, -zone, dynq, ngridq, 14.0_dp )
+        else
+          call ph_util_dynmat_lr( bvec, nq, vql, dielten, borncharge, -zone, dynq )
+        end if
+      end if
 
       ! set up interpolation object
       vql_off = vql(:, 1) * ngridq
@@ -479,9 +489,10 @@ module phonons_util
       ! set dynamical matrices of q-grid
       allocate( dynq_full(3*natmtot, 3*natmtot, mfi%np), source=zzero )
       do iq = 1, mfi%np
+        write( buff, '(3f13.6)' ) mfi%vpl(:, iq)
         call find_equivalent_wavevectors( 3, mfi%vpl(:, iq), vql, nq, symlat(:, :, lsplsymc(1:nsymcrys)), nsymcrys, iq_idx, isym_idx, first_only=.true. )
         call terminate_if_false( size( iq_idx ) > 0, '(ph_util_setup_interpolation) &
-          No equivalent q-point found in list.' )
+          No equivalent q-point found for vector ['//trim(buff)//'].' )
         call ph_util_symapp_dyn( isym_idx(1), vql(:, iq_idx(1)), dynq(:, :, iq_idx(1)), dynq_full(:, :, iq) )
       end do
 
@@ -507,7 +518,7 @@ module phonons_util
     !> (See also [[transform_R2p(subroutine)]].)
     subroutine ph_util_interpolate( nq, vql, mfi, dynmatr, &
         dynmatq, &
-        minimal_distances, symmetrize, dielten, borncharge )
+        minimal_distances, symmetrize, dielten, borncharge, elphbolt_compatible )
       use constants, only: zone
       use matrix_fourier_interpolation, only: mfi_type
       use mod_atoms, only: natmtot
@@ -531,9 +542,11 @@ module phonons_util
       real(dp), optional, intent(in) :: dielten(3, 3)
       !> Born effective charges \({\bf Z}^\ast_\kappa\)
       real(dp), optional, intent(in) :: borncharge(3, 3, natmtot)
+      !> elphbolt compatible run
+      logical, optional, intent(in) :: elphbolt_compatible
 
       integer :: iq
-      logical :: symm, mindist
+      logical :: symm, mindist, elphbolt
       
       integer, allocatable :: iq_idx(:), isym_idx(:)
 
@@ -541,14 +554,22 @@ module phonons_util
       if( present( symmetrize) ) symm = symmetrize
       mindist = .true.
       if( present( minimal_distances ) ) mindist = minimal_distances
+      elphbolt = .false.
+      if( present( elphbolt_compatible ) ) elphbolt = elphbolt_compatible
 
+      ! Fourier transform dynamical matrix from real to reciprocal space
       allocate( dynmatq(3*natmtot, 3*natmtot, nq) )
       call mfi%transform_R2p( [3*natmtot, 3*natmtot], 1, dynmatr, (3*natmtot)**2, 1, dynmatq, (3*natmtot)**2, 1, vql, &
         minimal_distances=mindist )
 
       ! add non-analytic part for polar materials
-      if( present( dielten ) .and. present( borncharge ) ) &
-        call ph_util_dynmat_lr( mfi%bvec, nq, vql, dielten, borncharge, zone, dynmatq )
+      if( present( dielten ) .and. present( borncharge ) ) then
+        if( elphbolt ) then
+          call ph_util_dynmat_lr_elphbolt( mfi%bvec, nq, vql, dielten, borncharge, zone, dynmatq, mfi%ngrid, 14.0_dp )
+        else
+          call ph_util_dynmat_lr( mfi%bvec, nq, vql, dielten, borncharge, zone, dynmatq )
+        end if
+      end if
 
       ! symmetrize dynamical matrices
       if( symm ) then
@@ -580,7 +601,7 @@ module phonons_util
       real(dp), intent(in) :: dielten(3, 3)
       !> Born-effective charges \({\bf Z}^\ast_\alpha\)
       real(dp), intent(in) :: borncharge(3, 3, natmtot)
-      !> prefactor \(\alpha\)
+      !> prefactor \(\alpha\) (`1.0` for addition and `-1.0` for subtraction of long-range part)
       complex(dp), intent(in) :: alpha
       !> dynamical matrices \(D({\bf q})\)
       complex(dp), intent(inout) :: dynq(3*natmtot, 3*natmtot, nq)
@@ -759,5 +780,113 @@ module phonons_util
           call dgemm( 'n', 't', 3, 3, 1, f1, x, 3, x, 3, 1.0_dp, H, 3 )
         end function H_fun
     end subroutine ph_util_dynmat_lr
+
+    subroutine ph_util_dynmat_lr_elphbolt( bvec, nq, vql, dielten, borncharge, alpha, dynq, g_grid, g_max )
+      use constants, only: twopi, fourpi, zzero, zone
+      use mod_atoms, only: natmtot, nspecies, natoms, idxas, atposc
+      use m_plotmat
+      !> reciprocal lattice vectors (columnwise)
+      real(dp), intent(in) :: bvec(3, 3)
+      !> number of \({\bf q}\)-points
+      integer, intent(in) :: nq
+      !> \({\bf q}\)-points in lattice coordinates
+      real(dp), intent(in) :: vql(3, nq)
+      !> dielectric tensor \({\bf \epsilon}^\infty\)
+      real(dp), intent(in) :: dielten(3, 3)
+      !> Born-effective charges \({\bf Z}^\ast_\alpha\)
+      real(dp), intent(in) :: borncharge(3, 3, natmtot)
+      !> prefactor \(\alpha\) (`1.0` for addition and `-1.0` for subtraction of long-range part)
+      complex(dp), intent(in) :: alpha
+      !> dynamical matrices \(D({\bf q})\)
+      complex(dp), intent(inout) :: dynq(3*natmtot, 3*natmtot, nq)
+      !> grid size for reciprocal space sum
+      integer, intent(in) :: g_grid(3)
+      !> cut-off for reciprocal space sum
+      real(dp), intent(in) :: g_max
+
+      real(dp), parameter :: tol = 1e-12_dp          ! tolerance for terms to include
+
+      integer :: ng(3), i, ia, ias, ja, jas
+      real(dp) :: lambda, gmax
+      real(dp) :: avec(3, 3)
+
+      complex(dp), allocatable :: dyn0(:,:,:), tmp(:,:)
+
+      real(8), external :: r3mdet
+
+      call r3minv( bvec, avec )
+      avec = twopi * transpose( avec )
+
+      gmax = g_max
+      ng = g_grid
+      lambda = twopi / norm2( avec(:, 1) )
+
+      ! q=0 term
+      allocate( dyn0(3, 3, natmtot), source=zzero )
+      allocate( tmp(3*natmtot, 3*natmtot), source=zzero )
+      ! reciprocal space sum
+      call reciprocal_space_sum( [0.0_dp, 0.0_dp, 0.0_dp], ng, tmp )
+      ! sum over atoms
+      do ia = 1, natmtot
+        ias = (ia - 1) * 3 + 1
+        do ja = 1, natmtot
+          jas = (ja - 1) * 3 + 1
+          dyn0(:, :, ia) = dyn0(:, :, ia) + tmp(ias:ias+2, jas:jas+2)
+        end do
+      end do
+      deallocate( tmp )
+
+      ! loop over q
+      !$omp parallel default( shared ) private( ia, ias )
+      !$omp do
+      do i = 1, nq
+        ! reciprocal space sum
+        call reciprocal_space_sum( vql(:, i), ng, dynq(:, :, i) )
+        ! atom-diagonal part
+        do ia = 1, natmtot
+          ias = (ia - 1) * 3 + 1
+          dynq(ias:ias+2, ias:ias+2, i) = dynq(ias:ias+2, ias:ias+2, i) - dyn0(:, :, ia)
+        end do
+      end do
+      !$omp end do
+      !$omp end parallel
+
+      contains
+
+        subroutine reciprocal_space_sum( vql, ng, dynq )
+          real(dp), intent(in) :: vql(3)
+          integer, intent(in) :: ng(3)
+          complex(dp), intent(inout) :: dynq(3*natmtot, 3*natmtot)
+
+          integer :: g1, g2, g3, is, ia, ias
+          real(dp) :: t1, vt(3*natmtot), vgqc(3), gqc, gqegq, dotp
+          complex(dp) :: z1, z2, vz(3*natmtot)
+
+          z1 = alpha * fourpi / abs( r3mdet( avec ) )
+          do g3 = -ng(3), ng(3)
+            do g2 = -ng(2), ng(2)
+              do g1 = -ng(1), ng(1)
+                vgqc = matmul( bvec, dble( [g1, g2, g3] ) + vql )
+                gqc = norm2( vgqc )
+                if( gqc < tol ) cycle
+                vgqc = vgqc / gqc
+                gqegq = dot_product( vgqc, matmul( dielten, vgqc ) )
+                t1 = gqc**2 * gqegq / (4.0_dp * lambda**2)
+                if( (gqegq < tol) .or. (t1 > gmax) ) cycle
+                z2 = z1 * exp( -t1 ) / gqegq
+                call dgemv( 't', 3, 3*natmtot, 1.0_dp, borncharge, 3, vgqc, 1, 0.0_dp, vt, 1 )
+                do is = 1, nspecies
+                  do ia = 1, natoms(is)
+                    ias = (idxas(ia, is) - 1) * 3 + 1
+                    dotp = gqc * dot_product( vgqc, atposc(:, ia, is) )
+                    vz(ias:ias+2) = vt(ias:ias+2) * cmplx( cos( dotp ), sin( dotp ), dp )
+                  end do
+                end do
+                call zgemm( 'n', 'c', 3*natmtot, 3*natmtot, 1, z2, vz, 3*natmtot, vz, 3*natmtot, zone, dynq, 3*natmtot )
+              end do
+            end do
+          end do
+        end subroutine reciprocal_space_sum
+    end subroutine ph_util_dynmat_lr_elphbolt
 
 end module phonons_util

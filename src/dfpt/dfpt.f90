@@ -16,7 +16,7 @@ module dfpt
   implicit none
   private
 
-  public :: dfpt_launcher
+  public :: dfpt_launcher, dfpt_prepare, dfpt_finalize
 
   contains
 
@@ -231,7 +231,7 @@ module dfpt
       ! compute effective potential response in canonical basis
       ! and write it to file
       if( any( task_list == 'phonons_write_dpot' ) ) &
-        call ph_write_dpot_canonical
+        call ph_write_response_canonical( 'DVEFF' )
       call barrier( mpicom=mpiglobal )
 
       ! compute Born effective charge tensors in canonical basis
@@ -283,7 +283,7 @@ module dfpt
     !> This inculdes the calculation of all unperturbed Kohn-Sham eigenstates
     !> at the (reduced) set of electronic wavevectors \({\bf k}\). These are 
     !> written to the temporary binary files `EVALK0.TMP` and `EVECK0.TMP` 
-    !> which are autSmatically deleted at the end of the calculation.
+    !> which are automatically deleted at the end of the calculation.
     subroutine dfpt_prepare
       use modmpi
       use constants, only: zone
@@ -316,7 +316,7 @@ module dfpt
       ! loop over k-points
       do ik = ik1, ik2
         ! solve KS equation
-        if( exists ) then
+        if (exists) then
           call dfpt_eig_ks( ik, dfpt_kset, dfpt_Gset, dfpt_Gkset, nmatmax, evalk(:,ik), eveck, &
                  p0set=dfpt_kset, Gp0set=dfpt_Gkset, feval=fevalk0, fevec=feveck0 )
         else
