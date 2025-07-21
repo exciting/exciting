@@ -111,13 +111,13 @@ subroutine write_vector_to_file_given_lbound( file_name, vector, l_bound, file_f
   !> File format of output
   character(len=*), intent(in) :: file_format
 
-  integer(i32) :: unit
+  integer(i32) :: unit, i
 
   call open_file_generic( file_name, 'write', file_format, unit )
   call write_header_to_file( unit, file_format, vector, [l_bound] )
   select case( trim(file_format) )
     case( file_format_text )
-      write( unit, * ) vector
+      call print_complex_to_unit(unit, vector)
     case( file_format_binary )
       write( unit ) vector
   end select  
@@ -140,7 +140,7 @@ subroutine write_vector_and_matrix_to_file( file_name, vector, matrix, file_form
   call write_header_to_file( unit, file_format, vector, lbounds=[1] )
   select case( trim(file_format) )
     case( file_format_text )
-      write( unit, * ) vector
+      write( unit, '(*(E23.17,X))' ) vector
     case( file_format_binary )
       write( unit ) vector
   end select  
@@ -199,7 +199,7 @@ subroutine write_contents_of_matrix_to_file_given_lbounds( unit, matrix, lbounds
   select case( trim(file_format) )
     case( file_format_text )
       do i = lbounds(2), ubound( matrix, 2 )
-        write( unit, * ) matrix(:, i)
+        call print_complex_to_unit(unit, matrix(:, i))
       end do
     case( file_format_binary )
       do i = lbounds(2), ubound( matrix, 2 )
@@ -238,7 +238,7 @@ subroutine write_tensor_of_rank_3_to_file_given_lbounds( file_name, tensor, lbou
     case( file_format_text )
       do i = lbounds(3), ubound( tensor, 3 )
         do j = lbounds(2), ubound( tensor, 2 )
-          write( unit, * ) tensor(:, j, i)
+          call print_complex_to_unit(unit, tensor(:, j, i))
         end do
       end do
     case( file_format_binary )
@@ -283,7 +283,7 @@ subroutine write_tensor_of_rank_4_to_file_given_lbounds( file_name, tensor, lbou
       do i = lbounds(4), ubound( tensor, 4 )
         do j = lbounds(3), ubound( tensor, 3 )
           do k = lbounds(2), ubound( tensor, 2 )
-            write( unit, * ) tensor(:, k, j, i)
+            call print_complex_to_unit(unit, tensor(:, k, j, i))
           end do
         end do
       end do
@@ -768,5 +768,18 @@ subroutine open_binary_file( file_name, action, unit )
   open( unit, file=trim(file_name), action=action, form='unformatted', access='stream' )
   
 end subroutine
+
+subroutine print_complex_to_unit(unit, a)
+    integer(i32), intent(in) :: unit
+    complex(dp), intent(in) :: a(:)
+
+    integer(i32) :: i
+
+    do i = 1, size(a)
+        write(unit,'("(",E23.17,",",E23.17,")",X)', advance="no") real(a(i)), aimag(a(i))
+        if (i==size(a)) write(unit,'()', advance="yes")
+    end do
+
+end subroutine print_complex_to_unit
   
 end module
