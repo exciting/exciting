@@ -300,6 +300,8 @@
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="isotropic"/>
                   <xs:enumeration value="2d"/>
+                  <xs:enumeration value="anisotropic"/>
+                  <xs:enumeration value="anisotropic-2d"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>

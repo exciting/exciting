@@ -199,7 +199,7 @@ contains
     this%task_sigmax = associated( gw_inp%taskGroup%sigmax )
     this%task_vxc = associated( gw_inp%taskGroup%vxc )
     this%task_QPEigenvalues = associated( gw_inp%taskGroup%QPEigenvalues )
-    this%analytical_limit = ( trim(gw_inp%scrcoul%averaging) == '2d' )
+    this%analytical_limit = ( trim(gw_inp%scrcoul%averaging) == '2d' .or. trim(gw_inp%scrcoul%averaging) == 'anisotropic-2d')
     this%dry_run = gw_inp%taskGroup%dryRun
 
     call deallocate_global_arrays

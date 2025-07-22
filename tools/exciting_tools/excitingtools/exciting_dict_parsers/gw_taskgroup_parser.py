@@ -10,6 +10,37 @@ from numpy.typing import NDArray
 path_type = Union[Path, str]
 
 
+def parse_complex_str(s: str) -> complex:
+    """
+    Safely parse a complex number from a string.
+
+    Handles complex floats, scientific notation, and NaN/inf.
+
+    :param s: Input string, e.g., "1.23", "-4.5e-6"
+    :return: complex value
+    """
+    try:
+        real, imag = literal_eval(s.strip())
+        return complex(float(real), float(imag))
+    except Exception:
+        return complex(np.nan, np.nan)
+
+
+def parse_real_str(s: str) -> float:
+    """
+    Safely parse a single real number from a string.
+
+    Handles normal floats, scientific notation, and NaN/inf.
+
+    :param s: Input string, e.g., "1.23", "-4.5e-6", "NaN"
+    :return: float value
+    """
+    try:
+        return float(s.strip())
+    except ValueError:
+        return np.nan
+
+
 def __parse_already_opened_file_with_vector(file: IO[str], dtype: type = complex) -> NDArray[np.complex128]:
     """Parser for files containing vectors
 
@@ -31,9 +62,9 @@ def __parse_already_opened_file_with_vector(file: IO[str], dtype: type = complex
     for line in file:
         for data in line.split():
             if dtype is complex:
-                vector[counter] = complex(*literal_eval(data))
+                vector[counter] = parse_complex_str(data)
             else:
-                vector[counter] = dtype(data)
+                vector[counter] = parse_real_str(data)
             counter += 1
         if counter >= m:
             break
@@ -72,7 +103,7 @@ def __parse_already_opened_file_with_matrix(file: IO[str]) -> NDArray[np.complex
     counter = 0
     for line in file:
         for data in line.split():
-            matrix[np.unravel_index(counter, (m_end, n_end), order="F")] = complex(*literal_eval(data))
+            matrix[np.unravel_index(counter, (m_end, n_end), order="F")] = parse_complex_str(data)
             counter += 1
     return matrix
 
@@ -134,7 +165,7 @@ def __parse_file_with_array_of_rank_3(file_name: path_type) -> NDArray[np.comple
         counter = 0
         for line in file:
             for data in line.split():
-                array[np.unravel_index(counter, (m_end, n_end, p_end), order="F")] = complex(*literal_eval(data))
+                array[np.unravel_index(counter, (m_end, n_end, p_end), order="F")] = parse_complex_str(data)
                 counter += 1
     return array
 
@@ -160,7 +191,7 @@ def __parse_file_with_array_of_rank_4(file_name: path_type) -> NDArray[np.comple
         counter = 0
         for line in file:
             for data in line.split():
-                array[np.unravel_index(counter, (m, n, p, q), order="F")] = complex(*literal_eval(data))
+                array[np.unravel_index(counter, (m, n, p, q), order="F")] = parse_complex_str(data)
                 counter += 1
     return array
 
