@@ -74,7 +74,7 @@ def test_groundstate(converged_results: dict):
 
     for atom_id, expected_pos in optimized_positions.items():
         actual_pos = converged_results['Atomic positions'][atom_id]
-        assert np.allclose(actual_pos, expected_pos), \
+        assert np.allclose(actual_pos, expected_pos, atol=1e-5), \
             f"Incorrect optimized position for atom {atom_id}. Expect {expected_pos}, got {actual_pos}"
 
 

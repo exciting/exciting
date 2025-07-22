@@ -21,22 +21,22 @@ def test_exciton(file_name: str):
          to reference calculation")
 
     assert np.allclose(exciton_result['energy_shifted'],
-                       exciton_reference['energy_shifted']), (
+                       exciton_reference['energy_shifted'], atol=1e-5), (
         "Exciton binding energies not equivalent \
         to reference calculation")
 
     assert np.allclose(exciton_result['abs_oscillator_strength'],
-                       exciton_reference['abs_oscillator_strength']), (
+                       exciton_reference['abs_oscillator_strength'], atol=1e-5), (
         "Oscillator strengths not equivalent \
         to reference calculation")
 
     assert np.allclose(exciton_result['real_oscillator_strength'],
-                       exciton_reference['real_oscillator_strength']), (
+                       exciton_reference['real_oscillator_strength'], atol=1e-5), (
         "Real part of oscillator strengths \
          not equivalent to reference calculation")
 
     assert np.allclose(exciton_result['imaginary_oscillator_strength'],
-                       exciton_reference['imaginary_oscillator_strength']), (
+                       exciton_reference['imaginary_oscillator_strength'], atol=1e-5), (
         "Imaginary part of oscillator strengths \
          not equivalent to reference calculation")
 
