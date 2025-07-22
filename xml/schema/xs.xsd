@@ -1319,6 +1319,15 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="dryrun" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> Set to <pre>"true"</pre> for only calculating the number <inlinemath>{\mathbf q}</inlinemath> 
+                points for choosing an appropriate parallelisation setup.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute ex:importance="experimental" ex:unit="" name="ngridq_interpolation" type="integertriple"
               default="0 0 0">
               <xs:annotation>
@@ -1580,10 +1589,11 @@
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="distribute" type="xs:boolean"
-              default="false">
+              default="true">
               <xs:annotation>
                 <xs:documentation>
-                  Use ScaLAPACK or not.
+                  Distribute the diagonalization of the BSH by calling a ScaLAPACK routine. If exciting is built without
+                  ScaLAPACK, this parameter has no effect.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
