@@ -752,6 +752,7 @@ tddft_attribute_types = {"acont": (bool, 1),
                          "tordfxc": (bool, 1)} 
 
 screening_attribute_types = {"do": (str, ["fromscratch", "skip"]),
+                             "dryrun": (bool, 1),
                              "intraband": (bool, 1),
                              "nempty": (int, 1),
                              "ngridk": (int, 3),
