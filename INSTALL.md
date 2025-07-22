@@ -164,6 +164,7 @@ CMake installation can be customized using the following options (**Notice that 
 - **_MPI_**: Controls MPI support (default: ON).
 - **_OMP_**: Controls OpenMP support (default: ON).
 - **_HDF5_**: Enables HDF5 support (default: OFF).
+- **_IDIEL_**: Enables IDieL library for the anisotropic averaging of the RPA dielectric matrix (default: ON).
 - **_MKL_**: Uses MKL for linear algebra and FFT (default: OFF).
 - **_OPENBLAS_**: Uses OpenBLAS for linear algebra (default: OFF).
 - **_AMDLINALG_**: Uses AMD linear algebra libraries (BLIS and FLAME) (default: OFF).

@@ -21,7 +21,7 @@ if (IDIEL)
         -DOMP=${OMP}
         -DHDF5=${HDF5}
         -DMKL=${MKL}
-	-DTESTS=OFF
+        -DTESTS=OFF
         -DOPENBLAS=${OPENBLAS}
         -DAMDLINALG=${AMDLINALG}
         -DCRAYLIBSCI=${CRAYLIBSCI}
@@ -47,7 +47,7 @@ if (IDIEL)
        IMPORTED_LOCATION "${IDieLInstallDir}/lib/libIDieL.so"
     )
     include_directories(${IDieLInstallDir}/include/)
-    add_dependencies(libIDieL INTERNAL_SPGLIB)
+    add_dependencies(libIDieL INTERNAL_SPGLIB INTERNAL_IDieL)
 
     # We need to install it
     install(FILES "${IDieLInstallDir}/lib/libIDieL.so"

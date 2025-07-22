@@ -176,9 +176,9 @@ subroutine calcselfc( iq, indexes )
     deallocate(eveckalm)
     deallocate(mwm)
     if( .not. only_core_states_in_my_rank ) then 
+      OMP_OFFLOAD target exit data map(delete: eveckp, eveckpalm)
       deallocate(eveckp)
       deallocate(eveckpalm)
-      OMP_OFFLOAD target exit data map(delete: eveckp, eveckpalm)
     end if
 
     ! timing
