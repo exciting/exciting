@@ -3,6 +3,34 @@
 
 <div style="text-align: justify">
 
+## Getting exciting
+
+This guide explains how to download and unpack the latest version of the **exciting** code. If you have already done it, please skip to the next section.
+
+### 1. Choose a Directory
+
+Choose a directory where you want to install or unpack the current release of *exciting sodium*. You can use any directory where you have write permissions. You can obtain *exciting sodium* using one of the two following methods. **Choose either Step 2 or Step 3** based on your preference.
+
+### 2. Download and Unpack the Release Archive
+
+After downloading the release archive file (i.e., `exciting-sodium.tar.gz`), extract it using:
+
+```bash
+tar -xvf exciting-sodium.tar.gz
+```
+
+This will unpack the contents into a directory named `exciting-sodium`.
+
+### 3. Cloning from GitHub
+
+Alternatively, you can clone the latest version of **exciting sodium** from the official GitHub repository:
+
+```bash
+git clone https://github.com/exciting/exciting -b sodium
+```
+
+This will download the contents into a directory named `exciting` containing the `sodium` release.
+
 ## Compilation of exciting
 
 Before starting, be sure that **`exciting`** is already compiled according to the procedure reported in 
@@ -21,7 +49,7 @@ source set_env_vars.sh
 ## Installing the excitingJupyter Package
 
 All Jupyter tutorials require Python 3.7 or above to run.  As a first step in running the Jupyter tutorials, it is 
-useful to create a virtual environment in which you can install and run the notebooks. Each venv has its own Python binary 
+useful to create a virtual environment (venv) in which you can install and run the notebooks. Each venv has its own Python binary 
 (which matches the version of the binary that was used to create this environment) and can have its own independent set 
 of installed Python packages in its site directories. To create a venv, move to:
 
@@ -35,9 +63,9 @@ You can create the venv using an executable bash script:
 source create_env.sh
 ```
 
-This script will automatically activate the environment, so you can start right ahead. 
+This script will automatically activate the environment for you, so you can start right ahead. 
 
-Alternatively, you can do it by hand.
+Alternatively, you can do it by hand by following the instruction given below.
 
 ### Manually installing excitingjupyter
 
@@ -64,8 +92,8 @@ If you see the error `invalid command: bdist_wheel` when installing excitingtool
 then try again.
 
 One can leave the venv at any time by typing `deactivate`. If you are repeating the installation procedure for the venv, 
-remember to exit with `deactivate` before trying to regenerate it. Creating a venv for the exciting notebooks to run in 
-is only required once, however you should ensure it is activated **every** time you wish to run a notebook. From 
+remember to exit with `deactivate` before trying to regenerate it. Creating a venv for the exciting notebooks 
+is required only once, however you must ensure it is activated **every** time you wish to run a notebook. From 
 exciting's root:
 
 ```bash
@@ -92,10 +120,11 @@ in a terminal shell is not sufficient as each Jupyter cell creates a new shell i
 are present is to add them to your `.bashrc`. For example, the SOL group uses the TCL module system so one would add:
 
 ```bash
-module load intel-oneapi/2021.3
+module load intel-oneapi/2025.1
 ```
 
-to the `.bashrc` (which loads everything required). **Please take an equivalent approach on your platform.**
+to the `.bashrc` (which loads everything required). **Please take an equivalent approach on your platform, and note that
+one needs to load the same modules used for the compilation step.**
 
 It is required to do this _in the same terminal where Jupyter is started_, before starting with the tutorials.
 

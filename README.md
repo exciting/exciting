@@ -67,7 +67,7 @@ calculations. Phys. Rev. B **94**, 235141
 
 \[3\]: [Time-dependent density functional theory versus Bethe--Salpeter
 equation: an all-electron study. ***Phys. Chem. Chem. Phys.***, 2009,
-**11**, 4451-4457.](https://doi.org/10.1039/%20B903676H)
+**11**, 4451-4457.](https://doi.org/10.1039/B903676H)
 
 \[4\]: [All-electron full-potential implementation of real-time TDDFT in
 exciting. Electron. Struct. **3**, 

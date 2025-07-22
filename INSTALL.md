@@ -82,7 +82,7 @@ To compile `exciting` using CMake, run the following commands from the `exciting
 ```shell
 mkdir build
 cd build
-FC=ifort CC=icc CXX=icpc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMKL=ON ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=mpiifx -DCMAKE_C_COMPILER=mpiicx -DCMAKE_CXX_COMPILER=mpiicpx -DMKL=ON ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -90,7 +90,7 @@ make install
 ```shell
 mkdir build
 cd build
-FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMKL=ON -DINTEL_CODE_NAME=SAPPHIRERAPIDS ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=mpiifx -DCMAKE_C_COMPILER=mpiicx -DCMAKE_CXX_COMPILER=mpiicpx -DMKL=ON -DINTEL_CODE_NAME=SAPPHIRERAPIDS ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -98,7 +98,7 @@ make install
 ```shell
 mkdir build
 cd build
-FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMKL=ON ..
+FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=mpiifx -DCMAKE_C_COMPILER=mpiicx -DCMAKE_CXX_COMPILER=mpiicpx -DMKL=ON ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -107,7 +107,7 @@ make install
 ```shell
 mkdir build
 cd build
-FC=gfortran CC=gcc CXX=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DOPENBLAS=ON -DSCALAPACK=ON ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=mpif90 -DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpicxx -DOPENBLAS=ON -DSCALAPACK=ON ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -115,7 +115,7 @@ make install
 ```shell
 mkdir build
 cd build
-FC=gfortran CC=gcc CXX=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DAMDLINALG=ON ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=mpif90 -DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpicxx -DAMDLINALG=ON ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -123,7 +123,7 @@ make install
 ```shell
 mkdir build
 cd build
-FC=gfortran CC=gcc CXX=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DOPENBLAS=ON -DSIRIUS=ON -DHDF5=ON ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=mpif90 -DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpicxx -DOPENBLAS=ON -DSIRIUS=ON -DHDF5=ON ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -132,7 +132,7 @@ AMD GPU acceleration requires of MAGMA library. Assuming it is installed in _MAG
 ```shell
 mkdir build
 cd build
-FC=ftn CC=cc CXX=CC ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DOPENBLAS=ON -DAMD=ON -DAMDTARGET=gfx90a -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DAMD=ON -DAMDTARGET=gfx90a -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -142,7 +142,7 @@ AMD GPU acceleration requires of MAGMA library. Assuming it is installed in _MAG
 ```shell
 mkdir build
 cd build
-FC=ftn CC=cc CXX=CC ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DOPENBLAS=ON -DUSM=ON -DAMD=ON -DAMDTARGET=gfx942 -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DUSM=ON -DAMD=ON -DAMDTARGET=gfx942 -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -150,7 +150,7 @@ make install
 ```shell
 mkdir build
 cd build
-FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMKL=ON -DINTEL=ON -DINTEL_CODE_NAME=SAPPHIRERAPIDS ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=mpiifx -DCMAKE_C_COMPILER=mpiicx -DCMAKE_CXX_COMPILER=mpiicpx -DMKL=ON -DINTEL=ON -DINTEL_CODE_NAME=SAPPHIRERAPIDS ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -184,11 +184,11 @@ CMake installation can be customized using the following options (**Notice that 
 - **_INTEL_**: Enables GPU support for Intel GPUs (default: OFF).
 - **_USM_**: Enables a optimized compilation for CPU-GPU systems with USM; i.e. physically shared RAM (default: OFF).
 - **_CPUBACKEND_**: Enables a CPU-only build (default: ON).
-- **_MAGMA_DIR_**: If `AMD` or `NVIDIA` are ON, provide the path to MAGMA's install directory (default: None).
-- **_INTEL_CODE_NAME_**: For Intel processors, this can be modified to match the processor name, allowing `ifx` to generate optimized code paths. If not set, the build system will select a generic Intel subset based on AVX512 and/or AVX2 instructions. **Do not modify for non-Intel machines.** (default: None).
+- **_MAGMA_ROOT_**: If `AMD` or `NVIDIA` are ON, and MAGMA is not in a default path this provides the path to its install directory (default: None).
+- **_INTEL_CODE_NAME_**: For Intel processors, this can be modified to match the processor name, allowing `ifx` to generate optimized code paths. If not set, defaults to the host machine Intel architecture. **Do not modify for non-Intel machines.** (default: Host).
 - **_DOCUMENTATION_**: Controls whether documentation is built (default: None).
-- **_UNIT_TESTS_**: Enables unit tests (requires Python 3) (default: ON).
-- **_REGRESSION_TESTS_**: Enables regression tests (default: ON).
+- **_UNIT_TESTS_**: Enables unit tests via make test command (default: ON).
+- **_REGRESSION_TESTS_**: Enables regression tests via make test. This requires Python 3 (default: OFF).
 - **_BUILD_EXCITING_**: Builds EXCITING (default: ON).
 
 On top of the specific options for _exciting_, the following CMake default options can be modified to tune your installation:
@@ -311,7 +311,7 @@ source $HOME/.excitingvenv/bin/activate
 pip install pyyaml
 pip install -e $exciting_dir/tools/exciting_tools/
 cd $exciting_dir/test
-python runtest.py -np 2 -omp 2 -mpirun "apptainer exec $container mpirun" -r $install_dir/bin -e exciting_mpismp
+python runtest.py -np 2 -omp 2 -mpirun "apptainer exec $container mpirun" -bp $install_dir/bin -e exciting_mpismp
 ```
 
 Compiling exciting with SIRIUS
@@ -390,7 +390,7 @@ Then, to compile `exciting`
 
 **INTEL**
 
-If you intend to use Intel, you must manually compile HDF5. We recommend using HDF5 1.12.0. The source code can be found on the HDF5 website. 
+If you intend to use Intel, you must manually compile HDF5. We recommend using HDF5 1.12.0. The source code can be found on the [HDF5 website](https://www.hdfgroup.org/solutions/hdf5/). 
 We recommend configuring the build as follows:
 
 ```shell

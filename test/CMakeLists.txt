@@ -4,14 +4,14 @@
 option(UNIT_TESTS "Activate the unit tests for the build system" ON)
 
 # Option to activate regression tests. Default is ON.
-option(REGRESSION_TESTS "Activate the regression tests for the build system" ON)
+option(REGRESSION_TESTS "Activate the regression tests for the build system" OFF)
 
 # Set the path to the installed executable for Exciting.
 # This is derived from the CMake installation prefix.
 set(INSTALLED_EXECUTABLE "${CMAKE_INSTALL_PREFIX}/bin/exciting")
 
-# Python required for application testing
-if (UNIT_TESTS OR REGRESSION_TESTS)
+# Python required for the regression tests
+if (REGRESSION_TESTS)
   include(${CMAKE_SOURCE_DIR}/cmake/python3.cmake)
   find_python_module(numpy)
   find_python_module(pytest)
