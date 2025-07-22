@@ -752,6 +752,7 @@ tddft_attribute_types = {"acont": (bool, 1),
                          "tordfxc": (bool, 1)} 
 
 screening_attribute_types = {"do": (str, ["fromscratch", "skip"]),
+                             "dryrun": (bool, 1),
                              "intraband": (bool, 1),
                              "nempty": (int, 1),
                              "ngridk": (int, 3),
@@ -963,7 +964,7 @@ barecoul_attribute_types = {"barcevtol": (float, 1),
                             "pwm": (float, 1),
                             "stctol": (float, 1)} 
 
-scrcoul_attribute_types = {"averaging": (str, ["2d", "isotropic"]),
+scrcoul_attribute_types = {"averaging": (str, ["2d", "anisotropic", "anisotropic-2d", "isotropic"]),
                            "omegap": (float, 1),
                            "q0eps": (float, 3),
                            "scrtype": (str, 1),

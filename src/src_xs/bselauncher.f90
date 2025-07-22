@@ -7,6 +7,7 @@ subroutine bselauncher
   use modscl
   use modxs, only: unitout
   use modinput, only: input, input_type
+  use bsemain
 
 ! !DESCRIPTION:
 !   Launches the construction and solving of the Bethe-Salpeter Hamiltonian
@@ -68,9 +69,9 @@ subroutine bselauncher
   !---------------------------------------------------------------------------!
   ! Create Output directories                                                 !
   !---------------------------------------------------------------------------!
-!  epsilondir='EPSILON'
-!  lossdir='LOSS'
-!  sigmadir='SIGMA'
+  !  epsilondir='EPSILON'
+  !  lossdir='LOSS'
+  !  sigmadir='SIGMA'
   bse_dir_list= (/ 'EPSILON','LOSS   ','SIGMA  ' /)
   if (rank == 0) then
     do idir = 1, num_bse_dirs
@@ -119,18 +120,11 @@ subroutine bselauncher
   ! Set up process grids for BLACS (if compiled with DSCAL, dummies otherwise)
   ! DSCAL implies DMPI
   !---------------------------------------------------------------------------!
-  ! Check if code was compiled with -DSCAL, only then is distribute=true valid
-  fdist = input%xs%bse%distribute 
-#ifndef SCAL
-  if(fdist) then 
-    write(*,'("Warning(",a,"):",a)') trim(thisname),&
-      & "Setting distribute=false, since code was not&
-      & compiled with -DSCAL"
-  end if
-  input%xs%bse%distribute = .false.
-  fdist = .false.
-#endif
-
+  ! overwrite the input parameter
+  ! distribute equal .true. makes only sense if built with ScaLAPACK
+  input%xs%bse%distribute = set_distribute(input)
+  fdist = input%xs%bse%distribute
+  
   !   Make square'ish process grid (context 0)
   call setupblacs(mpiglobal, 'grid', bi2d)
   !   Also make 1d grid with the same number of processes (context 1)

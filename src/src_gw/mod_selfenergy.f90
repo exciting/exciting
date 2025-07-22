@@ -375,7 +375,7 @@ contains
         open( newunit=i_unit, file=file_name_selfc//to_char(ik)//default_extension, action="write" )
         do i_band = first_band, size(sigmac, 1)
           do i_freq = 1, size(frequencies)
-            write( i_unit, '(2I5, F10.6, 2F16.10)' ), i_band, i_freq, frequencies(i_freq), selfec(i_band, i_freq, i)
+            write( i_unit, '(2I5, F10.6, 2F16.10)' ) i_band, i_freq, frequencies(i_freq), selfec(i_band, i_freq, i)
           end do
         end do
         close( i_unit )

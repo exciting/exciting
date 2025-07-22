@@ -28,8 +28,8 @@ subroutine screenlauncher
   use m_ematqk
   use grid_utils, only: mesh_1d
   use iso_c_binding, only: c_size_t
-  use precision, only: dp
-
+  use precision
+  use xstring
 
 ! !DESCRIPTION:
 !   This is a wrapper routine for the call of \texttt{dfq.f90} in
@@ -157,7 +157,9 @@ subroutine screenlauncher
       & Number of q points:', nqpt
     call printline(unitout, "+")
     write(unitout, *)
+    flush(unitout)  
   end if
+  call handle_dryrun(input, nqpt)
 
   !! Set parameters for the plane-wave matrix element calculation,
   !! e.g. which files to use for bra and ket states.
@@ -308,7 +310,9 @@ subroutine screenlauncher
           & Number of q points:', nqpt
         call printline(unitout, "+")
         write(unitout, *)
+        flush(unitout)
       end if
+      call handle_dryrun(input, nqpt)
 
       ! Free the xsgrids 
       call xsgrids_finalize()
@@ -485,6 +489,21 @@ contains
 
     size_in_bytes = size_in_bytes * elements
   end function
+
+  !> Handle the [[input%xs%screening%dryrun]] flag. If set to true, the program is terminated and
+  !> the number of \(\mathbf q\) points is printed out.
+  subroutine handle_dryrun(input, nqpt)
+    !> Input file container
+    type(input_type), intent(in) :: input
+    !> Number of \(\mathbf q\) points
+    integer(i32), intent(in) :: nqpt
+  
+    if (input%xs%screening%dryrun) then
+
+      call terminate('Error(screenlauncher): input%xs%screening%dryrun is set to "true". Set to "false" &
+          to continue calculation. Number of q points: ' // to_char(nqpt))
+    end if
+  end subroutine 
 
 end subroutine screenlauncher
 !EOC

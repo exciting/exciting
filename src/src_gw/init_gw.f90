@@ -12,6 +12,7 @@ subroutine init_gw()
     use m_filedel
     use mod_hdf5
     use gw_scf, only: set_gs_solver_threads, thread_consistent_scf
+    use exciting_idiel_interface, only: init_idiel_handler
 #include "offload.fpp"
 
     implicit none
@@ -160,6 +161,9 @@ subroutine init_gw()
     call init_dft_eigenvalues()
     call timesec(t1)
     time_initeval = time_initeval+t1-t0
+
+    ! Initialize if compiled with the IDieL library handler
+    call init_idiel_handler()
     
     ! Upload GS globals to the devices
     OMP_OFFLOAD target enter data map(always, to: idxas, idxlo, idxlm, lorbl, apword, nlorb, corind, evalcr, evalfv)

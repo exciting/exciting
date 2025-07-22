@@ -618,6 +618,12 @@ GW/Si-polarizability:
    inputs:
       - "input.xml"
       - "Si.xml"
+GW/Si-anisotropic:
+   files_under_test:
+      - "EVALQP.DAT"
+   inputs:
+      - "input.xml"
+      - "Si.xml"
 GW/Si-PBE-Coulomb:
    files_under_test:
       - "SGI_Q1.OUT"
