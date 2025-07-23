@@ -1,3 +1,15 @@
+"""Visualize convergence results.
+
+Located at `excitingscripts/plot/convergence.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.convergence plot_mode
+```
+Where <code>plot_mode</code> is either <code>k</code> for plotting energy curves with varying values of the <code><span style="color:green">groundstate</span></code> attribute <code><span style="color:MediumBlue">ngridk</span></code>, <code>r</code> for varying values of the <code><span style="color:green">groundstate</span></code> attribute  <code><span style="color:MediumBlue">rgkmax</span></code> or <code>rk</code> for a 3D plot with varying values of both attributes.
+"""
+
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt

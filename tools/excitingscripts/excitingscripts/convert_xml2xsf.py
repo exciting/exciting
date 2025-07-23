@@ -1,3 +1,15 @@
+"""Convert **xml** files to **xsf**.
+
+Located at `excitingscripts/convert_xml2xsf.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.convert_xml2xsf -f file -d dimension
+```
+Where <code>file</code> is the **xml** file to be converted to **xsf** and <code>dimension</code> is the dimension of <code><span style="color:green">plot</span></code> sub-element in the <code><span style="color:green">properties</span></code> element for a given exciting calculation.
+"""
+
 import os
 import subprocess
 from argparse import ArgumentParser

@@ -1,3 +1,16 @@
+"""Determine the transition energies for the transitions Γ→Γ and Γ→X for given directories in which exciting
+calculations have been performed.
+
+Located at `excitingscripts/compare_transition_energies.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.compare_transition_energies -r dir1 dir2 dir3
+```
+Where <code>dir1</code>, <code>dir2</code>, <code>dir3</code> take the place of the names of the  directories where exciting calculations have been performed, which need to be specified in order to calculate the transition energies. The script can be used for any number of directories.
+"""
+
 import pathlib
 from argparse import ArgumentParser
 from typing import Union, Tuple

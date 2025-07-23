@@ -1,3 +1,12 @@
+"""Generate input files with different values of the main computational parameters.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.setup.convergence_test k_i k_f rgkmax_i rgkmax_f
+```
+Where <code>k_i</code> and <code>k_f</code> are the initial and final k-values for defining the <code><span style="color:green">groundstate</span></code> attribute  <code><span style="color:MediumBlue">ngridk</span></code>, and <code>rgkmax_i</code> and <code>rgkmax_f</code> the  initial and final values for the  <code><span style="color:green">groundstate</span></code> attribute  <code><span style="color:MediumBlue">rgkmax</span></code>."""
+
 import os
 import pathlib
 from argparse import ArgumentParser

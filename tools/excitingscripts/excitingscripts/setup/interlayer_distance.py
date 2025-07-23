@@ -1,3 +1,16 @@
+"""Generate structures with different interlayer distances.
+
+Located at `excitingscripts/setup/interlayer_distance.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.setup.interlayer_distance dmin dmax nr_displ dinfty
+```
+Where <code>dmin</code> and <code>dmax</code> are the minimum and maximum values for the interlayer distance, <code>nr_displ</code> is the number of distances in the interval [<code>dmin</code>, <code>dmin</code>] and <code>dinfty</code> is the interlayer distance at infinity.
+"""
+
+
 import os
 import pathlib
 from argparse import ArgumentParser

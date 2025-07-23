@@ -1,3 +1,15 @@
+"""Fit energy-vs-volume curves.
+
+Located at `excitingscripts/plot/volumecurves.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.volumecurves -r dir1 dir2 dir3
+```
+Where <code>dir1</code>, <code>dir2</code>, <code>dir3</code> take the place of the names of the  directories where
+exciting calculations have been performed. The script can be used for any number of directories."""
+
 import os
 import pathlib
 from argparse import ArgumentParser
@@ -32,8 +44,8 @@ colors=['b','r','g','y','k']
 ax1 = fig.add_axes([0.2,0.18,0.75,0.76])
 
 ax1.xaxis.set_label_position('bottom')
-ax1.set_ylabel('Energy - E$\mathregular{_{min}}$ [Ha]', labelpad=19)
-ax1.set_xlabel('Volume [Bohr$\mathregular{^{3}}$]', labelpad=13)
+ax1.set_ylabel(r'Energy - E$\mathregular{_{min}}$ [Ha]', labelpad=19)
+ax1.set_xlabel(r'Volume [Bohr$\mathregular{^{3}}$]', labelpad=13)
 pyl.grid(True)
 
 def determine_functional(input_file: Union[str, pathlib.Path]) -> str:

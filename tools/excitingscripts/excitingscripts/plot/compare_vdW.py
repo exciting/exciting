@@ -1,3 +1,14 @@
+"""Visualize multiple energy-vs-distance curves.
+
+Located at `excitingscripts/plot/compare_vdW.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.compare_vdW -f file_name -r dir1 dir2 dir3
+```
+"""
+
 import os
 import pathlib
 from argparse import ArgumentParser
