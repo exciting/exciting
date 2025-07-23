@@ -5,7 +5,7 @@ This package implements interactive tutorials for the **``exciting``** code.
 One design goal of this package is to allow for double functionality: The tutorials should be executable via Jupyter and also provide a stand-alone version for the [exciting-code](exciting-code.org) website.
 
 This requires that all functionalities that need custom Python code have to be implemented as scripts that are executable from the command line. 
-Examples and instructions can be found in `$EXCITINGROOT/tools/excitingscripts`. 
+Examples and instructions can be found in `tools/excitingscripts`. 
 Before implementing something new there, check if a more general function already exists and can be adapted.
 
 ## Setting Environment Variables 
@@ -16,6 +16,10 @@ To do this, move to the exciting root directory and run the following commands:
 cd tools/excitingjupyter
 source set_env_vars.sh
 ```
+
+> **Note:** The *exciting root* directory refers to the top-level folder of the exciting project you are working with.  
+> This is not necessarily the same as the environment variable `$EXCITINGROOT` if you have multiple versions of the code.  
+> Running `set_env_vars.sh` will set `$EXCITINGROOT` for the current session to point to the current project’s root directory.
 
 ## Installation
 

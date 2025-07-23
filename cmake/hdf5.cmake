@@ -21,7 +21,7 @@ if(HDF5)
 
     # If found but does not support parallel IO end the compilation
     if( NOT HDF5_IS_PARALLEL )
-        message(FATAL_ERROR "exciting with HDF5 requires parallel IO support")
+        message(WARNING "For a performant binary exciting requires HDF5 with parallel IO support")
     endif()
 
     # Define a compilation flag for HDF5
