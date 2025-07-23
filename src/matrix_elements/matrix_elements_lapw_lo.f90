@@ -430,9 +430,9 @@ module matrix_elements_lapw_lo
               lm3 = lm_join(l3, m3)
 
               if( allocated( rri_tmp ) ) then
-                rri_tmp(lam1, lam2, lm3) = integrate_real( f1, f2 )
+                rri_tmp(lam1, lam2, lm3) = integrate_real( f1, f2, rfun )
               else
-                zri_tmp(lam1, lam2, lm3) = integrate_complex( f1, f2 )
+                zri_tmp(lam1, lam2, lm3) = integrate_complex( f1, f2, rfun )
               end if
 
             end do
@@ -452,8 +452,9 @@ module matrix_elements_lapw_lo
       end if
 
       contains
-        function integrate_real( f1, f2 ) result( res )
+        function integrate_real( f1, f2, rfun ) result( res )
           real(dp), intent(in) :: f1(:), f2(:)
+          class(*), intent(in)  :: rfun(:,:)
           real(dp) :: res
 
           select type( rfun )
@@ -472,8 +473,9 @@ module matrix_elements_lapw_lo
           end select
         end function integrate_real
 
-        function integrate_complex( f1, f2 ) result( res )
+        function integrate_complex( f1, f2, rfun ) result( res )
           real(dp), intent(in) :: f1(:), f2(:)
+          class(*), intent(in)  :: rfun(:,:)
           complex(dp) :: res
 
           real(dp) :: int1, int2

@@ -60,7 +60,7 @@ def __parse_already_opened_file_with_vector(file: IO[str], dtype: type = complex
     vector = np.zeros(m, dtype=dtype)
     counter = 0
     for line in file:
-        for data in line.split():
+        for data in line.replace("                    NaN,                    NaN", "NaN,NaN").split():
             if dtype is complex:
                 vector[counter] = parse_complex_str(data)
             else:
@@ -102,7 +102,7 @@ def __parse_already_opened_file_with_matrix(file: IO[str]) -> NDArray[np.complex
 
     counter = 0
     for line in file:
-        for data in line.split():
+        for data in line.replace("                    NaN,                    NaN", "NaN,NaN").split():
             matrix[np.unravel_index(counter, (m_end, n_end), order="F")] = parse_complex_str(data)
             counter += 1
     return matrix
@@ -164,7 +164,7 @@ def __parse_file_with_array_of_rank_3(file_name: path_type) -> NDArray[np.comple
 
         counter = 0
         for line in file:
-            for data in line.split():
+            for data in line.replace("                    NaN,                    NaN", "NaN,NaN").split():
                 array[np.unravel_index(counter, (m_end, n_end, p_end), order="F")] = parse_complex_str(data)
                 counter += 1
     return array
@@ -190,7 +190,7 @@ def __parse_file_with_array_of_rank_4(file_name: path_type) -> NDArray[np.comple
 
         counter = 0
         for line in file:
-            for data in line.split():
+            for data in line.replace("                    NaN,                    NaN", "NaN,NaN").split():
                 array[np.unravel_index(counter, (m, n, p, q), order="F")] = parse_complex_str(data)
                 counter += 1
     return array
