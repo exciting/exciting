@@ -11,7 +11,7 @@ option(USE_INTERNAL_LIBXC "Use internal version of libXC" ON)
 
 if (NOT USE_INTERNAL_LIBXC)
   find_library(LIBXC_LIB NAMES xc HINTS ${LIBXC_ROOT}/lib/)
-  find_file(LIBXC_VERSION_FILE NAMES xc_version.h HINTS ${LIBXC_ROOT}/lib/)
+  find_file(LIBXC_VERSION_FILE NAMES xc_version.h HINTS ${LIBXC_ROOT}/include/)
 endif()
 
 if (USE_INTERNAL_LIBXC)

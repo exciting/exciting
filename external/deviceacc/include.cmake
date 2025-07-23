@@ -84,14 +84,14 @@ if(NOT CPUBACKEND)
           ${MAGMA_F90_DIR}/magma2_cfortran.F90
           ${MAGMA_F90_DIR}/magma2_dfortran.F90
           ${MAGMA_F90_DIR}/magma2_zfortran.F90)
-    set(MAGMA_DIR "None" CACHE PATH "Path to magma library")
-    message(STATUS "MAGMA library path : ${MAGMA_DIR}")
+    set(MAGMA_ROOT "None" CACHE PATH "Path to magma library")
+    message(STATUS "MAGMA library path : ${MAGMA_ROOT}")
 
     # Checking version
     set(MAJOR_SEARCH_STRING "MAGMA_VERSION_MAJOR")
     set(MINOR_SEARCH_STRING "MAGMA_VERSION_MINOR")
     set(MICRO_SEARCH_STRING "MAGMA_VERSION_MICRO")
-    file(STRINGS ${MAGMA_DIR}/include/magma_types.h FILE_CONTENTS)
+    file(STRINGS ${MAGMA_ROOT}/include/magma_types.h FILE_CONTENTS)
     set(MAGMA_MAJOR 0)
     set(MAGMA_MINOR 0)
     set(MAGMA_MICRO 0)
@@ -314,9 +314,9 @@ set(SRC_DEVICEACC ${SRC_MAGMA_F90}
 if(NOT CPUBACKEND)
     # Create a link variable for the link against it and not its dependencies
     if (NVIDIA)
-        set(LINKS_DEVICEACC ${devacc_link_libs} ${MAGMA_DIR}/lib/libmagma.so CUDA::cufft CUDA::cudart)
+        set(LINKS_DEVICEACC ${devacc_link_libs} ${MAGMA_ROOT}/lib/libmagma.so CUDA::cufft CUDA::cudart)
     elseif(AMD)
-        set(LINKS_DEVICEACC ${devacc_link_libs} ${MAGMA_DIR}/lib/libmagma.so ${rocfftlib})
+        set(LINKS_DEVICEACC ${devacc_link_libs} ${MAGMA_ROOT}/lib/libmagma.so ${rocfftlib})
     elseif(INTEL)
         set(LINKS_DEVICEACC ${devacc_link_libs})
     else()
