@@ -110,5 +110,3 @@ test-fedora-buster-gnu-smp-jupyter:
   - time jupyter nbconvert --execute 04_additional_features/transport_properties_using_the_boltzmann_equation.ipynb --to markdown
   - time python3 04_additional_features/assertions/transport_properties_using_the_boltzmann_equation.py
   - time jupyter nbconvert --execute 05_tools_and_packages/tutorial_excitingtools.ipynb --to markdown
- rules:
-    - if: '$CI_COMMIT_BRANCH == "development"'
