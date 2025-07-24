@@ -4,7 +4,7 @@ module mod_lattice_harmonics_test
   use constants, only: zzero, real_zero, zi, sqrt_two, zone
   use modmpi, only: mpiinfo
   use unit_test_framework, only: unit_test_type
-  use math_utils, only: all_close
+  use math_utils, only: all_close, transpose_reshape
   use mod_lattice_harmonics, only: remove_zero_rows, generate_matrix_complex_to_real_spherical_harmonics
 
   implicit none
@@ -76,11 +76,11 @@ contains
 
     lmax = 2
 
-    A_reference = transpose(reshape([ zi / sqrt_two, zzero, zzero, zzero, -zi / sqrt_two, &
+    A_reference = transpose_reshape([ zi / sqrt_two, zzero, zzero, zzero, -zi / sqrt_two, &
          zzero, zi / sqrt_two, zzero, zi / sqrt_two, zzero, &
          zzero, zzero, zone, zzero, zzero, &
          zzero, zone / sqrt_two, zzero, -zone / sqrt_two, zzero, &
-         zone / sqrt_two, zzero, zzero, zzero, zone / sqrt_two ], [5, 5]))
+         zone / sqrt_two, zzero, zzero, zzero, zone / sqrt_two ], [5, 5])
 
     call generate_matrix_complex_to_real_spherical_harmonics(lmax, A)
 
