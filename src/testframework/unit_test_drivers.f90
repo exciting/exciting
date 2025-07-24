@@ -21,6 +21,7 @@ module unit_test_drivers
    use xhdf5_test, only: xhdf5_test_driver
    use groundstate_test_drivers, only: groundstate_test_driver
    use rttddft_test_drivers, only: rttddft_test_driver
+   use mod_lattice_harmonics_test, only: lattice_harmonics_test_driver
 
    implicit none
    private
@@ -37,7 +38,7 @@ contains
    !> If run%all = .true., all tests get run regardless of what the other
    !> logicals in run are set to.
    subroutine unit_test_driver(mpiglobal, kill_on_failure)
-      !> Global MPI environment 
+      !> Global MPI environment
       type(mpiinfo), intent(inout) :: mpiglobal
       !> Immediately kill the program if an assertion fails
       logical, intent(in) :: kill_on_failure
@@ -57,16 +58,16 @@ contains
 
       call run%init(unit_test_list, mpiglobal)
 
-      if (run%math .or. run%all) then         
-         call math_test_driver(mpiglobal, kill_on_failure) 
+      if (run%math .or. run%all) then
+         call math_test_driver(mpiglobal, kill_on_failure)
       end if
 
       if (run%xs .or. run%all) then
-         call xs_test_driver(mpiglobal, kill_on_failure) 
+         call xs_test_driver(mpiglobal, kill_on_failure)
       end if
-         
+
       if (run%groundstate .or. run%all) then
-         call groundstate_test_driver(mpiglobal, kill_on_failure) 
+         call groundstate_test_driver(mpiglobal, kill_on_failure)
       end if
 
       if (run%lapack .or. run%all) then
@@ -87,17 +88,17 @@ contains
       end if
 
       if (run%xstring .or. run%all) then
-         call xstring_test_driver(mpiglobal, kill_on_failure) 
+         call xstring_test_driver(mpiglobal, kill_on_failure)
       end if
-      
-      if (run%simplified_input .or. run%all) then         
+
+      if (run%simplified_input .or. run%all) then
          call simplified_input_test_driver(mpiglobal, kill_on_failure)
-      end if 
-      
+      end if
+
       if (run%file_io .or. run%all) then
         call file_io_test_driver(mpiglobal, kill_on_failure)
       end if
-      
+
       if (run%matrix_elements .or. run%all) then
          call matrix_elements_test_driver(mpiglobal, kill_on_failure)
       end if
@@ -106,8 +107,8 @@ contains
          call testframework_test_driver(mpiglobal, kill_on_failure)
       end if
 
-      if (run%hybrids .or. run%all) then         
-         call hybrids_test_driver(mpiglobal, kill_on_failure) 
+      if (run%hybrids .or. run%all) then
+         call hybrids_test_driver(mpiglobal, kill_on_failure)
       end if
 
       if (run%xgrid .or. run%all) then
@@ -120,6 +121,10 @@ contains
 
       if (run%rttddft .or. run%all) then
          call rttddft_test_driver(mpiglobal, kill_on_failure)
+      end if
+
+      if (run%lattice_harmonics .or. run%all) then
+         call lattice_harmonics_test_driver(mpiglobal, kill_on_failure)
       end if
    end subroutine unit_test_driver
 
