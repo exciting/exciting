@@ -3441,6 +3441,15 @@
         </xs:annotation>
       </xs:attribute>
 
+      <xs:attribute ex:importance="expert" ex:unit="" name="LatticeHarmonics" type="xs:boolean" default="false">
+        <xs:annotation>
+          <xs:documentation>
+            If true, lattice harmonics (symmetrized spherical harmonics) will be used to compute the muffin tin
+            potential.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
           <!--xs:attribute ex:importance="expert" ex:unit="" name="tconvcritenergy" type="xs:boolean" default="true">
             <xs:annotation>
               <xs:documentation> The attribute tconvcritenergy is <pre>"true"</pre> if the value

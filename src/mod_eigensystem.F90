@@ -40,9 +40,7 @@ Module mod_eigensystem
    Real(8), Allocatable :: h1lolo(:, :, :)
    logical :: h1on
    !> complex Gaunt coefficient array
-   Complex(8), Allocatable :: gntyry(:, :, :), gntryy(:, :, :), gntnonz(:)
-   !> list of non-zero Gaunt coefficients
-   Integer, Allocatable :: gntnonzlm1(:), gntnonzlm2(:), gntnonzlm3(:), gntnonzlindex(:), gntnonzl2index(:, :)
+   Complex(8), Allocatable :: gntyry(:, :, :), gntryy(:, :, :)
    !> another compact list of Gaunt coefficients
    complex(8), allocatable :: listgnt(:, :, :)
    integer, allocatable :: indgnt(:, :, :)

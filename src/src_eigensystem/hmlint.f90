@@ -43,6 +43,7 @@ Subroutine hmlint(mt_h)
       Real (8) :: r2 (nrmtmax), fr (nrmtmax), gr (nrmtmax), cf (3, nrmtmax),a,rm
       integer, allocatable :: lfromlm(:),mfromlm(:)
       Real (8), Parameter :: ga4 = ge * alpha / 4.d0
+      logical :: bxcmt_case = .false.
 
       Type (apw_lo_basis_type) :: mt_basis
 
@@ -59,11 +60,12 @@ Subroutine hmlint(mt_h)
         endif
 
         call mt_kin(veffmt,mt_basis,mt_h)
-        call mt_pot(veffmt,mt_basis,mt_h)
+        call mt_pot(veffmt,mt_basis,mt_h,bxcmt_case)
 
 ! now the magnetic field
         if (associated(input%groundstate%spin)) then
 
+          bxcmt_case = .true.
           call MTInit(mt_h%alpha,mt_h%maxaa,mt_h%maxnlo)
           call MTInit(mt_h%beta,mt_h%maxaa,mt_h%maxnlo)
 
@@ -80,7 +82,7 @@ Subroutine hmlint(mt_h)
               enddo
             enddo
 
-            call mt_pot(bxcmt(:,:,:,3),mt_basis,mt_h)
+            call mt_pot(bxcmt(:,:,:,3),mt_basis,mt_h,bxcmt_case)
 
 ! removing the z component of the external magnetic field to bxcmt / restoring bxcmt to the initial state
             do is=1,nspecies
@@ -108,7 +110,7 @@ Subroutine hmlint(mt_h)
               enddo
             enddo
 
-            call mt_pot(bxcmt(:,:,:,2),mt_basis,mt_h)
+            call mt_pot(bxcmt(:,:,:,2),mt_basis,mt_h,bxcmt_case)
 
 ! removing the y component of the external magnetic field to bxcmt / restoring bxcmt to the initial state
             do is=1,nspecies
@@ -137,7 +139,7 @@ Subroutine hmlint(mt_h)
               enddo
             enddo
 
-            call mt_pot(bxcmt(:,:,:,1),mt_basis,mt_h)
+            call mt_pot(bxcmt(:,:,:,1),mt_basis,mt_h,bxcmt_case)
 
 ! removing the x component of the external magnetic field to bxcmt / restoring bxcmt to the initial state
             do is=1,nspecies
@@ -157,7 +159,7 @@ Subroutine hmlint(mt_h)
               enddo
             enddo
 
-            call mt_pot(bxcmt(:,:,:,1),mt_basis,mt_h)
+            call mt_pot(bxcmt(:,:,:,1),mt_basis,mt_h,bxcmt_case)
 
             do is=1,nspecies
               do ia=1,natoms(is)

@@ -26,6 +26,8 @@ Subroutine init1
 
       Use modfvsystem
       Use svlo, only: set_num_of_basis_functions_sv
+      Use mod_lattice_harmonics, only: construct_lattice_harmonics_coeffs, construct_lattice_harmonics_type, &
+                                       set_lattice_harmonics, transform_gaunt_coefficients_lattice_harmonics
       use sirius_init, only: use_sirius_gkvec
       use sirius_api,  only: setup_sirius_gs_handler, get_gkvec_arrays_sirius, &
                              get_max_num_gkvec_sirius
@@ -56,7 +58,9 @@ Subroutine init1
       ! +/-1 for sign of spin-dependent term
       real (8) :: sign
       Integer :: num_of_basis_functions_sv
-      Complex(dp), allocatable :: coeff_matrix(:,:), lo_transformation_matrix_inv_sym(:,:,:,:)
+      Integer, allocatable ::  num_lattice_harmonics(:,:)
+      Real (8), allocatable :: lattice_harmonics_coeffs (:,:,:,:)
+      Complex (8), allocatable :: coeff_matrix(:,:), lo_transformation_matrix_inv_sym(:,:,:,:), gnt_kyy(:,:,:,:)
       call stopwatch("exciting:init1", 1)
 
       wannierband = .false.
@@ -522,7 +526,7 @@ Subroutine init1
           Call set_lo_transformation_matrix_inv_sym(lo_transformation_matrix_inv_sym)
       End If
 
-! In the standard second-variation implementation, the number of basis functions 
+! In the standard second-variation implementation, the number of basis functions
 ! is equal to the number of first variational states. 
       num_of_basis_functions_sv = nstfv
 ! If second variation with local orbitals is used (issvlo=true),
@@ -601,16 +605,7 @@ Subroutine init1
          End Do
       End Do
       If (allocated(gntryy)) deallocate (gntryy)
-      If (allocated(gntnonz)) deallocate (gntnonz)
-      If (allocated(gntnonzlm1)) deallocate (gntnonzlm1)
-      If (allocated(gntnonzlm2)) deallocate (gntnonzlm2)
-      If (allocated(gntnonzlm3)) deallocate (gntnonzlm3)
-      If (allocated(gntnonzlindex)) deallocate (gntnonzlindex)
-      If (allocated(gntnonzl2index)) deallocate (gntnonzl2index)
       Allocate (gntryy(lmmaxvr, lmmaxapw, lmmaxapw))
-      allocate(gntnonz(nonzcount),gntnonzlm1(nonzcount+1),gntnonzlm2(nonzcount),gntnonzlm3(nonzcount+1))
-      allocate(gntnonzlindex(0:input%groundstate%lmaxmat))
-      allocate(gntnonzl2index(lmmaxmat,lmmaxmat))
 
       Do l1 = 0, input%groundstate%lmaxapw
         Do m1 = - l1, l1
@@ -628,34 +623,6 @@ Subroutine init1
           End Do
         End Do
       End Do
-
-      i1=0
-      Do l1 = 0, input%groundstate%lmaxmat
-        gntnonzlindex(l1)=i1+1
-        Do m1 = - l1, l1
-          lm1 = idxlm (l1, m1)
-          Do l3 = 0, input%groundstate%lmaxmat
-            Do m3 = - l3, l3
-              lm3 = idxlm (l3, m3)
-              gntnonzl2index(lm1,lm3)=i1+1
-              Do l2 = 0, input%groundstate%lmaxvr
-                Do m2 = - l2, l2
-                  lm2 = idxlm (l2, m2)
-                  if ((abs(gntryy (lm2, lm3, lm1)).gt.1d-20).and.(lm1.le.lmmaxmat).and.(lm3.le.lmmaxmat)) then
-                    i1=i1+1
-                    gntnonz(i1)=gntryy(lm2, lm3, lm1)
-                    gntnonzlm1(i1)=lm1
-                    gntnonzlm3(i1)=lm3
-                    gntnonzlm2(i1)=lm2
-                  endif
-                End Do
-              End Do
-            End Do
-          End Do
-        End Do
-      End Do
-      gntnonzlm3(nonzcount+1)=0
-      gntnonzlm1(nonzcount+1)=0
 
       ! compact Gaunt coeffiecient array
       if (allocated(indgnt)) deallocate(indgnt)
@@ -678,6 +645,21 @@ Subroutine init1
           maxi=max(i,maxi)
         enddo
       enddo
+
+      if (input%groundstate%LatticeHarmonics) then
+          ! Construct lattice-harmonic coefficients
+          call construct_lattice_harmonics_coeffs(natmtot, nsymsite, symlatc, lsplsyms, lattice_harmonics_coeffs, &
+                                                  num_lattice_harmonics)
+
+          ! Transform gaunt coefficients to lattice harmonics representation
+          call transform_gaunt_coefficients_lattice_harmonics(gntryy, natmtot, lattice_harmonics_coeffs, &
+                                                              num_lattice_harmonics, idxlm, gnt_kyy)
+
+          ! Set up an instance of `[[lattice_harmonics_type]]`
+          call set_lattice_harmonics(construct_lattice_harmonics_type(num_lattice_harmonics, lattice_harmonics_coeffs, &
+                                                                        gnt_kyy))
+      end if
+
 
 #ifdef XS
 20    Continue

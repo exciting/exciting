@@ -48,6 +48,7 @@ module unit_tests
       logical :: matrix_elements = .false.
       logical :: xgrid = .false.
       logical :: xhdf5 = .false.
+      logical :: lattice_harmonics = .false.
 
    contains
       procedure :: init => set_unit_tests
@@ -174,6 +175,8 @@ contains
          run%xgrid = .true.
       case ('xhdf5')
          run%xhdf5 = .true.
+      case ('lattice_harmonics')
+         run%lattice_harmonics = .true.
 
       case default
          call terminate_mpi_env(mpi_env, 'Unrecognised unit test name: '&

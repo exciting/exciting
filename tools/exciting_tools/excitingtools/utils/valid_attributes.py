@@ -112,6 +112,7 @@ shell_attribute_types = {"ionization": (float, 1), "number": (int, 1)}
 groundstate_attribute_types = {"APWprecision": (float, 1),
                                "CoreRelativity": (str, ["dirac", "none"]),
                                "ExplicitKineticEnergy": (bool, 1),
+                               "LatticeHarmonics": (bool, 1),
                                "PrelimLinSteps": (int, 1),
                                "ValenceRelativity": (str, ["iora", "iora*", "kh", "kh*", "none", "zora"]),
                                "autokpt": (bool, 1),
