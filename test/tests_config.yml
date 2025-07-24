@@ -171,6 +171,7 @@ groundstate/PBE-Al:
       - !Build intel_mpiandsmp
       - !Build gcc_mpiandsmp
       - !Build intelLLVM_mpiandsmp
+      - !Build flang_mpiandsmp
 
 groundstate/PBE-lin-Al:
 
@@ -282,6 +283,7 @@ BSE/PBE_SOL-diamond-brixshdf5:
       - !Build intel_mpiandsmp
       - !Build gcc_mpiandsmp
       - !Build intelLLVM_mpiandsmp
+      - !Build flang_mpiandsmp
 
 # Note that we observe more numerical noise for BSE with SVLO than without it.
 # Hence differences in the energy below 6.0e-6 eV and in the oscillator strength 
