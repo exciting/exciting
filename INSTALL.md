@@ -132,7 +132,7 @@ AMD GPU acceleration requires of MAGMA library. Assuming it is installed in _MAG
 ```shell
 mkdir build
 cd build
-../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DAMD=ON -DAMDTARGET=gfx90a -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DAMD=ON -DAMDTARGET=gfx90a -DMAGMA_ROOT=MAGMA_INSTALL_DIR ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -142,7 +142,7 @@ AMD GPU acceleration requires of MAGMA library. Assuming it is installed in _MAG
 ```shell
 mkdir build
 cd build
-../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DUSM=ON -DAMD=ON -DAMDTARGET=gfx942 -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DUSM=ON -DAMD=ON -DAMDTARGET=gfx942 -DMAGMA_ROOT=MAGMA_INSTALL_DIR ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
