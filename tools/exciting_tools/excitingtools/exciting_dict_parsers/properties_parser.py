@@ -749,7 +749,7 @@ def parse_wf2d(fname: path_type) -> dict:
 
             i = i + 1
             data = np.fromstring(lines[i], dtype=np.double, sep=" ")
-            while "END_DATAGRID_2D" not in lines[i]:
+            while "END_DATAGRID_2D" not in lines[i + 1]:
                 i = i + 1
                 new_data = np.fromstring(lines[i], dtype=np.double, sep=" ")
                 data = np.concatenate((data, new_data), axis=None)
@@ -803,7 +803,7 @@ def parse_wf3d(fname: path_type) -> dict:
 
             i = i + 1
             data = np.fromstring(lines[i], dtype=np.double, sep=" ")
-            while "END_DATAGRID_3D" not in lines[i]:
+            while "END_DATAGRID_3D" not in lines[i + 1]:
                 i = i + 1
                 new_data = np.fromstring(lines[i], dtype=np.double, sep=" ")
                 data = np.concatenate((data, new_data), axis=None)

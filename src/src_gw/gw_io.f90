@@ -777,8 +777,8 @@ subroutine print_complex_to_unit(unit, a)
 
     do i = 1, size(a)
         write(unit,'("(",E23.17,",",E23.17,")",X)', advance="no") real(a(i)), aimag(a(i))
-        if (i==size(a)) write(unit,'()', advance="yes")
     end do
+    write(unit,'()', advance="yes")
 
 end subroutine print_complex_to_unit
   
