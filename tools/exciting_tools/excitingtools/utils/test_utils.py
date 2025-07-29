@@ -2,7 +2,6 @@
 
 import builtins
 import pathlib
-from types import ModuleType
 
 real_import = builtins.__import__
 
@@ -27,16 +26,3 @@ class MockFile:
         self.string = string
         # Name prepended by path
         self.full_path = self.file.as_posix()
-
-
-def import_error_monty(name: str, *args, **kwargs) -> ModuleType:
-    """Mock that monty is not available.
-
-    :param name: module to import.
-    :param args: import args
-    :param kwargs: import kwargs
-    :return: the imported module
-    """
-    if name.startswith("monty"):
-        raise ModuleNotFoundError("Simulating missing monty")
-    return real_import(name, *args, **kwargs)

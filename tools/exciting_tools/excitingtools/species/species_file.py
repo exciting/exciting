@@ -10,13 +10,13 @@ from pathlib import Path
 from typing import Callable, Dict, List, Set, Tuple, Union
 from xml.etree import ElementTree
 
-from excitingtools.base import ECTObject
+from excitingtools.base import ECTModelBase, ECTObject, model_decorator
 from excitingtools.exciting_dict_parsers.species_parser import parse_species_xml
 from excitingtools.input.xml_utils import xml_tree_to_pretty_str
 
 
-@dataclass(frozen=True)
-class LocalOrbital(ECTObject):
+@model_decorator
+class LocalOrbital(ECTModelBase):
     """A local orbital. Defined by a state and a matching order."""
 
     species: str
@@ -154,7 +154,14 @@ class SpeciesFile(ECTObject):
             for wf in lo["wf"]:
                 ns.append(wf["n"])
                 mOs.append(wf["matchingOrder"])
-            los.append(LocalOrbital(self.species["chemicalSymbol"], lo["l"], tuple(ns), tuple(mOs)))
+            los.append(
+                LocalOrbital(
+                    species=self.species["chemicalSymbol"],
+                    l_value=lo["l"],
+                    n_values=tuple(ns),
+                    matching_orders=tuple(mOs),
+                )
+            )
 
         return los
 
@@ -167,7 +174,12 @@ class SpeciesFile(ECTObject):
         """
 
         return [
-            LocalOrbital(self.species["chemicalSymbol"], custom["l"], (custom["n"], custom["n"]), (0, 1))
+            LocalOrbital(
+                species=self.species["chemicalSymbol"],
+                l_value=custom["l"],
+                n_values=(custom["n"], custom["n"]),
+                matching_orders=(0, 1),
+            )
             for custom in self.basis["custom"]
             if custom["type"] == "apw+lo"
         ]
