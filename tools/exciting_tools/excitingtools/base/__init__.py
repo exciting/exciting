@@ -1,3 +1,3 @@
-from excitingtools.base.serialisation import ECTObject
+from excitingtools.base.serialisation import ECTModelBase, ECTObject, model_decorator
 
-__all__ = ["ECTObject"]
+__all__ = ["ECTModelBase", "ECTObject", "model_decorator"]
