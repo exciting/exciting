@@ -4,6 +4,7 @@
 module linear_system_ill_defined_safe
   use asserts, only: assert
   use modmpi, only: terminate_if_false
+  use lapack_f95_interfaces, only: zgelsd
   use lapack_workspaces, only: lapack_workspace_complex_dp_t
   use precision, only: dp, i32
 
@@ -46,38 +47,40 @@ contains
 
     integer(i32) :: m, n, nhrs, rank, info
     real(dp), allocatable :: singular_values(:)
+    complex(dp), allocatable :: A_copy(:, :)
 
     m    = size(A,1)
     n    = size(A,2)
     nhrs = size(y,2)
+    A_copy = A
 
     allocate(singular_values(min(m,n)))
 
     ! Associate the workspace to either a local or an external workspace
     if (present(workspace)) then
-        workspace_fptr => workspace
+      workspace_fptr => workspace
     else
-         workspace_fptr => workspace_local
+      workspace_fptr => workspace_local
     end if
 
     if (present(threshold)) then
-        threshold_local = threshold
+      threshold_local = threshold
     else
-        threshold_local = threshold_default
+      threshold_local = threshold_default
     end if
 
     ! Get optimal workspace if no workspace is present or has not been inited
     if (.not. workspace_local%computed()) then
-        call workspace_local%initialize(lrwork=1, liwork=1, lwork=1)
-        call workspace_local%allocate_workspace()
-        call zgelsd(m, n, nhrs, A, m, y, max(m,n), singular_values, threshold_local, rank, workspace_local%work, -1, &
-                    workspace_local%rwork, workspace_local%iwork, info)
-        call terminate_if_false(info == 0, "ill_defined_safe_solve_complex_dp: subspace query failed")
-        call workspace_local%reset(.true.)
+      call workspace_local%initialize(lrwork=1, liwork=1, lwork=1)
+      call workspace_local%allocate_workspace()
+      call zgelsd(m, n, nhrs, A_copy, m, y, max(m,n), singular_values, threshold_local, rank, workspace_local%work, -1, &
+                  workspace_local%rwork, workspace_local%iwork, info)
+      call terminate_if_false(info == 0, "ill_defined_safe_solve_complex_dp: subspace query failed")
+      call workspace_local%reset(.true.)
     end if
 
     ! Solve
-    call zgelsd(m, n, nhrs, A, m, y, max(m,n), singular_values, threshold_local, rank, workspace_local%work, size(workspace_local%work), &
+    call zgelsd(m, n, nhrs, A_copy, m, y, max(m,n), singular_values, threshold_local, rank, workspace_local%work, size(workspace_local%work), &
                 workspace_local%rwork, workspace_local%iwork, info)
 
     call terminate_if_false(info == 0, "ill_defined_safe_solve_complex_dp: zgelsd failed")

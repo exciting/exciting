@@ -6,14 +6,14 @@
 
 !> Module for computing lattice harmonics (symmetrized real spherical harmonics).
 module mod_lattice_harmonics
-  use modinput, only: input
-  use constants, only: zi, zzero, sqrt_two, real_zero, zone
-  use precision, only: dp
-  use vector_multiplication, only: norm
-  use general_matrix_multiplication, only: matrix_multiply
-  use qr_factorization, only: qr_column_pivot
   use asserts, only: assert
+  use constants, only: real_zero, sqrt_two, zi, zone, zzero
+  use general_matrix_multiplication, only: matrix_multiply
   use grid_utils, only: mesh_1d
+  use qr_factorization, only: qr_column_pivot
+  use modinput, only: input
+  use precision, only: dp, i32
+  use vector_multiplication, only: norm
 
   implicit none
 
@@ -28,7 +28,7 @@ module mod_lattice_harmonics
   !> detailed description of how these arrays are constructed.
   type :: lattice_harmonics_type
      !> Number of lattice harmonics for a specific \( l \)-value and the given index of atoms and species
-     integer, allocatable :: number(:,:)
+     integer(i32), allocatable :: number(:,:)
      !> Coefficients for the lattice harmonic expansion, depending on  \( l \), \( m_1 \) and \( m_2 \) values,
      !> as well as the given index of atoms and species
      real(dp), allocatable :: coefficients(:,:,:,:)
@@ -46,7 +46,7 @@ contains
   function construct_lattice_harmonics_type(num_lattice_harmonics, lattice_harmonics_coeffs, &
        lattice_harmonics_gaunt_coeffs) result(this)
     !> Number of lattice harmonics for a specific \( l \)-value and the given index of atoms and species
-    integer, intent(in) :: num_lattice_harmonics(:,:)
+    integer(i32), intent(in) :: num_lattice_harmonics(:,:)
     !> Coefficients for the lattice harmonic expansion, depending on  \( l \), \( m_1 \) and \( m_2 \) values,
     !> as well as the given index of atoms and species
     real(dp), intent(in) :: lattice_harmonics_coeffs(:,:,:,:)
@@ -79,7 +79,7 @@ contains
     !> Input matrix
     real(dp), intent(in) :: C(:, :)
     !> Number of non-zero rows
-    integer, intent(out) :: num_non_zero_rows
+    integer(i32), intent(out) :: num_non_zero_rows
     !> Reduced matrix
     real(dp), allocatable, intent(out) :: C_reduced(:, :)
 
@@ -98,39 +98,72 @@ contains
   !> \]
   subroutine generate_matrix_complex_to_real_spherical_harmonics(lmax, A)
     !> Maximum angular momentum
-    integer, intent(in) :: lmax
+    integer(i32), intent(in) :: lmax
     !> Matrix which relates complex to real spherical harmonics
     complex(dp), allocatable, intent(out) :: A(:,:,:)
 
-    ! Local variables
-    integer :: l, m1
-    complex(dp):: zone_over_sqrt_two, zi_over_sqrt_two
-
-    zone_over_sqrt_two = zone / sqrt_two
-    zi_over_sqrt_two = zi / sqrt_two
+#if !defined(__INTEL_LLVM_COMPILER)
+    integer(i32) :: l, m1
+#endif
+    complex(dp), parameter :: zone_over_sqrt_two = zone / sqrt_two
+    complex(dp), parameter :: zi_over_sqrt_two = zi / sqrt_two
 
     allocate(A(-lmax:lmax, -lmax:lmax, lmax), source = zzero)
 
+    ! N.B.: The code below is valid. However, due to a bug in ifx, an offset is 
+    ! needed for correct results. Due to this bug, fill_matrix is used (see issue #240)
+    ! TODO: check whenever ifx bug is solved and remove fill_matrix
+#if !defined(__INTEL_LLVM_COMPILER)   
     do l = 1, lmax
-       A(0, 0, l) = zone
-       do m1 = -1, -l, -2
-          A(m1, m1, l) = zi_over_sqrt_two
-          A(m1, -m1, l) = zi_over_sqrt_two
-       end do
-       do m1 = -2, -l, -2
-          A(m1, m1, l) = zi_over_sqrt_two
-          A(m1, -m1, l) = -zi_over_sqrt_two
-       end do
-       do m1 = 1, l, 2
-          A(m1, m1, l) = -zone_over_sqrt_two
-          A(m1, -m1, l) = zone_over_sqrt_two
-       end do
-       do m1 = 2, l, 2
-          A(m1, m1, l) = zone_over_sqrt_two
-          A(m1, -m1, l) = zone_over_sqrt_two
-       end do
+      A(0, 0, l) = zone
+      do m1 = -1, -l, -2
+        A(m1, m1, l) = zi_over_sqrt_two
+        A(m1, -m1, l) = zi_over_sqrt_two
+      end do
+      do m1 = -2, -l, -2
+        A(m1, m1, l) = zi_over_sqrt_two
+        A(m1, -m1, l) = -zi_over_sqrt_two
+      end do
+      do m1 = 1, l, 2
+        A(m1, m1, l) = -zone_over_sqrt_two
+        A(m1, -m1, l) = zone_over_sqrt_two
+      end do
+      do m1 = 2, l, 2
+        A(m1, m1, l) = zone_over_sqrt_two
+        A(m1, -m1, l) = zone_over_sqrt_two
+      end do
     end do
+#else
+    call fill_matrix( A )
+    contains 
+      pure subroutine fill_matrix( matrix )
+        complex(dp), contiguous, intent(inout) :: matrix(:, :, :)
 
+        integer(i32) :: i, k, k_dim, offset
+        
+        k_dim = size( A, 3 )
+        offset = k_dim + 1
+        do k = 1, k_dim
+          matrix(offset, offset, k) = zone
+          do i = -1, -k, -2
+            matrix(i+offset, i+offset, k) = zi_over_sqrt_two
+            matrix(i+offset, -i+offset, k) = zi_over_sqrt_two
+          end do
+          do i = -2, -k, -2
+            matrix(i+offset, i+offset, k) = zi_over_sqrt_two
+            matrix(i+offset, -i+offset, k) = -zi_over_sqrt_two
+          end do
+          do i = 1, k, 2
+            matrix(i+offset, i+offset, k) = -zone_over_sqrt_two
+            matrix(i+offset, -i+offset, k) = zone_over_sqrt_two
+          end do
+          do i = 2, k, 2
+            matrix(i+offset, i+offset, k) = zone_over_sqrt_two
+            matrix(i+offset, -i+offset, k) = zone_over_sqrt_two
+          end do
+        end do
+      end subroutine
+#endif      
   end subroutine generate_matrix_complex_to_real_spherical_harmonics
 
   !> This subroutine generates the coefficients used to construct the lattice harmonics as a linear combination of real
@@ -167,17 +200,17 @@ contains
   !> (see [[qr_column_pivot]]). Then linearly dependent and zero norm vectors are discarded.
   subroutine construct_lattice_harmonics_coeffs(natmtot, nsymsite, symlatc, lsplsyms, coeffs, num_non_zero_rows)
     !> Total number of atoms
-    integer, intent(in) :: natmtot
+    integer(i32), intent(in) :: natmtot
     !> Number of site symmetries per atoms and species
-    integer, intent(in) :: nsymsite(:)
+    integer(i32), intent(in) :: nsymsite(:)
     !> Bravais lattice point group symmetries in cartesian coordinates
     real(dp), intent(in) :: symlatc(:, :, :)
     !> Site symmetry spatial rotation element in lattice point group
-    integer, intent(in) :: lsplsyms(:, :)
+    integer(i32), intent(in) :: lsplsyms(:, :)
     !> Coefficients for the lattice harmonic expansion
     real(dp), allocatable, intent(out) :: coeffs(:, :, :,:)
     !> Number of lattice harmonics
-    integer, allocatable, intent(out) :: num_non_zero_rows(:,:)
+    integer(i32), allocatable, intent(out) :: num_non_zero_rows(:,:)
 
     !> Fortran function
     complex(dp), external :: getdlmm
@@ -187,7 +220,7 @@ contains
     real(dp) :: sym_op_matrix(3,3), inv_sym_op_matrix(3,3)
     complex(dp), allocatable :: C_real_sph_harm(:,:,:,:), C_complex_sph_harm(:,:,:,:), C_temp(:,:,:,:), A(:,:,:,:), &
          A_l(:,:,:)
-    integer, allocatable :: P(:), num_non_zero_rows_before_qr(:,:)
+    integer(i32), allocatable :: P(:), num_non_zero_rows_before_qr(:,:)
     real(dp), allocatable :: C_reduced_before_qr(:, :, :,:), reduced_matrix(:,:), C_full(:,:,:,:), B(:,:), R(:,:), &
          Q(:,:)
     real(dp), parameter :: epsilon = 1e-12_dp
@@ -293,13 +326,13 @@ contains
   !> atoms and species.
   subroutine generate_index_map_lm_to_nu(num_lattice_harmonics, idxlm, lmax, idx_nu)
     !> Number of lattice harmonics for given index of atoms and species
-    integer, intent(in) :: num_lattice_harmonics(:)
+    integer(i32), intent(in) :: num_lattice_harmonics(:)
     !> Index to (l,m) pairs
-    integer, intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
+    integer(i32), intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
     !> Maximum angular momentum
-    integer, intent(in) :: lmax
+    integer(i32), intent(in) :: lmax
     !> Map from (l,m) pairs to indices of lattice harmonics
-    integer, allocatable, intent(out) :: idx_nu(:)
+    integer(i32), allocatable, intent(out) :: idx_nu(:)
 
     ! Local variables
     integer :: i_nu, l, m, i
@@ -338,13 +371,13 @@ contains
     !> Lattice harmonics coefficients for given index of atoms and species
     real(dp), intent(in) :: coeffs(:,:,:)
     !> Number of lattice harmonics for given index of atoms and species
-    integer, intent(in) :: num_lattice_harmonics(:)
+    integer(i32), intent(in) :: num_lattice_harmonics(:)
     !> Index to (l,m) pairs
-    integer, intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
+    integer(i32), intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
     !> Maximum angular momentum
-    integer, intent(in) :: lmax
+    integer(i32), intent(in) :: lmax
     !> Map from (l,m) pairs to indices of lattice harmonics
-    integer, intent(in) :: idx_nu(:)
+    integer(i32), intent(in) :: idx_nu(:)
     !> Reduced array of lattice-harmonic expansion coefficients
     real(dp), intent(out) :: kflm_reduced(:)
 
@@ -377,13 +410,13 @@ contains
     !> Lattice harmonics coefficients for given index of atoms and species
     real(dp), intent(in) :: coeffs(:,:,:)
     !> Number of lattice harmonics for given index of atoms and species
-    integer, intent(in) :: num_lattice_harmonics(:)
+    integer(i32), intent(in) :: num_lattice_harmonics(:)
     !> Index to (l,m) pairs
-    integer, intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
+    integer(i32), intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
     !> Maximum angular momentum
-    integer, intent(in) :: lmax
+    integer(i32), intent(in) :: lmax
     !> Map from (l,m) pairs to indices of lattice harmonics
-    integer, intent(in) :: idx_nu(:)
+    integer(i32), intent(in) :: idx_nu(:)
     !> Reduced array of lattice-harmonic expansion coefficients
     complex(dp), intent(out) :: kflm_reduced(:)
 
@@ -414,29 +447,29 @@ contains
     !> MT potential coefficients in the standard representation
     real(dp), intent(in) :: mt_pot(:,:,:)
     !> Number of species
-    integer, intent(in) :: nspecies
+    integer(i32), intent(in) :: nspecies
     !> Number of atoms for each species
-    integer, intent(in) :: natoms(:)
+    integer(i32), intent(in) :: natoms(:)
     !> Map for atoms per species to an atomic index over all atoms in the system
-    integer, intent(in) :: idxas(:, :)
+    integer(i32), intent(in) :: idxas(:, :)
     !> Number of muffin-tin radial points for each species
-    integer, intent(in) :: nrmt(:)
+    integer(i32), intent(in) :: nrmt(:)
     !> Maximum nrmt over all the species
-    integer, intent(in) :: nrmtmax
+    integer(i32), intent(in) :: nrmtmax
     !> Total number of atoms
-    integer, intent(in) :: natmtot
+    integer(i32), intent(in) :: natmtot
     !> Lattice harmonics coefficients
     real(dp), intent(in) :: coeffs(:,:,:,:)
     !> Number of lattice harmonics
-    integer, intent(in) :: num_lattice_harmonics(:,:)
+    integer(i32), intent(in) :: num_lattice_harmonics(:,:)
     !> Index to (l,m) pairs
-    integer, intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
+    integer(i32), intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
     !> MT potential coefficients in the lattice-harmonic representation
     real(dp), intent(out) :: mt_pot_lh(:,:,:)
 
     ! Local variables
     integer :: is, ia, nr, ir, ias, lmaxvr
-    integer, allocatable :: idx_nu(:)
+    integer(i32), allocatable :: idx_nu(:)
 
     lmaxvr = input%groundstate%lmaxvr
 
@@ -468,19 +501,19 @@ contains
     !> Gaunt coefficient of a real spherical harmonic and two complex spherical harmonics
     complex(dp), intent(in) :: gnt_ryy(:,:,:)
     !> Total number of atoms
-    integer, intent(in) :: natmtot
+    integer(i32), intent(in) :: natmtot
     !> Lattice harmonics coefficients
     real(dp), intent(in) :: coeffs(:,:,:,:)
     !> Number of lattice harmonics
-    integer, intent(in) :: num_lattice_harmonics(:,:)
+    integer(i32), intent(in) :: num_lattice_harmonics(:,:)
     !> Index to (l,m) pairs
-    integer, intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
+    integer(i32), intent(in) :: idxlm (0:input%groundstate%lmaxapw, -input%groundstate%lmaxapw:input%groundstate%lmaxapw)
     !> Gaunt coefficient of a lattice harmonic and two complex spherical harmonics
     complex(dp), allocatable, intent(out) :: gnt_kyy(:,:,:,:)
 
     ! Local variables
     integer :: l1, m1, lm1, l3, m3, lm3, ias, lmaxapw, lmaxvr, lmmaxapw, max_num_lattice_harmonics
-    integer, allocatable :: idx_nu(:)
+    integer(i32), allocatable :: idx_nu(:)
 
     lmaxapw = input%groundstate%lmaxapw
     lmaxvr = input%groundstate%lmaxvr

@@ -66,7 +66,8 @@ subroutine test_ill_defined_safe_solve_complex_dp(test_report)
       call ill_defined_safe_solve(A, x)
       ! Check the solution: now x contains (A^-1)y
       call test_obj%assert( all_close(y, matmul(A, x), tol), &
-        test_identifier // ": A*x is not equal y in test number " // to_char(test_number) )
+        test_identifier // ": A*x is not equal y in test number " // to_char(test_number) // &
+        ", error: " // to_char(maxval(abs(y-matmul(A, x)))) )
     end subroutine  test_template
 end subroutine test_ill_defined_safe_solve_complex_dp
 
