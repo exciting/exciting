@@ -174,7 +174,7 @@ contains
       call mpi_abort(mpi_env%comm, error_code, mpi_env%ierr)
 #else
       if(present(message)) write(error_unit, *) trim(adjustl(message))
-      stop
+      error stop
 #endif
     end subroutine terminate_mpi_env
 

@@ -1,11 +1,12 @@
 !> Unit tests for mod_lattice_harmonics
 module mod_lattice_harmonics_test
-  use precision, only: dp
+  use precision, only: dp, i32
   use constants, only: zzero, real_zero, zi, sqrt_two, zone
   use modmpi, only: mpiinfo
   use unit_test_framework, only: unit_test_type
   use math_utils, only: all_close
   use mod_lattice_harmonics, only: remove_zero_rows, generate_matrix_complex_to_real_spherical_harmonics
+  use to_char_conversion, only: to_char
 
   implicit none
 
@@ -24,7 +25,7 @@ contains
     !> Test report object
     type(unit_test_type) :: test_report
     !> Number of assertions
-    integer, parameter :: n_assertions = 3
+    integer(i32), parameter :: n_assertions = 3
 
     call test_report%init(n_assertions, mpiglobal)
 
@@ -47,7 +48,7 @@ contains
 
     real(dp) :: C(4, 3), C_reduced_reference(2, 3)
     real(dp), allocatable :: C_reduced(:, :)
-    integer :: num_non_zero_rows
+    integer(i32) :: num_non_zero_rows
 
     C = transpose(reshape([ 1, 2, -3, &
          0, 0, 0, &
@@ -72,7 +73,7 @@ contains
 
     complex(dp) :: A_reference(5, 5)
     complex(dp), allocatable :: A(:, :, :)
-    integer :: lmax
+    integer(i32) :: lmax, i, j
 
     lmax = 2
 
@@ -85,7 +86,8 @@ contains
     call generate_matrix_complex_to_real_spherical_harmonics(lmax, A)
 
     call test_report%assert(all_close(A(-2:2, -2:2, 2), A_reference, 1e-8_dp), &
-         'Test determining matrix which transforms complex to real spherical harmonics for l=2.')
+         'Test determining matrix which transforms complex to real spherical harmonics for l=2. Error:' // &
+         to_char(maxval(abs(A(-2:2, -2:2, 2)-A_reference))) )
 
   end subroutine test_generate_matrix_complex_to_real_spherical_harmonics
 
