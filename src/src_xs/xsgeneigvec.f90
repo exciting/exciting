@@ -171,7 +171,7 @@ subroutine xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
         call system('cp OCCSV_NONEQ.OUT OCCSV_QMT001.OUT')
       end if
       ! task 401 = scrgeneigvec
-      if ( task == 401 ) then
+      if ( task == 401 .and. (noneq .or. lscr) ) then
         if ( lscr ) then
           call system('cp OCCSV_NONEQ.OUT OCCSV_SCR.OUT')
         else
