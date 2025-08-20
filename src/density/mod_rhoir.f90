@@ -1,24 +1,23 @@
-! REVISION HISTORY:
-!   Created April 2003 (JKD)
-
 module mod_rhoir
 
   use asserts, only: assert
-  use modinput, only: input, isspinspiral
-  use mod_kpoint, only: wkpt
+  use constants, only: real_zero, zzero
+  use m_zfftifc, only: zfftifc
   use mod_eigenvalue_occupancy, only: nstfv, nstsv
-  use modmpi, only: mpi_env_k, distribute_loop
-  use mod_timing, only: timerho
-  use precision, only: dp
-  use constants, only: zzero
-  use svlo, only: get_num_of_basis_functions_sv
-  use mod_spin, only: ncmag, nspinor, ndmag
   use mod_gkvector, only: ngk, igkig
   use mod_Gvector, only: ngrtot, igfft, ngrid
+  use mod_kpoint, only: wkpt
   use mod_lattice, only: omega
-  use m_zfftifc, only: zfftifc
+  use mod_spin, only: ncmag, nspinor, ndmag
+  use mod_timing, only: timerho
+  use modinput, only: input, isspinspiral
+  use modmpi, only: mpi_env_k, distribute_loop
+  use precision, only: dp, i32
+  use svlo, only: get_num_of_basis_functions_sv
 
   implicit none
+
+  private
 
   interface genrhoir
     module procedure :: genrhoir_spin_polarized
@@ -33,19 +32,19 @@ contains
   !> to be used as input arguments for `genrhoir_spin_polarized`
   subroutine genrhoir_non_spin_polarized ( ik, evecfv, occupations, rhoir, magir, evecsv )
     !> k-point number
-    integer, intent (in) :: ik
+    integer(i32), intent (in) :: ik
     !> First-variational eigenvectors (nmatmax, nstfv)
     complex(dp), contiguous, target, intent (in) :: evecfv(:, :)
     !> State occupations (nstsv)
-    real(dp), intent(in) :: occupations(:)
+    real(dp), contiguous, intent(in) :: occupations(:)
     !> Interstitial charge density
-    real(dp), intent(inout) :: rhoir(:)
+    real(dp), contiguous, intent(inout) :: rhoir(:)
     !> Interstitial magnetisation vector field
-    real(dp), optional, intent(inout) :: magir(:, :)
+    real(dp), contiguous, optional, intent(inout) :: magir(:, :)
     !> Second-variational eigenvectors (nstfv, nstsv)
-    complex(dp), optional, intent(in) :: evecsv(:, :)
+    complex(dp), contiguous, optional, intent(in) :: evecsv(:, :)
 
-    integer, parameter :: n_spin = 1
+    integer(i32), parameter :: n_spin = 1
     complex(dp), contiguous, pointer :: ptr(:, :, :)
 
     ptr(1 : size( evecfv, 1 ), 1 : size( evecfv, 2 ), 1 : n_spin) => evecfv
@@ -60,22 +59,22 @@ contains
   !> {\tt wavefmt}, {\tt genshtmat} and {\tt seceqn}.
   subroutine genrhoir_spin_polarized ( ik, evecfv, occupations, rhoir, magir, evecsv )
     !> k-point number
-    integer, intent(in) :: ik
+    integer(i32), intent(in) :: ik
     !> First-variational eigenvectors (nmatmax, nstfv, n_spin)
-    complex(dp), intent (in) :: evecfv (:, :, :)
+    complex(dp), contiguous, intent (in) :: evecfv (:, :, :)
     !> State occupations (nstsv)
-    real(dp), intent(in) :: occupations(:)
+    real(dp), contiguous, intent(in) :: occupations(:)
     !> Interstitial charge density
-    real(dp), intent(inout) :: rhoir(:)
+    real(dp), contiguous, intent(inout) :: rhoir(:)
     !> Interstitial magnetisation vector field
-    real(dp), optional, intent(inout) :: magir(:, :)
+    real(dp), contiguous, optional, intent(inout) :: magir(:, :)
     !> Second-variational eigenvectors (nstfv, nstsv)
-    complex(dp), optional, intent(in) :: evecsv(:, :)
+    complex(dp), contiguous, optional, intent(in) :: evecsv(:, :)
 
-    integer :: nsd, ispn, jspn, ist, ir, igk, ifg, i, j
+    integer(i32) :: nsd, ispn, jspn, ist, ir, igk, ifg, i, j
     real(dp) :: t1, t2, t3, t4, ts0, ts1
     complex(dp) :: zt1, zt2, zt3
-    integer :: num_of_basis_functions_sv, num_of_states
+    integer(i32) :: num_of_basis_functions_sv, num_of_states
     complex(dp), allocatable :: zfft(:, :)
     real(dp) :: rhoir_k(ngrtot), magir_k(ngrtot, ndmag)
 
@@ -91,7 +90,7 @@ contains
 
     if ( associated( input%groundstate%spin ) ) then
       call assert( present( magir ), 'magir not present' )
-      magir_k = 0
+      magir_k = real_zero
       if ( ncmag ) then
         nsd = 4
       else
@@ -101,7 +100,7 @@ contains
       nsd = 1
     end if
 
-    rhoir_k = 0
+    rhoir_k = real_zero
     allocate ( zfft(ngrtot, nspinor) )
     
     do j = 1, num_of_states
@@ -109,7 +108,7 @@ contains
       if ( abs( t1 ) <= input%groundstate%epsocc ) cycle
       
       t2 = t1 / omega
-      zfft = 0._dp
+      zfft = zzero
       if ( input%groundstate%tevecsv ) then
         ! generate spinor wavefunction from second-variational eigenvectors
         do ispn = 1, nspinor
@@ -169,10 +168,8 @@ contains
       end if
     end do
   
-    !$OMP CRITICAL
     rhoir = rhoir + rhoir_k
     if ( associated( input%groundstate%spin ) ) magir = magir + magir_k
-    !$OMP END CRITICAL
 
     call timesec( ts1 )
     timerho = timerho + ts1 - ts0

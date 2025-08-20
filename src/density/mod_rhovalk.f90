@@ -1,27 +1,29 @@
-! !REVISION HISTORY:
-!   Created April 2003 (JKD)
-
 module mod_rhovalk
 
   use asserts, only: assert
-  use modinput, only: input, isspinspiral, issvlo
-  use mod_kpoint, only: wkpt
-  use mod_eigensystem, only: idxlo
-  use mod_eigenvalue_occupancy, only: nstfv, nstsv
-  use modmpi, only: mpi_env_k, distribute_loop
-  use mod_timing, only: timerho
-  use precision, only: dp
-  use svlo, only: get_num_of_basis_functions_sv
-  use constants, only: zone, zzero
-  use mod_spin, only: ncmag, nspnfv, nspinor, ndmag
-  use mod_muffin_tin, only: nrcmtmax, lmmaxapw, idxlm, nrcmt, nrmt, lmmaxvr, nrmtmax
-  use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk
+  use constants, only: real_zero, zone, zzero
+  
   use mod_APW_LO, only: apwordmax, lofr, nlorb, lorbl
   use mod_atoms, only: natmtot, nspecies, natoms, idxas
-  use mod_SHT, only: zbshtvr, rfshtvr
+  use mod_eigensystem, only: idxlo
+  use mod_eigenvalue_occupancy, only: nstfv, nstsv
+  use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk
   use mod_Gvector, only: ngrtot
+  use mod_kpoint, only: wkpt
+  use mod_muffin_tin, only: nrcmtmax, lmmaxapw, idxlm, nrcmt, nrmt, lmmaxvr, nrmtmax
+  use mod_SHT, only: zbshtvr, rfshtvr
+  use mod_spin, only: ncmag, nspnfv, nspinor, ndmag
+  use mod_timing, only: timerho
+  use modinput, only: input, isspinspiral, issvlo
+  use modmpi, only: mpi_env_k, distribute_loop
+  use precision, only: dp, i32
+  use svlo, only: get_num_of_basis_functions_sv
 
   implicit none
+
+  private
+
+  public :: rhovalk
 
   interface rhovalk
     module procedure :: rhovalk_spin_polarized
@@ -34,19 +36,19 @@ contains
   !> to be used as input arguments for `rhovalk_spin_polarized`
   subroutine rhovalk_non_spin_polarized ( ik, evecfv, occupations, rhomt, magmt, evecsv )
     !> k-point number
-    integer, intent (in) :: ik
+    integer(i32), intent (in) :: ik
     !> First-variational eigenvectors (nmatmax, nstfv)
     complex(dp), contiguous, target, intent (in) :: evecfv(:, :)
     !> State occupations (nstsv)
-    real(dp), intent(in) :: occupations(:)
+    real(dp), contiguous, intent(in) :: occupations(:)
     !> Muffin-tin charge density
-    real(dp), intent(inout) :: rhomt(:, :, :)
+    real(dp), contiguous, intent(inout) :: rhomt(:, :, :)
     !> Muffin-tin magnetisation vector field
-    real(dp), optional, intent(inout) :: magmt(:, :, :, :)
+    real(dp), contiguous, optional, intent(inout) :: magmt(:, :, :, :)
     !> Second-variational eigenvectors (nstfv, nstsv)
-    complex(dp), optional, intent(in) :: evecsv(:, :)
+    complex(dp), contiguous, optional, intent(in) :: evecsv(:, :)
 
-    integer, parameter :: n_spin = 1
+    integer(i32), parameter :: n_spin = 1
     complex(dp), contiguous, pointer :: ptr(:, :, :)
 
     ptr(1 : size( evecfv, 1 ), 1 : size( evecfv, 2 ), 1 : n_spin) => evecfv
@@ -63,23 +65,23 @@ contains
   !> accumulated in the inout variable {\tt rhomt}.
   subroutine rhovalk_spin_polarized ( ik, evecfv, occupations, rhomt, magmt, evecsv )
     !> k-point number
-    integer, intent (in) :: ik
+    integer(i32), intent (in) :: ik
     !> First-variational eigenvectors (nmatmax, nstfv, n_spin)
-    complex(dp), intent (in) :: evecfv (:, :, :)
+    complex(dp), contiguous, intent (in) :: evecfv (:, :, :)
     !> State occupations (nstsv)
-    real(dp), intent(in) :: occupations(:)
+    real(dp), contiguous, intent(in) :: occupations(:)
     !> Muffin-tin charge density
-    real(dp), intent(inout) :: rhomt(:, :, :)
+    real(dp), contiguous, intent(inout) :: rhomt(:, :, :)
     !> Muffin-tin magnetisation vector field
-    real(dp), optional, intent(inout) :: magmt(:, :, :, :)
+    real(dp), contiguous, optional, intent(inout) :: magmt(:, :, :, :)
     !> Second-variational eigenvectors (nstfv, nstsv)
-    complex(dp), optional, intent(in) :: evecsv(:, :)
+    complex(dp), contiguous, optional, intent(in) :: evecsv(:, :)
 
-    integer :: nsd, ispn, jspn, is, ia, ias, ist
-    integer :: ir, irc, itp, i, j, n, ilo, l, m, lm, nr
+    integer(i32) :: nsd, ispn, jspn, is, ia, ias, ist
+    integer(i32) :: ir, irc, itp, i, j, n, ilo, l, m, lm, nr
     real(dp) :: t1, ts0, ts1
     complex(dp) :: zt1, zt2, zt3
-    integer :: num_of_basis_functions_sv, num_of_states
+    integer(i32) :: num_of_basis_functions_sv, num_of_states
     logical, allocatable :: done(:, :)
     real(dp), allocatable :: rflm(:, :), rfmt(:, :, :)
     complex(dp), allocatable :: apwalm(:, :, :, :, :)
@@ -98,7 +100,7 @@ contains
 
     if ( associated( input%groundstate%spin ) ) then
       call assert( present( magmt ), 'magmt not present' )
-      magmt_k = 0._dp
+      magmt_k = real_zero
       if ( ncmag ) then
         nsd = 4
       else
@@ -108,7 +110,7 @@ contains
       nsd = 1
     end if
 
-    rhomt_k = 0._dp
+    rhomt_k = real_zero
     
     allocate( done(num_of_basis_functions_sv, nspnfv) )
     allocate( rflm(lmmaxvr, nsd) )
@@ -130,13 +132,13 @@ contains
       do ia = 1, natoms(is)
         ias = idxas(ia, is)
         done = .false.
-        rfmt = 0._dp
+        rfmt = real_zero
         do j = 1, num_of_states
           t1 = wkpt (ik) * occupations(j)
           if ( abs(t1) <= input%groundstate%epsocc ) cycle
           if ( input%groundstate%tevecsv ) then
             ! generate spinor wavefunction from second-variational eigenvectors
-            wfmt3 = 0._dp
+            wfmt3 = zzero
             do ispn = 1, nspinor
               if ( isspinspiral() ) then
                 jspn = ispn
@@ -257,10 +259,8 @@ contains
       end do
     end do
 
-    !$OMP CRITICAL
     rhomt = rhomt + rhomt_k
     if ( associated( input%groundstate%spin ) ) magmt = magmt + magmt_k
-    !$OMP END CRITICAL
     
     call timesec (ts1)
     timerho = timerho + ts1 - ts0
