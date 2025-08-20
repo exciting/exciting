@@ -201,14 +201,13 @@ contains
       "rhomt_frozen and rhoir_frozen should be provided to get_density_from_lapwlo_set" )
     
     ! rhovalk and rhoir have omp critical inside
-    !$OMP PARALLEL DEFAULT(NONE) PRIVATE(i) &
-    !$OMP SHARED(first_kpt, psi_lapw_coeffs, occupations, rhomt, rhoir)
-    !$OMP DO
+    !$OMP PARALLEL DO DEFAULT(NONE) SHARED(first_kpt, psi_lapw_coeffs, occupations) &
+    !$OMP REDUCTION(+:rhomt, rhoir)
     do i = 1, size( occupations, 2 )
       call rhovalk( first_kpt + i - 1, psi_lapw_coeffs(:, :, i), occupations(:, i), rhomt )
       call genrhoir( first_kpt + i - 1, psi_lapw_coeffs(:, :, i), occupations(:, i), rhoir )
     end do
-    !$OMP END PARALLEL
+    !$OMP END PARALLEL DO
 
 #ifdef MPI
     call mpisumrhoandmag( mpi_env_k )
@@ -271,7 +270,7 @@ contains
     !> Object that packs information about timings to update the electronic density
     type(Timing_RTTDDFT_density), optional, intent(inout) :: t_dens
 
-    integer :: n_states, ik, n_kpts
+    integer(i32) :: n_states, ik, n_kpts
     logical :: timings_general, timings_detailed
     real(dp) :: ti
 
@@ -302,11 +301,9 @@ contains
     !$OMP SHARED(set_in_ks_basis, set_in_lapw_basis)
     !$OMP DO
     do ik = 1, n_kpts
-
       call matrix_multiply( transition_matrix( 1 : k_dependent_basis_size(ik), :, ik), &
         set_in_ks_basis(:, :, ik), set_in_lapw_basis(1 : k_dependent_basis_size(ik), :, ik) )
-
-      end do
+    end do
     !$OMP END PARALLEL
 
     if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%basis )
