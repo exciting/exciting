@@ -296,7 +296,7 @@
             <xs:annotation>
               <xs:documentation> When present, this element triggers the
                 predictor-corrector scheme (self-consistency in the propagation
-                of the wavefunctions)
+                of the wavefunctions).
               </xs:documentation>
             </xs:annotation>
             <xs:complexType>
@@ -323,10 +323,10 @@
               <xs:documentation> 
                 'Screenshots' of the time evolution: these can be 
                 <list>
-                  <li>eigenvalues (see <elementref>eigenvalues</elementref>) </li>
-                  <li>projection coefficients (see <elementref>projectionCoefficients</elementref>)</li>
-                  <li>occupations (see <elementref>occupations</elementref>)</li>
-                  <li>charge density (see <elementref>deltadensityplot</elementref>)</li>
+                  <li>eigenvalues (see <elementref>eigenvalues</elementref>); </li>
+                  <li>projection coefficients (see <elementref>projectionCoefficients</elementref>);</li>
+                  <li>occupations (see <elementref>occupations</elementref>);</li>
+                  <li>charge density (see <elementref>deltadensityplot</elementref>).</li>
                 </list>
               </xs:documentation>
             </xs:annotation>
@@ -346,7 +346,7 @@
                       default="-1">
                       <xs:annotation>
                         <xs:documentation> Number of eigenvalues to be printed out
-                          for each <b>k</b>-point. When <pre>nEigenvalues</pre> is
+                          for each <bf>k</bf>-point. When <pre>nEigenvalues</pre> is
                           <inlinemath>\le 0</inlinemath>, all eigenvalues are 
                           printed out.
                         </xs:documentation>
@@ -391,7 +391,7 @@
                   </xs:complexType>
                 </xs:element>  
 
-                <xs:element ex:importance="experimental" ex:unit="" name="occupations" 
+                <xs:element ex:importance="expert" ex:unit="" name="occupations" 
                   minOccurs="0" maxOccurs="1">
                   <xs:annotation>
                     <xs:documentation> 
@@ -498,7 +498,7 @@
                     <xs:attribute ex:importance="expert" ex:unit="atomic units" name="amplitude" type="fortrandouble"
                       default="0.04d0">
                       <xs:annotation>
-                        <xs:documentation> Sets the amplitude <inlinemath>E_0</inlinemath> of the impulsive excitation
+                        <xs:documentation> Sets the "amplitude" <inlinemath>E_0</inlinemath> of the impulsive excitation
                         <inlinemath>E_0\delta(t-t_0)</inlinemath>.
                         </xs:documentation>
                       </xs:annotation>
@@ -601,8 +601,8 @@
                       <inlinemath>\phi</inlinemath> is the phase, and
                       <inlinemath>f(t)</inlinemath> is an envelope function of a sin squared type.
                       This function is zero up to the time <inlinemath>t_0</inlinemath>,
-                      then it assumes the shape of <inlinemath>sin^2(\pi (t-t_0)/T_{pulse})</inlinemath>
-                      up to a time equal to <inlinemath>t_0+T_{pulse}</inlinemath>,
+                      then it assumes the shape of <inlinemath>\sin^2(\pi (t-t_0)/T_{\rm pulse})</inlinemath>
+                      up to a time equal to <inlinemath>t_0+T_{\rm pulse}</inlinemath>,
                       after which, it becomes zero again.
                     </xs:documentation>
                   </xs:annotation>
@@ -639,7 +639,7 @@
                     <xs:attribute ex:importance="expert" ex:unit="atomic units" name="pulseLength" type="fortrandouble"
                       default="250d0">
                       <xs:annotation>
-                        <xs:documentation> The length of the pulse <inlinemath>T_{pulse}</inlinemath>.
+                        <xs:documentation> The length of the pulse <inlinemath>T_{\rm pulse}</inlinemath>.
                         </xs:documentation>
                       </xs:annotation>
                     </xs:attribute>
@@ -723,7 +723,7 @@
           </xs:element>
 
         </xs:all>
-            <xs:attribute ex:importance="expert" ex:unit="" name="calcNonlocalCurrentDensity" type="xs:boolean" default="false">
+            <xs:attribute ex:importance="experimental" ex:unit="" name="calcNonlocalCurrentDensity" type="xs:boolean" default="false">
               <xs:annotation>
                 <xs:documentation> When set to <pre>"true"</pre> the nonlocal current 
                 is calculated using RT-TDDFT with Hybrid functionals. 
@@ -779,7 +779,7 @@
               <xs:annotation>
                 <xs:documentation> Prints detailed information about times
                   required to evaluate some quantities.
-                  Only makes sense if printTimesGeneral="true"
+                  Only makes sense if <attref>printTimingGeneral</attref>=<pre>"true"</pre>.
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -787,8 +787,8 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="normalizeWF"
               type="xs:boolean" default="true">
               <xs:annotation>
-                <xs:documentation> Normalizes the WFs after applying the
-                  time-evolution operator.
+                <xs:documentation> Normalizes the wavefunctions at each time step 
+                  after applying the time-evolution operator.
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -798,7 +798,7 @@
               <xs:annotation>
                 <xs:documentation> <pre>numberOfFrozenStates</pre> of the lowest-lying 
                 states will remain in the ground state and not evolve in time. 
-                This number is the same for each k point.
+                This number is the same for each <bf>k</bf>-point.
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -808,9 +808,9 @@
               <xs:annotation>
                 <xs:documentation> Subtracts a residual current. This term
                   ideally should be zero, actually
-                  it tends to zero when the number of k-points is increased.
+                  it tends to zero when the number of <bf>k</bf>-points is increased.
                   Subtracting <inlinemath>J_0</inlinemath> might help to eliminate
-                  numerical inaccuracies for not-so-dense k-grids.
+                  numerical inaccuracies for not-so-dense <bf>k</bf>-grids.
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -818,13 +818,17 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="propagator" default="SE">
               <xs:annotation>
                 <xs:documentation>The method employed to propagate the WFs. Possible
-                  choices are: SE (simple exponential),
-                  EMR (exponential at midpoint rule),
-                  AETRS (approximate enforced time-reversal symmetry),
-                  CFM4 (Commutator-Free Magnus expansion of 4th order),
-                  EH (exponential using a basis of the hamiltonian-eigenvectors),
-                  EHM (same as before, but uses the hamiltonian at the midpoint),
-                  RK4 (Runge-Kutta of 4th order).</xs:documentation>
+                  choices are: 
+                  <list>
+                    <li> SE (simple exponential);</li>
+                    <li> EMR (exponential at midpoint rule);</li>
+                    <li> AETRS (approximate enforced time-reversal symmetry);</li>
+                    <li> CFM4 (Commutator-Free Magnus expansion of 4th order);</li>
+                    <li> EH (exponential using a basis of the hamiltonian-eigenvectors);</li>
+                    <li> EHM (same as before, but uses the hamiltonian at the midpoint);</li>
+                    <li> RK4 (Runge-Kutta of 4th order).</li>
+                  </list>
+                </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -859,7 +863,7 @@
                 that of the previous calculation. Although current support for 
                 <pre>HDF5</pre> is in a late beta stage, it is expected to become the 
                 preferred format in future releases.
-                <b>N.B.:</b> Output files in plain text format (<i>e.g.</i>, <pre>CURRENT.OUT</pre>)
+                <b>N.B.:</b> Output files in plain text format (<it>e.g.</it>, <pre>CURRENT.OUT</pre>)
                 are not affected by this setting.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
@@ -873,7 +877,7 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="TaylorOrder" type="xs:integer"
               default="4">
               <xs:annotation>
-                <xs:documentation> The order employed in the Taylor expansion (when it is used).
+                <xs:documentation> The order employed in the Taylor expansion of the propagator (when it is used).
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -882,7 +886,7 @@
               <xs:annotation>
                 <xs:documentation> Number of eigenvectors used as auxiliary basis by the propagators: 
                 <pre>EH</pre> and <pre>EHM</pre>. If a different propagator is employed, this attribute is disregarded. 
-                A negative number is interpreted as: all occupied states + <pre>nempty</pre>.
+                A negative number is interpreted as: all occupied states + <attref parent="xs">nempty</attref>.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -912,7 +916,7 @@
               type="xs:integer" default="50"> 
               <xs:annotation>
                 <xs:documentation> Determine how frequently data
-                  are printed to file. Information regarding the fields (JIND, AVEC, etc.)
+                  are printed to file. Information regarding the fields (<pre>POLARIZATION.OUT</pre>, <pre>VECTOR_POTENTIAL.OUT</pre>, etc.)
                   is accumulated and then printed at once. If <attref>saveState</attref> is <pre>"true"</pre>, 
                   a restart file is also printed out every 
                   <attref>printAfterIterations</attref> steps.
@@ -922,9 +926,14 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="vectorPotentialSolver" default="euler">
               <xs:annotation>
                 <xs:documentation>The method employed to solve the differential equation
-                  of the vector potential. Possible choices are: euler, improvedeuler
-                  (using the Leapfrog integration method), midpoint (implicit midpoint method), rk4
-                  (Runge-Kutta of 4th order). </xs:documentation>
+                  needed to get the vector potential from current density. Possible choices are: 
+                  <list>
+                    <li> euler;</li>
+                    <li> improvedeuler (using the Leapfrog integration method);</li>
+                    <li> midpoint (implicit midpoint method);</li>
+                    <li> rk4 (Runge-Kutta of 4th order).</li>
+                  </list>
+                </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -939,13 +948,16 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="eeInteraction" default="aDFT">
               <xs:annotation>
                 <xs:documentation> Approximation used for the time-dependent interelectronic interaction. 
-                  Possible choices are: aDFT (adiabatic density functional theory),
-                      IPA (independent particles approximation: time-dependent Hamiltonian 
+                  Possible choices are:
+                  <list>
+                    <li> aDFT (adiabatic density functional theory);</li>
+                    <li> IPA (independent particles approximation): time-dependent Hamiltonian 
                       <inlinemath>H(t) = H(t = 0) + V_{\rm ext}(t)</inlinemath>, where 
-                      <inlinemath>V_{\rm ext}(t)</inlinemath> describes only the interaction with external fields), 
-                      tdH (time-dependent Hartree approximation): 
+                      <inlinemath>V_{\rm ext}(t)</inlinemath> describes only the interaction with external fields;</li>
+                    <li> tdH (time-dependent Hartree approximation): 
                       <inlinemath>V_{\rm ext}(t)</inlinemath> also includes the time-dependent change in 
-                      Hartree potential. In the linear response limit, it corresponds to the random phase approximation (RPA). 
+                      Hartree potential. In the linear response limit, it corresponds to the random phase approximation (RPA).</li>
+                  </list>
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
@@ -962,7 +974,7 @@
                 <xs:documentation> Basis set used for expansion of the time-dependent Kohn-Sham 
                   orbitals. Possible choices are:
                   <list>
-                    <li>LAPWlo: global exciting basis;</li>
+                    <li>LAPWlo: global <pre>exciting</pre> basis;</li>
                     <li>unperturbedKS: basis defined by the ground-state Kohn-Sham eigenfunctions (its size is 
                     controlled by <attref parent="xs">nempty</attref> inside <elementref>xs</elementref>).</li>
                   </list>
@@ -978,12 +990,12 @@
 
             <xs:attribute ex:importance="expert" ex:unit="" name="fieldCoupling" default="velocityGauge">
               <xs:annotation>
-                <xs:documentation> The potential <inlinemath>V^{\rm ext}(t)</inlinemath> employed for
+                <xs:documentation> The potential <inlinemath>V_{\rm ext}(t)</inlinemath> employed for
                   description of the coupling with the external field. Possible choices are:
                   <list>
-                    <li>minimal coupling in velocity gauge: <inlinemath>V^{\rm ext}(t) = \frac{\mathbf{p} \cdot \mathbf{A}(t)}{c} + 
+                    <li>minimal coupling in velocity gauge: <inlinemath>V_{\rm ext}(t) = \frac{\mathbf{p} \cdot \mathbf{A}(t)}{c} + 
                     \frac{\mathbf{A}^2(t)}{2c^2} </inlinemath>;</li>
-                    <li><inlinemath>V^{\rm ext}(t) </inlinemath> is constructed using the dynamical Berry 
+                    <li><inlinemath>V_{\rm ext}(t) </inlinemath> is constructed using the dynamical Berry 
                     phase approach (see [Phys. Rev. B 69, 085106 (2004)], [Phys. Rev. B 88, 235113 (2013)]).</li>
                   </list>
                 </xs:documentation>
