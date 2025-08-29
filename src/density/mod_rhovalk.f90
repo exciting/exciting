@@ -1,8 +1,6 @@
 module mod_rhovalk
-
   use asserts, only: assert
   use constants, only: real_zero, zone, zzero
-  
   use mod_APW_LO, only: apwordmax, lofr, nlorb, lorbl
   use mod_atoms, only: natmtot, nspecies, natoms, idxas
   use mod_eigensystem, only: idxlo

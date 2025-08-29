@@ -2,14 +2,10 @@
 ! See the file COPYING for license details.
 ! Copyright (C) Exciting Code, SOL group. 2020
 
-! HISTORY
-! Created Apr 2019 (Ronaldo)
-! Improved documentation: July 2021 (Ronaldo)
 ! Reference: https://doi.org/10.1088/2516-1075/ac0c26
-
-!> Module that manages the hamiltonian and overlap in RT-TDDFT
-!> //TODO(Ronaldo): Refactor to reduce the number of global variables
-module rttddft_HamiltonianOverlap
+! TODO(Ronaldo): Refactor to reduce the number of global variables
+!> Module that manages the hamiltonian matrix in RT-TDDFT
+module rttddft_Hamiltonian
   use asserts, only: assert
   use constants, only: fourpi, zi, zone, zzero
   use mod_APW_LO, only: apword, nlorb, lorbl
@@ -34,7 +30,7 @@ module rttddft_HamiltonianOverlap
   implicit none
 
   private
-  public :: update_hamiltonian_without_pa_term_lapw, update_overlap_lapw, &
+  public :: update_hamiltonian_without_pa_term_lapw, &
     add_external_coupling_berry_phase, update_hamiltonian_without_pa_term_ks, &
     add_external_coupling_velocity_gauge
     
@@ -42,85 +38,6 @@ module rttddft_HamiltonianOverlap
   type(MTHamiltonianList) :: mt_h
 
 contains
-
-  !> In `update_overlap_lapw`, we obtain the overlap of the (L)APWs at time \( t \).
-  subroutine update_overlap_lapw( first_kpt, a_tot, overlap, apwalm, pmatmt, printTimings, &
-    t_ham, t_MD, update_mathcalH, update_mathcalB )
-    !> The first \( \mathbf{k} \) point
-    integer(i32), intent(in) :: first_kpt
-    !> Total vector potential
-    type(Vector_Potential_Field), intent(in) :: a_tot
-    !> Overlap matrix (of basis functions) (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(out) :: overlap(:, :, first_kpt :)
-    !> Matching coefficients of the (L)APWs
-    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, first_kpt :)
-    !> Muffin-tin part of the Momentum matrix
-    !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
-    complex(dp), contiguous, optional, intent(inout) :: pmatmt(:, :, :, :, first_kpt :)
-    !> Object that packs information about printing of timings
-    type(Print_Timings), optional, intent(in) :: printTimings
-    !> Object that packs information about timings to update the Hamiltonian
-    type(Timing_RTTDDFT_hamiltonian), optional, intent(out) :: t_ham
-    !> Object that packs information about timings related to MD
-    type(Timing_Ehrenfest), optional, intent(out) :: t_MD
-    !> if `.True.`, update `mathcalH`
-    logical, intent(in), optional :: update_mathcalH
-    !> if `.True.`, update `mathcalB`
-    logical, intent(in), optional :: update_mathcalB
-
-    integer(i32) :: ik, last_kpt
-    real(dp) :: ti, tf
-    logical :: timings_general, timings_detailed, get_mathcalH, get_mathcalB
-
-    ! factor that is used in overlapsetup through the module
-    atot = a_tot%components
-    fact = dot_product( atot, atot ) / (2._dp * c**2)
-
-    last_kpt = ubound( overlap, 3 )
-
-    ! Check optional arguments
-    timings_general = .False.
-    timings_detailed = .False.
-    if ( present( printTimings ) ) call printTimings%get( timings_general, timings_detailed )
-
-    get_mathcalH = .False.
-    if( present( update_mathcalH ) ) get_mathcalH = update_mathcalH
-    get_mathcalB = .False.
-    if( present( update_mathcalB ) ) get_mathcalB = update_mathcalB
-
-    ! sanity checks
-    if( timings_general ) call assert( present( t_ham ) .or. present( t_MD ), &
-      't_ham or t_MD must be present when general timing is desired' )
-    if( timings_detailed ) call assert( timings_general, 'timings_general must be true if timings_detailed is true')
-
-    if( timings_general ) call timesec( ti ) 
-
-    !$omp parallel default(none), private(ik), &
-    !$omp& shared(first_kpt, last_kpt, apwalm, pmatmt), &
-    !$omp& shared(overlap, nmat, get_mathcalH, get_mathcalB)
-    !$omp do
-    do ik = first_kpt, last_kpt
-      
-      if ( get_mathcalB .or. get_mathcalH ) then
-        call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
-          nmat(1, ik), get_mathcalB, get_mathcalH, pmatmt(:, :, :, :, ik) )
-      else
-        call overlapsetup( ik, overlap(:, :, ik), apwalm(:, :, :, :, ik), &
-          nmat(1, ik), get_mathcalB, get_mathcalH )
-      end if
-
-    end do
-    !$omp end parallel
-
-    if( timings_general ) then
-      call timesec( tf )
-      if( present( t_ham ) ) t_ham%total = t_ham%total + tf - ti
-      if( timings_detailed .and. present( t_ham ) ) t_ham%overlap = tf - ti
-      if( timings_detailed .and. present( t_MD ) ) t_MD%hamoverl = tf - ti
-    end if
-
-  end subroutine update_overlap_lapw
 
   !> In `update_hamiltonian_without_pa_term_lapw`, we obtain the explicitly 
   !> field-free hamiltonian at time \( t \) in the LAPW+lo basis.
@@ -194,7 +111,7 @@ contains
       call timesec( tf )
       if( present( t_ham ) ) t_ham%total = t_ham%total + tf - tStart
       if( timings_detailed .and. present( t_ham ) ) t_ham%rest = tf - ti
-      if( timings_detailed .and. present( t_MD ) ) t_MD%hamoverl = t_MD%hamoverl + tf - ti
+      if( timings_detailed .and. present( t_MD ) ) t_MD%ham = t_MD%ham + tf - ti
     end if
 
   end subroutine update_hamiltonian_without_pa_term_lapw
@@ -262,7 +179,7 @@ contains
         ias = idxas(ia, is)
         ! computes gaunts times radial integrals
         call me_mt_prepare( is, ias, lmaxvr, zone, veffmt(:, :, ias), zzero, &
-        mt_contribution(:, :, ias) )
+          mt_contribution(:, :, ias) )
       end do ! natoms
     end do ! nspecies
 
@@ -552,216 +469,4 @@ contains
     
   end subroutine hamsetup
 
-  !> Subroutine to calculate the overlap matrix for a given k-point.
-  !> Based on `src/src_eigensystem/overlapsetup.f90`. 
-  subroutine overlapsetup( ik, overlap, apwalm, nmatp, calculate_mathcalB, calculate_mathcalH, pmatmt )
-    !> ik: the index of the k-point considered
-    integer, intent(in)       :: ik
-    !> Overlap matrix (of basis functions) at the current k-point
-    !> (nmatmax, nmatmax)
-    complex(dp), intent(out) :: overlap(:, :)
-    !> Matching coefficients of the (L)APWs at the current k-point
-    !> (ngkmax, apwordmax, lmmaxapw, natmtot)
-    complex(dp), intent(in) :: apwalm(:, :, :, :)
-    !> `nmatp` is the dimension of the matrix for this `k-point` 
-    !> (`nmatp` \( \times \) `nmatp`)
-    integer, intent(in)       :: nmatp
-    !> calculate_mathcalB: if it is required to calculate the MT contributions 
-    !>                     to the auxiliary matrix mathcalB
-    !> calculate_mathcalH: if it is required to calculate the MT contributions 
-    !>                     to the auxiliary matrix mathcalH
-    logical, intent(in)       :: calculate_mathcalB
-    logical, intent(in)       :: calculate_mathcalH
-    !> Muffin-tin part of the Momentum matrix
-    !> (nmatmax, nmatmax, 3, natmtot)
-    complex(dp), intent(in), optional :: pmatmt(:, :, :, :)
-
-    integer                   :: i, is, ia, ias, if3, ig, j, j1, j2, igprime
-    integer                   :: l, lm1, lm2, l3, m3, lm3
-    integer                   :: io, io1, io2, maxaa, ilo, ilo1, ilo2
-    integer                   :: nmatmax, ngp, iv(3)
-    real (dp)                 :: t1
-    real (dp), parameter      :: a2=0.5_dp*alpha**2
-    complex (dp)              :: zt
-    complex (dp), allocatable :: overlcopy(:, :), aux(:, :)
-    complex (dp), allocatable :: apwi(:,:), zm(:,:), apwi2(:,:)
-
-    if ( calculate_mathcalB .or. calculate_mathcalH ) call assert( present(pmatmt), 'pmatmt must be passed as argument')
-    if ( calculate_mathcalH ) mathcalH(:,:,:,:,ik) = zzero
-    if ( calculate_mathcalB ) mathcalB(:,:,:,:,ik) = -zi*pmatmt(:,:,:,:)
-
-    ngp = ngk(1,ik)
-    maxaa = MaxAPWs()
-    allocate(apwi(maxaa,ngp))
-    allocate(apwi2(ngp, maxaa) )
-    allocate( overlcopy(nmatp, nmatp), source=zzero )
-    allocate( aux(nmatp, nmatp) )
-    overlap = zzero
-    do is = 1, nspecies
-      do ia = 1, natoms(is)
-        ! APW-APW part
-        ias = idxas (ia, is)
-        apwi = zzero
-        if3 = 0
-        do l3 = 0, input%groundstate%lmaxmat
-          do m3 = -l3, l3
-          lm3 = idxlm (l3, m3)
-            do io2 = 1, apword (l3, is)
-              if3 = if3+1
-              apwi(if3,1:ngp) = apwalm(1:ngp, io2, lm3, ias)
-            end do
-          end do
-        end do
-        apwi2 = conjg( transpose( apwi ) )
-
-        allocate( zm(ngp, maxaa) )
-        zm(:,:) = zzero
-        aux(:,:) = zzero
-        if3 = 0
-        do l3 = 0, input%groundstate%lmaxmat
-          do m3 = -l3, l3
-          lm3 = idxlm(l3, m3)
-            do io2 = 1, apword(l3, is)
-              do io1 = 1, apword (l3, is)
-                zm(1:ngp,if3+io2) = zm(1:ngp,if3+io2) + &
-                  & h1aa(io1,io2,l3,ias)*apwi2(1:ngp,if3+io1)
-              enddo
-              zm(1:ngp,if3+io2) = zm(1:ngp,if3+io2) + apwi2(1:ngp,if3+io2)
-            end do
-            if3 = if3 + apword(l3, is)
-          end do
-        end do
-        call ZGEMM('C', 'C', ngp, ngp, maxaa, zone, apwi, maxaa, zm, ngp, &
-          & zzero, aux, nmatp )
-        overlcopy(1:ngp,1:ngp) = overlcopy(1:ngp,1:ngp) + aux(1:ngp,1:ngp)
-        if ( calculate_mathcalB ) then
-          do ig = 1, ngp
-            do j = 1, 3
-              mathcalB(1:ngp,ig,j,ias,ik) = mathcalB(1:ngp,ig,j,ias,ik) + &
-                & zi*vgkc(j,ig,1,ik)*aux(1:ngp,ig)
-            end do
-          end do
-        end if
-        if ( calculate_mathcalH ) then
-          do ig = 1, ngp
-            do igprime = 1, ngp
-              mathcalH(igprime,ig,1:3,ias,ik) = mathcalH(igprime,ig,1:3,ias,ik) + &
-                & zi*( vgkc(1:3,ig,1,ik)-vgkc(1:3,igprime,1,ik) )*( &
-                & fact*aux(igprime,ig) + (1/c)*( &
-                & atot(1)*pmatmt(igprime,ig,1,ias) + &
-                & atot(2)*pmatmt(igprime,ig,2,ias) + &
-                & atot(3)*pmatmt(igprime,ig,3,ias) ) )
-            end do
-          end do
-        end if
-        deallocate( zm )
-
-        !What if it is, say, LAPW calculation without any local orbitals?
-        if ( nlorb(is) /= 0 ) then
-          ! APW-LO part
-          !--Overlap--
-          do ilo = 1, nlorb(is)
-            l = lorbl(ilo, is)
-            lm1 = idxlm(l,-l)
-            lm2 = idxlm(l, l)
-            j1 = ngp + idxlo(lm1, ilo, ias)
-            j2 = ngp + idxlo(lm2, ilo, ias)
-            aux(1:ngp,j1:j2) = zzero
-            do io = 1, apword(l, is)
-              aux(1:ngp,j1:j2) = aux(1:ngp,j1:j2) + &
-                & conjg( apwalm(1:ngp,io,lm1:lm2,ias) * &
-                & ( oalo(io, ilo, ias) + h1loa(io, ilo, ias) ) )
-            end do
-            overlcopy(1:ngp,j1:j2) = overlcopy(1:ngp,j1:j2) + aux(1:ngp,j1:j2)
-            if ( calculate_mathcalB ) then
-              do ig = 1, ngp
-                do j = 1, 3
-                  mathcalB(j1:j2,ig,j,ias,ik) = mathcalB(j1:j2,ig,j,ias,ik) + &
-                    & zi*vgkc(j,ig,1,ik)*conjg(aux(ig,j1:j2))
-                end do
-              end do
-            end if
-            if ( calculate_mathcalH ) then
-              do ig = 1, ngp
-                do j = j1, j2
-                  mathcalH(ig,j,1:3,ias,ik) = mathcalH(ig,j,1:3,ias,ik) + &
-                    & -zi*vgkc(1:3,ig,1,ik)*( aux(ig,j)*fact + (1/c)*( &
-                    & atot(1)*pmatmt(ig,j,1,ias) + &
-                    & atot(2)*pmatmt(ig,j,2,ias) + &
-                    & atot(3)*pmatmt(ig,j,3,ias) ) )
-                  mathcalH(j,ig,1:3,ias,ik) = mathcalH(j,ig,1:3,ias,ik) + &
-                    & zi*vgkc(1:3,ig,1,ik)*( conjg(aux(ig,j))*fact + (1/c)*( &
-                    & atot(1)*pmatmt(j,ig,1,ias) + &
-                    & atot(2)*pmatmt(j,ig,2,ias) + &
-                    & atot(3)*pmatmt(j,ig,3,ias) ) )
-                end do
-              end do
-            end if
-            do j = j1, j2
-              overlcopy(j, 1:ngp)=conjg( overlcopy(1:ngp, j) )
-            end do
-          end do
-          ! LO-LO part
-          !--Overlap--
-          do ilo1 = 1, nlorb(is)
-            l = lorbl(ilo1,is)
-            do ilo2 = 1, nlorb(is)
-              if (lorbl(ilo2,is) .eq. l) Then
-                lm1 = idxlm(l,-l)
-                j1 = ngp + idxlo(lm1,ilo1,ias)
-                j2 = ngp + idxlo(lm1,ilo2,ias)
-                do lm2 = idxlm(l,-l), idxlm(l, l)
-                    overlcopy(j1+lm2-lm1,j2+lm2-lm1) = &
-                    & overlcopy(j1+lm2-lm1,j2+lm2-lm1) + &
-                    & dcmplx(ololo(ilo1,ilo2,ias) + h1lolo(ilo1,ilo2,ias),0._dp)
-                enddo
-              end if
-            end do ! do ilo2 = 1, nlorb(is)
-          end do ! do ilo1 = 1, nlorb(is)
-        endif ! if ( nlorb(is) /= 0 ) then
-      end do ! do ia = 1, natoms(is)
-    end do ! do is = 1, nspecies
-
-    ! interstitial contributions
-    if (input%groundstate%ValenceRelativity /= "none") then
-      do j = 1, ngp
-        do i = 1, j
-          iv(:) = ivg(:,igkig(i,1,ik)) - ivg(:,igkig(j,1,ik))
-          ig = ivgig(iv(1),iv(2),iv(3))
-          if ((ig .gt. 0) .and. (ig .le. ngvec)) then
-            t1 = 0.5_dp*dot_product(vgkc(:,i,1,ik),vgkc(:,j,1,ik))
-            ! overlap
-            zt = cfunig(ig)
-            if ( input%groundstate%ValenceRelativity == 'iora*' ) then
-              t1 = a2*t1
-              zt = t1*m2effig(ig) + zt
-            end if
-            overlcopy(i,j) = overlcopy(i,j) + zt
-            overlcopy(j,i) = conjg(overlcopy(i,j))
-          end if ! if ((ig .gt. 0) .and. (ig .le. ngvec))
-        end do ! do i = 1, j
-      end do ! do j = 1, ngp
-    else
-      do j = 1, ngp
-        do i = 1, j
-          iv(:) = ivg(:,igkig(i,1,ik)) - ivg(:,igkig(j,1,ik))
-          ig = ivgig(iv(1),iv(2),iv(3))
-          if ((ig .gt. 0) .and. (ig .le. ngvec)) then
-            t1 = 0.5_dp*dot_product(vgkc(:,i,1,ik),vgkc(:,j,1,ik))
-            overlcopy(i,j) = overlcopy(i,j) + cfunig(ig)
-            overlcopy(j,i) = conjg(overlcopy(i,j))
-          end if ! if ((ig .gt. 0) .and. (ig .le. ngvec))
-        end do ! do i = 1, j
-      end do ! do j = 1, ngp
-    endif
-
-    nmatmax = size( overlap, 1 )
-    overlap(1:nmatp, 1:nmatp) = overlcopy(1:nmatp, 1:nmatp)
-    ! Fill other elements, so that the rest of overlap is the identity matrix
-    do concurrent( i = nmatp+1:nmatmax )
-      overlap(i, i) = zone
-    end do
-
-  end subroutine overlapsetup
-
-end module rttddft_HamiltonianOverlap
+end module rttddft_Hamiltonian

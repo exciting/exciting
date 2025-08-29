@@ -422,54 +422,53 @@ contains
     !> Does timings about MD need to be printed?
     logical, intent(in), optional :: molecular_dynamics
     
-    integer  :: ip, shift, n
+    integer(i32) :: ip, shift, n
     logical  :: MD
 
     n = size( timing )
-
     shift = itNumber - n
     MD = .False.
     if( present(molecular_dynamics) ) MD = molecular_dynamics
 
     do ip = 1, n
       associate( t_rttddft => timing(ip)%t_RTTDDFT )
-      write( file_time, '(A30,I10)' ) 'Time (sec) spent in iteration:', ip + shift
-      call write_nonzero_timing( 'updatewvf:', t_rttddft%wavefunction )
-      call write_nonzero_timing( 'updatedens:', t_rttddft%dens%total )
-      call write_nonzero_timing( '-- rhovalk and genrhoir:', t_rttddft%dens%rho )
-      call write_nonzero_timing( '-- symrf:', t_rttddft%dens%symrf )
-      call write_nonzero_timing( '-- rfmtctof:', t_rttddft%dens%rfmtctof )
-      call write_nonzero_timing( '-- addrhocr:', t_rttddft%dens%addrhocr )
-      call write_nonzero_timing( '-- charge:', t_rttddft%dens%charge )
-      call write_nonzero_timing( '-- rhonorm:', t_rttddft%dens%rhonorm )
-      call write_nonzero_timing( '-- basis:', t_rttddft%dens%basis )
-      call write_nonzero_timing( 'updatepot:', t_rttddft%pot%total )
-      call write_nonzero_timing( '-- poteff:', t_rttddft%pot%poteff )
-      call write_nonzero_timing( '-- genveffig:', t_rttddft%pot%genveffig )
-      call write_nonzero_timing( '-- genmeffig:', t_rttddft%pot%genmeffig )
-      call write_nonzero_timing( 'UpdateCurrentDensity:', t_rttddft%current_density )
-      call write_nonzero_timing( 'ObtainA:', t_rttddft%vector_potential )
-      call write_nonzero_timing( 'Berry-phase related:', t_rttddft%td_berry )
-      call write_nonzero_timing( 'updatehamiltonian:', t_rttddft%ham%total )
-      call write_nonzero_timing( '-- overlap:', t_rttddft%ham%overlap )
-      call write_nonzero_timing( '-- hmlint:', t_rttddft%ham%hmlint )
-      call write_nonzero_timing( '-- other subs:', t_rttddft%ham%rest )
-      call write_nonzero_timing( 'All cycles of predcorr:', t_rttddft%pred_corr )
-      call write_nonzero_timing( 'Total Energy:', t_rttddft%energy )
-      call write_nonzero_timing( 'nexc:', t_rttddft%n_exc )
-      call write_nonzero_timing( 'Screenshots:', t_rttddft%screenshot )
-      call write_nonzero_timing( 'Print:', t_rttddft%t_print )
+        write( file_time, '(A30,I10)' ) 'Time (sec) spent in iteration:', ip + shift
+        call write_nonzero_timing( 'updatewvf:', t_rttddft%wavefunction )
+        call write_nonzero_timing( 'updatedens:', t_rttddft%dens%total )
+        call write_nonzero_timing( '-- rhovalk and genrhoir:', t_rttddft%dens%rho )
+        call write_nonzero_timing( '-- symrf:', t_rttddft%dens%symrf )
+        call write_nonzero_timing( '-- rfmtctof:', t_rttddft%dens%rfmtctof )
+        call write_nonzero_timing( '-- addrhocr:', t_rttddft%dens%addrhocr )
+        call write_nonzero_timing( '-- charge:', t_rttddft%dens%charge )
+        call write_nonzero_timing( '-- rhonorm:', t_rttddft%dens%rhonorm )
+        call write_nonzero_timing( '-- basis:', t_rttddft%dens%basis )
+        call write_nonzero_timing( 'updatepot:', t_rttddft%pot%total )
+        call write_nonzero_timing( '-- poteff:', t_rttddft%pot%poteff )
+        call write_nonzero_timing( '-- genveffig:', t_rttddft%pot%genveffig )
+        call write_nonzero_timing( '-- genmeffig:', t_rttddft%pot%genmeffig )
+        call write_nonzero_timing( 'UpdateCurrentDensity:', t_rttddft%current_density )
+        call write_nonzero_timing( 'ObtainA:', t_rttddft%vector_potential )
+        call write_nonzero_timing( 'Berry-phase related:', t_rttddft%td_berry )
+        call write_nonzero_timing( 'updatehamiltonian:', t_rttddft%ham%total )
+        call write_nonzero_timing( '-- hmlint:', t_rttddft%ham%hmlint )
+        call write_nonzero_timing( '-- other subs:', t_rttddft%ham%rest )
+        call write_nonzero_timing( 'All cycles of predcorr:', t_rttddft%pred_corr )
+        call write_nonzero_timing( 'Total Energy:', t_rttddft%energy )
+        call write_nonzero_timing( 'nexc:', t_rttddft%n_exc )
+        call write_nonzero_timing( 'Screenshots:', t_rttddft%screenshot )
+        call write_nonzero_timing( 'Print:', t_rttddft%t_print )
       end associate
       if( MD ) then
         associate( t_MD => timing(ip)%t_Ehrenfest )
-        call write_nonzero_timing( 'MD:', t_MD%t_MD_step )
-        call write_nonzero_timing( '-- 1st part of forces:', t_MD%t_MD_1st )
-        call write_nonzero_timing( '-- 2nd part of forces:', t_MD%t_MD_2nd )
-        call write_nonzero_timing( '-- sum forces:', t_MD%t_MD_sumforces )
-        call write_nonzero_timing( '-- move ions:', t_MD%t_MD_moveions )
-        call write_nonzero_timing( '-- update basis:', t_MD%t_MD_updateBasis )
-        call write_nonzero_timing( '-- update H, S:', t_MD%hamoverl )
-        call write_nonzero_timing( '-- update pmat:', t_MD%pmat )
+          call write_nonzero_timing( 'MD:', t_MD%t_MD_step )
+          call write_nonzero_timing( '-- 1st part of forces:', t_MD%t_MD_1st )
+          call write_nonzero_timing( '-- 2nd part of forces:', t_MD%t_MD_2nd )
+          call write_nonzero_timing( '-- sum forces:', t_MD%t_MD_sumforces )
+          call write_nonzero_timing( '-- move ions:', t_MD%t_MD_moveions )
+          call write_nonzero_timing( '-- update basis:', t_MD%t_MD_updateBasis )
+          call write_nonzero_timing( '-- update H:', t_MD%ham )
+          call write_nonzero_timing( '-- update S:', t_MD%overlap%total )
+          call write_nonzero_timing( '-- update pmat:', t_MD%pmat )
         end associate
       end if
       write( file_time, format_timing ) 'time per iteration:', timing(ip)%t_iteration

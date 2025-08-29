@@ -46,15 +46,15 @@ module rttddft_init
   use rttddft_electric_field, only: Electric_Field
   use rttddft_file_names, only: filename_avec, filename_evec, filename_jind, filename_pvec, RTTDDFT_GND_sufix
   use rttddft_GlobalMDVariables, only: B_past, B_time, mathcalH, mathcalB
-  use rttddft_HamiltonianOverlap, only: update_hamiltonian_without_pa_term_lapw, &
-    update_overlap_lapw, update_hamiltonian_without_pa_term_ks, &
-    add_external_coupling_velocity_gauge, add_external_coupling_berry_phase
+  use rttddft_Hamiltonian, only: add_external_coupling_berry_phase, add_external_coupling_velocity_gauge, &
+    update_hamiltonian_without_pa_term_ks, update_hamiltonian_without_pa_term_lapw
   use rttddft_hybrids, only: hybrids_used, Set_Dimension_mixed_product_basis, set_barecoul_basis
   use rttddft_input, only: rttddft_input_keys
   use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, file_pmat_mt_exists, &
     read_pmat_mt, write_pmat_mt, write_file_info, write_file_info_fill_line_with_char, &
     get_filename_pmat, get_filename_pmat_mt, read_wavefunction, groundstate, t, t_minus_dt, &
     read_phases
+  use rttddft_Overlap, only: update_overlap_lapw
   use rttddft_pmat, only: obtain_pmat_LAPWloBasis, obtain_pmat_KSBasis
   use rttddft_Polarization, only: Polarization
   use rttddft_potential, only: update_potential
@@ -68,7 +68,7 @@ module rttddft_init
   
   private
   
-  public :: initialize_rttddft
+  public :: initialize_rttddft, initialize_me
 
 contains
 !> This subroutine initializes many variables used in a RT-TDDFT calculation.
@@ -171,12 +171,14 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   ! a one shot GS calculation serves no purpose
   if ( .not. hybrids_used() ) call gndstateq( input%xs%vkloff, RTTDDFT_GND_sufix//filext )
 
+  ! Generate k, G, G+k vectors
   call generate_k_vectors( kset_rttddft, bvec, input%groundstate%ngridk, input%xs%vkloff, .false., .false. )
+  call generate_G_vectors( Gset, bvec, intgv, input%groundstate%gmaxvr )
+  call generate_Gk_vectors( Gkset, kset_rttddft, Gset, gkmax )
+  ! Distribute k-points over MPI ranks
   call distribute_loop( mpi_env_k, kset_rttddft%nkpt, first_kpt, last_kpt )
   
   evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt_inp%eeInteraction%use_ipa() ) )
-  if ( (rt_inp%use_ks_basis() .and. evolve_H0) .or. rt_inp%use_berry_phase() ) &
-    call init_me_evaluation( kset_rttddft, Gkset, Gset )
   
   ! Neighbour is a k point from another MPI rank, which is reachable in 1 or 2 jumps
   ! by one of the k points controlled by the current MPI rank
@@ -220,6 +222,9 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   if ( rt_inp%use_ks_basis() ) k_dependent_dims = ham_dimension
 
   call read_WF_potential_rttddft( first_kpt, kset_rttddft, psi_gnd_lapwlo(:, :, first_kpt : last_kpt), occupations, initial_ks_energies )
+  ! Attention: `me_init` must be called after `read_WF_potential_rttddft`, since it initialize radial functions
+  call initialize_me( Gset )
+  
   do ik = first_kpt, last_kpt
     ! Matching coefficients (apwalm)
     call match( ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm(:, :, :, :, ik) )
@@ -336,10 +341,10 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
 
   if ( .not. evolve_H0 .and. rt_inp%use_lapwlo_basis() ) then ! obtain H_0 with the GS density and KS potential
     a_aux%components = 0._dp
-    call update_overlap_lapw( first_kpt, a_aux, overlap, apwalm, pmatmt, &
-    update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
+    call update_overlap_lapw( first_kpt, overlap, apwalm, Gkset, pmatmt=pmatmt, a_tot=a_aux, &
+      update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
     call update_hamiltonian_without_pa_term_lapw( first_kpt, a_aux, ham_time, apwalm, &
-    update_mathcalH=allocated( mathcalH ) )
+      update_mathcalH=allocated( mathcalH ) )
     ham_init = ham_time
   end if
 
@@ -374,7 +379,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       call update_potential( coulomb_only =  rt_inp%eeInteraction%coulomb_only() )
 
       if ( rt_inp%use_lapwlo_basis() ) then
-        call update_overlap_lapw( first_kpt, a_tot_t_minus_dt, overlap, apwalm, pmatmt, &
+        call update_overlap_lapw( first_kpt, overlap, apwalm, Gkset, pmatmt=pmatmt, a_tot=a_tot_t_minus_dt, &
           update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
       end if
 
@@ -408,7 +413,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
 
   if( evolve_H0 .or. rt_inp%restart_previous_calculation() ) then
     if ( rt_inp%use_lapwlo_basis() ) then
-      call update_overlap_lapw( first_kpt, vec_pot%a_tot, overlap, apwalm, pmatmt, &
+      call update_overlap_lapw( first_kpt, overlap, apwalm, Gkset, pmatmt=pmatmt, a_tot=vec_pot%a_tot, &
         update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
       call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, &
       update_mathcalH=allocated( mathcalH ) )
@@ -452,27 +457,18 @@ subroutine allocate_MD_globals(first_kpt, last_kpt, allocate_mathcalH, &
 
 end subroutine
 
-!> Generates the \( \mathbf{G} + \mathbf{k} \) and \( \mathbf{G} \) vectors sets 
-!> needed for the matrix elements evaluation and calls the mt_init subroutine
-subroutine init_me_evaluation( kset_rttddft, Gkset, Gset )
-
-  !> Set of \( \mathbf{k} \) vectors
-  type(k_set), intent(in) :: kset_rttddft
-  !> Set of \( \mathbf{G} + \mathbf{k} \) vectors for LAPW expansion
-  type(Gk_set), intent(out) :: Gkset
+!> Generate the basis type needed for the matrix elements evaluation and call `mt_init`
+subroutine initialize_me( Gset )
   !> Set of \( \mathbf{G} \) vectors for LAPW expansion
-  type(G_set), intent(out) :: Gset
+  type(G_set), intent(in) :: Gset
   
   type(mt_basis_type) :: me_basis
-
-  call generate_G_vectors( Gset, bvec, intgv, input%groundstate%gmaxvr )
-  call generate_Gk_vectors( Gkset, kset_rttddft, Gset, gkmax )
 
   me_basis = mt_basis_type( spr(:, 1 : nspecies), nrmt(1 : nspecies), apwfr, lofr, &
     input%groundstate%lmaxapw, apword(:, 1 : nspecies), nlorb(1 : nspecies), lorbl(:, 1 : nspecies) )
   call me_init( me_basis, input%groundstate%lmaxvr, Gset )
   
-end subroutine init_me_evaluation
+end subroutine initialize_me
 
 !> Output general information about the RT-TDDFT calculation using [[write_file_info]]
 subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, psi, &
