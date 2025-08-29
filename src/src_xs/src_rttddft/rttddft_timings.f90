@@ -23,16 +23,6 @@ module rttddft_timings
     procedure, public :: detailed
   end type
 
-  !> Type to store timings for Ehrenfest MD
-  type, public, extends (MD_timing) :: Timing_Ehrenfest
-    !> time to recalculate `pmat` in an Ehrenfest MD step
-    real(dp) :: pmat
-    !> time to recalculate the hamiltonian and overlap matrices in an Ehrenfest MD step
-    real(dp) :: hamoverl
-  contains
-    procedure :: reset => reset_Timing_Ehrenfest
-  end type
-
   !> Type to store timings related to the update of the density in RT-TDDFT
   type, public :: Timing_RTTDDFT_density
     !> timing: total time spent to update the density
@@ -79,11 +69,16 @@ module rttddft_timings
     !> timing: time spent after executing `hmlint` until the update of the 
     !> hamiltonian has been concluded, see [[update_hamiltonian_without_pa_term_lapw]]
     real(dp) :: rest
-    !> timing: update of the overlap via execution of `update_overlap_lapw`, see [[update_overlap_lapw]]
-    real(dp) :: overlap
   contains
     procedure :: reset => reset_Timing_RTTDDFT_hamiltonian
   end type 
+
+  type, public :: Timing_RTTDDFT_overlap
+    !> timing: update of the overlap via execution of `update_overlap_lapw`, see [[update_overlap_lapw]]
+    real(dp) :: total
+  contains
+    procedure :: reset => reset_Timing_RTTDDFT_overlap
+  end type
 
   !> This type stores the time (in seconds) spent in the procedures of RT-TDDFT
   type, public :: Timing_RTTDDFT
@@ -99,7 +94,7 @@ module rttddft_timings
     real(dp) :: vector_potential
     !> timing: evaluation of the time-dependent overlap and berry phase coupling term
     real(dp) :: td_berry
-    !> object to store timings spent in the update of the KS potential
+    !> object to store timings spent in the update of the KS hamiltonian
     type(Timing_RTTDDFT_hamiltonian) :: ham
     !> timing: predictor-corrector loop
     real(dp) :: pred_corr
@@ -113,6 +108,18 @@ module rttddft_timings
     real(dp) :: t_print
   contains
     procedure :: reset => reset_Timing_RTTDDFT
+  end type
+
+  !> Type to store timings for Ehrenfest MD
+  type, public, extends (MD_timing) :: Timing_Ehrenfest
+    !> time to recalculate `pmat` in an Ehrenfest MD step
+    real(dp) :: pmat
+    !> time to recalculate the hamiltonian matrix in an Ehrenfest MD step
+    real(dp) :: ham
+    !> time to recalculate the overlap matrix in an Ehrenfest MD step
+    type(Timing_RTTDDFT_overlap) :: overlap
+  contains
+    procedure :: reset => reset_Timing_Ehrenfest
   end type
 
   type, public :: Timing_RTTDDFT_and_MD
@@ -187,8 +194,9 @@ contains
     class(Timing_Ehrenfest), intent(inout) :: this
 
     call this%reset_MD_timing()
+    call this%overlap%reset()
     this%pmat = 0._dp
-    this%hamoverl = 0._dp
+    this%ham = 0._dp
 
   end subroutine reset_Timing_Ehrenfest
 
@@ -222,9 +230,13 @@ contains
     this%total = 0._dp
     this%hmlint = 0._dp
     this%rest = 0._dp
-    this%overlap = 0._dp
-
   end subroutine reset_Timing_RTTDDFT_hamiltonian
+
+  pure subroutine reset_Timing_RTTDDFT_overlap( this )
+    class(Timing_RTTDDFT_overlap), intent(inout) :: this
+
+    this%total = 0._dp
+  end subroutine
 
   !> Check the clock (current execution time, in seconds) and store the 
   !> difference between the current time and `ti` (passed as `inout` argument).  

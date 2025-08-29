@@ -3,7 +3,7 @@
 module rttddft_sanity_checks
   use constants, only: real_zero
   use modinput, only: input_type
-  use modmpi, only: terminate_if_false
+  use modmpi, only: terminate, terminate_if_false
   use physical_constants, only: c
   use precision, only: dp, i32, sp
   use rttddft_electric_field, only: Electric_Field
@@ -37,6 +37,9 @@ contains
     ! Consistency check: check if no spin polarized calculations are requested.
     call terminate_if_false( .not. inp%groundstate%tevecsv, &
       & 'Error: only spin unpolarised calculations are possible with RT-TDDFT now.' )
+    ! iora*
+    if( trim(inp%groundstate%ValenceRelativity) == "iora*" ) call terminate( &
+      & 'Error: RT-TDDFT not implemented for ValenceRelativity="iora*"'   )
 
     ! Consistency check: laser has been defined?
     call terminate_if_false( associated( inp%xs%realTimeTDDFT%laser ), &

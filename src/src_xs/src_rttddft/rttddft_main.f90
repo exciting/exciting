@@ -31,10 +31,9 @@ module rttddft_main
   use rttddft_electric_field, only: Electric_Field, obtain_electric_field
   use rttddft_Energy, only: TotalEnergy, obtain_energy_rttddft
   use rttddft_GlobalMDVariables
-  use rttddft_HamiltonianOverlap, only: update_hamiltonian_without_pa_term_lapw, &
-    update_overlap_lapw, update_hamiltonian_without_pa_term_ks, &
-    add_external_coupling_velocity_gauge, add_external_coupling_berry_phase
-  use rttddft_init, only: initialize_rttddft
+  use rttddft_Hamiltonian, only: add_external_coupling_berry_phase, add_external_coupling_velocity_gauge, &
+    update_hamiltonian_without_pa_term_ks, update_hamiltonian_without_pa_term_lapw
+  use rttddft_init, only: initialize_me, initialize_rttddft
   use rttddft_input, only: rttddft_input_keys
   use rttddft_io, only: open_files_vector_fields, close_files_vector_fields, read_vector_field, write_vector_field, &
     open_file_timing, close_file_timing, write_timing, &
@@ -47,6 +46,7 @@ module rttddft_main
     MD_allocate_global_arrays => allocate_global_arrays, &
     MD_deallocate_global_arrays => deallocate_global_arrays, &
     MD_evaluate_charge_val => evaluate_charge_val
+  use rttddft_Overlap, only: update_overlap_lapw
   use rttddft_Polarization, only: Polarization
   use rttddft_pmat, only: obtain_pmat_LAPWLOBasis
   use rttddft_potential, only: update_potential
@@ -208,12 +208,13 @@ contains
         call read_state_Ehrenfest_MD( nuclei_motion, rt%restart_file_handler, mpi_env_k )
         call nuclei_motion%update_globals( )
         call update_exciting_globals_for_new_ions_positions( first_kpt, apwalm )
+        call initialize_me( Gset )
         if( molecular_dynamics%update_overlap .or. allocated(mathcalH) .or. &
             & allocated(mathcalB) .or. molecular_dynamics%update_pmat ) then
           if( molecular_dynamics%update_pmat ) &
             call obtain_pmat_LAPWLOBasis( first_kpt, rt%pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
-          if( molecular_dynamics%update_overlap ) call update_overlap_lapw( first_kpt, vec_pot%a_tot, overlap, &
-            apwalm, pmatmt, update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
+          if( molecular_dynamics%update_overlap ) call update_overlap_lapw( first_kpt, overlap, apwalm, Gkset, &
+            pmatmt=pmatmt, a_tot=vec_pot%a_tot, update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
           if( propagator%extrapolation_needed() ) ham_past = ham_time  
           call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, &
             ham_time, apwalm, update_mathcalH=allocated( mathcalH ) )
@@ -443,9 +444,11 @@ contains
               end if
             if( propagator%extrapolation_needed() ) ham_past = ham_time  
 
-            if ( molecular_dynamics%update_overlap ) call update_overlap_lapw( first_kpt, vec_pot%a_tot, overlap, &
-              apwalm, pmatmt, rt%printTimings, timing%t_RTTDDFT%ham, timing%t_Ehrenfest, &
-              update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
+            if ( molecular_dynamics%update_overlap ) then
+              call initialize_me( Gset )
+              call update_overlap_lapw( first_kpt, overlap, apwalm, Gkset, timing%t_Ehrenfest%overlap, pmatmt, vec_pot%a_tot, &
+                update_mathcalH=allocated( mathcalH ), update_mathcalB=allocated( mathcalB ) )
+            end if
 
             call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, &
               rt%printTimings, timing%t_RTTDDFT%ham, timing%t_Ehrenfest, update_mathcalH=allocated( mathcalH ) )
@@ -538,7 +541,7 @@ contains
       call write_state_Ehrenfest_MD( nuclei_motion, rt%restart_file_handler, mpi_env_k )
       call deallocate_global_arrays()
     end if
-    if( .not. psi%expanded_in_lapwlo() ) call me_finit()
+    call me_finit()
 
     if ( my_rank_writes_to_output ) then
       call write_file_info( 'Real-time TDDFT calculation finished' )

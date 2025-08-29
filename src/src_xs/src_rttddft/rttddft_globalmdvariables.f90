@@ -45,8 +45,7 @@ contains
 subroutine update_exciting_globals_for_new_ions_positions( first_kpt, apwalm )
   !> index of the first k-point
   integer(i32), intent(in) :: first_kpt
-  !> Matching coefficients of the (L)APWs
-  !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+  !> Matching coefficients of the (L)APWs (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
   complex(dp), contiguous, intent(inout) :: apwalm(:, :, :, :, first_kpt :)
 
   integer(i32) :: ik, i_spin, last_kpt
