@@ -67,7 +67,7 @@ contains
     !> Enum telling which states should be used for density evaluation
     integer(kind( density_case )), optional, intent(in) :: dens_case
 
-    integer(i32) :: i, last_kpt
+    integer(i32) :: last_kpt
     real(dp) :: ti 
     logical :: timings_general, timings_detailed, add_frozen
     integer(kind( density_case )) :: dens_case_

@@ -7,6 +7,7 @@ module rttddft_Wavefunction_test
   use constants, only: zone, zi, sqrt_two
   use exciting_mpi, only: mpiinfo
   use math_utils, only: all_close
+  use rttddft_Overlap, only: overlap_set
   use rttddft_Wavefunction, only: obtain_occupations, wavefunction_set, initialize_wavefunction_set
   use unit_test_framework, only : unit_test_type
   use xlapack, only: solve_generalized_hermitian_eigenproblem
@@ -39,7 +40,7 @@ contains
     call test_report%init(n_assertions, mpiglobal)
 
     ! Run and assert tests
-    call test_obtain_occupations( 'SE', test_report )
+    call test_obtain_occupations( test_report )
     call test_obtain_number_excitations( mpiglobal, test_report )
 
     ! report results
@@ -55,9 +56,7 @@ contains
   end subroutine
 
   
-  subroutine test_obtain_occupations( method, test_report )
-    !> Name of the propagator to be tested
-    character(len=*), intent(in) :: method
+  subroutine test_obtain_occupations( test_report )
     !> Our test object
     type(unit_test_type), intent(inout) :: test_report
 
@@ -105,7 +104,8 @@ contains
     integer(i32) :: ik, n_kpt, n_kpt_per_rank, first_k, last_k, test_counter
     real(dp) :: n_exc, n_gs, n_exc_ref, n_gs_ref, eigs_gnd(n_states_gnd), eigs(n_states)
     real(dp), allocatable :: wkpt(:), occ_gnd(:, :), occ(:)
-    complex(dp), allocatable :: H_gnd(:, :), H(:, :), S(:, :), overlap(:, :, :), aux(:, :)
+    complex(dp), allocatable :: H_gnd(:, :), H(:, :), S_aux(:, :), aux(:, :), overlap(:, :, :)
+    type(overlap_set) :: S
     complex(dp), allocatable :: psi_gnd(:, :, :), tmp(:, :), proj(:, :), psi_t(:, :, :)
     class(wavefunction_set), allocatable :: psi, psi_no_frozen
 
@@ -116,17 +116,17 @@ contains
     wkpt = wkpt/sum( wkpt )
     first_k = n_kpt_per_rank*( mpiglobal%rank ) + 1
     last_k = first_k + n_kpt_per_rank - 1
-    allocate( overlap(n_dim, n_dim, n_kpt), occ_gnd(n_states_gnd, n_kpt) )
+    allocate( occ_gnd(n_states_gnd, n_kpt), overlap(n_dim, n_dim, n_kpt) )
     allocate( psi_gnd(n_dim, n_states_gnd, n_kpt), psi_t(n_dim, n_frozen + n_states, n_kpt) )
     H_gnd = complex_hermitian_matrix_5x5
     aux = conjg(complex_matrix_5x5)
     aux = transpose(aux) + complex_matrix_5x5
     do ik = 1, n_kpt
       overlap(:, :, ik) = complex_positive_definite_matrix_5x5
-      S = overlap(:, :, ik); H = H_gnd
-      call solve_generalized_hermitian_eigenproblem( H, S, tol, eigs_gnd, psi_gnd(:, :, ik) )
-      S = overlap(:, :, ik); H = H_gnd + ik*aux
-      call solve_generalized_hermitian_eigenproblem( H, S, tol, eigs, psi_t(:, :, ik) )
+      S_aux = overlap(:, :, ik); H = H_gnd
+      call solve_generalized_hermitian_eigenproblem( H, S_aux, tol, eigs_gnd, psi_gnd(:, :, ik) )
+      S_aux = overlap(:, :, ik); H = H_gnd + ik*aux
+      call solve_generalized_hermitian_eigenproblem( H, S_aux, tol, eigs, psi_t(:, :, ik) )
       occ_gnd(1:i_VBM, ik) = 2._dp
       occ_gnd(i_CBm:, ik) = 0._dp
       if( modulo(n_kpt, ik) == 1 ) then
@@ -134,6 +134,8 @@ contains
         occ_gnd(i_CBm, ik) = occ_gnd(i_CBm, ik) + real(ik, dp)/n_kpt
       end if
     end do
+    call S%allocate( .true., n_dim, first_k, last_k )
+    S%array = overlap(:, :, first_k:last_k)
     call initialize_wavefunction_set( psi, .true., .false., n_frozen, psi_gnd(:, :, first_k:last_k), occ_gnd(:, first_k:last_k), tol )
     psi%active = psi_t(:, n_frozen + 1:, first_k:last_k)
 
@@ -149,16 +151,14 @@ contains
     end do
     ! Obtain n_exc and n_gs
     test_counter = 1
-    call psi%obtain_number_excitations( overlap(:, :, first_k:last_k), tol, &
-      occ_gnd(:, first_k:last_k), wkpt(first_k:last_k), mpiglobal, n_exc, n_gs )
+    call psi%obtain_number_excitations( S, tol, occ_gnd(:, first_k:last_k), wkpt(first_k:last_k), mpiglobal, n_exc, n_gs )
     call test_report%assert( all_close( n_exc, n_exc_ref, tol ), report_message( test_identifier, 'n_exc', test_counter ) )
     call test_report%assert( all_close( n_gs, n_gs_ref, tol ), report_message( test_identifier, 'n_gs', test_counter ) )
 
     ! Test case with no excited states
     test_counter = test_counter + 1
     psi%active = psi%groundstate(:, psi%first_active(): psi%n_occupied(), :)
-    call psi%obtain_number_excitations( overlap(:, :, first_k:last_k), tol, &
-      occ_gnd(:, first_k:last_k), wkpt(first_k:last_k), mpiglobal, n_exc, n_gs )
+    call psi%obtain_number_excitations( S, tol, occ_gnd(:, first_k:last_k), wkpt(first_k:last_k), mpiglobal, n_exc, n_gs )
 
     call test_report%assert( all_close( n_exc, 0._dp, tol ), report_message( test_identifier, 'n_exc', test_counter ) )
     call test_report%assert( all_close( n_gs, sum(occ_gnd(:, 1)), tol ), report_message( test_identifier, 'n_gs', test_counter ) )
@@ -178,8 +178,7 @@ contains
       n_exc_ref = n_exc_ref + wkpt(ik)*sum( occ, occ_gnd(:, ik) <= tol )
     end do
     ! Obtain n_exc and n_gs
-    call psi_no_frozen%obtain_number_excitations( overlap(:, :, first_k:last_k), tol, &
-      occ_gnd(:, first_k:last_k), wkpt(first_k:last_k), mpiglobal, n_exc, n_gs )
+    call psi_no_frozen%obtain_number_excitations( S, tol, occ_gnd(:, first_k:last_k), wkpt(first_k:last_k), mpiglobal, n_exc, n_gs )
 
     call test_report%assert( all_close( n_exc, n_exc_ref, tol ), report_message( test_identifier, 'n_exc', test_counter ) )
     call test_report%assert( all_close( n_gs, n_gs_ref, tol ), report_message( test_identifier, 'n_gs', test_counter ) )

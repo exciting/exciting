@@ -11,11 +11,12 @@
 module rttddft_Wavefunction
   use asserts, only: assert
   use constants, only: zone, zzero, zi
-  use exciting_mpi, only: xmpi_allgather
+  use exciting_mpi, only: mpiinfo, xmpi_allgather, xmpi_allreduce
   use modmpi, only: mpiglobal
   use normalize, only: normalize_vectors
   use precision, only: dp, i32
   use projection, only: project_y_onto_x
+  use rttddft_Overlap, only: overlap_set
   use to_char_conversion, only: to_char
   use xlapack, only: hermitian_matrix_multiply, matrix_multiply
 
@@ -50,7 +51,7 @@ module rttddft_Wavefunction
       procedure :: n_empty
       procedure :: n_occupied
       procedure :: expanded_in_lapwlo
-      procedure :: obtain_number_excitations
+      procedure :: obtain_number_excitations => wavefunction_set_obtain_number_excitations
   end type
 
   !> Type to encapsulate the wavefunction set expanded in the LAPW+lo basis
@@ -202,45 +203,38 @@ contains
     this%active = this%active_save
   end subroutine
 
-  !> Normalize the wavefunctions \(|\Psi_{i\mathbf{k}}\rangle\)
+  !> Normalize the wavefunctions \(|\Psi_{i\mathbf{k}}\rangle\).   
   !> It is essentially a wrapper to the subroutine [[normalize_vectors]]
-  subroutine normalize_wavefunctions( this, overlap_matrices, normalize_all )
+  subroutine normalize_wavefunctions( this, S, normalize_all )
     class(wavefunction_set), intent(inout) :: this
-    !> Overlap matrices of the basis functions
-    complex(dp), intent(in) :: overlap_matrices(:, :, :)
+    !> Object that encapsulates the overlap matrices
+    class(overlap_set), intent(in) :: S
     !> If `.true.`, frozen, save, and ground components are also normalized
     logical, optional, intent(in) :: normalize_all
 
-    integer(i32) :: ik, nkpts
-    logical :: normalize_all_
+    logical :: local_normalize_all
 
-    normalize_all_ = .false.
-    if ( present( normalize_all ) ) normalize_all_ = normalize_all
-    nkpts = this%n_kpts()
+    local_normalize_all = .false.
+    if ( present( normalize_all ) ) local_normalize_all = normalize_all
 
-    do ik = 1, nkpts
-      call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=this%active(:, :, ik) )
-    end do
-
-    if ( normalize_all_ ) then
-      
-      do ik = 1, nkpts
-        call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=this%groundstate(:, :, ik) )
-      end do
-
-      if ( this%has_frozen() ) then
-        do ik = 1, nkpts
-          call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=this%frozen(:, :, ik) )
-        end do
-      end if
-
-      if ( allocated( this%active_save ) ) then
-        do ik = 1, nkpts
-          call normalize_vectors( S=overlap_matrices(:, :, ik), vectors=this%active_save(:, :, ik) )
-        end do
-      end if
-
+    call wrapper_normalize_vectors( S%array, this%active )
+    if ( local_normalize_all ) then
+      call wrapper_normalize_vectors( S%array, this%groundstate )
+      if ( this%has_frozen() ) call wrapper_normalize_vectors( S%array, this%frozen )
+      if ( allocated( this%active_save ) ) call wrapper_normalize_vectors( S%array, this%active_save )
     end if
+    contains 
+      subroutine wrapper_normalize_vectors(overlap, vectors)
+        complex(dp), contiguous, intent(in) :: overlap(:, :, :)
+        complex(dp), contiguous, intent(inout) :: vectors(:, :, :)
+        
+        integer(i32) :: ik
+
+        call assert( size( overlap, 3 ) == size( vectors, 3 ), "Incompatible size" )
+        do ik = 1, size( vectors, 3 )
+          call normalize_vectors( S=overlap(:, :, ik), vectors=vectors(:, :, ik) )
+        end do
+      end subroutine
   end subroutine
 
   !> Tells whether the set is expanded over the LAPW+lo basis
@@ -301,7 +295,7 @@ contains
     call assert( size( this%active, 3 ) == size( this%groundstate, 3 ), &
     "active and groundstate must have the same number of elements along 3rd dim." )
 
-    call assert( size( this%active, 3 ) == size( this%active_save, 3 ), &
+    if( allocated( this%active_save ) ) call assert( size( this%active, 3 ) == size( this%active_save, 3 ), &
     "active and active_save must have the same number of elements along 3rd dim." )
 
     if ( this%has_frozen() ) call assert( size( this%active, 3 ) == size( this%frozen, 3 ), &
@@ -323,6 +317,77 @@ contains
     
     first_active = this%n_frozen() + 1
   end function
+
+  !> Within this subroutine, we obtain the number of excitations, as described
+  !> below.  
+  !> The number of excited electrons after the interaction with a laser pulse
+  !> In RT-TDDFT, the occupation number \( f_{j\mathbf{k}} \) of a KS state is
+  !> kept fixed to its initial value. As the wavefunctions evolve, they are not
+  !> any longer eigenstates of \( \hat{H}(t) \). It is possible to describe
+  !> the number of excitations by projecting \( | \psi_{i\mathbf{k}}(t)\rangle \)
+  !> onto the reference ground state at \( t=0 \).
+  !> For a given k-point, we define the number of electrons that have
+  !> been excited to an unoccupied KS state, labeled  \( j \), as
+  !> \[
+  !> 	m_{j\mathbf{k}}(t)= \sum_{i} f_{i\mathbf{k}}| \langle \psi_{j\mathbf{k}}(0)
+  !>	         | \psi_{i\mathbf{k}}(t)\rangle |^2.
+  !> \]
+  !> Similarly, the number of holes created in an occupied KS \( j' \) state can
+  !> specified as
+  !> 	\[
+  !> 	m_{j'\mathbf{k}}(t)= f_{j'\mathbf{k}} - \sum_{i}
+  !> 	f_{i\mathbf{k}}	| \langle \psi_{j'\mathbf{k}}(0)| \psi_{i\mathbf{k}}(t)\rangle |^2.
+  !> 	\]
+  !> Thus, the total number of excited electrons in a unit cell can be
+  !> obtained by considering all the unoccupied states
+  !> \[
+  !> 	N_{exc}(t)=
+  !> 	\sum_{j\mathbf{k}}^{j\, unocc}
+  !> 	w_\mathbf{k} m_{j\mathbf{k}}(t) = \sum_{j'\mathbf{k}}^{j'\, occ}
+  !> 	w_\mathbf{k} m_{j'\mathbf{k}}(t) .
+  !> 	\]
+  subroutine wavefunction_set_obtain_number_excitations( this, overlap, eps_occ, occ_gnd, wkpt, mpi_env, &
+    & n_exc, n_gs )
+    !> Basis-expansion coefficients of the KS-wavefunctions.
+    class(wavefunction_set), intent(in) :: this
+    !> Overlap matrices
+    class(overlap_set), intent(in) :: overlap
+    !> Occupation threshold above which a state is considered occupied
+    real(dp), intent(in) :: eps_occ
+    !> List of occupations at \(t=0\)
+    real(dp), contiguous, intent(in) :: occ_gnd(:, :)
+    !> k-point integration weights
+    real(dp), contiguous, intent(in) :: wkpt(:)
+    !> MPI environment
+    type(mpiinfo), intent(in) :: mpi_env
+    !> number of excited electrons
+    real(dp), intent(out) :: n_exc
+    !> number of electrons on the groundstate state
+    real(dp), intent(out) :: n_gs
+
+    integer(i32) :: ik, n_kpt
+    real(dp) :: buffer(2)
+    real(dp), allocatable :: occ(:, :), aux_tot(:), aux_exc(:)
+    complex(dp), allocatable :: proj(:, :, :)
+    
+    n_kpt = this%n_kpts()
+    call assert( size( wkpt ) == n_kpt, 'wkpt must have n_kpt elements')
+
+    allocate( aux_tot(n_kpt), aux_exc(n_kpt) )
+    call obtain_projection_coefficients( this%groundstate, overlap%array, this%active, proj )
+    call obtain_occupations( proj, occ_gnd(this%first_active(): this%n_occupied(), :), occ )
+    if ( this%has_frozen() ) occ(1 : this%n_frozen(), :) = occ(1 : this%n_frozen(), :) + occ_gnd(1 : this%n_frozen(), :)
+    do concurrent (ik = 1:n_kpt)
+      aux_tot(ik) = sum( occ(:, ik) )
+      aux_exc(ik) = sum( occ(:, ik), occ_gnd(:, ik) <= eps_occ )
+    end do
+    n_exc = dot_product( wkpt, aux_exc )
+    n_gs = dot_product( wkpt, aux_tot ) - n_exc
+    buffer = [ n_exc, n_gs ]
+    call xmpi_allreduce( buffer, mpi_env )
+    n_exc = buffer(1); n_gs = buffer(2)
+
+  end subroutine wavefunction_set_obtain_number_excitations
 
   !> Project the wavefunctions `y` onto `x` and store the projection coefficients.   
   !> For each `k-point` (3rd dimension), the projection `p` is calculated as
@@ -407,80 +472,6 @@ contains
     end do
 
   end function
-
-  !> Within this subroutine, we obtain the number of excitations, as described
-  !> below.  
-  !> The number of excited electrons after the interaction with a laser pulse
-  !> In RT-TDDFT, the occupation number \( f_{j\mathbf{k}} \) of a KS state is
-  !> kept fixed to its initial value. As the wavefunctions evolve, they are not
-  !> any longer eigenstates of \( \hat{H}(t) \). It is possible to describe
-  !> the number of excitations by projecting \( | \psi_{i\mathbf{k}}(t)\rangle \)
-  !> onto the reference ground state at \( t=0 \).
-  !> For a given k-point, we define the number of electrons that have
-  !> been excited to an unoccupied KS state, labeled  \( j \), as
-  !> \[
-  !> 	m_{j\mathbf{k}}(t)= \sum_{i} f_{i\mathbf{k}}| \langle \psi_{j\mathbf{k}}(0)
-  !>	         | \psi_{i\mathbf{k}}(t)\rangle |^2.
-  !> \]
-  !> Similarly, the number of holes created in an occupied KS \( j' \) state can
-  !> specified as
-  !> 	\[
-  !> 	m_{j'\mathbf{k}}(t)= f_{j'\mathbf{k}} - \sum_{i}
-  !> 	f_{i\mathbf{k}}	| \langle \psi_{j'\mathbf{k}}(0)| \psi_{i\mathbf{k}}(t)\rangle |^2.
-  !> 	\]
-  !> Thus, the total number of excited electrons in a unit cell can be
-  !> obtained by considering all the unoccupied states
-  !> \[
-  !> 	N_{exc}(t)=
-  !> 	\sum_{j\mathbf{k}}^{j\, unocc}
-  !> 	w_\mathbf{k} m_{j\mathbf{k}}(t) = \sum_{j'\mathbf{k}}^{j'\, occ}
-  !> 	w_\mathbf{k} m_{j'\mathbf{k}}(t) .
-  !> 	\]
-  subroutine obtain_number_excitations( this, overlap, eps_occ, occ_gnd, wkpt, mpi_env, &
-    & n_exc, n_gs )
-    use asserts, only: assert
-    use exciting_mpi, only: mpiinfo, xmpi_allreduce
-
-    !> Basis-expansion coefficients of the KS-wavefunctions.
-    class(wavefunction_set), intent(in) :: this
-    !> Overlap matrices
-    complex(dp), contiguous, intent(in) :: overlap(:, :, :)
-    !> Occupation threshold above which a state is considered occupied
-    real(dp), intent(in) :: eps_occ
-    !> List of occupations at \(t=0\)
-    real(dp), contiguous, intent(in) :: occ_gnd(:, :)
-    !> k-point integration weights
-    real(dp), contiguous, intent(in) :: wkpt(:)
-    !> MPI environment
-    type(mpiinfo), intent(in) :: mpi_env
-    !> number of excited electrons
-    real(dp), intent(out) :: n_exc
-    !> number of electrons on the groundstate state
-    real(dp), intent(out) :: n_gs
-
-    integer(i32) :: ik, n_kpt
-    real(dp) :: buffer(2)
-    real(dp), allocatable :: occ(:, :), aux_tot(:), aux_exc(:)
-    complex(dp), allocatable :: proj(:, :, :)
-    
-    n_kpt = this%n_kpts()
-    call assert( size( wkpt ) == n_kpt, 'wkpt must have n_kpt elements')
-
-    allocate( aux_tot(n_kpt), aux_exc(n_kpt) )
-    call obtain_projection_coefficients( this%groundstate, overlap, this%active, proj )
-    call obtain_occupations( proj, occ_gnd(this%first_active(): this%n_occupied(), :), occ )
-    if ( this%has_frozen() ) occ(1 : this%n_frozen(), :) = occ(1 : this%n_frozen(), :) + occ_gnd(1 : this%n_frozen(), :)
-    do concurrent (ik = 1:n_kpt)
-      aux_tot(ik) = sum( occ(:, ik) )
-      aux_exc(ik) = sum( occ(:, ik), occ_gnd(:, ik) <= eps_occ )
-    end do
-    n_exc = dot_product( wkpt, aux_exc )
-    n_gs = dot_product( wkpt, aux_tot ) - n_exc
-    buffer = [ n_exc, n_gs ]
-    call xmpi_allreduce( buffer, mpi_env )
-    n_exc = buffer(1); n_gs = buffer(2)
-
-  end subroutine obtain_number_excitations
 
 end module rttddft_Wavefunction
 

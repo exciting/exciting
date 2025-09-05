@@ -21,11 +21,13 @@ module rttddft_Hamiltonian
   use physical_constants, only: alpha, c
   use precision, only: dp, i32
   use rttddft_GlobalMDVariables, only: mathcalH, mathcalB
+  use rttddft_Overlap, only: overlap_set
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_hamiltonian, &
     Timing_Ehrenfest, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
   use mod_kpointset, only: Gk_set
   use matrix_elements, only: me_mt_alloc, me_mt_prepare, me_mt_mat, me_ir_mat
+  use xlapack, only: matrix_multiply
 
   implicit none
 
@@ -151,8 +153,8 @@ contains
     !> Object that packs information about timings to update the Hamiltonian
     type(Timing_RTTDDFT_hamiltonian), optional, intent(out) :: t_ham
 
-    integer :: ik, nmatp, last_kpt, apwordmax, lmmaxapw, &
-      n_basis, n_frozen, is, ia, ias, ngp
+    integer(i32) :: ik, nmatp, last_kpt, apwordmax, lmmaxapw, &
+      n_basis, is, ia, ias, ngp
     complex (dp), allocatable :: local_effective_potential(:, :), mt_contribution(:, :, :)
     logical :: timings_general, timings_detailed
     real(dp) :: ti
@@ -246,8 +248,8 @@ contains
   subroutine add_external_coupling_velocity_gauge( a_tot, overlap, ham_time, pmat, dims )
     !> Total vector potential
     type(Vector_Potential_Field), intent(in) :: a_tot
-    !> Overlap matrix (of basis functions) (n_basis, n_basis, n_kpts)
-    complex(dp), contiguous, intent(in) :: overlap(:, :, :)
+    !> Overlap matrix
+    class(overlap_set), intent(in) :: overlap
     !> Hamiltonian matrix at current time \(t\) (n_basis, n_basis, n_kpts_kpt)
     complex(dp), contiguous, intent(inout) :: ham_time(:, :, :)
     !> Momentum matrix elements (n_basis, n_basis, 3, n_kpts)
@@ -256,33 +258,30 @@ contains
     integer(i32), intent(in) :: dims(:)
 
     real(dp), parameter :: interaction_tol = 1.e-14_dp
-    integer(i32) :: ik, n_kpts, i
+    integer(i32) :: ik, i
     real(dp) :: a_scaled(3)
 
     a_scaled = a_tot%components / c
     fact = 0.5_dp * dot_product( a_scaled, a_scaled )
     if ( fact < interaction_tol ) return
-    n_kpts = size( ham_time, 3 )
-
-    call assert( size( dims, 1 ) == n_kpts, "dims and ham_time have different n_kpts" )
-    call assert( size( overlap, 3 ) == n_kpts, "overlap and ham_time have different n_kpts" )
-    call assert( size( pmat, 4 ) == n_kpts, "pmat and ham_time have different n_kpts" )
-
-    !$omp parallel default(none), private(ik, i), &
-    !$omp& shared(fact, a_scaled, pmat, ham_time, n_kpts, overlap, dims)
-    !$omp do
-    do ik = 1, n_kpts
-
-      ham_time(1 : dims(ik), 1 : dims(ik), ik) = ham_time(1 : dims(ik), 1 : dims(ik), ik) + &
-        fact * overlap(1 : dims(ik), 1 : dims(ik), ik)
-      do i = 1, 3
-        ham_time(1 : dims(ik), 1 : dims(ik), ik) = ham_time(1 : dims(ik), 1 : dims(ik), ik) + &
-        a_scaled(i) * pmat(1 : dims(ik), 1 : dims(ik), i, ik)
-      end do
-
-    end do
-    !$omp end parallel
-
+    associate( m => size( ham_time, 1 ), n_kpts => size( ham_time, 3 ) )
+      call assert( size( dims, 1 ) == n_kpts, "dims and ham_time have different n_kpts" )
+      call assert( size( pmat, 4 ) == n_kpts, "pmat and ham_time have different n_kpts" )
+      if( overlap%is_identity() ) then
+        do concurrent( i = 1 : m, ik = 1 : n_kpts )
+          ham_time(i, i, ik) = ham_time(i, i, ik) + fact
+        end do
+      else
+        call assert( all( shape( overlap%array ) == shape( ham_time ) ), &
+          "overlap and ham_time must have same shape" )
+        ! TODO: replace by zaxpy wrapper after MR 840 is merged
+        ham_time = ham_time + fact * overlap%array
+      end if
+      ! TODO: replace by zaxpy wrapper after MR 840 is merged
+      ham_time = ham_time + a_scaled(1)*pmat(:, :, 1, :) + &
+                          + a_scaled(2)*pmat(:, :, 2, :) + &
+                          + a_scaled(3)*pmat(:, :, 3, :)
+    end associate
   end subroutine
 
   !> Subroutine to calculate the interstitial contribution to `mathcalH` (used to

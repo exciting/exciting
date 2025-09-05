@@ -2,15 +2,15 @@
 module rttddft_Overlap
   use asserts, only: assert
   use constants, only: y00, zi, zone, zzero
+  use math_utils, only: all_zero
   use matrix_elements, only: me_mt_alloc, me_mt_prepare, me_mt_mat, me_ir_mat
   use mod_atoms, only: nspecies, natoms, idxas
-  use mod_eigensystem, only: nmat
   use mod_gvector, only: cfunig
   use mod_kpointset, only: Gk_set
   use mod_muffin_tin, only: nrmtmax
   use physical_constants, only: c
   use precision, only: dp, i32
-  use rttddft_GlobalMDVariables, only: mathcalH, mathcalB
+  use rttddft_arrays, only: positive_matrix_set
   use rttddft_timings, only: timesec_RTTDDFT, Timing_RTTDDFT_overlap
   use rttddft_VectorPotential, only: Vector_Potential_Field
 
@@ -19,45 +19,125 @@ module rttddft_Overlap
   private
   integer(i32), parameter :: n_cartesian = 3
 
-  public :: update_overlap_lapw
-
+  type, public, extends(positive_matrix_set) :: overlap_set
+    private
+    logical :: identity = .false.
+  contains
+    private
+    procedure, public :: allocate => overlap_set_allocate
+    procedure, public :: calculate => overlap_set_calculate
+    procedure, public :: initialize => overlap_set_initialize
+    procedure, public :: is_identity => overlap_set_is_identity
+    procedure, public :: is_not_identity => overlap_set_is_not_identity
+    procedure :: initialize_as_identity => overlap_set_initialize_as_identity
+    final :: destructor
+  end type
+    
 contains
-  !> In `update_overlap_lapw`, we obtain the overlap of the (L)APWs at time \( t \).
-  subroutine update_overlap_lapw( first_kpt, overlap, apwalm, Gkset, t_overlap, pmatmt, &
-    a_tot, update_mathcalH, update_mathcalB )
-    !> The first \( \mathbf{k} \) point
-    integer(i32), intent(in) :: first_kpt
-    !> Overlap matrix (of basis functions) (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(out) :: overlap(:, :, first_kpt :)
-    !> Matching coefficients of the (L)APWs (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, first_kpt :)
-    !> Set of G+k vectors for LAPW expansion
+  !> Wrapper for calling `this%allocate_array`
+  pure subroutine overlap_set_allocate( this, use_lapwlo_basis, m, ki, kf )
+    class(overlap_set), intent(inout) :: this
+    !> If `.true.`, LAPW+LO basis is used (allocate matrix). Otherwise, overlap is identity
+    logical, intent(in) :: use_lapwlo_basis
+    !> Overlap matrix dimension
+    integer(i32), intent(in) :: m
+    !> First \( \mathbf{k} \)-point
+    integer(i32), intent(in) :: ki
+    !> Last \( \mathbf{k} \)-point
+    integer(i32), intent(in) :: kf
+
+    this%identity = .not. use_lapwlo_basis 
+    call this%allocate_array( [1, 1 , ki], [m, m, kf] )
+  end subroutine
+
+  pure elemental logical function overlap_set_is_identity( this )
+    class(overlap_set), intent(in) :: this
+
+    overlap_set_is_identity = this%identity
+  end function
+
+  pure elemental logical function overlap_set_is_not_identity( this )
+    class(overlap_set), intent(in) :: this
+
+    overlap_set_is_not_identity = .not. this%identity
+  end function
+
+  impure elemental subroutine destructor( this )
+    type(overlap_set), intent(inout) :: this
+
+    call this%deallocate_if_allocated()
+  end subroutine
+
+  !> Initialize the overlap matrix set
+  subroutine overlap_set_initialize( this, apwalm, Gkset, p_MT, a_tot, t_overlap, mathcalH, mathcalB )
+    class(overlap_set), intent(inout) :: this
+    !> See [[overlap_set_calculate]]
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, :)
+    !> See [[overlap_set_calculate]]
     type(Gk_set), intent(in) :: Gkset
+    !> See [[overlap_set_calculate]]
+    complex(dp), contiguous, optional, intent(in) :: p_MT(:, :, :, :, :)
+    !> See [[overlap_set_calculate]]
+    type(Timing_RTTDDFT_overlap), optional, intent(inout) :: t_overlap
+    !> See [[overlap_set_calculate]]
+    type(Vector_Potential_Field), optional, intent(in) :: a_tot
+    !> See [[overlap_set_calculate]]
+    complex(dp), contiguous, optional, intent(out) :: mathcalH(:, :, :, :, :)
+    !> See [[overlap_set_calculate]]
+    complex(dp), contiguous, optional, intent(out) :: mathcalB(:, :, :, :, :)
+
+    if( this%is_not_identity() ) then
+      call this%calculate( apwalm, Gkset, p_MT, a_tot, t_overlap, mathcalH, mathcalB )
+    else
+      call this%initialize_as_identity()
+    end if
+  end subroutine
+
+  subroutine overlap_set_initialize_as_identity( this )
+    class(overlap_set), intent(inout) :: this
+
+    integer(i32) :: i, k
+
+    this%array = zzero
+    do concurrent (i = 1:size(this%array, 1), k=lbound(this%array, 3):ubound(this%array, 3))
+      this%array(i, i, k) = zone
+    end do
+  end subroutine
+
+  !> Calculate the overlap matrix in the (L)APW + LO basis
+  subroutine overlap_set_calculate( S, apwalm, Gkset, p_MT, a_tot, t_overlap, mathcalH, mathcalB )
+    !> Overlap matrix (of basis functions)
+    class(overlap_set), intent(inout) :: S
+    !> Matching coefficients of the (L)APWs (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, :)
+    !> Set of \( \mathbf{G} + \mathbf{k} \) vectors for LAPW expansion
+    type(Gk_set), intent(in) :: Gkset
+    !> Muffin-tin part of the Momentum matrix (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
+    complex(dp), contiguous, optional, intent(in) :: p_MT(:, :, :, :, :)
     !> Object that packs information about timings to update the overlap matrix
     type(Timing_RTTDDFT_overlap), optional, intent(inout) :: t_overlap
-    !> Muffin-tin part of the Momentum matrix (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
-    complex(dp), contiguous, optional, intent(inout) :: pmatmt(:, :, :, :, first_kpt :)
-    !> Total vector potential (needed if `update_mathcalH` is `.True.`)
+    !> Total vector potential (needed if `mathcalH` is present)
     type(Vector_Potential_Field), optional, intent(in) :: a_tot
-    !> if `.True.`, update `mathcalH`
-    logical, intent(in), optional :: update_mathcalH
-    !> if `.True.`, update `mathcalB`
-    logical, intent(in), optional :: update_mathcalB
+    !> Auxiliary matrix needed to evaluate force corrections in MD calculations, see [[rttddft_GlobalMDVariables]]
+    complex(dp), contiguous, optional, intent(out) :: mathcalH(:, :, :, :, :)
+    !> Auxiliary matrix needed to evaluate force corrections in MD calculations, see [[rttddft_GlobalMDVariables]]
+    complex(dp), contiguous, optional, intent(out) :: mathcalB(:, :, :, :, :)
 
-    integer(i32) :: ik, last_kpt, is, ia, ias
+    integer(i32) :: ik, is, ia, ias, first_kpt, last_kpt, shift
     integer(i32), parameter :: l_max = 0 ! Overlap operator is equal to (1.0/y00)*Y_{00}, it has only l=0 component
     integer(i32), parameter :: lm_max = (l_max+1)**2
     real(dp) :: ti
     real(dp), allocatable :: rfun(:, :)
-    logical :: get_mathcalH, get_mathcalB
     complex(dp), allocatable :: mt_part(:, :, :)
 
-    last_kpt = ubound( overlap, 3 )
-    get_mathcalH = .False.
-    if( present( update_mathcalH ) ) get_mathcalH = update_mathcalH
-    if( get_mathcalH ) call assert( present(a_tot), 'a_tot must be passed as argument when update_mathcalH is .True.' )
-    get_mathcalB = .False.
-    if( present( update_mathcalB ) ) get_mathcalB = update_mathcalB
+    if( S%is_identity() ) return
+    first_kpt = lbound( S%array, 3 )
+    last_kpt = ubound( S%array, 3 )
+    shift = first_kpt - 1
+
+    ! Check optional arguments
+    if( present( mathcalH ) ) call assert( present(a_tot), 'a_tot must be present' )
+    if( present( mathcalH ) .or. present( mathcalB ) ) call assert( present(p_MT), 'p_MT must be present' )
     if( present( t_overlap ) ) call timesec( ti ) 
 
     call me_mt_alloc( mt_part )
@@ -69,22 +149,38 @@ contains
       end do
     end do
 
-    do ik = first_kpt, last_kpt
-      if ( get_mathcalB .or. get_mathcalH ) then
-        call calculate_overlap_ik( ik, Gkset, apwalm(:, :, :, :, ik), mt_part, &
-          nmat(1, ik), overlap(:, :, ik), get_mathcalB, get_mathcalH, a_tot%components, pmatmt(:, :, :, :, ik) )
-      else
-        call calculate_overlap_ik( ik, Gkset, apwalm(:, :, :, :, ik), mt_part, &
-          nmat(1, ik), overlap(:, :, ik), .false., .false. )
-      end if
-    end do
+    ! N.B.: Avoiding if/else inside a loop can improve performance
+    if( present( mathcalB ) .and. present( mathcalH ) ) then
+      do ik = first_kpt, last_kpt
+        call calculate_overlap_ik( ik, Gkset, apwalm(:, :, :, :, ik-shift), mt_part, &
+          S%array(:, :, ik), mathcalB(:, :, :, :, ik-shift), &
+          mathcalH(:, :, :, :, ik-shift), a_tot%components, p_MT(:, :, :, :, ik-shift) )
+      end do
+    else if( present( mathcalB ) ) then
+      do ik = first_kpt, last_kpt
+        call calculate_overlap_ik( ik, Gkset, apwalm(:, :, :, :, ik-shift), mt_part, &
+          S%array(:, :, ik), mathcalB(:, :, :, :, ik-shift), &
+          p_MT_ik=p_MT(:, :, :, :, ik-shift) )
+      end do
+    else if( present( mathcalH ) ) then
+      do ik = first_kpt, last_kpt
+        call calculate_overlap_ik( ik, Gkset, apwalm(:, :, :, :, ik-shift), mt_part, &
+          S%array(:, :, ik), mathcalH_ik=mathcalH(:, :, :, :, ik-shift), &
+          a_tot=a_tot%components, p_MT_ik=p_MT(:, :, :, :, ik-shift) )
+      end do
+    else
+      do ik = first_kpt, last_kpt
+        call calculate_overlap_ik( ik, Gkset, apwalm(:, :, :, :, ik-shift), mt_part, &
+          S%array(:, :, ik) )
+      end do
+    end if
 
     if( present( t_overlap ) ) call timesec_RTTDDFT( ti, t_overlap%total )
-  end subroutine update_overlap_lapw
+  end subroutine
 
   !> Calculate the overlap matrix for a given k-point.
-  subroutine calculate_overlap_ik( ik, Gkset, apwalm, mt_part, dim_overlap_ik, &
-      overlap_ik, calculate_mathcalB, calculate_mathcalH, a_tot, p_MT_ik )
+  subroutine calculate_overlap_ik( ik, Gkset, apwalm, mt_part, &
+      overlap_ik, mathcalB_ik, mathcalH_ik, a_tot, p_MT_ik )
     !> ik: the index of the k-point considered
     integer(i32), intent(in) :: ik
     !> Set of G+k vectors for LAPW expansion
@@ -93,34 +189,34 @@ contains
     complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :)
     !> MT part of the overlap matrix
     complex(dp), contiguous, intent(in) :: mt_part(:, :, :)
-    !> Number of LAPW+LOs for this `k-point` (equal to the "used" dimension of the overlap matrix)
-    integer(i32), intent(in) :: dim_overlap_ik
     !> Overlap matrix (of basis functions) at the current k-point (nmatmax, nmatmax)
     complex(dp), contiguous, intent(out) :: overlap_ik(:, :)
-    !> If `.True.`, calculate the MT contributions to the auxiliary matrix mathcalB
-    logical, intent(in) :: calculate_mathcalB
-    !> If `.True.`, calculate the MT contributions to the auxiliary matrix mathcalH
-    logical, intent(in) :: calculate_mathcalH
+    !> mathcalB matrix, given a k-point 
+    complex(dp), contiguous, optional, intent(out) :: mathcalB_ik(:, :, :, :)
+    !> mathcalH matrix, given a k-point 
+    complex(dp), contiguous, optional, intent(out) :: mathcalH_ik(:, :, :, :)
     !> `x`, `y`, and `z` components of the (total) vector potential
     real(dp), optional, intent(in) :: a_tot(n_cartesian)
     !> Muffin-tin part of the Momentum matrix (nmatmax, nmatmax, 3, natmtot) for the k-point `ik`
-    complex(dp), intent(in), optional :: p_MT_ik(:, :, :, :)
+    complex(dp), contiguous, intent(in), optional :: p_MT_ik(:, :, :, :)
     
     integer(i32) :: i, is, ia, ias, n_planewaves
     complex(dp), allocatable :: tmp(:, :)
 
-    if ( calculate_mathcalB .or. calculate_mathcalH ) call assert( present(p_MT_ik), &
-      'p_MT_ik must be passed as argument when calculate_mathcalB or calculate_mathcalH is .True.' )
-    if ( calculate_mathcalH ) call assert( present(a_tot), 'a_tot must be passed as argument when calculate_mathcalH is .True.' )
-    if ( calculate_mathcalH ) mathcalH(:, :, :, :, ik) = zzero
-    if ( calculate_mathcalB ) mathcalB(:, :, :, :, ik) = -zi*p_MT_ik
+    call assert( size( overlap_ik, 1 ) == size( overlap_ik, 2), "overlap_ik must be a square matrix" )
+    if ( present( mathcalB_ik ) .or. present( mathcalH_ik ) ) call assert( present(p_MT_ik), &
+      'p_MT_ik must be present' )
+    if ( present( mathcalH_ik ) ) call assert( present(a_tot), 'a_tot must be passed as argument when calculate_mathcalH is .True.' )
+    if ( present( mathcalH_ik ) ) mathcalH_ik(:, :, :, :) = zzero
+    if ( present( mathcalB_ik ) ) mathcalB_ik(:, :, :, :) = -zi*p_MT_ik
 
     n_planewaves = Gkset%ngk(1, ik)
     overlap_ik = zzero
+    
     ! It is better to split the two cases (even with some code duplication): 
     ! - to avoid an "if" inside the double loop over atoms
     ! - to avoid allocating "tmp" when not needed (this can be a large array)
-    if( calculate_mathcalB .or. calculate_mathcalH ) then
+    if( present( mathcalB_ik ) .or. present( mathcalH_ik ) ) then
       allocate( tmp, source = overlap_ik )
       do is = 1, nspecies
         do ia = 1, natoms(is)
@@ -128,10 +224,10 @@ contains
           call me_mt_mat( is, ias, n_planewaves, apwalm(:, :, :, ias), zone, &
             mt_part(:, :, ias), zzero, tmp )
           overlap_ik = overlap_ik + tmp
-          if( calculate_mathcalB ) call update_mathcalB_ik_ias( n_planewaves, &
-            tmp, Gkset%vgkc(:, :, 1, ik), mathcalB(:, :, :, ias, ik) )
-          if( calculate_mathcalH ) call update_mathcalH_ik_ias( n_planewaves, &
-            tmp, Gkset%vgkc(:, :, 1, ik), p_MT_ik(:, :, :, ias), a_tot, mathcalH(:, :, :, ias, ik) )
+          if( present( mathcalB_ik ) ) call update_mathcalB_ik_ias( n_planewaves, &
+            tmp, Gkset%vgkc(:, :, 1, ik), mathcalB_ik(:, :, :, ias) )
+          if( present( mathcalH_ik ) ) call update_mathcalH_ik_ias( n_planewaves, &
+            tmp, Gkset%vgkc(:, :, 1, ik), p_MT_ik(:, :, :, ias), a_tot, mathcalH_ik(:, :, :, ias) )
         end do
       end do
     else 
@@ -145,9 +241,14 @@ contains
     end if
     call me_ir_mat( Gkset, ik, Gkset, ik, zone, cfunig, zone, overlap_ik )
     ! Fill other elements, so that the rest of overlap is the identity matrix
-    do concurrent( i = dim_overlap_ik+1:size( overlap_ik, 1 ) )
-      overlap_ik(i, i) = zone
+    do i = size( overlap_ik, 1 ), 1, -1
+      if( all_zero(overlap_ik(i, i)) ) then
+        overlap_ik(i, i) = zone
+      else
+        exit
+      end if
     end do
+    
   end subroutine
 
   !> (private) Update the `mathcalB` matrix for a given atom and k-point
@@ -164,8 +265,8 @@ contains
     integer(i32) :: i, i_cart
     associate( m => size(overlap_ik_ias, 1) )
       call assert( size(overlap_ik_ias, 2) == m, "overlap_ik_ias must be square" )
-      call assert( size(gplusk_cart, 2) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
-      call assert( size(gplusk_cart, 2) <= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
+      call assert( size(gplusk_cart, 1) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
+      call assert( size(gplusk_cart, 2) >= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
       call assert( all(shape(mathcalB_ik_ias) == [m, m, n_cartesian]), "mathcalB_ik_ias must have shape [m, m, n_cartesian]" )
       call assert( n_pw <= m, "n_pw must be <= m" )
       do i_cart = 1, n_cartesian
@@ -199,12 +300,12 @@ contains
     a_scaled = a_tot / c
     associate( m => size(overlap_ik_ias, 1) )
       call assert( size(overlap_ik_ias, 2) == m, "overlap_ik_ias must be square" )
-      call assert( size(gplusk_cart, 2) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
-      call assert( size(gplusk_cart, 2) <= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
+      call assert( size(gplusk_cart, 1) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
+      call assert( size(gplusk_cart, 2) >= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
       call assert( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "mathcalH_ik_ias must have shape [m, m, n_cartesian]" )
       call assert( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "p_MT_ias_ik must have shape [m, m, n_cartesian]" )
       call assert( n_pw <= m, "n_pw must be <= m" )
-      do i_cart = 1, 3
+      do i_cart = 1, n_cartesian
         do i = 1, n_pw
           do j = 1, n_pw
             aux = gplusk_cart(i_cart, i)-gplusk_cart(i_cart, j)
