@@ -4,6 +4,7 @@ module lapack_wrappers_test_drivers
   ! workspaces
   use workspaces_test, only: workspaces_test_driver
   ! multiplication
+  use add_scaled_array_test, only: add_scaled_array_test_driver
   use vector_multiplication_test, only: vector_multiplication_test_driver
   use general_matrix_multiplication_test, only: general_matrix_multiplication_test_driver
   use hermitian_matrix_multiplication_test, only: hermitian_matrix_multiplication_test_driver
@@ -41,6 +42,7 @@ contains
     ! Workspaces
     call workspaces_test_driver(mpiglobal, kill_on_failure)
     ! multiplication
+    call add_scaled_array_test_driver(mpiglobal, kill_on_failure)
     call vector_multiplication_test_driver(mpiglobal, kill_on_failure)
     call general_matrix_multiplication_test_driver(mpiglobal, kill_on_failure)
     call hermitian_matrix_multiplication_test_driver(mpiglobal, kill_on_failure)
