@@ -3,7 +3,7 @@
 !> For a complete documentation, refer to the
 !> [offical LAPACK documentation](http://www.netlib.org/lapack/explore-html/index.html)].
 module multiplication_interfaces
-  use precision, only: dp
+  use precision, only: dp, i32
   
   interface 
 
@@ -101,6 +101,16 @@ module multiplication_interfaces
       integer,     intent(in)  :: lda
       complex(dp), intent(out) :: A(lda, *)
     end subroutine zgeru
+
+    subroutine zaxpy(n, za, zx, incx, zy, incy)
+      import :: dp, i32
+      integer(i32), intent(in)   :: n
+      complex(dp), intent(in)    :: za
+      complex(dp), intent(in)    :: zx(*)
+      integer(i32), intent(in)   :: incx
+      complex(dp), intent(inout) :: zy(*)
+      integer(i32), intent(in)   :: incy
+    end subroutine
 
 
 !---------------

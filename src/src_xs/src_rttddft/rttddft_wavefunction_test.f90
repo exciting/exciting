@@ -39,7 +39,7 @@ contains
     call test_report%init(n_assertions, mpiglobal)
 
     ! Run and assert tests
-    call test_obtain_occupations( 'SE', test_report )
+    call test_obtain_occupations( test_report )
     call test_obtain_number_excitations( mpiglobal, test_report )
 
     ! report results
@@ -55,9 +55,7 @@ contains
   end subroutine
 
   
-  subroutine test_obtain_occupations( method, test_report )
-    !> Name of the propagator to be tested
-    character(len=*), intent(in) :: method
+  subroutine test_obtain_occupations( test_report )
     !> Our test object
     type(unit_test_type), intent(inout) :: test_report
 
