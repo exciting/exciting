@@ -830,6 +830,20 @@ RT-TDDFT/GGA_PBE-BN-kick-EH-restart:
       - "TOTENERGY_RTTDDFT.OUT.SAVE"
       - "rt.h5"
 
+RT-TDDFT/GGA_PBE-BN-sinSq-EMR-unperturbedKS:
+    files_under_test:
+      - "CURRENT.OUT"
+      - "EIGVAL_0.OUT"
+      - "EIGVAL_20.OUT"
+      - "N_EXCITATIONS.OUT"
+      - "OCCSV_TXT_20.OUT"
+      - "PROJECTION_COEFFS_20.OUT"
+      - "TOTENERGY_RTTDDFT.OUT"
+    inputs:
+      - "input.xml"
+      - "B.xml"
+      - "N.xml"
+
 RT-TDDFT/LDA_PW-SiC-trapCos-AETRS-KS-frozen-restart-berry-phase:
     files_under_test:
       - "EIGVAL_40.OUT"

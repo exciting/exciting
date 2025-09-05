@@ -19,6 +19,7 @@ module rttddft_screenshot
                         out_eigs => write_eigenvalues, &
                         out_occs => write_occupations, &
                         out_proj => write_projection_coefficients
+  use rttddft_Overlap, only: overlap_set
   use rttddft_Wavefunction, only: obtain_occupations, obtain_projection_coefficients, wavefunction_set
   use xlapack, only: solve_generalized_hermitian_eigenproblem
 
@@ -39,7 +40,7 @@ contains
     !> Type that encapsulates the elements/attributes defined inside `screenshots` (in the input file)
     type(screenshot_keys), intent(in) :: input_keys
     !> overlap matrix
-    complex(dp), contiguous, intent(in) :: overlap(:, :, :)
+    class(overlap_set), intent(in) :: overlap
     !> Basis-expansion coefficients of the KS-wavefunctions.
     class(wavefunction_set), intent(in) :: psi
     !> Hamiltonian matrix at time \( t \). 
@@ -77,7 +78,7 @@ contains
         if ( psi%has_frozen() ) complete_filled_set(:, 1: psi%n_frozen() , :) = psi%frozen
 
         ! Project the current WFs onto the ground-state ones
-        call obtain_projection_coefficients( psi%groundstate, overlap, complete_filled_set, proj_time )
+        call obtain_projection_coefficients( psi%groundstate, overlap%array, complete_filled_set, proj_time )
         if( p%on ) then
           ! Send results to root rank, storing in the buffer
           call xmpi_gatherv( mpi_env, proj_time, proj_buffer )
@@ -97,9 +98,9 @@ contains
 
     if( input_keys%eigenvalues%on ) then
       associate( n_eigs => input_keys%eigenvalues%n_eigenvalues, tol => input_keys%eigenvalues%tol )
-        m = merge( size(overlap, 1), n_eigs, n_eigs <= 0 )
+        m = merge( size(overlap%array, 1), n_eigs, n_eigs <= 0 )
         allocate( eigenvalues(m, dim_k), source=real_zero )
-        call obtain_eigenvalues( ham_time, overlap, dimensions, n_eigs, tol, eigenvalues )
+        call obtain_eigenvalues( ham_time, overlap%array, dimensions, n_eigs, tol, eigenvalues )
         ! Send results to root rank
         call xmpi_gatherv( mpi_env, eigenvalues, buffer )
         if( n_eigs <= 0 ) then
