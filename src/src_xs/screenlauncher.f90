@@ -54,8 +54,8 @@ subroutine screenlauncher
   real(8) :: pgridoff(3)
   character(256) :: filex, syscommand
   character(*), parameter :: thisname = 'screenlauncher'
-  integer, allocatable :: qlist_todo(:), qlist_todo_rank(:)
-  integer :: iqlist 
+  integer, allocatable :: qlist_todo(:), qlist_todo_rank(:), qlist_todo_rank_print(:)
+  integer :: iqlist, idx, len_qlist
 
   ! Initialise universal variables
   call init0
@@ -210,7 +210,21 @@ subroutine screenlauncher
   write(unitout, *)
 
   qlist_todo = setup_qlist_todo(input)
-  qlist_todo_rank = qlist_todo(firstofset(rank, size(qlist_todo)):lastofset(rank, size(qlist_todo)))
+  len_qlist = size(qlist_todo)
+  qlist_todo_rank = qlist_todo(firstofset(rank, len_qlist):lastofset(rank, len_qlist))
+
+  ! Write workload regarding the number of q-points to INFOXS.OUT
+  if(mpiglobal%is_root .and. input%xs%screening%skipdoneq) then
+    write(unitout, '("Info(", a, "): Calculate ", I6, " q-points...")') thisname, len_qlist
+  end if
+  if(input%xs%BSE%outputlevelnumber == 1) then
+    ! Enforce ranks to print their load in numerical order.
+    do idx=0, mpiglobal%procs-1
+      qlist_todo_rank_print = qlist_todo(firstofset(idx, len_qlist):lastofset(idx, len_qlist))
+      write(unitout, '("Info(", a, "): Rank ", I6, " calculates ", I6, " q-points...")') thisname, idx, size(qlist_todo_rank_print)
+    end do
+  end if
+  flush(unitout) ! Enforce that this information is written to INFOXS.OUT here
 
   ! Loop over q-points 
   do iqlist = 1, size(qlist_todo_rank)
