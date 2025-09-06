@@ -293,13 +293,13 @@ contains
     class(wavefunction_set), intent(in) :: this
 
     call assert( size( this%active, 3 ) == size( this%groundstate, 3 ), &
-    "active and groundstate must have the same number of elements along 3rd dim." )
+      "active and groundstate must have the same number of elements along 3rd dim." )
 
     if( allocated( this%active_save ) ) call assert( size( this%active, 3 ) == size( this%active_save, 3 ), &
-    "active and active_save must have the same number of elements along 3rd dim." )
+      "active and active_save must have the same number of elements along 3rd dim." )
 
     if ( this%has_frozen() ) call assert( size( this%active, 3 ) == size( this%frozen, 3 ), &
-    "active and frozen must have the same number of elements along 3rd dim." )
+      "active and frozen must have the same number of elements along 3rd dim." )
 
     n_kpts = size( this%active, 3 )
   end function

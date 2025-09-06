@@ -158,6 +158,7 @@ contains
     if( associated( input%groundstate%solver ) ) tol = input%groundstate%solver%evaltol
     call rt%parse_input( input, tol, vec_pot )
     call molecular_dynamics%parse_input()
+    lmax_potential = input%groundstate%lmaxvr
     ! we only perform MD in RT-TDDFT if the type is Ehrenfest
     if( molecular_dynamics%on ) molecular_dynamics%on = ( trim(molecular_dynamics%MD_type) == 'Ehrenfest' )
     
@@ -217,8 +218,8 @@ contains
           if( molecular_dynamics%update_overlap ) call overlap%calculate( apwalm, Gkset, &
             pmatmt, vec_pot%a_tot, mathcalH=mathcalH, mathcalB=mathcalB )
           if( propagator%extrapolation_needed() ) ham_past = ham_time  
-          call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, &
-            ham_time, apwalm, update_mathcalH=allocated( mathcalH ) )
+          call update_hamiltonian_without_pa_term_lapw( first_kpt, lmax_potential, vec_pot%a_tot, &
+            ham_time, apwalm, Gkset, update_mathcalH=allocated( mathcalH ) )
           call add_external_coupling_velocity_gauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
         end if
       end if
@@ -288,7 +289,6 @@ contains
 
     ! whether explicitly field-independent Hamiltonian should be evolved in time
     evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt%eeInteraction%use_ipa() ) )
-    lmax_potential = input%groundstate%lmaxvr
 
     i_print = 1
     first_step = int( time / dt, kind = i32 ) + 1
@@ -378,8 +378,8 @@ contains
         ham_time = ham_init
       else
         if ( rt%use_lapwlo_basis() ) then
-          call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, &
-            ham_time, apwalm, rt%printTimings, timing%t_RTTDDFT%ham )
+          call update_hamiltonian_without_pa_term_lapw( first_kpt, lmax_potential, vec_pot%a_tot, &
+            ham_time, apwalm, Gkset, rt%printTimings, timing%t_RTTDDFT%ham )
         else
           call update_hamiltonian_without_pa_term_ks( first_kpt, lmax_potential, ham_time, &
             apwalm, ks_lapwlo_transition_matrix, effective_potential_init, ham_init, &
@@ -443,14 +443,15 @@ contains
               end if
             if( propagator%extrapolation_needed() ) ham_past = ham_time  
 
+            call initialize_me( Gset )
             if ( molecular_dynamics%update_overlap ) then
               call initialize_me( Gset )
               call overlap%calculate( apwalm, Gkset, pmatmt, vec_pot%a_tot, timing%t_Ehrenfest%overlap, &
                 mathcalH=mathcalH, mathcalB=mathcalB )
             end if
 
-            call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, &
-              rt%printTimings, timing%t_RTTDDFT%ham, timing%t_Ehrenfest, update_mathcalH=allocated( mathcalH ) )
+            call update_hamiltonian_without_pa_term_lapw( first_kpt, lmax_potential, vec_pot%a_tot, ham_time, apwalm, &
+              Gkset,rt%printTimings, timing%t_RTTDDFT%ham, timing%t_Ehrenfest, update_mathcalH=allocated( mathcalH ) )
             call add_external_coupling_velocity_gauge( vec_pot%a_tot, overlap, ham_time, pmat, k_dependent_dims )
           end if
           if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_Ehrenfest%t_MD_step )
@@ -768,7 +769,7 @@ contains
       ! HAMILTONIAN
       ham_predcorr = ham_time
       if ( rt%use_lapwlo_basis() ) then
-        call update_hamiltonian_without_pa_term_lapw( first_kpt, a_t%a_tot, ham_time, apwalm )
+        call update_hamiltonian_without_pa_term_lapw( first_kpt, lmax_potential, a_t%a_tot, ham_time, apwalm, Gkset )
       else
         call update_hamiltonian_without_pa_term_ks( first_kpt, lmax_potential, ham_time, &
           apwalm, ks_lapwlo_transition_matrix, effective_potential_init, ham_init, Gkset )
