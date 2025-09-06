@@ -147,7 +147,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   !> Energy gap
   real(dp), intent(out) :: energy_gap
 
-  integer(i32) :: ik, first_kpt, last_kpt, ham_dimension, i, kgrid_neighbours
+  integer(i32) :: ik, first_kpt, last_kpt, l_max_pot, ham_dimension, i, kgrid_neighbours
   logical :: evolve_H0, my_rank_writes_to_output, success
   type(Vector_Potential_Field) :: a_aux
   type(Current_Density) :: j_aux
@@ -158,6 +158,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   logical, allocatable :: k_needed(:), proc_needed(:)
 
   call adjust_input_and_init_exciting_globals( input )
+  l_max_pot = input%groundstate%lmaxvr
 
   my_rank_writes_to_output = (rank == 0)
   if ( my_rank_writes_to_output ) then
@@ -322,7 +323,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     if ( evolve_H0 ) then
       ! at t = 0 update_hamiltonian_without_pa_term_ks only evaluates the effective potential 
       ! matrix elements and store them in `ham_time`
-      call update_hamiltonian_without_pa_term_ks( first_kpt, input%groundstate%lmaxvr, &
+      call update_hamiltonian_without_pa_term_ks( first_kpt, l_max_pot, &
         ham_time, apwalm, psi_gnd_lapwlo, effective_potential_init, ham_init, Gkset )
       effective_potential_init = ham_time
     end if
@@ -336,7 +337,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   call overlap%initialize( apwalm, Gkset, pmatmt, a_aux, mathcalH=mathcalH, mathcalB=mathcalB )
 
   if ( .not. evolve_H0 .and. rt_inp%use_lapwlo_basis() ) then ! obtain H_0 with the GS density and KS potential
-    call update_hamiltonian_without_pa_term_lapw( first_kpt, a_aux, ham_time, apwalm, &
+    call update_hamiltonian_without_pa_term_lapw( first_kpt, l_max_pot, a_aux, ham_time, apwalm, Gkset, &
       update_mathcalH=allocated( mathcalH ) )
     ham_init = ham_time
   end if
@@ -376,10 +377,10 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
 
       if ( evolve_H0 ) then
         if ( rt_inp%use_lapwlo_basis() ) then
-          call update_hamiltonian_without_pa_term_lapw( first_kpt, a_tot_t_minus_dt, ham_past, apwalm, &
+          call update_hamiltonian_without_pa_term_lapw( first_kpt, l_max_pot, a_tot_t_minus_dt, ham_past, apwalm, Gkset, &
             update_mathcalH=allocated( mathcalH ) )
         else
-          call update_hamiltonian_without_pa_term_ks( first_kpt, input%groundstate%lmaxvr, ham_past, apwalm, psi_gnd_lapwlo, &
+          call update_hamiltonian_without_pa_term_ks( first_kpt, l_max_pot, ham_past, apwalm, psi_gnd_lapwlo, &
             effective_potential_init, ham_init, Gkset )
         end if
       else
@@ -405,10 +406,10 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   if( evolve_H0 .or. rt_inp%restart_previous_calculation() ) then
     if ( rt_inp%use_lapwlo_basis() ) then
       call overlap%calculate( apwalm, Gkset, pmatmt, vec_pot%a_tot, mathcalH=mathcalH, mathcalB=mathcalB )
-      call update_hamiltonian_without_pa_term_lapw( first_kpt, vec_pot%a_tot, ham_time, apwalm, &
+      call update_hamiltonian_without_pa_term_lapw( first_kpt, l_max_pot, vec_pot%a_tot, ham_time, apwalm, Gkset, &
         update_mathcalH=allocated( mathcalH ) )
     else
-      call update_hamiltonian_without_pa_term_ks( first_kpt, input%groundstate%lmaxvr, ham_time, apwalm, psi_gnd_lapwlo, &
+      call update_hamiltonian_without_pa_term_ks( first_kpt, l_max_pot, ham_time, apwalm, psi_gnd_lapwlo, &
       effective_potential_init, ham_init, Gkset )
     end if
     if ( rt_inp%use_velocity_gauge() ) then

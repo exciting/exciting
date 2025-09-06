@@ -451,7 +451,6 @@ contains
         call write_nonzero_timing( 'Berry-phase related:', t_rttddft%td_berry )
         call write_nonzero_timing( 'updatehamiltonian:', t_rttddft%ham%total )
         call write_nonzero_timing( '-- hmlint:', t_rttddft%ham%hmlint )
-        call write_nonzero_timing( '-- other subs:', t_rttddft%ham%rest )
         call write_nonzero_timing( 'All cycles of predcorr:', t_rttddft%pred_corr )
         call write_nonzero_timing( 'Total Energy:', t_rttddft%energy )
         call write_nonzero_timing( 'nexc:', t_rttddft%n_exc )

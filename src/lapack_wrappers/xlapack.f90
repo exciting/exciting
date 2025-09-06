@@ -3,6 +3,7 @@ module xlapack
   ! lapack workspaces
   use lapack_workspaces, only: lapack_workspace_complex_dp_t
   ! multiplication
+  use add_scaled_array, only: scaled_add
   use vector_multiplication, only: dot_multiply, norm, outer_product
   use general_matrix_multiplication, only: matrix_multiply
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply

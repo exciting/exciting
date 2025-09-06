@@ -25,10 +25,12 @@ contains
     logical, optional, intent(in) :: kill_on_failure
     
     type(unit_test_type) :: test_report
-    integer(i32), parameter :: n_assertions_test_scaled_add_vector = 3
-    integer(i32), parameter :: n_assertions_test_scaled_add_matrix = 3
-    integer(i32), parameter :: n_assertions = n_assertions_test_scaled_add_vector + &
-                                              n_assertions_test_scaled_add_matrix
+    integer(i32), parameter :: n_assertions_test_scaled_add_rank1_arrays = 3
+    integer(i32), parameter :: n_assertions_test_scaled_add_rank2_arrays = 3
+    integer(i32), parameter :: n_assertions_test_scaled_add_rank3_arrays = 3
+    integer(i32), parameter :: n_assertions = n_assertions_test_scaled_add_rank1_arrays + &
+                                              n_assertions_test_scaled_add_rank2_arrays + &
+                                              n_assertions_test_scaled_add_rank3_arrays
 
     character(len=*), parameter :: module_tested = "add_scaled_array"
 
@@ -36,8 +38,9 @@ contains
     call test_report%init(n_assertions, mpiglobal)
 
     ! Run and assert tests
-    call test_scaled_add_vector( test_report )
-    call test_scaled_add_matrix( test_report )
+    call test_scaled_add_rank1_arrays( test_report )
+    call test_scaled_add_rank2_arrays( test_report )
+    call test_scaled_add_rank3_arrays( test_report )
 
     call test_report%report( module_tested, kill_on_failure )
 
@@ -45,7 +48,7 @@ contains
 
   end subroutine
 
-  subroutine test_scaled_add_vector( test_report )
+  subroutine test_scaled_add_rank1_arrays( test_report )
     !> The test object
     type(unit_test_type), intent(inout) :: test_report
 
@@ -73,7 +76,7 @@ contains
     call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )
   end subroutine
 
-  subroutine test_scaled_add_matrix( test_report )
+  subroutine test_scaled_add_rank2_arrays( test_report )
     !> The test object
     type(unit_test_type), intent(inout) :: test_report
 
@@ -97,6 +100,37 @@ contains
     test_number = test_number + 1
     x = complex_matrix_5x7
     y = zi + transpose( complex_matrix_7x5 )
+    y_expected = x + y
+    call scaled_add( zone, x, y )
+    call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )
+  end subroutine
+
+  subroutine test_scaled_add_rank3_arrays( test_report )
+    !> The test object
+    type(unit_test_type), intent(inout) :: test_report
+
+    integer(i32) :: test_number
+    character(len=*), parameter :: test_id = "test_scaled_add_matrix"
+    complex(dp) :: a
+    complex(dp), parameter :: M(3, 2, 5) = reshape( complex_matrix_7x5, shape(M) )
+    complex(dp), parameter :: N(3, 2, 5) = reshape( zi*complex_matrix_5x7, shape(N) )
+    complex(dp), allocatable :: x(:, :, :), y(:, :, :), y_expected(:, :, :)
+    
+    test_number = 1
+    a = cmplx(1.0_dp, 2.333_dp, dp)
+    x = M
+    y = N
+    y_expected = a*x + y
+    call scaled_add( a, x, y )
+    call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )
+
+    test_number = test_number + 1
+    call scaled_add( zzero, x, y )
+    call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )
+
+    test_number = test_number + 1
+    x = M + (5._dp + zi)**N
+    y = zone + M
     y_expected = x + y
     call scaled_add( zone, x, y )
     call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )

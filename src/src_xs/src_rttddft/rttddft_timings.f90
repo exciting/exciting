@@ -64,11 +64,8 @@ module rttddft_timings
   type, public :: Timing_RTTDDFT_hamiltonian
     !> timing: update the hamiltonian
     real(dp) :: total
-    !> timing: execution of `hmlint`, see [[update_hamiltonian_without_pa_term_lapw]]
+    !> timing: execution of MT integrals, see [[update_hamiltonian_without_pa_term_lapw]]
     real(dp) :: hmlint
-    !> timing: time spent after executing `hmlint` until the update of the 
-    !> hamiltonian has been concluded, see [[update_hamiltonian_without_pa_term_lapw]]
-    real(dp) :: rest
   contains
     procedure :: reset => reset_Timing_RTTDDFT_hamiltonian
   end type 
@@ -229,7 +226,6 @@ contains
 
     this%total = 0._dp
     this%hmlint = 0._dp
-    this%rest = 0._dp
   end subroutine reset_Timing_RTTDDFT_hamiltonian
 
   pure subroutine reset_Timing_RTTDDFT_overlap( this )
