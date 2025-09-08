@@ -11,6 +11,7 @@ Subroutine rdmminn
       Use modinput
       Use modmain
       use mod_rhovalk, only: rhovalk
+      use to_char_conversion, only: to_char
       Implicit None
 ! allocatable arrays
       Complex (8), Allocatable :: evecfv (:, :)
@@ -81,7 +82,7 @@ Subroutine rdmminn
 ! add core density to the valence density
          Call addrhocr
 ! calculate the charges
-         Call charge
+         Call charge( 'energy minimization loop iteration ' // to_char( it ) )
 ! calculate the magnetic moment
          If (associated(input%groundstate%spin)) Then
             Call moment

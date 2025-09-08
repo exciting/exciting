@@ -16,6 +16,7 @@ Subroutine hartfock
       use total_energy, only: energy
       use mod_rhovalk, only: rhovalk
       use mod_gen_lo, only: genlofr
+      use to_char_conversion, only: to_char
 ! !DESCRIPTION:
 !  Computes the self-consistent Hartree Fock ground state.
 !
@@ -159,7 +160,7 @@ Subroutine hartfock
 ! add the core density to the total density
          Call addrhocr
 ! calculate the charges
-         Call charge
+         Call charge( 'Hartree-Fock loop iteration ' // to_char( iscl ) )
 ! calculate the moments
          If (associated(input%groundstate%spin)) Call moment
 ! normalise the density
