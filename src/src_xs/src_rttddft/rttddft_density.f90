@@ -10,17 +10,17 @@
 !> Module that manages what concerns charge density in RT-TDDFT calculations
 module rttddft_Density
   use asserts, only: assert
-  use precision, only: dp, i32
-  use modmpi, only: mpi_env_k
-  use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_density, timesec_RTTDDFT
   use constants, only: zzero, real_zero
-  use mod_convergence, only : iscl
-  use mod_potential_and_density, only: rhomt, rhoir
-  use rttddft_Wavefunction, only: wavefunction_set
-  use mod_rhoir, only: genrhoir
-  use mod_rhovalk, only: rhovalk
   use general_matrix_multiplication, only: matrix_multiply
   use mod_eigensystem, only: nmat
+  use mod_potential_and_density, only: rhomt, rhoir
+  use mod_rhoir, only: genrhoir
+  use mod_rhovalk, only: rhovalk
+  use modmpi, only: mpi_env_k
+  use precision, only: dp, i32
+  use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_density, timesec_RTTDDFT
+  use rttddft_Wavefunction, only: wavefunction_set
+  use to_char_conversion, only: to_char
 
   implicit none
 
@@ -236,8 +236,7 @@ contains
     end if
 
     ! calculate the charges
-    iscl = it
-    call charge()
+    call charge( 'real-time propagation step ' // to_char( it ) )
     if( timings_detailed ) call timesec_RTTDDFT( ti, t_dens%charge )
 
     ! normalize the density

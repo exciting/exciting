@@ -32,6 +32,7 @@ subroutine scf_cycle(verbosity)
                              put_occ_sirius, generate_density_sirius, get_periodic_function_sirius
     use sirius_init,   only: sirius_options
     use total_energy, only: energy
+    use to_char_conversion, only: to_char
     use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
     use TS_vdW_module, only: C6ab, R0_eff_ab
     use mod_gen_lo, only: genlofr
@@ -465,7 +466,7 @@ subroutine scf_cycle(verbosity)
 ! add the core density to the total density
         Call addrhocr
 ! calculate the charges
-        Call charge
+        Call charge( 's.c.f. loop iteration ' // to_char( iscl ) )
 ! calculate the moments
         If (spin_polarization) Call moment
 ! normalise the density

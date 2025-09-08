@@ -689,7 +689,7 @@ endif
          rhoir (ir) = dble (zfft(ir)) + t1
       End Do
 ! compute the total charge
-      Call charge
+      Call charge( 'density initialization' )
 ! normalise the density
       Call rhonorm
       Deallocate (ffacg, zfmt, zfft,a,b,c,rhomodel)

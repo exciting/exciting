@@ -1,66 +1,42 @@
-!
-!
-!
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-!
-!BOP
-! !ROUTINE: charge
-! !INTERFACE:
-!
-!
-Subroutine charge
-! !USES:
-      Use modinput
-      Use modmain
-      use constants, only: fourpi
-! !DESCRIPTION:
-!   Computes the muffin-tin, interstitial and total charges by integrating the
-!   density.
-!
-! !REVISION HISTORY:
-!   Created April 2003 (JKD)
-!EOP
-!BOC
-      Implicit None
-! local variables
-      Integer :: is, ia, ias, ir
-      Real (8) :: sum, t1
-! automatic arrays
-      Real (8) :: fr (nrmtmax), gr (nrmtmax), cf (3, nrmtmax)
-      character(1024) :: message
-! find the muffin-tin charges
-      chgmttot = 0.d0
-      Do is = 1, nspecies
-         Do ia = 1, natoms (is)
-            ias = idxas (ia, is)
-            Do ir = 1, nrmt (is)
-               fr (ir) = rhomt (1, ir, ias) * spr (ir, is) ** 2
-            End Do
-            Call fderiv (-1, nrmt(is), spr(:, is), fr, gr, cf)
-            chgmt (ias) = fourpi * y00 * gr (nrmt(is))
-            chgmttot = chgmttot + chgmt (ias)
-         End Do
-      End Do
-! find the interstitial charge
-      sum = 0.d0
-      Do ir = 1, ngrtot
-         sum = sum + rhoir (ir) * cfunir (ir)
-      End Do
-      chgir = sum * omega / dble (ngrtot)
-! total calculated charge
-      chgcalc = chgmttot + chgir
-      t1 = chgtot / chgcalc
-      If (Abs(t1-1.d0) .Gt. input%groundstate%epschg) Then
-         call warning('Warning(charge):')
-         write(message,'(" Total charge density incorrect for s.c. loop ", I5)') iscl
-         call warning(message)
-         write(message,'(" Calculated : ", G18.10)') chgcalc
-         call warning(message)
-         write(message,'(" Required   : ", G18.10)') chgtot
-         call warning(message)
-      End If
-      Return
-End Subroutine
-!EOC
+!> Computes the muffin-tin, interstitial and total charges by integrating the
+!> real-space density stored in arrays `rhomt` and `rhoir`.
+subroutine charge( caller_tag )
+  use constants, only: fourpi, y00
+  use mod_atoms, only: nspecies, natoms, idxas, spr
+  use mod_charge_and_moment, only: chgmttot, chgmt, chgtot, chgir, chgcalc
+  use mod_Gvector, only: ngrtot, cfunir
+  use mod_lattice, only: omega
+  use mod_muffin_tin, only: nrmt, nrmtmax
+  use mod_potential_and_density, only: rhomt, rhoir
+  use modinput, only: input
+  use precision, only: i32, dp
+  use to_char_conversion, only: to_char
+
+  implicit none
+
+  !> String from the calling routine to be included in the warning message
+  character(len=*), intent(in) :: caller_tag
+  
+  integer(i32) :: is, ia, ias
+  real(dp) :: fr(nrmtmax), gr(nrmtmax), cf(3, nrmtmax) 
+
+  chgmttot = 0._dp
+  do is = 1, nspecies
+    do ia = 1, natoms(is)
+      ias = idxas(ia, is)
+      fr(1 : nrmt(is)) = rhomt(1, 1 : nrmt(is), ias) * spr(1 : nrmt(is), is)**2
+      call fderiv( -1, nrmt(is), spr(:, is), fr, gr, cf )
+      chgmt(ias) = fourpi * y00 * gr(nrmt(is))
+      chgmttot = chgmttot + chgmt(ias)
+    end do
+  end do
+  
+  chgir = dot_product( rhoir(1 : ngrtot), cfunir(1 : ngrtot) ) * omega / real( ngrtot, kind = dp )
+  chgcalc = chgmttot + chgir
+
+  if ( abs( chgtot / chgcalc - 1._dp ) > input%groundstate%epschg ) then
+    call warning( 'Warning(charge): Charge ' // to_char( chgcalc ) // &
+      ' calculated from electronic density in ' // trim( caller_tag ) // &
+      ' differs from the total charge ' // to_char( chgtot ) )
+  end if
+end subroutine
