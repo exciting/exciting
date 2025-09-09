@@ -62,7 +62,7 @@ module xhdf5
     procedure :: initialize_mpi_comm_type, initialize_mpiinfo
 
     procedure :: finalize
-    procedure :: initialize_group
+    procedure :: initialize_group, initialize_group_update_groupname
     procedure :: dataset_shape
 
     procedure :: exists => link_exists
@@ -161,7 +161,7 @@ module xhdf5
     call this%evaluate_overwritten_datasets()
     this%h5id = h5id_undefined
   end subroutine finalize 
-  
+ 
 
   !> Create a new group with name `group` at `h5path`. If the group already exists, the routine does nothing.
   subroutine initialize_group(this, h5path, groupname)
@@ -172,9 +172,24 @@ module xhdf5
     !> Group name.
     character(*), intent(in) :: groupname
 
-    if (this%exists(join_paths(h5path, groupname))) return
-    call hdf5_create_group(this%mpi_comm, this%h5id, trim(h5path), groupname)
+    if (.not. this%exists(join_paths(h5path, groupname))) then 
+      call hdf5_create_group(this%mpi_comm, this%h5id, trim(h5path), groupname)
+    end if 
   end subroutine initialize_group
+
+
+  !> Create a new group with name `group` at `h5path`. If the group already exists, the routine does nothing.
+  subroutine initialize_group_update_groupname(this, h5path, groupname)
+    !> HDF5 file handler.
+    class(xhdf5_type), intent(inout) :: this
+    !> Absolute path in the hdf5 file.
+    character(*), intent(in) :: h5path
+    !> Group name.
+    character(:), allocatable, intent(inout) :: groupname
+
+    call this%initialize_group(h5path, groupname)
+    groupname = join_paths(h5path, groupname)
+  end subroutine initialize_group_update_groupname
   
 
   !> Return true or false, whether the link to `h5path` exists or not.

@@ -3,8 +3,119 @@ MODULE mod_kpointset
     use precision, only: i32, dp, str_256
     use mod_device_offload, only: device_world
     use m_memory_device, only: bytes_size
+    use xhdf5
+    use os_utils
 #include "offload.fpp"
+
     implicit none
+
+    ! Dataset names for k_set in HDF5 files
+    !> HDF5 dataset name for number of non-reduced \(\mathbf k\) points
+    character(*), parameter, private :: h5ds_nkptnr      = "nkptnr"
+    !> HDF5 dataset name for number of reduced \(\mathbf k\) points
+    character(*), parameter, private :: h5ds_nkpt        = "nkpt"
+    !> HDF5 dataset name for switch to decide if grid was reduced
+    character(*), parameter, private :: h5ds_isreduced   = "isreduced"
+    !> HDF5 dataset name for switch to decide if grid was generated with libzint
+    character(*), parameter, private :: h5ds_usedlibzint = "usedlibzint"
+    !> HDF5 dataset name for reciprocal lattice vectors
+    character(*), parameter, private :: h5ds_bvec        = "bvec"
+    !> HDF5 dataset name for \(\mathbf k\) grid offset in lattice coordinates
+    character(*), parameter, private :: h5ds_vkloff      = "vkloff"
+    !> HDF5 dataset name for number of \(\mathbf k\) points in each direction (`ngridk`)
+    character(*), parameter, private :: h5ds_ngridk      = "ngridk"
+    !> HDF5 dataset name for 3d indices of reduced set of \(\mathbf k\) points
+    character(*), parameter, private :: h5ds_ivk         = "ivk"
+    !> HDF5 dataset name for reduced set of \(\mathbf k\) points in lattice coordinates
+    character(*), parameter, private :: h5ds_vkl         = "vkl"
+    !> HDF5 dataset name for reduced set of \(\mathbf k\) points in cartesian coordinates
+    character(*), parameter, private :: h5ds_vkc         = "vkc"
+    !> HDF5 dataset name for weights (multiplicity) of reduced set of \(\mathbf k\) points
+    character(*), parameter, private :: h5ds_wkpt        = "wkpt"
+    !> HDF5 dataset name for 3d indices of non-reduced set of \(\mathbf k\) points
+    character(*), parameter, private :: h5ds_ivknr       = "ivknr"
+    !> HDF5 dataset name for non-reduced set of \(\mathbf k\) points in lattice coordinates
+    character(*), parameter, private :: h5ds_vklnr       = "vklnr"
+    !> HDF5 dataset name for non-reduced set of \(\mathbf k\) points in cartesian coordinates
+    character(*), parameter, private :: h5ds_vkcnr       = "vkcnr"
+    !> HDF5 dataset name for weights (multiplicity) of non-reduced set of \(\mathbf k\) points
+    character(*), parameter, private :: h5ds_wkptnr      = "wkptnr"
+    !> HDF5 dataset name for map from non-reduced 3d inidced to reduced 1d indices
+    character(*), parameter, private :: h5ds_ikmap       = "ikmap"
+    !> HDF5 dataset name for map from non-reduced 3d inidced to non-reduced 1d indices
+    character(*), parameter, private :: h5ds_ikmapnr     = "ikmapnr"
+    !> HDF5 dataset name for map from non-reduced 1d inidced to reduced 1d indices
+    character(*), parameter, private :: h5ds_ik2ikp      = "ik2ikp"
+    !> HDF5 dataset name for map from reduced 1d inidced to non-reduced 1d indices
+    character(*), parameter, private :: h5ds_ikp2ik      = "ikp2ik"
+    !> HDF5 dataset name for number of tetrahedra
+    character(*), parameter, private :: h5ds_ntet        = "ntet"
+    !> HDF5 dataset name for tetrahedron coordinates
+    character(*), parameter, private :: h5ds_tnodes      = "tnodes"
+    !> HDF5 dataset name for tetrahedron weight
+    character(*), parameter, private :: h5ds_wtet        = "wtet"
+    !> HDF5 dataset name for tetrahedron volume
+    character(*), parameter, private :: h5ds_tvol        = "tvol"
+
+    ! Dataset names for gk_set in HDF5 files
+    !> HDF5 dataset name for \(|\mathbf{G+k}|_{\text{max}}\)
+    character(*), parameter, private :: h5ds_gkmax    = "gkmax"
+    !> HDF5 dataset name for maximum number of \(\mathbf{G+k}\) vectors w.r.t. reduced \(\mathbf k\) grid
+    character(*), parameter, private :: h5ds_ngkmax   = "ngkmax"
+    !> HDF5 dataset name for number of \(\mathbf{G+k}\) vectors on reduced \(\mathbf k\) grud
+    character(*), parameter, private :: h5ds_ngk      = "ngk"
+    !> HDF5 dataset name for \(\mathbf{G+k}\) index to \(\mathbf G\) index w.r.t. reduced \(\mathbf k\) grid
+    character(*), parameter, private :: h5ds_igkig    = "igkig"
+    !> HDF5 dataset name for \(\mathbf G\) index to \(\mathbf{G+k}\) index w.r.t. reduced \(\mathbf k\) grid
+    character(*), parameter, private :: h5ds_igigk    = "igigk"
+    !> HDF5 dataset name for \(\mathbf{G+k}\) vectors in lattice coordinates on reduced \(mathbf k\) grid
+    character(*), parameter, private :: h5ds_vgkl     = "vgkl"
+    !> HDF5 dataset name for \(\mathbf{G+k}\) vectors in cartesian coordinates on reduced \(mathbf k\) grid
+    character(*), parameter, private :: h5ds_vgkc     = "vgkc"
+    !> HDF5 dataset name for the lengths of \(\mathbf{G+k}\) vectors on reduced \(mathbf k\) grid
+    character(*), parameter, private :: h5ds_gkc      = "gkc"
+    !> HDF5 dataset name for the spherical coordinates \((\theta, \phi\) of the \(\mathbf{G+k}\) vectors on
+    !> reduced \(mathbf k\) grid
+    character(*), parameter, private :: h5ds_tpgkc    = "tpgkc"
+    !> HDF5 dataset name for the structure factor of the \(\mathbf{G+k}\) vectors on reduced \(\mathbf k\) grid
+    character(*), parameter, private :: h5ds_sfacgk   = "sfacgk"
+    !> HDF5 dataset name for maximum number of \(\mathbf{G+k}\) vectors w.r.t. non-reduced \(\mathbf k\) grid
+    character(*), parameter, private :: h5ds_ngknrmax = "ngknrmax"
+    !> HDF5 dataset name for number of \(\mathbf{G+k}\) vectors on non-reduced \(\mathbf k\) grud
+    character(*), parameter, private :: h5ds_ngknr    = "ngknr"
+    !> HDF5 dataset name for \(\mathbf{G+k}\) index to \(\mathbf G\) index w.r.t. non-reduced \(\mathbf k\) grid
+    character(*), parameter, private :: h5ds_igknrig  = "igknrig"
+    !> HDF5 dataset name for \(\mathbf G\) index to \(\mathbf{G+k}\) index w.r.t. non-reduced \(\mathbf k\) grid
+    character(*), parameter, private :: h5ds_igigknr  = "igigknr"
+    !> HDF5 dataset name for \(\mathbf{G+k}\) vectors in lattice coordinates on non-reduced \(mathbf k\) grid
+    character(*), parameter, private :: h5ds_vgknrl   = "vgknrl"
+    !> HDF5 dataset name for \(\mathbf{G+k}\) vectors in cartesian coordinates on non-reduced \(mathbf k\) grid
+    character(*), parameter, private :: h5ds_vgknrc   = "vgknrc"
+    !> HDF5 dataset name for the lengths of \(\mathbf{G+k}\) vectors on non-reduced \(mathbf k\) grid
+    character(*), parameter, private :: h5ds_gknrc    = "gknrc"
+    !> HDF5 dataset name for the spherical coordinates \((\theta, \phi\) of the \(\mathbf{G+k}\) vectors on
+    !> non-reduced \(mathbf k\) grid
+    character(*), parameter, private :: h5ds_tpgknrc  = "tpgknrc"
+    !> HDF5 dataset name for the structure factor of the \(\mathbf{G+k}\) vectors on non-reduced \(\mathbf k\) grid
+    character(*), parameter, private :: h5ds_sfacgknr = "sfacgknr"
+
+    ! Dataset names for q_set in HDF5 files
+    !> HDF5 group name for the \(\mathbf q\) grid, saved as instance of [[k_set]]
+    character(*), parameter, private :: qset_group = "qset"
+    !> HDF5 dataset name for map from \(\mathbf{k',k}\) indices to \(\mahtbf q\) index w.r.t. non-reduced grids
+    character(*), parameter, private :: h5ds_ikikp2iq_nr   = "ikikp2iq_nr"
+    !> HDF5 dataset name for map from \(\mathbf{k',k}\) indices to \(\mahtbf G\) index w.r.t. non-reduced grids
+    character(*), parameter, private :: h5ds_ikikp2ig_nr   = "ikikp2ig_nr"
+    !> HDF5 dataset name for map from \(\mathbf{k,q}\) index to \(\mathbf k'\) index w.r.t. non-reduced grids
+    character(*), parameter, private :: h5ds_ikiq2ikp_nr   = "ikiq2ikp_nr"
+    !> HDF5 dataset name for map from \(\mathbf{k,q}\) index to \(\mathbf G\) index w.r.t. non-reduced grids
+    character(*), parameter, private :: h5ds_ikiq2ig_nr    = "ikiq2ig_nr"
+    !> HDF5 dataset name for map from \(\mathbf{k'-k}\) index to \(\mathbf q\) index w.r.t. non-reduced grids
+    character(*), parameter, private :: h5ds_ikkp2iq_nr    = "ikkp2iq_nr"
+    !> HDF5 dataset name for map from \(\mathbf{k'-k}\) index to \(\mathbf G\) index w.r.t. non-reduced grids
+    character(*), parameter, private :: h5ds_ikkp2ig_nr    = "ikkp2ig_nr"
+    !> HDF5 dataset name for map from \(\mathbf{k'-k}\) ordered by \(\mathbf q\)
+    character(*), parameter, private :: h5ds_ikkp_qordered = "ikkp_qordered"
 
 !-------------------------------------------------------------------------------
     type k_set
@@ -42,6 +153,9 @@ MODULE mod_kpointset
         integer(i32), allocatable :: tnodes(:,:) ! coordinates of tetrahedron
         integer(i32), allocatable :: wtet(:)     ! weight of each tetrahedron
         real(dp) :: tvol                     ! volume of the tetrahedra relative to the BZ volume
+
+        contains
+          procedure, public :: write => write_k_set_hdf5, read => read_k_set_hdf5
     end type k_set
 
 !-------------------------------------------------------------------------------
@@ -83,6 +197,9 @@ MODULE mod_kpointset
         ! Cutoff for G+k length
         real(dp) :: gkmax
 
+        ! Flag to determine if libzint is used for kset
+        logical :: usedlibzint
+
         ! Reduced (potentially) quantities
         integer :: ngkmax
         integer, allocatable :: ngk(:,:)      ! number of G+k-vectors for augmented plane waves
@@ -104,6 +221,8 @@ MODULE mod_kpointset
         real(dp), allocatable :: gknrc(:,:,:)    ! length of G+k-vectors
         real(dp), allocatable :: tpgknrc(:,:,:,:)! (theta, phi) coordinates of G+k-vectors
         complex(dp), allocatable :: sfacgknr(:,:,:,:) ! structure factor for the G+k-vectors
+        contains
+          procedure, public :: write => write_gk_set_hdf5, read => read_gk_set_hdf5
     end type Gk_set
 
 !-------------------------------------------------------------------------------
@@ -207,6 +326,9 @@ MODULE mod_kpointset
         ! ikkp with ik' >= ik ordered according to corresponding
         ! iq value
         integer(i32), allocatable :: ikkp_qordered(:)
+
+        contains
+        procedure, public :: write => write_q_set_hdf5, read => read_q_set_hdf5
 
     end type q_set
 
@@ -1054,6 +1176,9 @@ CONTAINS
         ! Reset self
         call delete_Gk_vectors(self)
 
+        ! Set libzint flag from kset
+        self%usedlibzint = kset%usedlibzint
+
         ! Save requested gkmax
         self%gkmax = gkmax
 
@@ -1156,7 +1281,7 @@ CONTAINS
         deallocate(igk2ig)
 
         !! Also make non-reduced quantities
-        if( .not. kset%usedlibzint) then
+        if( .not. self%usedlibzint) then
 
           ! Map (igknr,iknr,ispin) --> ig
           allocate(igk2ig(gset%ngrtot,kset%nkptnr,nspnfv))
@@ -2562,5 +2687,334 @@ CONTAINS
         end function i1dnr
 
     end subroutine ikpik2iqivgnr
+
+    !> Write an instance of [[k_set]] to an HDF5 file at `[[path]]/[[groupname]]`.
+    subroutine write_k_set_hdf5(this, xh5, path, groupname)
+      !> Instance to be written
+      class(k_set), intent(in) :: this
+      !> Initialized HDF5 file handle
+      type(xhdf5_type), intent(inout) :: xh5
+      !> Path in the HDF5 file to write instance to
+      character(*), intent(in) :: path
+      !> Name of the group to write instance to
+      character(*), intent(in) :: groupname
+
+      character(:), allocatable :: group
+
+      group = groupname
+      call xh5%initialize_group_update_groupname(path, group)
+      call xh5%write(group, h5ds_nkptnr, this%nkptnr)
+      call xh5%write(group, h5ds_nkpt, this%nkpt)
+      call xh5%write(group, h5ds_isreduced, this%isreduced)
+      call xh5%write(group, h5ds_usedlibzint, this%usedlibzint)
+      call xh5%write(group, h5ds_bvec, this%bvec)
+      call xh5%write(group, h5ds_vkloff, this%vkloff)
+      call xh5%write(group, h5ds_ngridk, this%ngridk)
+      call xh5%write(group, h5ds_ivk, this%ivk)
+      call xh5%write(group, h5ds_vkl, this%vkl)
+      call xh5%write(group, h5ds_vkc, this%vkc)
+      call xh5%write(group, h5ds_wkpt, this%wkpt)
+      call xh5%write(group, h5ds_ivknr, this%ivknr)
+      call xh5%write(group, h5ds_vklnr, this%vklnr)
+      call xh5%write(group, h5ds_vkcnr, this%vkcnr)
+      call xh5%write(group, h5ds_wkptnr, this%wkptnr)
+      call xh5%write(group, h5ds_ikmap, this%ikmap)
+      call xh5%write(group, h5ds_ikmapnr, this%ikmapnr)
+      call xh5%write(group, h5ds_ik2ikp, this%ik2ikp)
+      call xh5%write(group, h5ds_ikp2ik, this%ikp2ik)
+      call xh5%write(group, h5ds_ntet, this%ntet)
+      call xh5%write(group, h5ds_tnodes, this%tnodes)
+      call xh5%write(group, h5ds_wtet, this%wtet)
+      call xh5%write(group, h5ds_tvol, this%tvol)
+    end subroutine
+
+    !> Read an instance of [[k_set]] from an HDF5 file at `[[path]]/[[groupname]]`.
+    subroutine read_k_set_hdf5(this, xh5, path, groupname)
+      !> Instance to be read
+      class(k_set), intent(out) :: this
+      !> Initialized HDF5 file handle
+      type(xhdf5_type), intent(inout) :: xh5
+      !> Path in the HDF5 file to read instance from
+      character(*), intent(in) :: path
+      !> Name of the group to read instance from
+      character(*), intent(in) :: groupname
+
+      character(:), allocatable :: group
+      integer, allocatable :: dsshape(:)
+
+      group = join_paths(path, groupname)
+      call delete_k_vectors(this)
+      call xh5%read(group, h5ds_nkptnr, this%nkptnr)
+      call xh5%read(group, h5ds_nkpt, this%nkpt)
+      call xh5%read(group, h5ds_isreduced, this%isreduced)
+      call xh5%read(group, h5ds_usedlibzint, this%usedlibzint)
+      call xh5%read(group, h5ds_bvec, this%bvec)
+      call xh5%read(group, h5ds_vkloff, this%vkloff)
+      call xh5%read(group, h5ds_ngridk, this%ngridk)
+      call xh5%read(group, h5ds_ntet, this%ntet)
+      call xh5%read(group, h5ds_tvol, this%tvol)
+
+      call xh5%dataset_shape(group, h5ds_ivk, dsshape, .false.)
+      allocate(this%ivk(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_ivk, this%ivk)
+
+      call xh5%dataset_shape(group, h5ds_vkl, dsshape, .false.)
+      allocate(this%vkl(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_vkl, this%vkl)
+
+      call xh5%dataset_shape(group, h5ds_vkc, dsshape, .false.)
+      allocate(this%vkc(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_vkc, this%vkc)
+
+      call xh5%dataset_shape(group, h5ds_wkpt, dsshape, .false.)
+      allocate(this%wkpt(dsshape(1)))
+      call xh5%read(group, h5ds_wkpt, this%wkpt)
+
+      call xh5%dataset_shape(group, h5ds_ivknr, dsshape, .false.)
+      allocate(this%ivknr(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_ivknr, this%ivknr)
+
+      call xh5%dataset_shape(group, h5ds_vklnr, dsshape, .false.)
+      allocate(this%vklnr(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_vklnr, this%vklnr)
+
+      call xh5%dataset_shape(group, h5ds_vkcnr, dsshape, .false.)
+      allocate(this%vkcnr(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_vkcnr, this%vkcnr)
+
+      call xh5%dataset_shape(group, h5ds_wkptnr, dsshape, .false.)
+      allocate(this%wkptnr(dsshape(1)))
+      call xh5%read(group, h5ds_wkptnr, this%wkptnr)
+
+      call xh5%dataset_shape(group, h5ds_ikmap, dsshape, .false.)
+      allocate(this%ikmap(dsshape(1), dsshape(2), dsshape(3)))
+      call xh5%read(group, h5ds_ikmap, this%ikmap)
+
+      call xh5%dataset_shape(group, h5ds_ikmapnr, dsshape, .false.)
+      allocate(this%ikmapnr(dsshape(1), dsshape(2), dsshape(3)))
+      call xh5%read(group, h5ds_ikmapnr, this%ikmapnr)
+
+      call xh5%dataset_shape(group, h5ds_ik2ikp, dsshape, .false.)
+      allocate(this%ik2ikp(dsshape(1)))
+      call xh5%read(group, h5ds_ik2ikp, this%ik2ikp)
+
+      call xh5%dataset_shape(group, h5ds_ikp2ik, dsshape, .false.)
+      allocate(this%ikp2ik(dsshape(1)))
+      call xh5%read(group, h5ds_ikp2ik, this%ikp2ik)
+
+      call xh5%dataset_shape(group, h5ds_tnodes, dsshape, .false.)
+      allocate(this%tnodes(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_tnodes, this%tnodes)
+
+      call xh5%dataset_shape(group, h5ds_wtet, dsshape, .false.)
+      allocate(this%wtet(dsshape(1)))
+      call xh5%read(group, h5ds_wtet, this%wtet)
+    end subroutine
+
+
+    !> Write an instance of [[gk_set]] to an HDF5 file at `[[path]]/[[groupname]]`.
+    subroutine write_gk_set_hdf5(this, xh5, path, groupname)
+        !> Instance to be written
+      class(gk_set), intent(in) :: this
+      !> Initialized HDF5 file handle
+      type(xhdf5_type), intent(inout) :: xh5
+      !> Path in the HDF5 file to write instance to
+      character(*), intent(in) :: path
+      !> Name of the group to write instance to
+      character(*), intent(in) :: groupname
+
+      character(:), allocatable :: group
+
+      group = groupname
+      call xh5%initialize_group_update_groupname(path, group)
+      call xh5%write(group, h5ds_gkmax , this%gkmax)
+      call xh5%write(group, h5ds_usedlibzint, this%usedlibzint)
+      call xh5%write(group, h5ds_ngkmax , this%ngkmax)
+      call xh5%write(group, h5ds_ngk, this%ngk)
+      call xh5%write(group, h5ds_vgkl, this%vgkl)
+      call xh5%write(group, h5ds_vgkc, this%vgkc)
+      call xh5%write(group, h5ds_gkc, this%gkc)
+      call xh5%write(group, h5ds_tpgkc, this%tpgkc)
+      call xh5%write(group, h5ds_sfacgk, this%sfacgk)
+      call xh5%write(group, h5ds_igigk, this%igigk)
+      call xh5%write(group, h5ds_igkig, this%igkig)
+
+      if(.not. this%usedlibzint) then
+        call xh5%write(group, h5ds_ngknrmax, this%ngknrmax)
+        call xh5%write(group, h5ds_ngknr, this%ngknr)
+        call xh5%write(group, h5ds_igknrig, this%igknrig)
+        call xh5%write(group, h5ds_igigknr, this%igigknr)
+        call xh5%write(group, h5ds_vgknrl, this%vgknrl)
+        call xh5%write(group, h5ds_vgknrc, this%vgknrc)
+        call xh5%write(group, h5ds_gknrc, this%gknrc)
+        call xh5%write(group, h5ds_tpgknrc, this%tpgknrc)
+        call xh5%write(group, h5ds_sfacgknr, this%sfacgknr)
+      end if
+    end subroutine
+
+    !> Read an instance of [[gk_set]] from an HDF5 file at `[[path]]/[[groupname]]`.
+    subroutine read_gk_set_hdf5(this, xh5, path, groupname)
+      !> Instance to be read
+      class(gk_set), intent(out) :: this
+      !> Initialized HDF5 file handle
+      type(xhdf5_type), intent(inout) :: xh5
+      !> Path in the HDF5 file to read instance from
+      character(*), intent(in) :: path
+      !> Name of the group to read instance from
+      character(*), intent(in) :: groupname
+
+      character(:), allocatable :: group
+      integer, allocatable :: dsshape(:)
+
+      group = join_paths(path, groupname)
+
+      call delete_Gk_vectors(this)
+
+      call xh5%read(group, h5ds_gkmax, this%gkmax)
+      call xh5%read(group, h5ds_usedlibzint, this%usedlibzint)
+      call xh5%read(group, h5ds_ngkmax, this%ngkmax)
+
+      call xh5%dataset_shape(group, h5ds_ngk, dsshape, .false.)
+      allocate(this%ngk(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_ngk, this%ngk)
+
+      call xh5%dataset_shape(group, h5ds_igkig, dsshape, .false.)
+      allocate(this%igkig(dsshape(1), dsshape(2), dsshape(3)))
+      call xh5%read(group, h5ds_igkig, this%igkig)
+
+      call xh5%dataset_shape(group, h5ds_igigk, dsshape, .false.)
+      allocate(this%igigk(dsshape(1), dsshape(2), dsshape(3)))
+      call xh5%read(group, h5ds_igigk, this%igigk)
+
+      call xh5%dataset_shape(group, h5ds_vgkl, dsshape, .false.)
+      allocate(this%vgkl(dsshape(1), dsshape(2), dsshape(3), dsshape(4)))
+      call xh5%read(group, h5ds_vgkl, this%vgkl)
+
+      call xh5%dataset_shape(group, h5ds_vgkc, dsshape, .false.)
+      allocate(this%vgkc(dsshape(1), dsshape(2), dsshape(3), dsshape(4)))
+      call xh5%read(group, h5ds_vgkc, this%vgkc)
+
+      call xh5%dataset_shape(group, h5ds_gkc, dsshape, .false.)
+      allocate(this%gkc(dsshape(1), dsshape(2), dsshape(3)))
+      call xh5%read(group, h5ds_gkc, this%gkc)
+
+      call xh5%dataset_shape(group, h5ds_tpgkc, dsshape, .false.)
+      allocate(this%tpgkc(dsshape(1), dsshape(2), dsshape(3), dsshape(4)))
+      call xh5%read(group, h5ds_tpgkc, this%tpgkc)
+
+      call xh5%dataset_shape(group, h5ds_sfacgk, dsshape, .true.)
+      allocate(this%sfacgk(dsshape(1), dsshape(2), dsshape(3), dsshape(4)))
+      call xh5%read(group, h5ds_sfacgk, this%sfacgk)
+
+      if(.not. this%usedlibzint) then
+        call xh5%read(group, h5ds_ngknrmax, this%ngknrmax)
+        call xh5%dataset_shape(group, h5ds_ngknr, dsshape, .false.)
+        allocate(this%ngknr(dsshape(1), dsshape(2)))
+        call xh5%read(group, h5ds_ngknr, this%ngknr)
+
+        call xh5%dataset_shape(group, h5ds_igknrig, dsshape, .false.)
+        allocate(this%igknrig(dsshape(1), dsshape(2), dsshape(3)))
+        call xh5%read(group, h5ds_igknrig, this%igknrig)
+
+        call xh5%dataset_shape(group, h5ds_igigknr, dsshape, .false.)
+        allocate(this%igigknr(dsshape(1), dsshape(2), dsshape(3)))
+        call xh5%read(group, h5ds_igigknr, this%igigknr)
+
+        call xh5%dataset_shape(group, h5ds_vgknrl, dsshape, .false.)
+        allocate(this%vgknrl(dsshape(1), dsshape(2), dsshape(3), dsshape(4)))
+        call xh5%read(group, h5ds_vgknrl, this%vgknrl)
+
+        call xh5%dataset_shape(group, h5ds_vgknrc, dsshape, .false.)
+        allocate(this%vgknrc(dsshape(1), dsshape(2), dsshape(3), dsshape(4)))
+        call xh5%read(group, h5ds_vgknrc, this%vgknrc)
+
+        call xh5%dataset_shape(group, h5ds_gknrc, dsshape, .false.)
+        allocate(this%gknrc(dsshape(1), dsshape(2), dsshape(3)))
+        call xh5%read(group, h5ds_gknrc, this%gknrc)
+
+        call xh5%dataset_shape(group, h5ds_tpgknrc, dsshape, .false.)
+        allocate(this%tpgknrc(dsshape(1), dsshape(2), dsshape(3), dsshape(4)))
+        call xh5%read(group, h5ds_tpgknrc, this%tpgknrc)
+
+        call xh5%dataset_shape(group, h5ds_sfacgknr, dsshape, .true.)
+        allocate(this%sfacgknr(dsshape(1), dsshape(2), dsshape(3), dsshape(4)))
+        call xh5%read(group, h5ds_sfacgknr, this%sfacgknr)
+      end if
+    end subroutine
+
+    !> Write an instance of [[q_set]] to an HDF5 file at `[[path]]/[[groupname]]`.
+    subroutine write_q_set_hdf5(this, xh5, path, groupname)
+      !> Instance to be written
+      class(q_set), intent(in) :: this
+      !> Initialized HDF5 file handle
+      type(xhdf5_type), intent(inout) :: xh5
+      !> Path in the HDF5 file to write instance to
+      character(*), intent(in) :: path
+      !> Name of the group to write instance to
+      character(*), intent(in) :: groupname
+
+      character(:), allocatable :: group
+      integer, allocatable :: dsshape(:)
+
+      group = groupname
+      call xh5%initialize_group_update_groupname(path, group)
+
+      call this%qset%write(xh5, group, qset_group)
+      call xh5%write(group, h5ds_ikikp2iq_nr, this%ikikp2iq_nr)
+      call xh5%write(group, h5ds_ikikp2ig_nr, this%ikikp2ig_nr)
+      call xh5%write(group, h5ds_ikiq2ikp_nr, this%ikiq2ikp_nr)
+      call xh5%write(group, h5ds_ikiq2ig_nr, this%ikiq2ig_nr)
+      call xh5%write(group, h5ds_ikkp2iq_nr, this%ikkp2iq_nr)
+      call xh5%write(group, h5ds_ikkp2ig_nr, this%ikkp2ig_nr)
+      call xh5%write(group, h5ds_ikkp_qordered, this%ikkp_qordered)
+    end subroutine
+
+    !> Read an instance of [[q_set]] from an HDF5 file at `[[path]]/[[groupname]]`.
+    subroutine read_q_set_hdf5(this, xh5, path, groupname)
+      !> Instance to be read
+      class(q_set), intent(out) :: this
+      !> Initialized HDF5 file handle
+      type(xhdf5_type), intent(inout) :: xh5
+      !> Path in the HDF5 file to read instance from
+      character(*), intent(in) :: path
+      !> Name of the group to read instance from
+      character(*), intent(in) :: groupname
+
+      character(:), allocatable :: group
+      integer, allocatable :: dsshape(:)
+
+      group =  join_paths(path, groupname)
+
+      call delete_q_vectors(this)
+      call this%qset%read(xh5, group, qset_group)
+
+      call xh5%dataset_shape(group, h5ds_ikikp2iq_nr, dsshape, .false.)
+      allocate(this%ikikp2iq_nr(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_ikikp2iq_nr, this%ikikp2iq_nr)
+
+      call xh5%dataset_shape(group, h5ds_ikikp2ig_nr, dsshape, .false.)
+      allocate(this%ikikp2ig_nr(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_ikikp2ig_nr, this%ikikp2ig_nr)
+
+      call xh5%dataset_shape(group, h5ds_ikiq2ikp_nr, dsshape, .false.)
+      allocate(this%ikiq2ikp_nr(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_ikiq2ikp_nr, this%ikiq2ikp_nr)
+
+      call xh5%dataset_shape(group, h5ds_ikiq2ig_nr, dsshape, .false.)
+      allocate(this%ikiq2ig_nr(dsshape(1), dsshape(2)))
+      call xh5%read(group, h5ds_ikiq2ig_nr, this%ikiq2ig_nr)
+
+      call xh5%dataset_shape(group, h5ds_ikkp2iq_nr, dsshape, .false.)
+      allocate(this%ikkp2iq_nr(dsshape(1)))
+      call xh5%read(group, h5ds_ikkp2iq_nr, this%ikkp2iq_nr)
+
+      call xh5%dataset_shape(group, h5ds_ikkp2ig_nr, dsshape, .false.)
+      allocate(this%ikkp2ig_nr(dsshape(1)))
+      call xh5%read(group, h5ds_ikkp2ig_nr, this%ikkp2ig_nr)
+
+      call xh5%dataset_shape(group, h5ds_ikkp_qordered, dsshape, .false.)
+      allocate(this%ikkp_qordered(dsshape(1)))
+      call xh5%read(group, h5ds_ikkp_qordered, this%ikkp_qordered)
+    end subroutine
 
 END MODULE
