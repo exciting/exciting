@@ -242,10 +242,25 @@ elseif (CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
       set(FF_RELEASE "${FLANG_RELEASE} ${OpenMP_Fortran_FLAGS} -fopenmp-version=51")
    endif()
 
-else ()
-     message(STATUS "Unrecognized compiler: only Intel, GNU, Cray, Flang (new) compilers are supported")
-     message(FATAL_ERROR "Compiler id: ${CMAKE_Fortran_COMPILER_ID}")
-endif()
+   # LLVM Flang has an issue with OpenMP mapping of derived types
+   option(APPLY_FLANG_OPENMP_DERIVED_TYPE_MAP_WORKAROUND
+         "Apply workaround for Flang OpenMP bug in derived type mapping" ON)
+   if (APPLY_FLANG_OPENMP_DERIVED_TYPE_MAP_WORKAROUND)
+      add_compile_definitions(FLANG_OPENMP_DERIVED_TYPE_MAP_BUG_WORKAROUND)
+   endif()
+
+   # LLVM Flang has an issue with OpenMP mapping of array slices
+   # TODO(mrm): Remove whenever this is solved (LLVM issue: <link/ID>)
+   option(APPLY_FLANG_OPENMP_SLICE_MAP_WORKAROUND
+         "Apply workaround for Flang OpenMP bug in slice mapping" ON)
+   if (APPLY_FLANG_OPENMP_SLICE_MAP_WORKAROUND)
+      add_compile_definitions(FLANG_OPENMP_SLICE_MAP_BUG_WORKAROUND)
+   endif()
+
+   else ()
+      message(STATUS "Unrecognized compiler: only Intel, GNU, Cray, Flang (new) compilers are supported")
+      message(FATAL_ERROR "Compiler id: ${CMAKE_Fortran_COMPILER_ID}")
+   endif()
 
 string(REPLACE ";" " " FF_DEBUG "${FF_DEBUG}")
 string(REPLACE ";" " " FF_RELEASE "${FF_RELEASE}")

@@ -120,6 +120,9 @@ subroutine init_kqpoint_set()
 
     ! Upload the meshes to the devices
     OMP_OFFLOAD target enter data map(always, to: kset, Gset, Gkset, Gkqset, Gqset, Gqbarc, kqset)
+#if defined(FLANG_OPENMP_DERIVED_TYPE_MAP_BUG_WORKAROUND)
+    OMP_OFFLOAD target enter data map(to: Gset%ivg, Gkqset%igkig, Gset%intgv, Gset%ivgig, Gqbarc%igigk)
+#endif 
 
 contains
 

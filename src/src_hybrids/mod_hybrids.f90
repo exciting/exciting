@@ -47,7 +47,9 @@ contains
         call delete_core_states
 
         ! Deallocate all the reciprocal space meshes
-
+#if defined(FLANG_OPENMP_DERIVED_TYPE_MAP_BUG_WORKAROUND)
+        OMP_OFFLOAD target exit data map(delete: Gset%ivg, Gkqset%igkig, Gset%intgv, Gset%ivgig, Gqbarc%igigk)
+#endif
         OMP_OFFLOAD target exit data map(delete: kset, Gset, Gkset, Gkqset, Gqset, Gqbarc, kqset)
        
         call delete_k_vectors(kset)

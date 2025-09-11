@@ -146,6 +146,11 @@ if (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
 
 endif()
 
+# New Flang optimizer has some issues when passing over BSE files
+if (CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/src_xs/angavsc0.F90" PROPERTIES COMPILE_FLAGS "-O0")
+endif()
+
 # Developers: uncomment that to check if the source files that you
 # want in the project to be included
 # message("Source files:")
@@ -196,11 +201,16 @@ add_executable(${exciting_name} "${CMAKE_CURRENT_SOURCE_DIR}/mainxml/main.f90")
 target_link_directories(${exciting_name} PUBLIC ${CMAKE_Fortran_LIB_DIRECTORY})
 target_link_libraries(${exciting_name} PUBLIC excitingLib)
 
-# Sometimes GNU do not resolve the dependency on C++
+# Link necessary libraries for Fortran offloading to AMD/NVIDIA devices
+#
+# - GNU Fortran may need explicit linking of the C++ standard library (stdc++).
+# - LLVM Flang requires linking the device runtime library (flang_rt.hostdevice).
+#
 if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
     target_link_libraries(${exciting_name} PRIVATE stdc++)
+elseif (CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang" AND NOT CPUBACKEND)
+    target_link_libraries(${exciting_name} PRIVATE flang_rt.hostdevice)
 endif()
-
 
 # For Intel and GNU indicate that exciting has the objects available for LTO
 # In the rest of compilers this is done with compiler flags or for Cray it is fully deactivated

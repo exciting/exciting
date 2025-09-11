@@ -165,6 +165,18 @@ interface
         type(c_ptr), value :: queue  !! queue_t
     end function
 
+    type(c_ptr) function magma_queue_get_cublas_handle( queue ) &
+    bind(C, name="magma_queue_get_cublas_handle ")
+        import
+        type(c_ptr), value :: queue  !! queue_t
+    end function
+
+    type(c_ptr) function magma_queue_get_hipblas_handle( queue ) &
+    bind(C, name="magma_queue_get_hipblas_handle")
+        import
+        type(c_ptr), value :: queue  !! queue_t
+    end function
+
     !! -------------------------------------------------------------------------
     !! offsets pointers -- 1D vectors with inc
     !! see offset.c
