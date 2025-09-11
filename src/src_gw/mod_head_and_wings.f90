@@ -234,7 +234,11 @@ contains
         ! tmat1 and tmat2
         OMP_OFFLOAD target data map(tofrom: wing1, wing2)
         do iom = iomstart, iomend
+#if defined(FLANG_OPENMP_SLICE_MAP_BUG_WORKAROUND)
+            OMP_OFFLOAD target has_device_addr(tmat1, tmat2) map(to: fnm)
+#else
             OMP_OFFLOAD target has_device_addr(tmat1, tmat2) map(to: fnm(:,:,iom))
+#endif
             !$omp teams distribute parallel do collapse(3) &
             !$omp default(none) private(ie2,ie1,imix) &
             !$omp shared(mstart,mend,ndim,mbsiz,tmat1,tmat2,fnm,minmmat,ik,iom)

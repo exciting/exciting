@@ -20,7 +20,7 @@
 module device_linalg_common_interface
 
     ! The iso_c_binding is included inside the pragmas because its positioning differs in both cases
-#if defined(NVIDIAGPU) || defined(AMDGPU)
+#if defined(NVIDIAGPU)
     use iso_c_binding, only: c_ptr, c_int, c_size_t
     use magma2, only: MagmaLeft, MagmaRight, MagmaLower, MagmaUpper, MagmaNoTrans, &
                       MagmaTrans, MagmaConjTrans, magma_memset_async, &
@@ -32,6 +32,22 @@ module device_linalg_common_interface
                       magma_zhemm, magma_cgetrf_gpu, magma_chemv, magma_zgerc, &
                       magma_zgetrf_gpu, magma_cgeru, magma_cgemm_batched_strided, magma_zgetri_gpu, &
                       magma_zaxpy, magma_cgemm
+#endif
+#if defined(AMDGPU)
+    use iso_c_binding, only: c_ptr, c_int, c_size_t, c_loc
+    use magma2, only: MagmaLeft, MagmaRight, MagmaLower, MagmaUpper, MagmaNoTrans, &
+                      MagmaTrans, MagmaConjTrans, magma_memset_async, magma_zgemm, &
+                      magma_zdotu, magma_cdotu, magma_zdotc, magma_cdotc, &
+                      magma_cgerc, magma_caxpy, magmablas_cgeadd2, magma_cgetri_gpu, &
+                      magmablas_zgeadd2, magma_zgemm_batched_strided, magma_zhemv, magma_chemv, &
+                      magma_chemm, magma_ccopyvector_async, magma_zgeru, magma_zcopyvector_async, &
+                      magma_zhemm, magma_chemv, magma_zgerc, &
+                      magma_cgeru, magma_cgemm_batched_strided, &
+                      magma_zaxpy, magma_cgemm
+   use hipfort_rocblas_enums, only: rocblas_status_success
+   use hipfort_rocsolver,    only: rocsolver_cgetrf, rocsolver_zgetrf, &
+                                   rocsolver_cgetri, rocsolver_zgetri
+   use m_memory_device,      only: get_device_pointer
 #endif
 #if defined(INTELGPU)
     use iso_c_binding, only: c_ptr, c_int, c_size_t, c_f_pointer
@@ -79,8 +95,21 @@ contains
         integer(i32), intent(out)                       :: info
         type(device_world_t), intent(inout)             :: world
 
-#if defined(NVIDIAGPU) || defined(AMDGPU)
+#if defined(NVIDIAGPU)
         call magma_cgetrf_gpu(m, n, dA, lda, ipiv, info)
+#endif
+#if defined(AMDGPU)
+        integer(kind(rocblas_status_success)) :: cerror
+
+        !$omp target data map(tofrom: ipiv, info)
+        !$omp target data use_device_addr(info)
+        cerror = rocsolver_cgetrf(world%get_linalg_handle(), m, n, dA, lda, &
+                                  get_device_pointer(ipiv, world%get_device()), &
+                                  info)
+        if (cerror /= rocblas_status_success) error stop "Error(cgetrf_gpu): rocsolver_cgetrf failed"
+        call world%synchronize()
+        !$omp end target data
+        !$omp end target data
 #endif
 #if defined(INTELGPU)
         complex(r32), pointer :: A(:,:)
@@ -116,8 +145,23 @@ contains
         integer(i32), intent(in)                        :: lwork
         type(device_world_t), intent(inout)             :: world
 
-#if defined(NVIDIAGPU) || defined(AMDGPU)
+#if defined(NVIDIAGPU) 
         call magma_cgetri_gpu(n, dA, lda, ipiv, dwork, lwork, info)
+#endif
+#if defined(AMDGPU)
+        integer(kind(rocblas_status_success)) :: cerror
+
+        !$omp target data map(to: ipiv)
+        !$omp target data map(tofrom: info)
+        !$omp target data use_device_addr(info)
+        cerror = rocsolver_cgetri(world%get_linalg_handle(), n , dA, lda, &
+                                  get_device_pointer(ipiv, world%get_device()), &
+                                  info)
+        if (cerror /= rocblas_status_success) error stop "Error(cgetri_gpu): rocsolver_cgetri failed"
+        call world%synchronize()
+        !$omp end target data
+        !$omp end target data
+        !$omp end target data
 #endif
 #if defined(INTELGPU)
 
@@ -127,7 +171,7 @@ contains
         call c_f_pointer(dwork, work, [lwork])
 
         !$omp target data map(tofrom: info, ipiv)
-        !$omp dispatch is_device_ptr(A)
+        !$omp dispatch is_device_ptr(A, work)
         call cgetri(n, A, lda, ipiv, work, lwork, info)
         !$omp end target data
 
@@ -144,11 +188,22 @@ contains
 
         integer :: nblock
 
-#if defined(NVIDIAGPU) || defined(AMDGPU)
+#if defined(NVIDIAGPU)
         nblock = magma_get_cgetri_nb(n)
 #endif
+#if defined(AMDGPU)
+        nblock = 1
+#endif
 #if defined (INTELGPU)
-        nblock = 64_i32
+        complex(r32)  :: A(1,1), work(1)
+        integer(i32), parameter :: lwork = -1
+        integer(i32) :: info
+        integer(i32) :: ipiv(1)
+        !$omp target data map(tofrom: A, work, info, ipiv)
+        !$omp dispatch
+        call cgetri(n, A, n, ipiv, work, lwork, info)
+        !$omp end target data 
+        nblock = work(1)
 #endif
 
     end function get_cgetri_nb_gpu
@@ -724,8 +779,21 @@ contains
         integer(i32), intent(out)                       :: info
         type(device_world_t), intent(inout)             :: world
 
-#if defined(NVIDIAGPU) || defined(AMDGPU)
+#if defined(NVIDIAGPU)
         call magma_zgetrf_gpu(m, n, dA, lda, ipiv, info)
+#endif
+#if defined(AMDGPU)
+        integer(kind(rocblas_status_success)) :: cerror
+
+        !$omp target data map(tofrom: ipiv, info)
+        !$omp target data use_device_addr(info)
+        cerror = rocsolver_zgetrf(world%get_linalg_handle(), m, n, dA, lda, &
+                                  get_device_pointer(ipiv, world%get_device()), &
+                                  info)
+        if (cerror /= rocblas_status_success) error stop "Error(zgetrf_gpu): rocsolver_zgetrf failed"
+        call world%synchronize()
+        !$omp end target data
+        !$omp end target data
 #endif
 #if defined(INTELGPU)
         complex(r64), pointer :: A(:,:)
@@ -760,8 +828,23 @@ contains
         integer(i32), intent(in)                        :: lwork
         type(device_world_t), intent(inout)             :: world
 
-#if defined(NVIDIAGPU) || defined(AMDGPU)
+#if defined(NVIDIAGPU)
         call magma_zgetri_gpu(n, dA, lda, ipiv, dwork, lwork, info)
+#endif
+#if defined(AMDGPU)
+        integer(kind(rocblas_status_success)) :: cerror
+
+        !$omp target data map(to: ipiv)
+        !$omp target data map(tofrom: info) 
+        !$omp target data use_device_addr(info)
+        cerror = rocsolver_zgetri(world%get_linalg_handle(), n, dA, lda, &
+                                  get_device_pointer(ipiv, world%get_device()), &
+                                  info)
+        if (cerror /= rocblas_status_success) error stop "Error(zgetri_gpu): rocsolver_zgetri failed"
+        call world%synchronize()
+        !$omp end target data
+        !$omp end target data
+        !$omp end target data
 #endif
 #if defined(INTELGPU)
         complex(r64), pointer :: A(:,:), work(:)
@@ -770,7 +853,7 @@ contains
         call c_f_pointer(dwork, work, [lwork])
 
         !$omp target data map(tofrom: info, ipiv)
-        !$omp dispatch is_device_ptr(A)
+        !$omp dispatch is_device_ptr(A, work)
         call zgetri(n, A, lda, ipiv, work, lwork, info)
         !$omp end target data
 
@@ -787,11 +870,22 @@ contains
 
         integer :: nblock
 
-#if defined(NVIDIAGPU) || defined(AMDGPU)
+#if defined(NVIDIAGPU)
         nblock = magma_get_zgetri_nb(n)
 #endif
+#if defined(AMDGPU)
+        nblock = 1
+#endif
 #if defined (INTELGPU)
-        nblock = 64_i32
+        complex(r64)  :: A(1,1), work(1)
+        integer(i32), parameter :: lwork = -1
+        integer(i32) :: info
+        integer(i32) :: ipiv(1)
+        !$omp target data map(tofrom: A, work, info, ipiv)
+        !$omp dispatch
+        call zgetri(n, A, n, ipiv, work, lwork, info)
+        !$omp end target data 
+        nblock = work(1)
 #endif
 
     end function get_zgetri_nb_gpu

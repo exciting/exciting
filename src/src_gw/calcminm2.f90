@@ -26,7 +26,12 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   use mod_pointer_remapping,  only : remap_fortran_pointer 
   use precision,              only : i32, dp
 #include "offload.fpp"
-
+! Intel Compiler requires of manual partition of the space for 
+! the device region. We need access to the team id, and the number 
+! of teams.
+#if defined(DEVICEOFFLOAD) && defined(__INTEL_LLVM_COMPILER)
+  use omp_lib
+#endif
   implicit none
   integer(i32), intent(in) :: ik
   integer(i32), intent(in) :: iq
@@ -188,154 +193,198 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
   !  Note(mrm): When modifying this loop, avoid private allocatables as they are 
   !             not properly handled by the GPUs. Also, keep innermost loops over 
   !             memory contiguous slices.
-
-  ! For GPU aware compilation
+  !             The definition of the partitioning is complex and controlled with pragmas
+  !             as the performance in ifx and Cray is sensitive, being the manual partition
+  !             better in the first one while the automatic is the best option in the latter.
+  ! TODO(mrm): check the partitioning using the new Flang compiler
+#if defined(DEVICEOFFLOAD) && !defined(__INTEL_LLVM_COMPILER) 
 
   ! First partition our workspace so that teams process groups of mixed functions
   ! Teams are assigned tasks accessing non-contiguous memory, as they run in different
   ! excution units sharing different fast memory.
   ! The threads of each team will take care of teams internal loops, in particular those involving bands, which
   ! consume most of the time (indeed the outer products consume 80% of the loop time in the CPU). These operate on
-  ! contiguous data, as they share fast access memory. Those are invoked with OMP_OFFLOAD parallel do
+  ! contiguous data, as they share fast access memory. Those are invoked with OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS
 
-  ! For CPU-only compilation the mixed basis in the MT are scattered across OpenMP threads
+#define OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS     !$omp parallel do
+#define OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS !$omp end parallel do
 
-  OMP_OFFLOAD target has_device_addr(tmat, veckp)
-  OMP_OFFLOAD teams distribute &
-  OMP_NO_OFFLOAD parallel do schedule(dynamic) &
+  !$omp target has_device_addr(tmat, veckp)
+  !$omp teams distribute &
   !$omp default(none) private(imix,ie2,ie1,is,ia,irm,bl,bm,ias,arg,phs,l1,m1,l1m1,l2min,l2max) &
-  !$omp private(l2,m2,l2m2,angint,io1,io2,ilo2,idxlo1,ilo1,idxlo2,bk) &
+  !$omp private(l2,m2,l2m2,angint,io1,io2,ilo2,igk2,ilo1,igk1,bk) &
   !$omp shared(locmatsiz,mstart,mend,nstart,nend,mbindex,idxas,l_max_apw,idxlm,apword,bradketa,eveckpalm) &
   !$omp shared(nlorb,lorbl,idxlo,lokp,eveckalm,bradketlo,lok,phase,tmat,veckp,ndim)
   do imix = 1, locmatsiz
+#elif defined(DEVICEOFFLOAD) && defined(__INTEL_LLVM_COMPILER) 
 
-    ! Getting species id, atomic id for given is, the radial function id, the L of the MB, and the "m" of the MB
+  ! Intel Compiler is more efficient 15-5 % with a manual partition in the device region
+  ! TODO(mrm): test future versions of the compiler beyond ifx 2025.x.y and
+  !            remove if needed
+
+#define OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS     !$omp do simd
+#define OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS !$omp end do simd
+
+
+  !$omp target has_device_addr(tmat, veckp)
+
+  ! First partition our workspace so that teams process groups of mixed functions
+  ! For CPU runs one needs to define the number of teams and threads per team via
+  ! OMP_NUM_TEAMS and OMP_TEAMS_THREAD_LIMIT
+
+  !$omp teams &
+  !$omp default(none) private(imix,ie2,ie1,is,ia,irm,bl,bm,ias,arg,phs,l1,m1,l1m1,l2min,l2max) &
+  !$omp private(l2,m2,l2m2,angint,io1,io2,ilo2,igk2,ilo1,igk1,bk,imix_start,imix_end) &
+  !$omp shared(locmatsiz,mstart,mend,nstart,nend,mbindex,idxas,l_max_apw,idxlm,apword,bradketa,eveckpalm) &
+  !$omp shared(nlorb,lorbl,idxlo,lokp,eveckalm,bradketlo,lok,phase,tmat,veckp,ndim)
+
+  imix_start  = omp_get_team_num() * locmatsiz / omp_get_num_teams() + 1
+  imix_end    = min((omp_get_team_num() + 1) * locmatsiz / omp_get_num_teams(), locmatsiz)
+
+  ! Now create the threads, those will take care of teams internal loops, in particular those involving bands, which
+  ! consume most of the time (indeed the outer products consume 80% of the loop time in the CPU).
+  ! The threads in each team shall now operate on the same data, except within
+  ! the do loops. It is better to create the thread pool here than in each do directive.
+
+  !$omp parallel &
+  !$omp default(none) private(imix,ie2,ie1,is,ia,irm,bl,bm,ias,arg,phs,l1,m1,l1m1,l2min,l2max) &
+  !$omp private(l2,m2,l2m2,angint,io1,io2,ilo2,igk2,ilo1,igk1,bk) &
+  !$omp shared(imix_start,imix_end) &
+  !$omp shared(mstart,mend,nstart,nend,mbindex,idxas,l_max_apw,idxlm,apword,bradketa,eveckpalm) &
+  !$omp shared(nlorb,lorbl,idxlo,lokp,eveckalm,bradketlo,lok,phase,tmat,veckp,ndim) 
+  do imix = imix_start, imix_end
+#else
+
+#define OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS     !!
+#define OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS !!
+
+  !$omp parallel do schedule(dynamic) &
+  !$omp default(none) private(imix,ie2,ie1,is,ia,irm,bl,bm,ias,arg,phs,l1,m1,l1m1,l2min,l2max) &
+  !$omp private(l2,m2,l2m2,angint,io1,io2,ilo2,igk2,ilo1,igk1,bk) &
+  !$omp shared(locmatsiz,mstart,mend,nstart,nend,mbindex,idxas,l_max_apw,idxlm,apword,bradketa,eveckpalm) &
+  !$omp shared(nlorb,lorbl,idxlo,lokp,eveckalm,bradketlo,lok,phase,tmat,veckp,ndim)
+  do imix = 1, locmatsiz
+#endif
+
     is  = mbindex(imix,1)
     ia  = mbindex(imix,2)
     irm = mbindex(imix,3)
     bl  = mbindex(imix,4)
     bm  = mbindex(imix,5)
 
-    ! Atomic idx and phase
     ias = idxas(ia,is)
     phs = phase(ias)
 
-    ! Set tmat for the given mixed basis to zero. 
-    ! OMP_OFFLOAD parallel do: In device divide the job among the threads within a execution unit.
-    ! In the rest of the imix loop these sections mean the
-    ! same parallelization level.
-    OMP_OFFLOAD parallel do schedule(static,1) collapse(2)
+    ! Sum over l1m1 and l2m2
+    OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS schedule(static,1) collapse(2)
     do ie2 = mstart, mend
       do ie1 = nstart, nend
         tmat(ie1,ie2,imix) = zzero
       end do
     end do
-    OMP_OFFLOAD end parallel do
+    OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
 
-    ! Sum over l1m1 and l2m2
-    ! Notice the index of the summation
     do l1 = 0, l_max_apw
       do m1 = -l1, l1
-        l1m1 = idxlm(l1,m1) !! sum over l1m1
+        l1m1 = idxlm(l1,m1)
 
         l2min = abs(bl-l1)
         l2max = min(bl+l1,l_max_apw)
         do l2 = l2min, l2max
           m2 = -bm+m1
-          if (abs(m2) <= l2) then
-            l2m2 = idxlm(l2,m2) !! sum over l2m2
+          if (abs(m2).le.l2) then
+            l2m2 = idxlm(l2,m2)
 
-            ! Angular integral. (Gaunt coefficient)
+            ! Angular integral
             angint = getgauntcoef(l2,bl,l1,m2,bm)
-            if (abs(angint) < epsangint) cycle
+            if (abs(angint) < 1.0e-8_dp) cycle
 
-            do io1 = 1, apword(l1,is) !! sum over \zeta_1
+            do io1 = 1, apword(l1,is)
               !======
-              ! APW-APW
+              ! A-A
               !======
-              OMP_OFFLOAD parallel do schedule(static,1)
+
+              OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS schedule(static,1)
               do ie2 = mstart, mend
                 veckp(ie2, imix) = zzero
               end do
-              OMP_OFFLOAD end parallel do
+              OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
 
-              do io2 = 1, apword(l2,is) !! sum over \zeta_2
+              do io2 = 1, apword(l2,is)
                 bk = angint*bradketa(2,irm,l1,io1,l2,io2,ias)
-                OMP_OFFLOAD parallel do schedule(static,1)
+                OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS schedule(static,1)
                 do ie2 = mstart, mend
                   veckp(ie2, imix)=veckp(ie2, imix)+bk*eveckpalm(ie2,io2,l2m2,ias)
                 end do
-                OMP_OFFLOAD end parallel do
+                OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
               end do
               !======
-              ! APW-LO
+              ! A-LO
               !======
-              do ilo2 = 1, nlorb(is)  !! sum over local orbital (LO_2)
+              do ilo2 = 1, nlorb(is)
                 if (lorbl(ilo2,is)==l2) then
-                  idxlo2 = idxlo(l2m2,ilo2,ias)
+                  igk2 = idxlo(l2m2,ilo2,ias)
                   bk = angint*bradketa(3,irm,l1,io1,ilo2,1,ias)
-                  OMP_OFFLOAD parallel do schedule(static,1)
+                  OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS schedule(static,1)
                   do ie2 = mstart, mend
-                    veckp(ie2,imix)=veckp(ie2,imix)+bk*lokp(ie2,idxlo2)
+                    veckp(ie2,imix)=veckp(ie2,imix)+bk*lokp(ie2,igk2)
                   end do
-                  OMP_OFFLOAD end parallel do
+                  OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
                 end if
               end do ! ilo2
 
-              ! Outer product (Computationally intensive part of the loop)
-              OMP_OFFLOAD parallel do collapse(2) schedule(static,1)
+              OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS collapse(2) schedule(static,1)
               do ie2 = mstart, mend
                 do ie1 = nstart, nend
                   tmat(ie1,ie2,imix) = tmat(ie1,ie2,imix) + eveckalm(ie1,io1,l1m1,ias) * veckp(ie2,imix)
                 end do ! ie1
               end do ! ie2
-              OMP_OFFLOAD end parallel do
+              OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
 
             end do ! io1
 
 
-            do ilo1 = 1, nlorb(is)   !! sum over local orbital (LO_1)
+            do ilo1 = 1, nlorb(is)
               if (lorbl(ilo1,is)==l1) then
-                idxlo1 = idxlo(l1m1,ilo1,ias)
+                igk1 = idxlo(l1m1,ilo1,ias)
                 !======
                 ! LO-A
                 !======
-                OMP_OFFLOAD parallel do schedule(static,1)
+                OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS schedule(static,1)
                 do ie2 = mstart, mend
                   veckp(ie2, imix) = zzero
                 end do
-                OMP_OFFLOAD end parallel do
-                do io2 = 1, apword(l2,is) !! sum over \zeta_2
+                OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
+                do io2 = 1, apword(l2,is)
                   bk = angint*bradketlo(2,irm,ilo1,l2,io2,ias)
-                  OMP_OFFLOAD parallel do schedule(static,1)
+                  OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS schedule(static,1)
                   do ie2 = mstart, mend
                     veckp(ie2,imix)=veckp(ie2,imix)+bk*eveckpalm(ie2,io2,l2m2,ias)
                   end do
-                  OMP_OFFLOAD end parallel do
+                  OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
                 end do ! io2
                 !======
                 ! LO-LO
                 !======
-                do ilo2 = 1, nlorb(is) !! sum over local orbital (LO_2)
+                do ilo2 = 1, nlorb(is)
                   if (lorbl(ilo2,is)==l2) then
-                    idxlo2 = idxlo(l2m2,ilo2,ias)
+                    igk2 = idxlo(l2m2,ilo2,ias)
                     bk = angint*bradketlo(3,irm,ilo1,ilo2,1,ias)
-                    OMP_OFFLOAD parallel do schedule(static,1)
+                    OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS schedule(static,1)
                     do ie2 = mstart, mend
-                      veckp(ie2,imix)=veckp(ie2,imix)+bk*lokp(ie2,idxlo2)
+                      veckp(ie2,imix)=veckp(ie2,imix)+bk*lokp(ie2,igk2)
                     end do
-                    OMP_OFFLOAD end parallel do
+                    OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
                   end if
                 end do ! ilo2
 
-                ! Outer product (Computationally intensive part of the loop)
-                OMP_OFFLOAD parallel do collapse(2) schedule(static,1)
+                OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS collapse(2) schedule(static,1)
                 do ie2 = mstart, mend
                   do ie1 = nstart, nend
-                    tmat(ie1,ie2,imix) = tmat(ie1,ie2,imix) + lok(ie1,idxlo1) * veckp(ie2,imix)
+                    tmat(ie1,ie2,imix) = tmat(ie1,ie2,imix) + lok(ie1,igk1) * veckp(ie2,imix)
                   end do ! ie1
                 end do ! ie2
-                OMP_OFFLOAD end parallel do
+                OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
 
               end if
             end do ! ilo1
@@ -346,19 +395,25 @@ subroutine calcminm2(ik,iq,nstart,nend,mstart,mend,minm)
       end do ! m1
     end do ! l1
 
-    OMP_OFFLOAD parallel do schedule(static,1) collapse(2)
+    OMP_OFFLOAD_EXECUTE_LOOP_IN_THREADS schedule(static,1) collapse(2)
     do ie2 = mstart, mend
       do ie1 = nstart, nend
         tmat(ie1,ie2,imix) = phs * tmat(ie1,ie2,imix)
       end do ! ie1
     end do ! ie2
-    OMP_OFFLOAD end parallel do
+    OMP_OFFLOAD_END_EXECUTE_LOOP_IN_THREADS
 
   end do ! imix
-  OMP_OFFLOAD end teams distribute
-  OMP_OFFLOAD end target
-  OMP_NO_OFFLOAD end parallel do
-
+#if defined(DEVICEOFFLOAD) && !defined(__INTEL_LLVM_COMPILER)
+  !$omp end teams distribute
+  !$omp end target
+#elif defined(DEVICEOFFLOAD) && defined(__INTEL_LLVM_COMPILER)
+  !$omp end parallel
+  !$omp end teams
+  !$omp end target
+#else
+  !$omp end parallel do
+#endif
 
   ! Now copy the the matrix in the proper order
   OMP_OFFLOAD target has_device_addr(tmat)

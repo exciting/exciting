@@ -278,7 +278,6 @@ contains
         call expand_evec(jk,'c')
 
         OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
-        OMP_OFFLOAD target enter data map(always, to: nocoulomb_dielectric_wing1, nocoulomb_dielectric_wing2) if(Gamma)
 
         !=================================================
         ! Loop over m-blocks in M^i_{nm}(\vec{k},\vec{q})
@@ -310,7 +309,11 @@ contains
             call remap_fortran_pointer(minm, int([1, 1, mstart], kind=i32), int([matsiz, ndim, mend], kind=i32))
 
             do iom = iomstart, iomend
+#if defined(FLANG_OPENMP_SLICE_MAP_BUG_WORKAROUND)
+                OMP_OFFLOAD target data map(to: fnm)
+#else
                 OMP_OFFLOAD target data map(to: fnm(:,mstart:mend,iom))
+#endif
                 OMP_OFFLOAD target has_device_addr(minm)
                 !$omp teams distribute parallel do collapse(3) default(none) private(ie1,ie2,ibasis) &
                 !$omp shared(mstart,mend,ndim,matsiz,minm,fnm,minmmat,iom)
@@ -349,9 +352,7 @@ contains
     end if
 
     OMP_OFFLOAD target update from(polarizability)
-    OMP_OFFLOAD target update from(nocoulomb_dielectric_wing1, nocoulomb_dielectric_wing2) if(Gamma)
 
-    OMP_OFFLOAD target exit data map(delete: nocoulomb_dielectric_wing1, nocoulomb_dielectric_wing2) if(Gamma)
     OMP_OFFLOAD target exit data map(delete: eveck, eveckp, eveckalm, eveckpalm)
 
     deallocate(eveck)

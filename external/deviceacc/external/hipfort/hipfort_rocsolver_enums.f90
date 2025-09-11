@@ -25,51 +25,45 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           
            
-module hipfort_rocfft_enums
+module hipfort_rocsolver_enums
   implicit none
 
   enum, bind(c)
-    enumerator :: rocfft_status_success
-    enumerator :: rocfft_status_failure
-    enumerator :: rocfft_status_invalid_arg_value
-    enumerator :: rocfft_status_invalid_dimensions
-    enumerator :: rocfft_status_invalid_array_type
-    enumerator :: rocfft_status_invalid_strides
-    enumerator :: rocfft_status_invalid_distance
-    enumerator :: rocfft_status_invalid_offset
-    enumerator :: rocfft_status_invalid_work_buffer
+    enumerator :: rocblas_layer_mode_ex_log_kernel = 16
   end enum
 
   enum, bind(c)
-    enumerator :: rocfft_transform_type_complex_forward
-    enumerator :: rocfft_transform_type_complex_inverse
-    enumerator :: rocfft_transform_type_real_forward
-    enumerator :: rocfft_transform_type_real_inverse
+    enumerator :: rocblas_forward_direction = 171
+    enumerator :: rocblas_backward_direction = 172
   end enum
 
   enum, bind(c)
-    enumerator :: rocfft_precision_single
-    enumerator :: rocfft_precision_double
+    enumerator :: rocblas_column_wise = 181
+    enumerator :: rocblas_row_wise = 182
   end enum
 
   enum, bind(c)
-    enumerator :: rocfft_placement_inplace
-    enumerator :: rocfft_placement_notinplace
+    enumerator :: rocblas_svect_all = 191
+    enumerator :: rocblas_svect_singular = 192
+    enumerator :: rocblas_svect_overwrite = 193
+    enumerator :: rocblas_svect_none = 194
   end enum
 
   enum, bind(c)
-    enumerator :: rocfft_array_type_complex_interleaved
-    enumerator :: rocfft_array_type_complex_planar
-    enumerator :: rocfft_array_type_real
-    enumerator :: rocfft_array_type_hermitian_interleaved
-    enumerator :: rocfft_array_type_hermitian_planar
-    enumerator :: rocfft_array_type_unset
+    enumerator :: rocblas_outofplace = 201
+    enumerator :: rocblas_inplace = 202
   end enum
 
   enum, bind(c)
-    enumerator :: rocfft_exec_mode_nonblocking
-    enumerator :: rocfft_exec_mode_nonblocking_with_flush
-    enumerator :: rocfft_exec_mode_blocking
+    enumerator :: rocblas_evect_original = 211
+    enumerator :: rocblas_evect_tridiagonal = 212
+    enumerator :: rocblas_evect_none = 213
+  end enum
+
+  enum, bind(c)
+    enumerator :: rocblas_eform_ax = 221
+    enumerator :: rocblas_eform_abx = 222
+    enumerator :: rocblas_eform_bax = 223
   end enum
 
  
@@ -78,4 +72,4 @@ module hipfort_rocfft_enums
 
   
 #endif
-end module hipfort_rocfft_enums
+end module hipfort_rocsolver_enums

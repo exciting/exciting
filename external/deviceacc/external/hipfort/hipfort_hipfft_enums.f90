@@ -25,51 +25,41 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           
            
-module hipfort_rocfft_enums
+module hipfort_hipfft_enums
   implicit none
 
   enum, bind(c)
-    enumerator :: rocfft_status_success
-    enumerator :: rocfft_status_failure
-    enumerator :: rocfft_status_invalid_arg_value
-    enumerator :: rocfft_status_invalid_dimensions
-    enumerator :: rocfft_status_invalid_array_type
-    enumerator :: rocfft_status_invalid_strides
-    enumerator :: rocfft_status_invalid_distance
-    enumerator :: rocfft_status_invalid_offset
-    enumerator :: rocfft_status_invalid_work_buffer
+    enumerator :: HIPFFT_SUCCESS = 0
+    enumerator :: HIPFFT_INVALID_PLAN = 1
+    enumerator :: HIPFFT_ALLOC_FAILED = 2
+    enumerator :: HIPFFT_INVALID_TYPE = 3
+    enumerator :: HIPFFT_INVALID_VALUE = 4
+    enumerator :: HIPFFT_INTERNAL_ERROR = 5
+    enumerator :: HIPFFT_EXEC_FAILED = 6
+    enumerator :: HIPFFT_SETUP_FAILED = 7
+    enumerator :: HIPFFT_INVALID_SIZE = 8
+    enumerator :: HIPFFT_UNALIGNED_DATA = 9
+    enumerator :: HIPFFT_INCOMPLETE_PARAMETER_LIST = 10
+    enumerator :: HIPFFT_INVALID_DEVICE = 11
+    enumerator :: HIPFFT_PARSE_ERROR = 12
+    enumerator :: HIPFFT_NO_WORKSPACE = 13
+    enumerator :: HIPFFT_NOT_IMPLEMENTED = 14
+    enumerator :: HIPFFT_NOT_SUPPORTED = 16
   end enum
 
   enum, bind(c)
-    enumerator :: rocfft_transform_type_complex_forward
-    enumerator :: rocfft_transform_type_complex_inverse
-    enumerator :: rocfft_transform_type_real_forward
-    enumerator :: rocfft_transform_type_real_inverse
+    enumerator :: HIPFFT_R2C = 42
+    enumerator :: HIPFFT_C2R = 44
+    enumerator :: HIPFFT_C2C = 41
+    enumerator :: HIPFFT_D2Z = 106
+    enumerator :: HIPFFT_Z2D = 108
+    enumerator :: HIPFFT_Z2Z = 105
   end enum
 
   enum, bind(c)
-    enumerator :: rocfft_precision_single
-    enumerator :: rocfft_precision_double
-  end enum
-
-  enum, bind(c)
-    enumerator :: rocfft_placement_inplace
-    enumerator :: rocfft_placement_notinplace
-  end enum
-
-  enum, bind(c)
-    enumerator :: rocfft_array_type_complex_interleaved
-    enumerator :: rocfft_array_type_complex_planar
-    enumerator :: rocfft_array_type_real
-    enumerator :: rocfft_array_type_hermitian_interleaved
-    enumerator :: rocfft_array_type_hermitian_planar
-    enumerator :: rocfft_array_type_unset
-  end enum
-
-  enum, bind(c)
-    enumerator :: rocfft_exec_mode_nonblocking
-    enumerator :: rocfft_exec_mode_nonblocking_with_flush
-    enumerator :: rocfft_exec_mode_blocking
+    enumerator :: HIPFFT_MAJOR_VERSION
+    enumerator :: HIPFFT_MINOR_VERSION
+    enumerator :: HIPFFT_PATCH_LEVEL
   end enum
 
  
@@ -78,4 +68,4 @@ module hipfort_rocfft_enums
 
   
 #endif
-end module hipfort_rocfft_enums
+end module hipfort_hipfft_enums

@@ -36,7 +36,7 @@ if (IDIEL)
         -DINTEL=${INTEL}
         -DUSM=${USM}
         -DCPUBACKEND=${CPUBACKEND}
-        -DMAGMA_DIR=${MAGMA_DIR}
+        -DMAGMA_ROOT=${MAGMA_ROOT}
         -DCMAKE_INSTALL_PREFIX=${IDieLInstallDir}
       BUILD_COMMAND $(MAKE)
       INSTALL_COMMAND $(MAKE) install

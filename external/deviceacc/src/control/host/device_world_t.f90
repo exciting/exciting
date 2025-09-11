@@ -43,7 +43,7 @@ module m_device_world_t
         logical, private :: cpu_backend = .true.
     contains
         procedure, public :: init, finish, is_queue_set, get_queue, synchronize, get_device, get_num_teams, using_cpu_backend, &
-                             get_num_threads, simd_size, get_stream
+                             get_num_threads, simd_size, get_stream, get_linalg_handle
     end type device_world_t
 
 contains
@@ -130,5 +130,13 @@ contains
         class(device_world_t), intent(in) :: this
         get_stream = c_null_ptr
     end function get_stream
+
+    !> Returns the underlying linear algebra handler
+    !> for Intel returns the pointer of the queue, which can be used for
+    !> depend constructs
+    type(c_ptr) function get_linalg_handle(this)
+        class(device_world_t), intent(in) :: this
+        get_linalg_handle = c_null_ptr
+    end function get_linalg_handle
 
 end module m_device_world_t

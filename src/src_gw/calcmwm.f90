@@ -77,9 +77,15 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
       !$omp end teams distribute parallel do
       OMP_OFFLOAD end target
 
+#if !defined(FLANG_OPENMP_SLICE_MAP_BUG_WORKAROUND)
       OMP_OFFLOAD target update from(mwm(nstart:nend,mstart:mend,iom))
+#endif
 
     end do ! iom
+ 
+#if defined(FLANG_OPENMP_SLICE_MAP_BUG_WORKAROUND)
+      OMP_OFFLOAD target update from(mwm)
+#endif
 
     nullify(wm)
     call deallocate_device_memory(wm_cptr, my_device)
@@ -100,6 +106,11 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
         end do
       end do
       !$omp end parallel do 
+
+#if defined(FLANG_OPENMP_SLICE_MAP_BUG_WORKAROUND)
+      OMP_OFFLOAD target update to(mwm)
+#endif
+
     end if
 
     return

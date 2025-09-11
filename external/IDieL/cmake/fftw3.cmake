@@ -44,18 +44,12 @@ if(MKL)
     message(STATUS "Using FFTW3 interface to MKL FFT")
     
     # Define preprocessor macro for FFTW3 interface
-    add_compile_definitions(FFTW3_INTERFACE FFTW)
+    add_compile_definitions(FFTW3_INTERFACE FFTW FFTW_MKL)
 
 else()   
     # If MKL is not used, search for FFTW3 libraries and headers
     find_library(FFTW3_LIBRARIES NAMES fftw3 HINTS ${FFTW3_ROOT}/lib)
     find_library(FFTW3F_LIBRARIES NAMES fftw3f HINTS ${FFTW3_ROOT}/lib)
-
-    # If OpenMP is required, search for the corresponding OpenMP libraries
-    if (OMP)
-        find_library(FFTW3_LIBRARIES_OMP NAMES fftw3_omp HINTS ${FFTW3_ROOT}/lib)
-        find_library(FFTW3F_LIBRARIES_OMP NAMES fftw3f_omp HINTS ${FFTW3_ROOT}/lib)
-    endif()
 
     # Locate the FFTW3 header file
     find_path(FFTW3_INCLUDE_DIR NAMES "fftw3.h" HINTS ${FFTW3_ROOT}/include)
@@ -70,12 +64,6 @@ else()
     # Log the inclusion of FFTW3 directories
     message(STATUS "FFTW3 found. Include directories: ${FFTW3_INCLUDE_DIR}")
     list(APPEND FFTW3_LIBRARIES ${FFTW3F_LIBRARIES})
-    
-    # Append OpenMP libraries if required
-    if (OMP)
-        list(APPEND FFTW3_LIBRARIES ${FFTW3_LIBRARIES_OMP})
-        list(APPEND FFTW3_LIBRARIES ${FFTW3F_LIBRARIES_OMP})
-    endif()
 
     # Log the libraries found for FFTW3
     message(STATUS "FFTW3 found. Libraries: ${FFTW3_LIBRARIES}")
@@ -84,5 +72,6 @@ else()
     include_directories(${FFTW3_INCLUDE_DIR})
 
     # Define preprocessor macro for FFTW3 interface
-    add_compile_definitions(FFTW3_INTERFACE)
+    add_compile_definitions(FFTW3_INTERFACE FFTW)
 endif()
+

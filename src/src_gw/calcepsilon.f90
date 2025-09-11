@@ -214,7 +214,6 @@ subroutine calcepsilon( iq, indexes, write_progress_to_gw_info, mpi_env, print_P
     call expand_evec(jk,'c')
 
     OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
-    OMP_OFFLOAD target enter data map(always, to: epsw1, epsw2) if(Gamma)
 
     !=================================================
     ! Loop over m-blocks in M^i_{nm}(\vec{k},\vec{q})
@@ -251,7 +250,11 @@ subroutine calcepsilon( iq, indexes, write_progress_to_gw_info, mpi_env, print_P
       ! TODO(mrm): When supported use lower for c_f_pointer introduced in Fortran 2023
       call remap_fortran_pointer(minm, int([1, 1, mstart], kind=i32), int([mbsiz, ndim, mend], kind=i32))
       do iom = iomstart, iomend
+#if defined(FLANG_OPENMP_SLICE_MAP_BUG_WORKAROUND)
+        OMP_OFFLOAD target data map(to: fnm)
+#else
         OMP_OFFLOAD target data map(to: fnm(:,mstart:mend,iom))
+#endif
         OMP_OFFLOAD target has_device_addr(minm)
         !$omp teams distribute parallel do collapse(3) default(none) private(ie1,ie2,ibasis) &
         !$omp shared(mstart,mend,ndim,mbsiz,minm,fnm,minmmat,iom,ik)
@@ -307,9 +310,7 @@ subroutine calcepsilon( iq, indexes, write_progress_to_gw_info, mpi_env, print_P
   end if
 
   OMP_OFFLOAD target update from(epsilon)
-  OMP_OFFLOAD target update from(epsw1, epsw2) if(Gamma)
 
-  OMP_OFFLOAD target exit data map(delete: epsw1, epsw2) if(Gamma)
   OMP_OFFLOAD target exit data map(delete: eveck, eveckp, eveckalm, eveckpalm)
   deallocate( eveck )
   deallocate( eveckp )
