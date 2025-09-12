@@ -296,7 +296,7 @@ contains
     ! This is the most important loop (performed for each time step \(\Delta t\)
     do it = first_step, last_step
 
-      call timing%reset()
+      if( rt%printTimings%general() )  call timing%reset()
       ! Variable to store the timing of each iteration
       if( rt%printTimings%general() ) timei = timeiter
 
@@ -477,7 +477,7 @@ contains
 
       ! Print relevant information, every 'rt%n_print' steps
       if ( i_print == rt%n_print ) then
-        call timesec( timei )
+        if( rt%printTimings%general() ) call timesec( timei )
         if( my_rank_writes_to_output ) then
           call write_fields( time_store, a_ind_store, a_tot_store, p_vec_store, j_ind_store, e_vec_store )
           if ( rt%calculate_total_energy ) call write_total_energy( .False., time_store, etotstore )
