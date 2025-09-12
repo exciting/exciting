@@ -200,7 +200,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     call overlap%allocate( rt_inp%use_lapwlo_basis(), ham_dimension, first_kpt, last_kpt )
     allocate( ham_time( ham_dimension, ham_dimension, first_kpt:last_kpt ), source = zzero )
     if ( rt_inp%use_velocity_gauge() ) allocate( pmat(ham_dimension, ham_dimension, 3, first_kpt : last_kpt) )
-    if ( molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative ) &
+    if ( ( molecular_dynamics%on ) .and. ( molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative ) ) &
       allocate( pmatmt(nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt) )
     if ( rt_inp%n_frozen > 0 ) then
       allocate( rhomt_frozen, mold = rhomt )

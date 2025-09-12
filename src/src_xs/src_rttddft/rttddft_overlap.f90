@@ -99,8 +99,10 @@ contains
     integer(i32) :: i, k
 
     this%array = zzero
-    do concurrent (i = 1:size(this%array, 1), k=lbound(this%array, 3):ubound(this%array, 3))
-      this%array(i, i, k) = zone
+    do k = lbound( this%array, 3 ), ubound( this%array, 3 )
+      do i = 1, size(this%array, 1)
+        this%array(i, i, k) = zone
+      end do
     end do
   end subroutine
 
