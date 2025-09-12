@@ -17,7 +17,7 @@ def parse_hdf5_file_as_dict(fname: path_type) -> dict:
     """
 
     try:
-        import h5py
+        import h5py  # noqa: PLC0415
     except ImportError:
         raise ImportError("h5py module not installed, but is required")
 

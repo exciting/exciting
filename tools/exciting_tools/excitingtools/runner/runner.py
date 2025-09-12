@@ -9,7 +9,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 from excitingtools.base import ECTObject
 
@@ -29,7 +29,7 @@ class SubprocessRunResults:
     stdout: str
     stderr: str
     return_code: int | RunnerCode
-    process_time: Optional[float] = None
+    process_time: float | None = None
 
     @property
     def success(self) -> bool:
@@ -49,7 +49,7 @@ class BinaryRunner(ECTObject):
         omp_num_threads: int = 1,
         time_out: int = 60,
         directory: path_type = "./",
-        args: Optional[List[str]] = None,
+        args: List[str] | None = None,
     ):
         """Initialise class.
 
