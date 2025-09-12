@@ -3,6 +3,8 @@
 import numpy as np
 import pytest
 
+from excitingtools import ExcitingStructure
+
 
 @pytest.fixture
 def pymatgen_atoms_H2O():
@@ -48,3 +50,21 @@ def test_class_exciting_structure_to_pymatgen(pymatgen_atoms_H2O):
     structure = pymatgen_conversion.pymatgen_to_exciting_structure(pymatgen_atoms_H2O)
     new_pymatgen_atoms = pymatgen_conversion.exciting_structure_to_pymatgen(structure)
     assert pymatgen_atoms_H2O == new_pymatgen_atoms
+
+
+def test_convert_exciting_to_pymatgen_failure(structure_H2He: ExcitingStructure) -> None:
+    pymatgen_conversion = pytest.importorskip("excitingtools.structure.pymatgen_utilities")
+    with pytest.raises(IndexError):
+        # a bit weird that pymatgen doesn't give a nice error here
+        # maybe they expect some more properties, but the origin here should be that "H_core" is not in the PSE
+        pymatgen_conversion.exciting_structure_to_pymatgen(structure_H2He)
+
+
+def test_convert_exciting_to_pymatgen_read_species_files(
+    structure_H2He: ExcitingStructure, species_files_h_hcore_he
+) -> None:
+    pymatgen_conversion = pytest.importorskip("excitingtools.structure.pymatgen_utilities")
+    pymatgen_struct = pymatgen_conversion.exciting_structure_to_pymatgen(
+        structure_H2He, species_files=species_files_h_hcore_he
+    )
+    assert [x.symbol for x in pymatgen_struct.species] == ["H", "H", "He"]

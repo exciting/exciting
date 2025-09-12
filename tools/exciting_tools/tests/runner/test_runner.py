@@ -146,7 +146,7 @@ def test_timeout_with_bash_command(tmp_path: Path):
 
     Test a simple sleep command to get a timeout.
     """
-    from excitingtools.runner.runner import RunnerCode  # needed as the runner was reloaded
+    from excitingtools.runner.runner import RunnerCode  # needed as the runner was reloaded  # noqa: PLC0415
     # the mocking from the other test clashes with that test here, since the runner module was reloaded and
     # the isinstance check fails. I don't fully understand how and if the original imported BinaryRunner
     # changes upon mocking that was imported at the top of the file

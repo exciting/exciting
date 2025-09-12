@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Tuple, Union
+from typing import Dict, Iterator, List, Tuple, Union
 from xml.etree import ElementTree
 
 import numpy as np
@@ -36,10 +36,10 @@ class ExcitingStructure(ExcitingXMLInput):
     def __init__(
         self,
         atoms,
-        lattice: Optional[list | np.ndarray] = None,
+        lattice: list | np.ndarray | None = None,
         species_path: path_type = "./",
-        crystal_properties: Optional[dict | ExcitingCrystalInput] = None,
-        species_properties: Optional[Dict[str, Union[dict, ExcitingSpeciesInput]]] = None,
+        crystal_properties: dict | ExcitingCrystalInput | None = None,
+        species_properties: Dict[str, dict | ExcitingSpeciesInput] | None = None,
         **kwargs,
     ):
         """Initialise instance of ExcitingStructure.
