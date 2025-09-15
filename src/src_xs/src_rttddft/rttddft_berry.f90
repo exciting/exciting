@@ -274,8 +274,7 @@ contains
     !> Resulting interaction term
     complex(dp), contiguous, intent(out) :: berry_coupling_term(:, :, first_kpt :)
 
-    real(dp), parameter :: four_over_three = 4._dp/3._dp, one_over_six = 1._dp/6._dp, &
-      spin_degeneracy = 2._dp
+    real(dp), parameter :: four_over_three = 4._dp/3._dp, one_over_six = 1._dp/6._dp
     integer(i32) :: k_dir, k_jump, i, k_left, k_right, n_basis, &
       n_active, last_kpt, n_frozen, n_occupied
     complex(dp), allocatable :: td_overlap_inv(:, :), g_matrix(:, :), dir_term(:, :), &
@@ -368,7 +367,7 @@ contains
         end if
       end do ! cycle over 3 lattice k directions, k_dir
       
-      berry_coupling_term(:, :, k_left) = zi * spin_degeneracy / fourpi * dir_sum
+      berry_coupling_term(:, :, k_left) = zi / fourpi * dir_sum
       ! make the matrix hermitian
       berry_coupling_term(:, :, k_left) = berry_coupling_term(:, :, k_left) + &
         conjg( transpose( berry_coupling_term(:, :, k_left) ) )

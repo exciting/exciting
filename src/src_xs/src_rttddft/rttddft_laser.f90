@@ -1,7 +1,7 @@
 !> Module with the several laser pulses considered
 module rttddft_laser
   use asserts, only: assert
-  use constants, only: pi
+  use constants, only: pi, twopi
   use modinput, only: kick_type_array, trapCos_type_array, sinSq_type_array
   use physical_constants, only: c
   use precision, only: dp, i32
@@ -214,7 +214,7 @@ contains
     if ( abs( this%width ) > eps_kick_width ) then
       t_aux = ( t - this%t_0 ) / this%width
       if( ( t_aux >= -1._dp) .and. ( t_aux <= 1._dp ) ) then
-        a = (15._dp/16._dp) * this%amplitude * ( t_aux + 1 )**2*( t_aux - 1 )**2
+        a = (15._dp/16._dp) * this%amplitude * (t_aux + 1._dp)**2*(t_aux - 1._dp)**2
       end if
     else
       if ( t == this%t_0 ) a = huge( 1._dp )
@@ -277,7 +277,7 @@ contains
         else if ( t_aux <= tr + width ) then
           a = 1._dp
         else
-          a = ( 2*tr + width - t_aux )/tr
+          a = ( 2._dp * tr + width - t_aux )/tr
         end if
         a = a*amplitude*cos( omega*t + phase )
       else
@@ -293,19 +293,24 @@ contains
     !> the derivative of the vector potential at time \( t \)
     real(dp) :: a
 
-    real(dp)              :: t_aux
+    real(dp) :: t_aux, env, env_dot
 
     a = 0._dp
     associate( t_0=>this%t_0, width=>this%width, tr=>this%t_r, &
                amplitude=>this%amplitude, omega=>this%omega, phase=>this%phase )
-      t_aux = (t - t_0)
-      if ( (t_aux >= 0._dp) .and. ( t_aux <= 2._dp*tr + width ) ) then
+      t_aux = t - t_0
+      if ( (t_aux >= 0._dp) .and. (t_aux <= 2._dp * tr + width) ) then
         if( t_aux < tr ) then
-          a = (1/tr)*cos( omega*t + phase )
+          env = t_aux / tr
+          env_dot = 1._dp / tr
         else if ( t_aux >= tr + width ) then
-          a = (-1/tr)*cos( omega*t + phase )
+          env = (width + 2._dp * tr - t_aux) / tr
+          env_dot = -1._dp / tr
+        else
+          env = 1._dp
+          env_dot = 0._dp
         end if
-        a = (amplitude)*(a - omega*sin( omega*t + phase ) )
+        a = amplitude * (env_dot * cos( omega * t + phase ) - env * omega * sin( omega * t + phase ))
       end if
     end associate
   end function
@@ -377,7 +382,7 @@ contains
       t_aux = (t-t_0)
       if ( ( t_aux >= 0._dp ) .and. (t_aux <= width ) ) then
         a = (amplitude)*( -omega*(sin( pi*t_aux/width )**2)*sin( omega*t + phase ) + &
-          (pi/width)*sin( 2*pi*t_aux/width )*cos( omega*t + phase ) )
+          (pi/width)*sin( twopi*t_aux/width )*cos( omega*t + phase ) )
       else
         a = 0._dp
       end if

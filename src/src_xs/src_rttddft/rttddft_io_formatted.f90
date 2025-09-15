@@ -481,7 +481,7 @@ contains
     !> Action duration
     real(dp), intent(in) :: timing
 
-    real(dp), parameter :: tol = 1.0e-7_dp
+    real(dp), parameter :: tol = 1.0e-6_dp
 
     if ( timing > tol ) write( file_time, format_timing ) description, timing
 
