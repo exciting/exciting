@@ -30,16 +30,18 @@ contains
     type(input_type), intent(in) :: inp
 
     integer(i32) :: i
+    character(len=*), parameter :: procedure_name = "check_rttddft_input"
+    character(len=*), parameter :: warning_header = "Warning(" // procedure_name // "): "
     
     call terminate_if_false( .not. inp%groundstate%solver%packedmatrixstorage, &
-      & 'Error: RT-TDDFT does not work with matrices stored in a packed form.' )
+      & 'RT-TDDFT does not work with matrices stored in a packed form.' )
 
     ! Consistency check: check if no spin polarized calculations are requested.
     call terminate_if_false( .not. inp%groundstate%tevecsv, &
-      & 'Error: only spin unpolarised calculations are possible with RT-TDDFT now.' )
+      & 'Only spin unpolarised calculations are possible with RT-TDDFT now.' )
     ! iora*
     if( trim(inp%groundstate%ValenceRelativity) == "iora*" ) call terminate( &
-      & 'Error: RT-TDDFT not implemented for ValenceRelativity="iora*"'   )
+      & 'RT-TDDFT not implemented for ValenceRelativity="iora*"'   )
 
     ! Consistency check: laser has been defined?
     call terminate_if_false( associated( inp%xs%realTimeTDDFT%laser ), &
@@ -92,10 +94,15 @@ contains
       associate( kick_array => inp%xs%realTimeTDDFT%laser%kickarray )
         do i = 1, size( kick_array )
           if ( abs( kick_array(i)%kick%width ) < eps_kick_width ) &
-            call warning( 'Warning: electric field is ill-defined at time ' // &
+            call warning( warning_header // 'electric field is ill-defined at time ' // &
             to_char( real( kick_array(i)%kick%t0, sp) ) // ' for the kick number ' // to_char( i ) )
         end do
       end associate
+    end if
+
+    if ( inp%xs%realTimeTDDFT%numberOfFrozenStates > 0 .and. trim( inp%xs%realTimeTDDFT%fieldCoupling ) == "velocityGauge"  ) then
+      if ( .not. inp%xs%realTimeTDDFT%subtractJ0 ) call warning( warning_header // &
+        'it is recommended to set subtractJ0="true" with velocity gauge if frozen states are present.'  )
     end if
 
   end subroutine
@@ -127,6 +134,8 @@ contains
       e_field_max_magnitude
     type(Electric_Field) :: e_aux
     integer(i32) :: i, j
+    character(len=*), parameter :: procedure_name = "check_rttddft_setup"
+    character(len=*), parameter :: warning_header = "Warning(" // procedure_name // "): "
 
     do i = 1, n_cartesian_directions
       lattice_vector_norm(i) = norm( lattice_vectors(:, i) )
@@ -143,8 +152,8 @@ contains
       end do
     end do
 
-    if ( all( e_field_max_lattice < eps_e_field ) ) call warning( "Warning(check_rttddft_setup): &
-      external field amplitude is zero." )
+    if ( all( e_field_max_lattice < eps_e_field ) ) call warning( warning_header // &
+      "external field amplitude is zero." )
 
     if ( use_berry_phase ) then
       call terminate_if_false( energy_gap > eps_energy_gap, " &
@@ -156,22 +165,22 @@ contains
 
         e_field_critical(i) = energy_gap / ( real( k_grid_dimensions(i), dp ) * &
           sqrt( dot_product( lattice_vectors(:, i), lattice_vectors(:, i) ) ) )
-        if ( e_field_max_lattice(i) > e_field_critical(i) ) call warning( 'Warning(check_rttddft_setup): &
-          field strength ' // to_char( real( e_field_max_lattice(i), sp) ) // ' in lattice direction ' &
+        if ( e_field_max_lattice(i) > e_field_critical(i) ) call warning( warning_header // &
+          'field strength ' // to_char( real( e_field_max_lattice(i), sp) ) // ' in lattice direction ' &
           // to_char(i) // ' exceeds the estimated largest reasonable value of ' &
           // to_char( real( e_field_critical(i), sp) ) // ', see Zener &
           tunneling discussion in [PRL 89, 117602 (2002), PRB 69, 085106 (2004)].' )
       end do
     end if
     
-    if ( e_field_max_magnitude > e_field_extremely_high ) call warning( 'Warning(check_rttddft_setup): &
-      field strength magnitude corresponds to extremely high laser intensity of ' &
+    if ( e_field_max_magnitude > e_field_extremely_high ) call warning( warning_header //  &
+      'field strength magnitude corresponds to extremely high laser intensity of ' &
       // to_char( real( e_field_squared_au_to_intensity_wcm2 * e_field_max_magnitude**2, sp) ) // ' W/cm^2.' )
 
     t_step_critical = t_step_scale / &
     ( maxval( initial_ks_energies ) - minval( initial_ks_energies ) )
-    if ( time_step > t_step_critical ) call warning( 'Warning(check_rttddft_setup): &
-      time step ' // to_char( real( time_step, sp ) ) // ' exceeds the roughly-estimated &
+    if ( time_step > t_step_critical ) call warning( warning_header // &
+      'time step ' // to_char( real( time_step, sp ) ) // ' exceeds the roughly-estimated &
       largest reasonable value of ' // to_char( real( t_step_critical, sp) ) // '.' )
 
   end subroutine
