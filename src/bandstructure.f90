@@ -31,7 +31,7 @@ subroutine bandstr
   use mod_APW_LO, only: apwordmax
   use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, spname
   use mod_Gkvector, only: gkc, ngk, ngkmax, sfacgk, tpgkc
-  use mod_eigensystem, only: mt_hscf, MTInitAll, MTNullify, nmatmax
+  use mod_eigensystem, only: mt_hscf, MTInitAll, MTNullify, nmatmax, evalsingular, singular
   use mod_eigenvalue_occupancy, only: efermi, evalsv, nstfv, nstsv
   use mod_kpoint, only: nkpt, vkl
   use mod_muffin_tin, only: idxlm, lmmaxapw
@@ -122,7 +122,13 @@ subroutine bandstr
     Allocate (evecfv(nmatmax, nstfv, nspnfv))
     Allocate (evecsv(nstsv, nstsv))
     ! initialise the eigenvectors if we use the Davidson eigensolver
-    if (input%groundstate%solver%type.eq.'Davidson') evecfv=zzero
+    ! singular and evalsingular arrays were built for the GS k grid, and not for 
+    ! the bandstr one, so we deallocate them
+    if ( trim( input%groundstate%solver%type ) == 'Davidson' ) then
+      evecfv = zzero
+      if ( allocated( singular ) ) deallocate ( singular )
+      if ( allocated( evalsingular ) ) deallocate ( evalsingular )
+    end if
     ! solve the first- and second-variational secular equations
     Call seceqn (ik, evalfv, evecfv, evecsv)
     Do ist = 1, nstsv
