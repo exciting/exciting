@@ -84,5 +84,11 @@ subroutine init_hybrids()
         mblksiz = 1000000 ! just a big number to account for all available states
     end if
 
+    !-------------------------------------------------------------------------------
+    ! Batching size for the computation of the expansion coefficients in the 
+    ! interstitial region
+    !-------------------------------------------------------------------------------
+    input%gw%GBatchCount = input%groundstate%Hybrid%GBatchCount
+
     return
 end subroutine

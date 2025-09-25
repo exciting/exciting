@@ -226,6 +226,7 @@ newOccupation_attribute_types = {"kPointIndex": (int, 1), "occupation": (float, 
 dfthalf_attribute_types = {"printVSfile": (bool, 1)} 
 
 Hybrid_attribute_types = {"BasisBareCoulomb": (str, 1),
+                          "GBatchCount": (int, 1),
                           "HSEsingularity": (str, ["Exact", "Taylor"]),
                           "eccoeff": (float, 1),
                           "epsmb": (float, 1),

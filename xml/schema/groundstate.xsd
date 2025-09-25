@@ -533,6 +533,15 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+              <xs:attribute ex:importance="expert" ex:unit="" name="GBatchCount" type="xs:integer" default="0" use="optional">
+              <xs:annotation>
+                <xs:documentation>
+                During the computation of expansion coefficients needed to compute the Hartree-Fock potential, operations on the interstitial part are processed in batches over <b>G</b> vectors for improved performance.
+                For large unit cells or systems with significant vacuum, memory usage can become excessive. To reduce RAM pressure,
+                the batch size can be limited from the full set of <b>G</b> vectors to a smaller value, defined by <attref>GBatchCount</attref>.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="lmaxmb" default="3">
               <xs:annotation><xs:documentation>
                 Maximal angular momentum: controls construction of the radial part of the mixed-product basis.
