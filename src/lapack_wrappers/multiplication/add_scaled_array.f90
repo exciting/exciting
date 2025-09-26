@@ -17,6 +17,7 @@ module add_scaled_array
     module procedure scaled_add_rank1_arrays_complex_dp
     module procedure scaled_add_rank2_arrays_complex_dp
     module procedure scaled_add_rank3_arrays_complex_dp
+    module procedure scaled_add_rank3_arrays_complex_dp_alpha_real_dp
   end interface
 
 contains
@@ -46,5 +47,15 @@ contains
 
     call assert( all( shape(x) == shape(y) ), "x and y must have same shape" )
     call zaxpy( size(x), alpha, x, default_inc, y, default_inc )
+  end subroutine
+
+  subroutine scaled_add_rank3_arrays_complex_dp_alpha_real_dp(alpha, x, y)
+    real(dp), intent(in) :: alpha
+    complex(dp), intent(in) :: x(:, :, :)
+    complex(dp), intent(inout) :: y(:, :, :)
+
+    call assert( all( shape(x) == shape(y) ), "x and y must have same shape" )
+    ! In this case, the best option is to use Fortran array operations
+    y = y + alpha*x
   end subroutine
 end module

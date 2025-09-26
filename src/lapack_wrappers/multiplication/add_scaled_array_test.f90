@@ -1,7 +1,7 @@
 !> Module with tests for the [[add_scaled_array]] module
 module add_scaled_array_test
   use add_scaled_array, only: scaled_add
-  use constants, only: zi, zone, zzero
+  use constants, only: real_one, real_zero, zi, zone, zzero
   use exciting_mpi, only: mpiinfo
   use math_utils, only: all_close
   use mock_arrays, only: complex_vector_5, complex_vector_7, complex_matrix_5x7, &
@@ -27,7 +27,7 @@ contains
     type(unit_test_type) :: test_report
     integer(i32), parameter :: n_assertions_test_scaled_add_rank1_arrays = 3
     integer(i32), parameter :: n_assertions_test_scaled_add_rank2_arrays = 3
-    integer(i32), parameter :: n_assertions_test_scaled_add_rank3_arrays = 3
+    integer(i32), parameter :: n_assertions_test_scaled_add_rank3_arrays = 6
     integer(i32), parameter :: n_assertions = n_assertions_test_scaled_add_rank1_arrays + &
                                               n_assertions_test_scaled_add_rank2_arrays + &
                                               n_assertions_test_scaled_add_rank3_arrays
@@ -53,7 +53,7 @@ contains
     type(unit_test_type), intent(inout) :: test_report
 
     integer(i32) :: test_number
-    character(len=*), parameter :: test_id = "test_scaled_add_vector"
+    character(len=*), parameter :: test_id = "test_scaled_add_rank1_arrays"
     complex(dp) :: a
     complex(dp), allocatable :: x(:), y(:), y_expected(:)
     
@@ -81,7 +81,7 @@ contains
     type(unit_test_type), intent(inout) :: test_report
 
     integer(i32) :: test_number
-    character(len=*), parameter :: test_id = "test_scaled_add_matrix"
+    character(len=*), parameter :: test_id = "test_scaled_add_rank2_arrays"
     complex(dp) :: a
     complex(dp), allocatable :: x(:, :), y(:, :), y_expected(:, :)
     
@@ -110,7 +110,8 @@ contains
     type(unit_test_type), intent(inout) :: test_report
 
     integer(i32) :: test_number
-    character(len=*), parameter :: test_id = "test_scaled_add_matrix"
+    character(len=*), parameter :: test_id = "test_scaled_add_rank3_arrays"
+    real(dp) :: alpha
     complex(dp) :: a
     complex(dp), parameter :: M(3, 2, 5) = reshape( complex_matrix_7x5, shape(M) )
     complex(dp), parameter :: N(3, 2, 5) = reshape( zi*complex_matrix_5x7, shape(N) )
@@ -133,6 +134,26 @@ contains
     y = zone + M
     y_expected = x + y
     call scaled_add( zone, x, y )
+    call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )
+
+    ! Tests with a real scaling factor
+    test_number = test_number + 1
+    alpha = 5.9873412_dp
+    x = M
+    y = N
+    y_expected = alpha*x + y
+    call scaled_add( alpha, x, y )
+    call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )
+
+    test_number = test_number + 1
+    call scaled_add( real_zero, x, y )
+    call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )
+
+    test_number = test_number + 1
+    x = M + (5._dp + zi)**N
+    y = zone + M
+    y_expected = x + y
+    call scaled_add( real_one, x, y )
     call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )
   end subroutine
 

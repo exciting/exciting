@@ -9,7 +9,7 @@ module rttddft_Hamiltonian
   use asserts, only: assert
   use constants, only: fourpi, y00, zi, zone, zzero
   use matrix_elements, only: me_mt_alloc, me_mt_prepare, me_mt_mat, me_ir_alloc, me_ir_prepare, me_ir_mat
-  use mod_atoms, only: atposc, idxas, natoms, nspecies
+  use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies
   use mod_gvector, only: cfunig
   use mod_kpointset, only: Gk_set
   use mod_lattice, only: omega
@@ -18,52 +18,190 @@ module rttddft_Hamiltonian
   use modinput, only: input
   use physical_constants, only: alpha, c
   use precision, only: dp, i32
-  use rttddft_GlobalMDVariables, only: mathcalH
+  use rttddft_arrays, only: generic_matrix_set, hermitian_matrix_set
   use rttddft_Overlap, only: overlap_set
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_hamiltonian, &
     Timing_Ehrenfest, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
+  use xlapack, only: scaled_add
 
   implicit none
 
   private
-  public :: update_hamiltonian_without_pa_term_lapw, &
-    add_external_coupling_berry_phase, update_hamiltonian_without_pa_term_ks, &
-    add_external_coupling_velocity_gauge
   
   integer(i32), parameter :: n_cartesian = 3
 
-contains
+  !> Type to encapsulate the set of hamiltonian matrices (which can be not hermitian)
+  type, public :: hamiltonian_set
+    private
+    !> If `.true.`, use the IPA
+    logical, private :: IPA = .false.
+    !> \(\mathbf{k}\)-dependent dimensions array
+    integer(i32), allocatable, public :: dims(:)
+    !> Hamiltonian matrix at time \(t = 0\)
+    type(hermitian_matrix_set), public :: H_0
+    !> Hamiltonian matrix at time \(t\)
+    class(generic_matrix_set), allocatable, public :: H_t
+    !> Hamiltonian matrix at previous time \(t - \Delta t \)
+    class(generic_matrix_set), allocatable, public :: H_t_minus_dt
+    !> Matrix elements of the KS potential at time \(t = 0\)
+    type(hermitian_matrix_set), public :: V_KS_0
+    !> Hamiltonian eigenvalues at time \(t = 0\)
+    real(dp), public, allocatable :: initial_eigenvalues(:, :)
+    !> `mathcalH` gives the impact of an ion displacement on the hamiltonian matrix
+    !> \[ \left[ \left\langle 
+    !> \frac{\partial \phi_{\mu'}^{\mathbf{k}}}{\partial \mathbf{R}_J}
+    !> \Bigg|\hat{H}\Bigg|\phi_{\mu}^{\mathbf{k}}\right\rangle +
+    !> \left\langle\phi_{\mu'}^{\mathbf{k}}\Bigg|\hat{H}\Bigg|\frac{\partial 
+    !> \phi_{\mu}^{\mathbf{k}}}{\partial \mathbf{R}_J}\right\rangle \right] 
+    !> \]
+    complex(dp), public, allocatable  :: mathcalH(:, :, :, :, :)
+  contains
+    private
+    procedure, private :: add_external_coupling_berry_phase => add_external_coupling_berry_phase
+    procedure, private :: add_external_coupling_velocity_gauge => add_external_coupling_velocity_gauge
+    generic, public    :: add_external_coupling => add_external_coupling_berry_phase, &
+                                                   add_external_coupling_velocity_gauge
+    procedure, public  :: allocate => hamiltonian_set_allocate
+    procedure, private :: calculate_in_lapw_basis => hamiltonian_set_calculate_lapw_basis
+    procedure, private :: calculate_in_ks_basis => hamiltonian_set_calculate_ks_basis
+    procedure, private :: calculate_ik => hamiltonian_set_calculate_lapw_basis_ik
+    procedure, public  :: calculate => hamiltonian_set_calculate
+    procedure, public  :: copy_H_t => hamiltonian_set_copy_H_t
+    procedure, public  :: set_IPA => hamiltonian_set_attribute_IPA
+    final              :: destructor
+  end type
 
-  !> In `update_hamiltonian_without_pa_term_lapw`, we obtain the explicitly 
-  !> field-free hamiltonian at time \( t \) in the LAPW+lo basis.
-  subroutine update_hamiltonian_without_pa_term_lapw( first_kpt, l_max_pot, a_tot, ham_time, apwalm, Gkset, &
-    printTimings, t_ham, t_MD, update_mathcalH )
-    !> The first \( \mathbf{k} \) point
-    integer(i32), intent(in) :: first_kpt
+contains
+  pure subroutine hamiltonian_set_attribute_IPA( this, state )
+    class(hamiltonian_set), intent(inout) :: this
+    logical, intent(in) :: state
+
+    this%IPA = state
+  end subroutine
+
+  subroutine hamiltonian_set_allocate( this, max_dimension, ki, dims, n_states, &
+      allocate_H_past, allocate_H_0, is_LAPWLO_basis, MD )
+    class(hamiltonian_set), intent(inout) :: this
+    !> Maximum dimension of the matrices for all \( \mathbf{k} \)-points
+    integer(i32), intent(in) :: max_dimension
+    !> First \( \mathbf{k} \)-point
+    integer(i32), intent(in) :: ki
+    !> \( \mathbf{k} \)-dependent dimensions
+    integer(i32), intent(in) :: dims(ki:)
+    !> Number of KS states
+    integer(i32), intent(in) :: n_states
+    !> if `.True`, allocate `H_t_minus_dt`
+    logical, intent(in) :: allocate_H_past
+    !> if `.True`, allocate `H_0`
+    logical, intent(in) :: allocate_H_0
+    !> if `.True`, the unperturbed KS basis is used
+    logical, intent(in) :: is_LAPWLO_basis
+    !> if `.True`, MD is carried out
+    logical, intent(in) :: MD
+
+    logical :: is_KS_basis
+    integer(i32) :: kf
+
+    call assert( max_dimension >= maxval( dims ), 'm must be >= maxval( dims )' )
+    is_KS_basis = .not. is_LAPWLO_basis
+    kf = ubound( dims, 1 )
+    if( MD ) then ! H_t and H_t_minus_dt matrices are not hermitian
+      allocate( generic_matrix_set :: this%H_t )
+      allocate( generic_matrix_set :: this%H_t_minus_dt )
+    else
+      allocate( hermitian_matrix_set :: this%H_t )
+      allocate( hermitian_matrix_set :: this%H_t_minus_dt )
+    end if
+    call this%H_t%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] )
+    if( allocate_H_past ) call this%H_t_minus_dt%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] )
+    if( allocate_H_0 ) call this%H_0%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] ) 
+    if( MD ) allocate( this%mathcalH(max_dimension, max_dimension, n_cartesian, natmtot, ki:kf) )
+    if( is_KS_basis ) call this%V_KS_0%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] )
+    if( allocated( this%dims ) ) deallocate( this%dims )
+    if( is_KS_basis ) then 
+      allocate( this%dims(ki:kf), source = max_dimension ) 
+    else ! This represents the LAPW basis
+      allocate( this%dims(ki:kf), source = dims(ki:kf) )
+    end if
+    if( allocated( this%initial_eigenvalues ) ) deallocate( this%initial_eigenvalues )
+    allocate( this%initial_eigenvalues(n_states, ki:kf) )
+  end subroutine
+
+  !> Copy `H_t` into `H_t_minus_dt`
+  subroutine hamiltonian_set_copy_H_t( this )
+    class(hamiltonian_set), intent(inout) :: this
+    call this%H_t_minus_dt%copy_from( this%H_t )
+  end subroutine
+
+  subroutine destructor( this )
+    type(hamiltonian_set), intent(inout) :: this
+
+    if( allocated( this%H_t ) ) call this%H_t%deallocate_if_allocated()
+    if( allocated( this%H_t_minus_dt ) ) call this%H_t_minus_dt%deallocate_if_allocated()
+    call this%H_0%deallocate_if_allocated()
+    call this%V_KS_0%deallocate_if_allocated()
+    if( allocated( this%initial_eigenvalues ) ) deallocate( this%initial_eigenvalues )
+    if( allocated( this%mathcalH ) ) deallocate( this%mathcalH )
+    if( allocated( this%dims ) ) deallocate( this%dims )
+  end subroutine
+
+  !> Interface to decide if calculate in LAPW or KS basis and call the corresponding subroutines.
+  subroutine hamiltonian_set_calculate( this, l_max_pot, apwalm, Gkset, ks_lapwlo_transition_matrix,&
+    printTimings, t_ham, a_tot, obtain_mathcalH, t_MD)
+    class(hamiltonian_set), intent(inout) :: this
     !> Maximal value of l in spherical harmonics expansion of DFT potential
     integer(i32), intent(in) :: l_max_pot
+    !> Matching coefficients of the (L)APWs (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, :)
+    !> Set of G+k vectors for LAPW expansion
+    type(Gk_set), intent(in) :: Gkset
+    !> KS-LAPW+lo transition matrix (nmatmax, n_basis_ks, first_kpt : last_kpt)
+    complex(dp), contiguous, optional, intent(in) :: ks_lapwlo_transition_matrix(:, :, :)
+    !> Object that packs information about printing of timings
+    type(Print_Timings), optional, intent(in) :: printTimings
+    !> Object that packs information about timings to update the Hamiltonian
+    type(Timing_RTTDDFT_hamiltonian), optional, intent(inout) :: t_ham
     !> Total vector potential
-    type(Vector_Potential_Field), intent(in) :: a_tot
-    !> Hamiltonian matrix at current time \(t\) (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(inout) :: ham_time(:, :, first_kpt :)
-    !> Matching coefficients of the (L)APWs
-    !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, first_kpt :)
+    type(Vector_Potential_Field), optional, intent(in) :: a_tot
+    !> If `.true.`, obtain `mathcalH`
+    logical, optional, intent(in) :: obtain_mathcalH
+    !> Object that packs information about timings related to MD
+    type(Timing_Ehrenfest), optional, intent(out) :: t_MD
+
+    if( present( ks_lapwlo_transition_matrix ) ) then
+      call this%calculate_in_ks_basis( l_max_pot, apwalm, Gkset, &
+        ks_lapwlo_transition_matrix, printTimings, t_ham )
+    else  
+      call this%calculate_in_lapw_basis( l_max_pot, apwalm, Gkset, &
+        printTimings, t_ham, a_tot, obtain_mathcalH, t_MD )
+    end if
+  end subroutine
+
+  !> Obtain the field-free hamiltonian at time \( t \) in the LAPW+lo basis.
+  subroutine hamiltonian_set_calculate_lapw_basis( this, l_max_pot, apwalm, Gkset, &
+    printTimings, t_ham, a_tot, obtain_mathcalH, t_MD )
+    class(hamiltonian_set), intent(inout) :: this
+    !> Maximal value of l in spherical harmonics expansion of DFT potential
+    integer(i32), intent(in) :: l_max_pot
+    !> Matching coefficients of the (L)APWs (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, :)
     !> Set of G+k vectors for LAPW expansion
     type(Gk_set), intent(in) :: Gkset
     !> Object that packs information about printing of timings
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the Hamiltonian
-    type(Timing_RTTDDFT_hamiltonian), optional, intent(out) :: t_ham
+    type(Timing_RTTDDFT_hamiltonian), optional, intent(inout) :: t_ham
+    !> Total vector potential
+    type(Vector_Potential_Field), optional, intent(in) :: a_tot
+    !> If `.true.`, obtain `mathcalH`
+    logical, optional, intent(in) :: obtain_mathcalH
     !> Object that packs information about timings related to MD
     type(Timing_Ehrenfest), optional, intent(out) :: t_MD
-    !> if `.True.`, update `mathcalH`
-    logical, intent(in), optional :: update_mathcalH
 
-    integer(i32) :: ik, last_kpt, ias, ia, is, n_MT_radial_points
+    integer(i32) :: ik, first_kpt, last_kpt, ias, ia, is, n_MT_radial_points
     real(dp) :: t_i, t_f, t_aux
-    logical :: timings_general, timings_detailed, get_mathcalH, valence_relativity
+    logical :: timings_general, timings_detailed, valence_relativity
     integer(i32), parameter :: l_max_kin = 0 ! Overlap operator is equal to (1.0/y00)*Y_{00}, it has only l=0 component
     integer(i32), parameter :: lm_max = (l_max_kin+1)**2
     real(dp), parameter :: aux_factor = 0.5_dp*alpha**2*y00
@@ -71,13 +209,12 @@ contains
     real(dp), allocatable :: kin_mt(:, :)
     complex(dp), allocatable :: mt_part(:, :, :)
 
-    last_kpt = ubound( ham_time, 3 )
+    first_kpt = lbound( this%H_t%array, 3)
+    last_kpt = ubound( this%H_t%array, 3 )
     ! Check optional arguments
     timings_general = .False.
     timings_detailed = .False.
-    if ( present( printTimings ) ) call printTimings%get( timings_general, timings_detailed )
-    get_mathcalH = .False.
-    if( present( update_mathcalH ) ) get_mathcalH = update_mathcalH
+    if( present( printTimings ) ) call printTimings%get( timings_general, timings_detailed )
 
     ! sanity checks
     if( timings_general ) call assert( present( t_ham ) .or. present( t_MD ), &
@@ -85,39 +222,44 @@ contains
     if( timings_detailed ) call assert( timings_general, 'timings_general must be true if timings_detailed is true')
 
     if( timings_general ) call timesec( t_i )
-
-    ! Interface to input variables
-    valence_relativity = ( trim( input%groundstate%ValenceRelativity ) /= 'none' )
-
-    ! MT part (prepare)
-    call me_mt_alloc( mt_part )
-    n_MT_radial_points = size( veffmt, 2 )
-    allocate( kin_mt(lm_max, n_MT_radial_points), source = kin_operator_00 ) ! Kinetic operator = (0.5/y00)*Y_{00}
-    do is = 1, nspecies
-      do ia = 1, natoms(is)
-        ias = idxas(ia, is)
-        ! If valence_relativity is true, then kin_mt = (0.5/y00) / (1.0 - 0.5 * alpha^2 * veffmt * y00)
-        if( valence_relativity ) &
-          kin_mt = kin_operator_00 / (1.0_dp - aux_factor * veffmt(1:lm_max, :, ias) )
-        call me_mt_prepare( is, ias, l_max_kin, zone, kin_mt, zone, mt_part(:, :, ias), gradient_product=.true. )
-        call me_mt_prepare( is, ias, l_max_pot, zone, veffmt(:, :, ias), zone, mt_part(:, :, ias) )
-      end do
-    end do
-    if( timings_detailed .and. present( t_ham ) ) then
-      t_aux = t_i
-      call timesec_RTTDDFT( t_aux, t_ham%hmlint )
-    end if
-
-    if( valence_relativity ) then 
-      do ik = first_kpt, last_kpt
-        call calculate_hamiltonian_without_pa_term_lapw_ik( ik, Gkset, apwalm(:, :, :, :, ik), &
-          mt_part, meffig, ham_time(:, :, ik), get_mathcalH, a_tot%components )
-      end do
+    if( this%IPA ) then
+      call this%H_0%assert_allocated()
+      call this%H_t%copy_from( this%H_0 )
     else
-      do ik = first_kpt, last_kpt
-        call calculate_hamiltonian_without_pa_term_lapw_ik( ik, Gkset, apwalm(:, :, :, :, ik), &
-          mt_part, cfunig, ham_time(:, :, ik), get_mathcalH, a_tot%components )
+
+      ! Interface to input variables
+      valence_relativity = ( trim( input%groundstate%ValenceRelativity ) /= 'none' )
+
+      ! MT part (prepare)
+      call me_mt_alloc( mt_part )
+      n_MT_radial_points = size( veffmt, 2 )
+      allocate( kin_mt(lm_max, n_MT_radial_points), source = kin_operator_00 ) ! Kinetic operator = (0.5/y00)*Y_{00}
+      do is = 1, nspecies
+        do ia = 1, natoms(is)
+          ias = idxas(ia, is)
+          ! If valence_relativity is true, then kin_mt = (0.5/y00) / (1.0 - 0.5 * alpha^2 * veffmt * y00)
+          if( valence_relativity ) &
+            kin_mt = kin_operator_00 / (1.0_dp - aux_factor * veffmt(1:lm_max, :, ias) )
+          call me_mt_prepare( is, ias, l_max_kin, zone, kin_mt, zone, mt_part(:, :, ias), gradient_product=.true. )
+          call me_mt_prepare( is, ias, l_max_pot, zone, veffmt(:, :, ias), zone, mt_part(:, :, ias) )
+        end do
       end do
+      if( timings_detailed .and. present( t_ham ) ) then
+        t_aux = t_i
+        call timesec_RTTDDFT( t_aux, t_ham%hmlint )
+      end if
+
+      if( valence_relativity ) then 
+        do ik = first_kpt, last_kpt
+          call this%calculate_ik( ik, Gkset, apwalm(:, :, :, :, ik-first_kpt+1), &
+            mt_part, meffig, a_tot, obtain_mathcalH )
+        end do
+      else
+        do ik = first_kpt, last_kpt
+          call this%calculate_ik( ik, Gkset, apwalm(:, :, :, :, ik-first_kpt+1), &
+            mt_part, cfunig, a_tot, obtain_mathcalH )
+        end do
+      end if
     end if
 
     if( timings_general ) then
@@ -125,11 +267,12 @@ contains
       if( present( t_ham ) ) t_ham%total = t_f - t_i
       if( timings_detailed .and. present( t_MD ) ) t_MD%ham = t_f - t_i
     end if
-  end subroutine update_hamiltonian_without_pa_term_lapw
+  end subroutine hamiltonian_set_calculate_lapw_basis
 
-  !> Calculate the hamiltonian matrix for a given k-point.
-  subroutine calculate_hamiltonian_without_pa_term_lapw_ik( ik, Gkset, apwalm_ik, mt_part, &
-      kin_ir, ham_ik, get_mathcalH, a_tot )
+  !> Calculate the hamiltonian matrix in the LAPW+lo basis for a given \( \mathbf{k} \)-point.
+  subroutine hamiltonian_set_calculate_lapw_basis_ik( this, ik, Gkset, apwalm_ik, mt_part, &
+      kin_ir, a_tot, obtain_mathcalH )
+    class(hamiltonian_set), intent(inout) :: this
     !> ik: the index of the k-point considered
     integer(i32), intent(in) :: ik
     !> Set of G+k vectors for LAPW expansion
@@ -140,30 +283,34 @@ contains
     complex(dp), contiguous, intent(in) :: mt_part(:, :, :)
     !> IR - kinetic part
     complex(dp), contiguous, intent(in) :: kin_ir(:)
-    !> MT part of the overlap matrix
-    complex(dp), contiguous, intent(inout) :: ham_ik(:, :)
-    !> If `.True.`, calculate the MT contributions to the auxiliary matrix mathcalH
-    logical, intent(in) :: get_mathcalH
     !> `x`, `y`, and `z` components of the (total) vector potential
-    real(dp), optional, intent(in) :: a_tot(n_cartesian)
+    !> Total vector potential
+    type(Vector_Potential_Field), optional, intent(in) :: a_tot
+    !> If `.true.`, obtain `mathcalH`
+    logical, optional, intent(in) :: obtain_mathcalH
 
     integer(i32) :: ias, ia, is
     complex(dp), allocatable :: tmp(:, :)
+    logical :: get_mathcalH
 
-    ham_ik = zzero
+    get_mathcalH = .false.
+    if( present( obtain_mathcalH ) ) get_mathcalH = obtain_mathcalH .and. allocated( this%mathcalH )
+    this%H_t%array(:, :, ik) = zzero
     ! It is better to split the two cases (even with some code duplication): 
     ! - to avoid an "if" inside the double loop over atoms
     ! - to avoid allocating "tmp" when not needed (this can be a large array)
-    associate( np => Gkset%ngk(1, ik), m => size(ham_ik, 1) )
+    associate( np => Gkset%ngk(1, ik), m => size(this%H_t%array, 1), n => size(this%H_t%array, 1) )
     if( get_mathcalH ) then
-      tmp = ham_ik
+      call assert( present(a_tot), "a_tot must be present" )
+      tmp = this%H_t%array(:, :, ik)
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias = idxas(ia, is)
           call me_mt_mat( is, ias, np, apwalm_ik(:, :, :, ias), zone, &
             mt_part(:, :, ias), zzero, tmp )
-          ham_ik = ham_ik + tmp
-          call update_mathcalH_ik_ias( is, ia, np, Gkset%vgkc(:, :, 1, ik), tmp, a_tot, mathcalH(:, :, :, ias, ik) )
+          this%H_t%array(:, :, ik) = this%H_t%array(:, :, ik) + tmp
+          call update_mathcalH_ik_ias( is, ia, np, Gkset%vgkc(:, :, 1, ik), tmp, &
+            a_tot%components, this%mathcalH(:, :, :, ias, ik) )
         end do
       end do
     else
@@ -171,13 +318,13 @@ contains
         do ia = 1, natoms(is)
           ias = idxas(ia, is)
           call me_mt_mat( is, ias, np, apwalm_ik(:, :, :, ias), zone, &
-            mt_part(:, :, ias), zone, ham_ik )
+            mt_part(:, :, ias), zone, this%H_t%array(:, :, ik) )
         end do
       end do
     end if
     end associate
-    call me_ir_mat( Gkset, ik, zone, veffig, zone, ham_ik )
-    call me_ir_mat( Gkset, ik, zone/2, kin_ir, zone, ham_ik, gradient_product=.true. )
+    call me_ir_mat( Gkset, ik, zone, veffig, zone, this%H_t%array(:, :, ik) )
+    call me_ir_mat( Gkset, ik, zone/2, kin_ir, zone, this%H_t%array(:, :, ik), gradient_product=.true. )
   end subroutine
 
   !> (private) Update the `mathcalH` matrix for a given atom and k-point
@@ -239,7 +386,7 @@ contains
     end associate
   end subroutine
 
-  !> In `update_hamiltonian_without_pa_term_ks`, we obtain the explicitly field-independent 
+  !> Obtain the explicitly field-independent 
   !> Hamiltonian \( H(t) \) in the KS basis as follows:
   !> \[
   !> H(t) = H_{\rm init} + V_{\rm eff}(t) - V_{\rm eff}(t = 0), 
@@ -250,37 +397,32 @@ contains
   !> \]
   !> is time-independent. \( V_{\rm eff}(t) \) is time-dependent through the 
   !> time-dependent charge density.
-  subroutine update_hamiltonian_without_pa_term_ks( first_kpt, lmaxvr, ham_time, apwalm, &
-      ks_lapwlo_transition_matrix, effective_potential_init, ham_init, Gkset, printTimings, t_ham )
-    !> The first \( \mathbf{k} \) point
-    integer(i32), intent(in) :: first_kpt
+  subroutine hamiltonian_set_calculate_ks_basis( this, lmaxvr, apwalm, Gkset, &
+      ks_lapwlo_transition_matrix, printTimings, t_ham )
+    class(hamiltonian_set), intent(inout) :: this
     !> Maximal value of l in spherical harmonics expansion of DFT potential
     integer(i32), intent(in) :: lmaxvr
-    !> Field-free Hamiltonian matrix \( H(t) \) (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(out) :: ham_time(:, :, first_kpt :)
     !> Matching coefficients of the (L)APWs
     !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, first_kpt :)
-    !> KS-LAPW+lo transition matrix (nmatmax, n_basis_ks, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(in) :: ks_lapwlo_transition_matrix(:, :, first_kpt :)
-    !> Initial effective potential \( V_{\rm eff}(t = 0) \) (n_basis, n_basis, first_kpt : last_kpt)
-    complex(dp), contiguous, intent(in) :: effective_potential_init(:, :, first_kpt :)
-    !> Hamiltonian matrix \( H_{\rm init} \) obtained at time \(t = 0 \)
-    complex(dp), contiguous, intent(in) :: ham_init(:, :, first_kpt :)
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, :)
     !> Set of G+k vectors for LAPW expansion
     type(Gk_set), intent(in) :: Gkset
+    !> KS-LAPW+lo transition matrix (nmatmax, n_basis_ks, first_kpt : last_kpt)
+    complex(dp), contiguous, intent(in) :: ks_lapwlo_transition_matrix(:, :, :)
     !> Object that packs information about printing of timings
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the Hamiltonian
     type(Timing_RTTDDFT_hamiltonian), optional, intent(out) :: t_ham
 
-    integer(i32) :: ik, last_kpt, n_basis, is, ia, ias, ngp
+    integer(i32) :: ik, first_kpt, last_kpt, shift, n_basis, is, ia, ias, ngp
     complex (dp), allocatable :: local_effective_potential(:, :), mt_contribution(:, :, :)
     logical :: timings_general, timings_detailed
     real(dp) :: ti
 
-    last_kpt = ubound( ham_time, 3 )
-    n_basis = size( ham_time, 1 )
+    first_kpt = lbound( this%H_t%array, 3 )
+    last_kpt = ubound( this%H_t%array, 3 )
+    n_basis = size( this%H_t%array, 1 )
+    shift = first_kpt - 1
 
     timings_general = .False.
     timings_detailed = .False.
@@ -291,87 +433,70 @@ contains
 
     if( timings_general ) call timesec( ti )
 
-    call me_mt_alloc( mt_contribution )
-    allocate( local_effective_potential(n_basis, n_basis), source = zzero )
+    this%H_t%array = zzero
+    call this%H_t%copy_from( this%initial_eigenvalues )
+
+    if( .not. this%IPA ) then
+      call this%H_t%subtract( this%V_KS_0 )
+
+      call me_mt_alloc( mt_contribution )
+      allocate( local_effective_potential(n_basis, n_basis) )
     
-    do is = 1, nspecies
-      do ia = 1, natoms(is)
-        ias = idxas(ia, is)
-        ! computes gaunts times radial integrals
-        call me_mt_prepare( is, ias, lmaxvr, zone, veffmt(:, :, ias), zzero, &
-          mt_contribution(:, :, ias) )
-      end do ! natoms
-    end do ! nspecies
-
-    do ik = first_kpt, last_kpt
-      ngp = Gkset%ngk(1, ik)
-      
-      local_effective_potential = zzero
-
-      ! mt contribution
       do is = 1, nspecies
         do ia = 1, natoms(is)
-
           ias = idxas(ia, is)
-               
-          call me_mt_mat( is, ias, ngp, apwalm(:, :, :, ias, ik), &
-            ks_lapwlo_transition_matrix(:, :, ik), zone, mt_contribution(:, :, ias), &
-            zone, local_effective_potential )
-
+          ! computes gaunts times radial integrals
+          call me_mt_prepare( is, ias, lmaxvr, zone, veffmt(:, :, ias), zzero, &
+            mt_contribution(:, :, ias) )
         end do ! natoms
       end do ! nspecies
 
-      ! ir contribution
-      call me_ir_mat( Gkset, ik, Gkset, ik, ks_lapwlo_transition_matrix(:, :, ik), &
-        ks_lapwlo_transition_matrix(:, :, ik), zone, veffig, zone, local_effective_potential )
-
-      ham_time(:, :, ik) = ham_init(:, :, ik) + local_effective_potential - effective_potential_init(:, :, ik)
-
-    end do ! ik
+      do ik = first_kpt, last_kpt
+        ngp = Gkset%ngk(1, ik)
+        local_effective_potential = zzero
+        ! mt contribution
+        do is = 1, nspecies
+          do ia = 1, natoms(is)
+            ias = idxas(ia, is)
+            call me_mt_mat( is, ias, ngp, apwalm(:, :, :, ias, ik-shift), &
+              ks_lapwlo_transition_matrix(:, :, ik-shift), zone, mt_contribution(:, :, ias), &
+              zone, local_effective_potential )
+          end do ! natoms
+        end do ! nspecies
+        ! ir contribution
+        call me_ir_mat( Gkset, ik, ks_lapwlo_transition_matrix(:, :, ik-shift), &
+          zone, veffig, zone, local_effective_potential )
+        ! final hamiltonian
+        this%H_t%array(:, :, ik) = this%H_t%array(:, :, ik) + local_effective_potential
+      end do ! ik
+    end if ! .not. this%IPA
 
     if( timings_general ) call timesec_RTTDDFT( ti, t_ham%total )
-
   end subroutine
   
   !> Add the pre-calculated length gauge interaction term to the Hamiltonian
-  subroutine add_external_coupling_berry_phase( external_coupling_length_gauge, ham_time, dims )
+  subroutine add_external_coupling_berry_phase( this, external_coupling_length_gauge )
+    class(hamiltonian_set), intent(inout) :: this
     !> Length gauge interaction matrix (n_basis, n_basis, n_kpts)
     complex(dp), contiguous, intent(in) :: external_coupling_length_gauge(:, :, :)
-    !> Hamiltonian matrix at current time \(t\) (n_basis, n_basis, n_kpts)
-    complex(dp), contiguous, intent(inout) :: ham_time(:, :, :)
-    !> Used dimensions of `external_coupling_length_gauge` and `ham_time` matrices
-    integer(i32), intent(in) :: dims(:)
 
-    integer(i32) :: ik
+    call assert( all( shape( external_coupling_length_gauge ) == shape( this%H_t%array ) ), &
+      'external_coupling_length_gauge and hamiltonian have incompatible dimensions' )
 
-    call assert( all( shape( external_coupling_length_gauge ) == shape( ham_time ) ), &
-      'external_coupling_length_gauge and ham_time have incompatible dimensions' )
-
-    !$omp parallel default(none), private(ik), &
-    !$omp& shared(ham_time, external_coupling_length_gauge, dims)
-    !$omp do
-    do ik = 1, size( ham_time, 3 )
-      ham_time(1 : dims(ik), 1 : dims(ik), ik) = ham_time(1 : dims(ik), 1 : dims(ik), ik) + &
-        external_coupling_length_gauge(1 : dims(ik), 1 : dims(ik), ik)
-    end do
-    !$omp end parallel
-
+    this%H_t%array = this%H_t%array + external_coupling_length_gauge
   end subroutine
 
   !> Add the velocity gauge interaction term \( {\bf p} \cdot {\bf A}(t) / c \) to 
   !> the Hamiltonian at time \( t \).
   ! TODO: is the space-uniform A^2 term needed here?
-  subroutine add_external_coupling_velocity_gauge( a_tot, overlap, ham_time, pmat, dims )
+  subroutine add_external_coupling_velocity_gauge( this, a_tot, overlap, pmat )
+    class(hamiltonian_set), intent(inout) :: this
     !> Total vector potential
     type(Vector_Potential_Field), intent(in) :: a_tot
     !> Overlap matrix
     class(overlap_set), intent(in) :: overlap
-    !> Hamiltonian matrix at current time \(t\) (n_basis, n_basis, n_kpts_kpt)
-    complex(dp), contiguous, intent(inout) :: ham_time(:, :, :)
     !> Momentum matrix elements (n_basis, n_basis, 3, n_kpts)
     complex(dp), contiguous, intent(in) :: pmat(:, :, :, :)
-    !> Used dimensions of `overlap` and `ham_time` matrices
-    integer(i32), intent(in) :: dims(:)
 
     real(dp), parameter :: interaction_tol = 1.e-14_dp
     integer(i32) :: ik, i
@@ -380,23 +505,20 @@ contains
     a_scaled = a_tot%components / c
     fact = 0.5_dp * dot_product( a_scaled, a_scaled )
     if ( fact < interaction_tol ) return
-    associate( m => size( ham_time, 1 ), n_kpts => size( ham_time, 3 ) )
-      call assert( size( dims, 1 ) == n_kpts, "dims and ham_time have different n_kpts" )
-      call assert( size( pmat, 4 ) == n_kpts, "pmat and ham_time have different n_kpts" )
+    associate( m => size( this%H_t%array, 1 ), n_kpts => size( this%H_t%array, 3 ) )
+      call assert( size( pmat, 4 ) == n_kpts, "pmat and hamiltonian have different n_kpts" )
       if( overlap%is_identity() ) then
-        do concurrent( i = 1 : m, ik = 1 : n_kpts )
-          ham_time(i, i, ik) = ham_time(i, i, ik) + fact
+        do concurrent( i = 1 : m, ik = lbound(this%H_t%array, 3) : ubound(this%H_t%array, 3) )
+          this%H_t%array(i, i, ik) = this%H_t%array(i, i, ik) + fact
         end do
       else
-        call assert( all( shape( overlap%array ) == shape( ham_time ) ), &
-          "overlap and ham_time must have same shape" )
-        ! TODO: replace by zaxpy wrapper after MR 840 is merged
-        ham_time = ham_time + fact * overlap%array
+        call assert( all( shape( overlap%array ) == shape( this%H_t%array ) ), &
+          "overlap and hamiltonian must have same shape" )
+        call scaled_add( fact, overlap%array, this%H_t%array )
       end if
-      ! TODO: replace by zaxpy wrapper after MR 840 is merged
-      ham_time = ham_time + a_scaled(1)*pmat(:, :, 1, :) + &
-                          + a_scaled(2)*pmat(:, :, 2, :) + &
-                          + a_scaled(3)*pmat(:, :, 3, :)
+      do i = 1, n_cartesian
+        call scaled_add( a_scaled(i), pmat(:, :, i, :), this%H_t%array )
+      end do
     end associate
   end subroutine
 

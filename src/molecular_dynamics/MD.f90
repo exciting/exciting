@@ -58,16 +58,16 @@ module MD
   end type
 
   type, public :: MD_input_keys
-    logical           :: on
-    logical           :: print_all_force_components
-    logical           :: update_overlap
-    logical           :: update_pmat
-    logical           :: basis_derivative
-    logical           :: valence_corrections
-    logical           :: core_corrections
-    character(len=80) :: MD_type
-    character(len=80) :: integration_algorithm
+    logical           :: on = .false.
+    logical           :: print_all_force_components = .false.
+    logical           :: update_overlap = .false.
+    logical           :: update_pmat = .false.
+    logical           :: basis_derivative = .false.
+    logical           :: valence_corrections = .false.
+    logical           :: core_corrections = .false.
     real(dp)          :: time_step
+    character(len=:), allocatable :: MD_type
+    character(len=:), allocatable :: integration_algorithm
   contains
     procedure         :: parse_input => MD_input_keys_parse_input
   end type
@@ -229,8 +229,8 @@ contains
       this%basis_derivative = input%MD%basisDerivative
       this%valence_corrections = input%MD%coreCorrections
       this%core_corrections = input%MD%valenceCorrections
-      this%MD_type = input%MD%type
-      this%integration_algorithm = input%MD%integrationAlgorithm
+      this%MD_type = trim( input%MD%type )
+      this%integration_algorithm = trim( input%MD%integrationAlgorithm )
       this%time_step = input%MD%timeStep
     end if
   end subroutine
