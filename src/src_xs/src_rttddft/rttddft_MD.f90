@@ -27,7 +27,9 @@ module rttddft_MD
   use physical_constants, only: c
   use precision, only: dp, i32
   use rttddft_electric_field, only: Electric_Field
-  use rttddft_GlobalMDVariables, only: mathcalH, mathcalB, update_exciting_globals_for_new_ions_positions
+  use rttddft_GlobalMDVariables, only: mathcalB, update_exciting_globals_for_new_ions_positions
+  use rttddft_Hamiltonian, only: hamiltonian_set
+  use rttddft_Overlap, only: overlap_set
   use rttddft_timings, only: Print_Timings, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
   use vector_multiplication, only: dot_multiply
@@ -70,8 +72,9 @@ contains
     forall( is = 1:n_species ) charge_val(is) = sum( spocc(:, is), mask=(.not.spcore(:, is)) )
   end subroutine
 
+  !> Obtain the forces on the ions in a RT-TDDFT calculation
   subroutine force_rttdft( forces, a_tot, e_field, MD_input, evecfv_time, occupations, &
-      overlap, ham_time, k_weights, printTimings, t_MD )
+      overlap, ham, k_weights, printTimings, t_MD )
     !> Object that packs information about the total forces
     type(force), intent(inout) :: forces
     !> `x`, `y`, and `z` components of the (total) vector potential
@@ -81,24 +84,23 @@ contains
     !> Object that contains the inputs keys given in the MD element
     type(MD_input_keys), intent(in) :: MD_input
     !> Basis-expansion coefficients of the KS-WFs at time \(t\)
-    complex(dp), intent(in) :: evecfv_time(:, :, :)
+    complex(dp), contiguous, intent(in) :: evecfv_time(:, :, :)
     !> State occupations array
-    real(dp), intent(in) :: occupations(:, :)
-    !> Overlap matrix (of basis functions)
-    complex(dp), intent(in) :: overlap(:, :, :)
-    !> Hamiltonian matrix at current time \(t\)
-    complex(dp), intent(in) :: ham_time(:, :, :)
+    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Object that encapsulates the overlap matrix
+    class(overlap_set), intent(in) :: overlap
+    !> Object that encapsulates the hamiltonian matrix
+    class(hamiltonian_set), intent(in) :: ham
     !> k point integration weights
-    real(dp), intent(in) :: k_weights(:)
+    real(dp), contiguous, intent(in) :: k_weights(:)
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings spent in MD
     class(MD_timing), optional, intent(inout) :: t_MD
 
-    integer(i32) :: is, ia, ias, nr, first_kpt, last_kpt, n_kpt
+    integer(i32) :: is, ia, ias, nr, first_kpt, last_kpt
     real(dp) :: fact, ti
     logical :: tDetail
-    
 
     ! Check optional (timing) arguments
     tDetail = .false.
@@ -108,8 +110,8 @@ contains
       call timesec( ti )
     end if
     
-    n_kpt = size( k_weights )
-    call distribute_loop(mpi_env_k, n_kpt, first_kpt, last_kpt)
+    first_kpt = lbound( overlap%array, 3)
+    last_kpt = ubound( overlap%array, 3)
     fact = dot_multiply(a_tot%components, a_tot%components)/2_dp/c**2
     do is = 1, nspecies
       nr = nrmt(is)
@@ -136,7 +138,8 @@ contains
     ! Valence corrections: second part
     if( MD_input%valence_corrections ) &
       call obtain_valence_corrections_part2( first_kpt, mpi_env_k, &
-        evecfv_time, occupations, overlap, ham_time, k_weights(first_kpt:last_kpt), forces%val )
+        evecfv_time, occupations, overlap%array, ham%H_t%array, k_weights(first_kpt:last_kpt), &
+        ham%mathcalH, forces%val )
     if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_2nd )
     ! sum all contributions to total force and store it
     call forces%evaluate_total_force()
@@ -147,24 +150,26 @@ contains
 
   !> Wrapper for calling val_corr_pt2_given_atom_and_kpt
   subroutine obtain_valence_corrections_part2( first_kpt, mpi_env, &
-    evecfv_time, occupations, overlap, ham_time, k_weights, forces_val )
+    evecfv_time, occupations, overlap, ham_time, k_weights, mathcalH, forces_val )
     !> index of the first `k-point` to be considered in the sum
     integer(i32),intent(in) :: first_kpt
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
     !> Basis-expansion coefficients of the KS-WFs at time \(t\)
     !> (nmatmax, nstates, first_kpt : last_kpt)
-    complex(dp), intent(in) :: evecfv_time(:, :, first_kpt :)
+    complex(dp), contiguous, intent(in) :: evecfv_time(:, :, first_kpt :)
     !> State occupations array (nstates, first_kpt : last_kpt)
-    real(dp), intent(in) :: occupations(:, first_kpt :)
+    real(dp), contiguous, intent(in) :: occupations(:, first_kpt :)
     !> Overlap matrix (of basis functions)
     !> (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), intent(in) :: overlap(:, :, first_kpt :)
+    complex(dp), contiguous, intent(in) :: overlap(:, :, first_kpt :)
     !> Hamiltonian matrix at current time \(t\)
     !> (nmatmax, nmatmax, first_kpt : last_kpt)
-    complex(dp), intent(in) :: ham_time(:, :, first_kpt :)
+    complex(dp), contiguous, intent(in) :: ham_time(:, :, first_kpt :)
     !> k point integration weights
-    real(dp), intent(in) :: k_weights(first_kpt :)
+    real(dp), contiguous, intent(in) :: k_weights(first_kpt :)
+    !> Auxiliary matrix needed to evaluate force corrections in MD calculations
+    complex(dp), contiguous, intent(in) :: mathcalH(:, :, :, :, first_kpt:)
     !> valence corrections to the total force
     real(dp), intent(inout) :: forces_val(:, :)
     
@@ -199,11 +204,13 @@ contains
     !$OMP END DO
     !$OMP END PARALLEL
 
-      sumaux = sum( aux, dim=3 ) ! sum over kpt
-      call xmpi_allreduce( sumaux, mpi_env )
-      forces_val = forces_val + sumaux
+    sumaux = sum( aux, dim=3 ) ! sum over kpt
+    call xmpi_allreduce( sumaux, mpi_env )
+    forces_val = forces_val + sumaux
   end subroutine
 
+  !> Update the positions and velocities of the ions. After doing that, update `exciting` 
+  !> global variables that depend on those.
   subroutine move_ions( first_kpt, forces, forces_old, dt, nuclei_motion, apwalm, &
     printTimings, t_MD )
     !> The first k point
@@ -306,7 +313,7 @@ contains
     !> number of non-zero elements along dim=1 and 2 for all matrices
     integer(i32), intent(in)  :: nmatp
 
-    integer(i32) :: ias, i, j, info, n_atoms, ld
+    integer(i32) :: ias, i, j, n_atoms, ld
     complex(dp), allocatable  :: aux(:,:), prod(:,:)
   
     call assert( size( mathcalS, 3 ) == 3, 'mathcalS must have size = 3 along dim = 3' )

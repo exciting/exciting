@@ -10,7 +10,7 @@ module rttddft_io_formatted
   use rttddft_CurrentDensity, only: Current_Density_Field
   use rttddft_electric_field, only: Electric_Field
   use rttddft_file_names
-  use rttddft_Energy, only: TotalEnergy
+  use rttddft_Energy, only: Total_Energy
   use rttddft_Polarization, only: Polarization
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_and_MD
   use rttddft_VectorField, only: Uniform_Vector_Field, x, y, z
@@ -284,7 +284,7 @@ contains
     !> Array with the values of time \( t \)
     real(dp), intent(in) :: time_array(:)
     !> Array with the energies (total energy, XC, Madelung, etc.)
-    type(TotalEnergy), intent(in) :: e_tot_array(:)
+    type(Total_Energy), intent(in) :: e_tot_array(:)
 
     integer(i32) :: i
 
@@ -297,7 +297,7 @@ contains
       call assert( size(e_tot_array) == n, 'e_tot_array must contain n elements')
       do i = 1, n
         write(file_etot,'(F9.3,8F20.10)') time_array(i), &
-          & e_tot_array(i)%total_energy, e_tot_array(i)%madelung, &
+          & e_tot_array(i)%total_energy(), e_tot_array(i)%madelung, &
           & e_tot_array(i)%eigenvalues_core, e_tot_array(i)%hamiltonian,&
           & e_tot_array(i)%exchange, e_tot_array(i)%correlation, &
           & e_tot_array(i)%integral_vxc_times_density, e_tot_array(i)%Coulomb

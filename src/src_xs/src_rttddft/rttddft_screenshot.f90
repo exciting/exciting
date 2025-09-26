@@ -14,6 +14,7 @@ module rttddft_screenshot
   use constants, only: real_zero, zzero
   use exciting_mpi, only: mpiinfo, xmpi_gatherv
   use precision, only: dp, i32
+  use rttddft_Hamiltonian, only: hamiltonian_set
   use rttddft_input, only: screenshot_keys
   use rttddft_io, only: out_dens => write_density_to_file, &
                         out_eigs => write_eigenvalues, &
@@ -33,7 +34,7 @@ module rttddft_screenshot
 contains
 
   !> subroutine that takes "screenshots" during a RT-TDDFT propagation
-  subroutine screenshot( it, input_keys, overlap, psi, ham_time, dimensions, &
+  subroutine screenshot( it, input_keys, overlap, psi, H, &
     occupations_gnd, rho_MT, rho_interstitial, rho_MT_0, rho_interstitial_0, mpi_env )
     !> number of the current iteration (to name output files)
     integer(i32), intent(in) :: it
@@ -43,10 +44,8 @@ contains
     class(overlap_set), intent(in) :: overlap
     !> Basis-expansion coefficients of the KS-wavefunctions.
     class(wavefunction_set), intent(in) :: psi
-    !> Hamiltonian matrix at time \( t \). 
-    complex(dp), contiguous, intent(in) :: ham_time(:, :, :)
-    !> Actual dimensions of `overlap`, `ham_time` along each k-point
-    integer(i32), contiguous, intent(in) :: dimensions(:)
+    !> Objtect that encapsulates the Hamiltonian matrix
+    class(hamiltonian_set), intent(in) :: H
     !> Occupation factors at \( t=0 \).
     real(dp), contiguous, intent(in) :: occupations_gnd(:, :)
     !> electron density inside MT spheres
@@ -68,7 +67,7 @@ contains
     logical :: my_rank_writes
 
     my_rank_writes = mpi_env%is_root
-    dim_k = size( ham_time, 3 )
+    dim_k = size( H%H_t%array, 3 )
 
     associate( p => input_keys%projection_coefficients, occ => input_keys%occupations )
       if( p%on .or. occ%on ) then
@@ -100,11 +99,11 @@ contains
       associate( n_eigs => input_keys%eigenvalues%n_eigenvalues, tol => input_keys%eigenvalues%tol )
         m = merge( size(overlap%array, 1), n_eigs, n_eigs <= 0 )
         allocate( eigenvalues(m, dim_k), source=real_zero )
-        call obtain_eigenvalues( ham_time, overlap%array, dimensions, n_eigs, tol, eigenvalues )
+        call obtain_eigenvalues( H%H_t%array, overlap%array, H%dims, n_eigs, tol, eigenvalues )
         ! Send results to root rank
         call xmpi_gatherv( mpi_env, eigenvalues, buffer )
         if( n_eigs <= 0 ) then
-          call xmpi_gatherv( mpi_env, dimensions, dimensions_buffer )
+          call xmpi_gatherv( mpi_env, H%dims, dimensions_buffer )
         else
           allocate( dimensions_buffer(size(buffer, 2)), source=n_eigs )
         end if

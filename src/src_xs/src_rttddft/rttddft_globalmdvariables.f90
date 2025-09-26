@@ -11,19 +11,10 @@ module rttddft_GlobalMDVariables
 
   private
   ! variables
-  public :: mathcalH, mathcalB, B_time, B_past
+  public :: mathcalB, B_time, B_past
   ! subroutines
   public :: update_exciting_globals_for_new_ions_positions
 
-  !> `mathcalH` gives the impact of an ion displacement on the hamiltonian matrix
-  !> \[ \left[ \left\langle 
-  !> \frac{\partial \phi_{\mu'}^{\mathbf{k}}}{\partial \mathbf{R}_J}
-  !> \Bigg|\hat{H}\Bigg|\phi_{\mu}^{\mathbf{k}}\right\rangle +
-  !> \left\langle\phi_{\mu'}^{\mathbf{k}}\Bigg|\hat{H}\Bigg|\frac{\partial 
-  !> \phi_{\mu}^{\mathbf{k}}}{\partial \mathbf{R}_J}\right\rangle \right] 
-  !> \]
-  complex(dp), allocatable  :: mathcalH(:,:,:,:,:)
-  
   !> `mathcalB` measures how the ions displacements affect overlap elements
   !> \[ \mathcal{B}_{J\mu'\mu}^{\mathbf{k}} = \left \langle
   !> \phi_{\mu'}^{\mathbf{k}}\bigg| \frac{\partial}{\partial \mathbf{R}_J}

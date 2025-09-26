@@ -19,6 +19,7 @@ module rttddft_Overlap
   private
   integer(i32), parameter :: n_cartesian = 3
 
+  !> Type to encapsulate the set of overlap matrices
   type, public, extends(positive_matrix_set) :: overlap_set
     private
     logical :: identity = .false.
@@ -100,7 +101,7 @@ contains
 
     this%array = zzero
     do k = lbound( this%array, 3 ), ubound( this%array, 3 )
-      do i = 1, size(this%array, 1)
+      do i = 1, size( this%array, 1 )
         this%array(i, i, k) = zone
       end do
     end do
