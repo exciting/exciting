@@ -35,15 +35,16 @@ module rttddft_CurrentDensity
     !> paramagnetic part of the current density
     type(Current_Density_Field) :: paramagnetic
   contains
-    procedure, public :: total, total_components
-    procedure, public :: evaluate_paramagnetic
-    procedure, public :: evaluate_diamagnetic
+    procedure, public :: evaluate_paramagnetic => Current_Density_evaluate_paramagnetic
+    procedure, public :: evaluate_diamagnetic => Current_Density_evaluate_diamagnetic
+    procedure, public :: total => Current_Density_total
+    procedure, public :: total_components => Current_Density_total_components
   end type
 
 contains
   !> Total current density = paramagnetic + diamagnetic
   !> Result is an object of type `Current_Density_Field`
-  pure function total( this ) result( r )
+  pure function Current_Density_total( this ) result( r )
     class(Current_Density), intent(in) :: this
     type(Current_Density_Field) :: r
 
@@ -52,7 +53,7 @@ contains
 
   !> Total current density = paramagnetic + diamagnetic
   !> Result is an array with the components
-  pure function total_components( this ) result( r )
+  pure function Current_Density_total_components( this ) result( r )
     class(Current_Density), intent(in) :: this
     real(dp) :: r(3)
 
@@ -63,7 +64,7 @@ contains
   !> \[ \mathbf{J}_{ind}(t) = - \frac{N_{val} \mathbf{A}_{tot}(t)}{\Omega c} \]
   !> \(N_{val}\) is the number of valence electrons, \(c\) is the light speed, and
   !> \(\Omega\) is the unit cell volume
-  pure subroutine evaluate_diamagnetic( this, Nel_per_volume, a_tot )
+  pure subroutine Current_Density_evaluate_diamagnetic( this, Nel_per_volume, a_tot )
     class(Current_Density), intent(inout) :: this
     !> Number of valence electrons per volume
     real(dp), intent(in) :: Nel_per_volume
@@ -82,20 +83,16 @@ contains
   !> where \( \Omega \) is the unit cell volume , \( w_{\mathbf{k}} \) is the 
   !> k-point weight and \( f_{j\mathbf{k}} \) is the occupation number of the
   !> corresponding KS state.
-  subroutine evaluate_paramagnetic( this, psi, p_mat, occupation, kpt_weight, mpi_env )
+  subroutine Current_Density_evaluate_paramagnetic( this, psi, p_mat, mpi_env )
     class(Current_Density), intent(inout) :: this
     !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \)
     class(wavefunction_set), intent(in) :: psi
     !> Momentum matrix elements
     complex(dp), intent(in) :: p_mat(:, :, :, :)
-    !> Occupation of each KS state
-    real(dp), intent(in) :: occupation(:, :)
-    !> Integration weight of each k-point
-    real(dp), intent(in) :: kpt_weight(:)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
 
-    integer :: ik, ist, j, n_states, n_basis, first_active
+    integer :: ik, ist, j, n_states, n_basis, first_active, shift
     real(dp) :: aux(3)
     real(dp), allocatable :: acc(:)
     complex(dp), allocatable :: draft(:, :)
@@ -107,16 +104,17 @@ contains
     allocate( draft(n_basis, n_states), acc(n_states) )
     aux = 0._dp
 
+    shift = 1-psi%first_kpt()
     !$OMP PARALLEL DO DEFAULT(NONE), PRIVATE(ik, j, ist, draft, acc), REDUCTION(+:aux), &
-    !$OMP& SHARED(n_states, psi, p_mat, occupation, kpt_weight, first_active)
-    do ik = 1, psi%n_kpts()
+    !$OMP& SHARED(n_states, psi, p_mat, first_active, shift)
+    do ik = psi%first_kpt(), psi%last_kpt()
       ! For the x, y, and z components ...
       do j = 1, 3
-        call hermitian_matrix_multiply( p_mat(:, :, j, ik), psi%active(:, :, ik), draft, 'U', 'L', tol_default )
+        call hermitian_matrix_multiply( p_mat(:, :, j, ik+shift), psi%active(:, :, ik), draft, 'U', 'L', tol_default )
         do ist = 1, n_states
           acc(ist) = real( dot_multiply( psi%active(:, ist, ik), draft(:, ist), conjg_a=.true. ), dp )
         end do
-        aux(j) = aux(j) - dot_multiply( occupation(first_active: first_active + n_states - 1, ik), acc )*kpt_weight(ik)
+        aux(j) = aux(j) - dot_multiply( psi%occupations(first_active: first_active + n_states - 1, ik), acc )*psi%kset%wkpt(ik)
       end do
     end do
     !$OMP END PARALLEL DO

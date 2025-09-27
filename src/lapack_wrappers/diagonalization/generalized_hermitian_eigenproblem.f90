@@ -12,7 +12,7 @@ module generalized_hermitian_eigenproblem
   implicit none
 
   private
-  public :: solve_generalized_hermitian_eigenproblem, xhegvx
+  public :: solve_generalized_hermitian_eigenproblem
 
   !> Solve a generalized hermitian-definite eigenproblem
   !> \[

@@ -127,33 +127,25 @@ end function sum_contr
 
   !> Subroutine that calculates all contributions to the total energy for RT-TDDFT calculations. 
   !> Adapted from `src/energy.f90`
-  subroutine obtain_energy_rttddft(this, H, psi, occupations, mpi_env, kpt_weights )
+  subroutine obtain_energy_rttddft(this, H, psi, mpi_env )
     class(Total_Energy), intent(inout) :: this
     !> Hamiltonian matrix at time \( t \). 
     !> Object that packs information about the Hamiltonian
     class(hamiltonian_set), intent(in) :: H
     !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \)
     class(wavefunction_set), intent(in) :: psi
-    !> Initial occupations array
-    real(dp), intent(in) :: occupations(:, :)
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
-    !> k points weights array
-    real(dp), intent(in) :: kpt_weights(:)
 
-    integer(i32) :: ik, ist, is, ia, ias, nmatp, first_kpt, real_kpt, n_kpt, first_active, n_states, n_basis, n_frozen
+    integer(i32) :: ik, ist, is, ia, ias, nmatp, first_active, n_states, n_basis, n_frozen
     real(dp), allocatable :: aux(:)
     real(dp) :: rfinp
     complex(dp), allocatable :: acc(:), scratch(:, :), occcmplx(:)
 
-    first_kpt = lbound( H%H_t%array, 3 )
-    n_kpt = psi%n_kpts()
     n_states = psi%n_active()
     n_basis = psi%n_basis()
     first_active = psi%first_active()
     n_frozen = psi%n_frozen()
-
-    call assert( n_kpt == size( occupations, 2 ), 'psi and occupations have different nkpts' )
 
     allocate( scratch(n_basis, n_states) )
     allocate( acc(n_states) )
@@ -181,32 +173,30 @@ end function sum_contr
     ! Contribution from the eigenvalues (valence): obtained as the expected value 
     ! of the hamiltonian matrix
     this%hamiltonian = 0._dp
-    allocate( aux(n_kpt), source = real_zero )
+    allocate( aux(psi%first_kpt():psi%last_kpt()), source = real_zero )
     allocate( occcmplx(n_states) )
     !$omp parallel default(none), &
-    !$omp private(ik, ist, occcmplx, scratch, acc, nmatp, real_kpt), &
-    !$omp shared(first_kpt, aux, first_active, nmat, H, psi, occupations, &
-    !$omp kpt_weights, input, n_kpt, n_states, n_frozen)
+    !$omp private(ik, ist, occcmplx, scratch, acc, nmatp), &
+    !$omp shared(aux, first_active, nmat, H, psi,input, n_states, n_frozen)
     !$omp do
-    do ik = 1, n_kpt
-      real_kpt = ik + first_kpt - 1
+    do ik = psi%first_kpt(), psi%last_kpt()
       if ( psi%expanded_in_lapwlo() ) then
-        nmatp = nmat(1, real_kpt)
+        nmatp = nmat(1, ik)
       else
         nmatp = psi%n_basis()
       end if
-      call hermitian_matrix_multiply( H%H_t%array(:, :, real_kpt), psi%active(:, :, ik), scratch, side='L', uplo='U' )
+      call hermitian_matrix_multiply( H%H_t%array(:, :, ik), psi%active(:, :, ik), scratch, side='L', uplo='U' )
 
       do ist = 1, n_states
         ! If the occupation is small, we assume that the current and
         ! all other states with higher "ist" will be unoccupied
-        if ( occupations(n_frozen + ist, ik) <= input%groundstate%epsocc ) exit
+        if ( psi%occupations(n_frozen + ist, ik) <= psi%eps_occ ) exit
         acc(ist) = dot_multiply( psi%active(1:nmatp, ist, ik), scratch(1:nmatp, ist), conjg_a=.true. )
       end do
-      occcmplx = occupations(first_active : n_frozen + n_states, ik)
-      aux(ik) = kpt_weights(ik) * real( dot_multiply( occcmplx(1:ist - 1), acc(1:ist - 1) ), dp )
-      if ( psi%has_frozen() ) aux(ik) = aux(ik) + kpt_weights(ik) * &
-        dot_multiply( occupations(1 : n_frozen, ik), H%initial_eigenvalues(1 : n_frozen, real_kpt) )
+      occcmplx = psi%occupations(first_active : n_frozen + n_states, ik)
+      aux(ik) = psi%kset%wkpt(ik) * real( dot_multiply( occcmplx(1:ist - 1), acc(1:ist - 1) ), dp )
+      if ( psi%has_frozen() ) aux(ik) = aux(ik) + psi%kset%wkpt(ik) * &
+        dot_multiply( psi%occupations(1 : n_frozen, ik), H%initial_eigenvalues(1 : n_frozen, ik) )
     end do
     !$omp end parallel
     this%hamiltonian = sum( aux )

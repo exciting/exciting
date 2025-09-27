@@ -35,7 +35,7 @@ contains
 
   !> subroutine that takes "screenshots" during a RT-TDDFT propagation
   subroutine screenshot( it, input_keys, overlap, psi, H, &
-    occupations_gnd, rho_MT, rho_interstitial, rho_MT_0, rho_interstitial_0, mpi_env )
+      rho_MT, rho_interstitial, rho_MT_0, rho_interstitial_0, mpi_env )
     !> number of the current iteration (to name output files)
     integer(i32), intent(in) :: it
     !> Type that encapsulates the elements/attributes defined inside `screenshots` (in the input file)
@@ -46,8 +46,6 @@ contains
     class(wavefunction_set), intent(in) :: psi
     !> Objtect that encapsulates the Hamiltonian matrix
     class(hamiltonian_set), intent(in) :: H
-    !> Occupation factors at \( t=0 \).
-    real(dp), contiguous, intent(in) :: occupations_gnd(:, :)
     !> electron density inside MT spheres
     real(dp), contiguous, intent(in) :: rho_MT(:, :, :)
     !> electron density in the interstitial region
@@ -85,7 +83,7 @@ contains
           if( my_rank_writes ) call out_proj( it, p%print_absolute_value, p%output_format, proj_buffer )
         end if
         if( occ%on ) then
-          call obtain_occupations( proj_time, occupations_gnd(1 : psi%n_occupied(), : ), occupations )
+          call obtain_occupations( proj_time, psi%occupations(1 : psi%n_occupied(), : ), occupations )
           ! Send results to root rank, storing in the buffer
           call xmpi_gatherv( mpi_env, occupations, buffer )
           ! Write to output
