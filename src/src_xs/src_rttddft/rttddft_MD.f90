@@ -12,18 +12,12 @@ module rttddft_MD
   use MD, only: trajectory, MD_input_keys, MD_timing, force, obtain_core_corrections, force_ext, &
     obtain_Hellmann_Feynman_force, obtain_valence_corrections_part1, &
     val_corr_pt2_given_atom_and_kpt => obtain_valence_corrections_part2
-  use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, &
-    spcore, spmass, spocc, spr, spzn
+  use mod_atoms, only: idxas, natoms, natmtot, nspecies, spcore, spmass, spocc, spr, spzn
   use mod_corestate, only: rhocr
   use mod_eigensystem, only: nmat, nmatmax
-  use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk, vgkc
-  use mod_gvector, only: ngvec, vgc, sfacg
-  use mod_lattice, only: ainv
   use mod_muffin_tin, only: nrmt
   use mod_potential_and_density, only: vclmt, veffmt, rhomt
-  use mod_spin, only: nspnfv
-  use modinput, only: input
-  use modmpi, only: rank, mpi_env_k, distribute_loop
+  use modmpi, only: mpi_env_k
   use physical_constants, only: c
   use precision, only: dp, i32
   use rttddft_electric_field, only: Electric_Field
@@ -32,6 +26,7 @@ module rttddft_MD
   use rttddft_Overlap, only: overlap_set
   use rttddft_timings, only: Print_Timings, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
+  use rttddft_Wavefunction, only: wavefunction_set
   use vector_multiplication, only: dot_multiply
 
   implicit none 
@@ -73,8 +68,8 @@ contains
   end subroutine
 
   !> Obtain the forces on the ions in a RT-TDDFT calculation
-  subroutine force_rttdft( forces, a_tot, e_field, MD_input, evecfv_time, occupations, &
-      overlap, ham, k_weights, printTimings, t_MD )
+  subroutine force_rttdft( forces, a_tot, e_field, MD_input, psi, &
+      overlap, ham, printTimings, t_MD )
     !> Object that packs information about the total forces
     type(force), intent(inout) :: forces
     !> `x`, `y`, and `z` components of the (total) vector potential
@@ -83,16 +78,12 @@ contains
     type(Electric_Field), intent(in) :: e_field
     !> Object that contains the inputs keys given in the MD element
     type(MD_input_keys), intent(in) :: MD_input
-    !> Basis-expansion coefficients of the KS-WFs at time \(t\)
-    complex(dp), contiguous, intent(in) :: evecfv_time(:, :, :)
-    !> State occupations array
-    real(dp), contiguous, intent(in) :: occupations(:, :)
+    !> Object that encapsulates the KS wavefunctions
+    class(wavefunction_set), intent(in) :: psi
     !> Object that encapsulates the overlap matrix
     class(overlap_set), intent(in) :: overlap
     !> Object that encapsulates the hamiltonian matrix
     class(hamiltonian_set), intent(in) :: ham
-    !> k point integration weights
-    real(dp), contiguous, intent(in) :: k_weights(:)
     !> Object that packs information about printing of timings [[Print_Timings]]
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings spent in MD
@@ -138,7 +129,7 @@ contains
     ! Valence corrections: second part
     if( MD_input%valence_corrections ) &
       call obtain_valence_corrections_part2( first_kpt, mpi_env_k, &
-        evecfv_time, occupations, overlap%array, ham%H_t%array, k_weights(first_kpt:last_kpt), &
+        psi%active, psi%occupations, overlap%array, ham%H_t%array, psi%kset%wkpt(first_kpt:last_kpt), &
         ham%mathcalH, forces%val )
     if( tDetail ) call timesec_RTTDDFT( ti, t_MD%t_MD_2nd )
     ! sum all contributions to total force and store it

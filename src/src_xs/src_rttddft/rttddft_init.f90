@@ -72,8 +72,8 @@ module rttddft_init
 contains
 !> This subroutine initializes many variables used in a RT-TDDFT calculation.
 subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, molecular_dynamics, &
-    psi, overlap, H, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, occupations, &
-    occs_tol, kset_rttddft, Gkset, Gset, psi_gnd_lapwlo, pws_for_berry_phase, k_ptrs, &
+    psi, overlap, H, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, &
+    Gkset, Gset, psi_gnd_lapwlo, pws_for_berry_phase, k_ptrs, &
     td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init, &
     energy_gap )
   !> Argument that encapsulates the input options of rttddft
@@ -102,12 +102,6 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   real(dp), allocatable, intent(out) :: rhomt_frozen(:, :, :)
   !> Frozen part of the IR density (to be allocated in `array_allocation` block)
   real(dp), allocatable, intent(out) :: rhoir_frozen(:)
-  !> State occupations array (to be allocated in `array_allocation` block)
-  real(dp), allocatable, intent(out) :: occupations(:, :)
-  !> Minimal value of occupation for the state to be 'occupied'
-  real(dp), intent(in) :: occs_tol
-  !> Set of \( \mathbf{k} \) points
-  type(k_set), intent(out) :: kset_rttddft
   !> Set of \( \mathbf{G} + \mathbf{k} \) vectors used for the matrix elements evaluation
   type(Gk_set), intent(out) :: Gkset
   !> Set of \( \mathbf{G} \) vectors used for the matrix elements evaluation
@@ -137,16 +131,19 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
 
   integer(i32) :: ik, first_kpt, last_kpt, l_max_pot, ham_dimension, kgrid_neighbours
   logical :: allocate_H0, evolve_H0, my_rank_writes_to_output, success
+  real(dp) :: occs_tol
   type(Vector_Potential_Field) :: a_aux
   type(Current_Density) :: j_aux
   type(Electric_Field) :: e_aux
+  type(k_set) :: kset_rttddft
   complex(dp), allocatable :: psi_gnd_lapwlo_copy(:, :, :)
   integer(i32), allocatable :: ik_to_array_position(:), k_shifts(:, :, :), shift_positions(:)
-  real(dp), allocatable :: dk_vec(:, :, :)
+  real(dp), allocatable :: dk_vec(:, :, :), occupations(:, :)
   logical, allocatable :: k_needed(:), proc_needed(:)
 
   call adjust_input_and_init_exciting_globals( input )
   l_max_pot = input%groundstate%lmaxvr
+  occs_tol = input%groundstate%epsocc
 
   my_rank_writes_to_output = (rank == 0)
   if ( my_rank_writes_to_output ) then
@@ -235,16 +232,15 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     end if
   end if ! dynamical Berry phase approach
 
-  call initialize_wavefunction_set( psi, rt_inp%use_lapwlo_basis(), &
-    propagator%extrapolation_needed() .or. rt_inp%restart_previous_calculation() , &
-    rt_inp%n_frozen, psi_gnd_lapwlo, occupations, occs_tol )
+  call initialize_wavefunction_set( psi, rt_inp%use_lapwlo_basis(), first_kpt, kset_rttddft, &
+    propagator%extrapolation_needed(), rt_inp%n_frozen, psi_gnd_lapwlo, occupations, occs_tol )
   if ( rt_inp%use_lapwlo_basis() ) deallocate( psi_gnd_lapwlo )
 
   ! In general, non-physical parameters (such as the k-grid) can differ between the GS
   ! and RT modules, which can result in e.g. different XC potential calculated from 
   ! the same electron density. For consistency, we generate the initial density and potential
   ! at step 0 the same way as during the time propagation. 
-  call update_density( first_kpt, psi, occupations, -1, rt_inp%normalize_WF, &
+  call update_density( psi, -1, rt_inp%normalize_WF, &
     rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo, dens_case = ground_state )
   call update_potential()
 
@@ -317,7 +313,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   if ( rt_inp%use_velocity_gauge() ) then
     j_para_spurious%components = real_zero
     if ( rt_inp%subtract_J0 ) then
-      call j_aux%evaluate_paramagnetic( psi, pmat, occupations, kset_rttddft%wkpt(first_kpt:last_kpt), mpi_env_k )
+      call j_aux%evaluate_paramagnetic( psi, pmat, mpi_env_k )
       j_para_spurious = j_aux%paramagnetic
     end if
   else
@@ -328,19 +324,16 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   end if
 
   if ( psi%has_frozen() ) then
-    call update_density( first_kpt, psi, occupations, -1, .false., rt_inp%l_rad_step, &
+    call update_density( psi, -1, .false., rt_inp%l_rad_step, &
       ks_lapwlo_transition_matrix=psi_gnd_lapwlo, dens_case=frozen )
     rhomt_frozen = rhomt
     rhoir_frozen = rhoir
   end if
 
   if( rt_inp%restart_previous_calculation() ) then
-    call read_wavefunction( t, first_kpt, kset_rttddft%vkl(:, first_kpt:last_kpt), &
-      psi%active, mpi_env_k, rt_inp%restart_file_handler )
+    call psi%read_from_file( mpi_env_k, rt_inp%restart_file_handler )
     if( propagator%extrapolation_needed() ) then
-      call read_wavefunction( t_minus_dt, first_kpt, kset_rttddft%vkl(:, first_kpt:last_kpt), &
-        psi%active_save, mpi_env_k, rt_inp%restart_file_handler )
-      call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, &
+      call update_density( psi, 0, rt_inp%normalize_WF, &
         rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo, dens_case=save_and_frozen )
       call update_potential( coulomb_only =  rt_inp%eeInteraction%coulomb_only() )
 
@@ -360,7 +353,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       call H%copy_H_t()
     end if ! propagator%extrapolation_needed()
 
-    call update_density( first_kpt, psi, occupations, 0, rt_inp%normalize_WF, &
+    call update_density( psi, 0, rt_inp%normalize_WF, &
       rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo )
     call update_potential( coulomb_only = rt_inp%eeInteraction%coulomb_only() )
 
