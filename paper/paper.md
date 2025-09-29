@@ -102,6 +102,9 @@ $$
 where we first compute the sums over $o'$, $u'$, and $\mathbf{k}'$ to get a term that depends only on $\mathbf{r}_\nu^V$ with a complexity of $\mathcal{O}(N_\mu^V(N_o N_u N_{\bf k} + N_uN_{\bf k})$. The remaining sums can be computed with $\mathcal{O}((N_\mu^V)^2 N_\mu^V N_o N_u N_{\bf k})$, so the complexity of computing $V\cdot X$ is bounded by $\mathbf{O}((N_\mu^V)^2 + N_\mu N_o N_u N_{\bf k})$.
 Applying the screened kernel to $X$, after reordering the sums, we get
 
+
+
+
 $$
 [W \cdot X]_{ou\mathbf k} = \frac{1} {N_k} \sum_{\nu=1}^{N_\mu^{W_o}}
 u_{o\mathbf k}(\mathbf r_\nu^{W_o})
