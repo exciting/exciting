@@ -134,15 +134,11 @@ Due to the unfavorable scaling of solving the BSE directly, many interesting pro
 # Results
 For computing the ISDF, two new parameters,  $n_\mathbf{r}$  and $c_\mu$, are introduced.  $n_\mathbf{r}$ is the real-space sampling density for $u_{i\mathbf{k}}(\mathbf{r})$ and is defined as
 $$
-
 n_\mathbf{r} = \frac{N_\mathbf{r}}{\Omega}\:,
-
 $$
 where $N_\mathbf{r}$ is the number of $\mathbf{r}$-points and $\Omega$ the unit cell volume. The sampling is chosen to be regular such that the distance between the sampling points in each lattice direction is as similar as possible. The dimensionless parameter $c_\mu$ is used to control the number of interpolation points and is defined as
 $$
-
 N_\mu = c_\mu \sqrt{\sqrt{N_{\text{pairs}}}}\:,
-
 $$
 where $N_{\text{pairs}}$ refers to the number of wave function pairs for which ISDF is computed. Note that $N_\text{pairs}$ depends on $N_\mathbf{k}$. The double square-root dependence ensures that the overall scaling remains below $\mathcal{O}(N_\mathbf{k}^2)$. In Fig.(\autoref{fig:newparams}) we present, for the example of diamond, the difference in exciton binding energies obtained with the new implementation and a reference calculation. The reference, based on the direct implementation, sets up and diagonalizes the full BSH and depends neither on $n_\mathbf{r}$ nor $c_\mu$. The results are shown as functions of $n_\mathbf{r}$ and $c_\mu$ for a small $\mathbf{k}$-grid of $2\times 2\times 2$. Additionally, we show the spectral similarities compared to the reference calculation as functions of $n_\mathbf{r}$ and $c_\mu$. For both parameters, both properties converge as their values increase. To find the optimal interpolation grid for ISDF, we first converge $n_\mathbf{r}$, then $c_\mu$. In our example, $n_\mathbf{r}=138$ [a.u.] and $c_\mu = 40.0$ yield converged results. This corresponds to a real-space sampling of $22 \times 22 \times 22$ and numbers of interpolation points $N_\mu^V = 202$, $N_\mu^{W_o} = 322$, and $N_\mu^{W_u} = 360$.
   ![Difference of the exciton binding energy and spectral similarity between the new method and the direct method as functions of $n_\mathbf{r}$ (upper panel) and $c_\mu$ (lower panel) for diamond on a $2 \times 2 \times 2$ $\mathbf k$-grid. \label{fig:newparams}](Diamond_ngridrdens_cisdf.png)
