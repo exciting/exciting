@@ -70,10 +70,10 @@ module to_char_conversion_test
 
     ! CAUTION: These tests will fail if default_imag_identifier is changed
     ! Test real complex input
-    call test_report%assert(to_char(cmplx(3._sp, 2._sp)) == "3.000000E+00+2.000000E+00i", &
-      error_message("complex(sp)", to_char(cmplx(3._sp, 2._sp)), "3.000000E+00+2.000000E+00i") )
-    call test_report%assert(to_char(cmplx(3.123_sp, -12.21342_sp)) == "3.123000E+00-1.221342E+01i", &
-      error_message("complex(sp)", to_char(cmplx(3.123_sp, -12.21342_sp)), "3.123000E+00-1.221342E+01i") )
+    call test_report%assert(to_char(cmplx(3._sp, 2._sp, sp)) == "3.000000E+00+2.000000E+00i", &
+      error_message("complex(sp)", to_char(cmplx(3._sp, 2._sp, sp)), "3.000000E+00+2.000000E+00i") )
+    call test_report%assert(to_char(cmplx(3.123_sp, -12.21342_sp, sp)) == "3.123000E+00-1.221342E+01i", &
+      error_message("complex(sp)", to_char(cmplx(3.123_sp, -12.21342_sp, sp)), "3.123000E+00-1.221342E+01i") )
 
     ! Test double complex input
     call test_report%assert(to_char(cmplx(3._dp, 2._dp, dp)) == "3.00000000000000E+00+2.00000000000000E+00i", &
@@ -113,7 +113,7 @@ module to_char_conversion_test
     call run_unit_test( test_report, category, to_char([real(dp):: ]), expected_empty_array )
 
     category = "complex(sp) vector"
-    call run_unit_test( test_report, category, to_char([cmplx(3._sp, 2._sp), cmplx(3.4_sp, -0.1_sp), cmplx(0._sp, 50._sp)]), &
+    call run_unit_test( test_report, category, to_char([cmplx(3._sp, 2._sp, sp), cmplx(3.4_sp, -0.1_sp, sp), cmplx(0._sp, 50._sp, sp)]), &
       "[3.000000E+00+2.000000E+00i,3.400000E+00-1.000000E-01i,0.000000E+00+5.000000E+01i]" )
     call run_unit_test( test_report, category, to_char([complex(sp):: ]), expected_empty_array )
 

@@ -1,0 +1,45 @@
+# This job builds exciting using Cray compiler on the solPC06 runner
+# It also does the unit tests
+
+build:cray-amdgpu:
+  stage: build
+  tags:
+    - amd:gpu
+  script:
+    - >
+      /home/soluser/progs/Cray/HPE_CPE_Container_24.11.5/execute_cray_container.sh bash -lc "
+      module load cray-python &&
+      module load cray-fftw &&
+      mkdir -p build &&
+      cd build &&
+      ../external/cmake-3.31.3-linux-x86_64/bin/cmake \
+        -DCMAKE_Fortran_COMPILER=ftn \
+        -DCMAKE_C_COMPILER=cc \
+        -DCMAKE_CXX_COMPILER=CC \
+        -DFFTW3_ROOT=/opt/cray/pe/fftw/3.3.10.9/x86_trento/ \
+        -DOTHERLINALG=ON \
+        -DLINALGLIB=/opt/cray/pe/libsci/24.11.0/cray/17.0/x86_64/lib/libsci_cray_mp.a \
+        .. &&
+      make -j 8 -l 8 &&
+      make install
+      "
+  artifacts:
+    paths:
+      - install/lib
+      - install/bin/exciting_mpismp
+      - src/version.inc
+    expire_in: 1h
+
+test-cray-amdgpu:
+  stage: test
+  dependencies:
+    - build:cray-amdgpu
+  tags:
+    - amd:gpu
+  script:
+    - >
+      /home/soluser/progs/Cray/HPE_CPE_Container_24.11.5/execute_cray_container.sh bash -lc "
+      module load cray-python &&
+      module load cray-fftw &&
+      OMP_NUM_THREADS=2 install/bin/exciting_mpismp -run-unit-tests -kill-on-failure
+      "

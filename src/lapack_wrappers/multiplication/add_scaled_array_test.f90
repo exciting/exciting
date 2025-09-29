@@ -56,7 +56,7 @@ contains
     character(len=*), parameter :: test_id = "test_scaled_add_rank1_arrays"
     complex(dp) :: a
     complex(dp), allocatable :: x(:), y(:), y_expected(:)
-    
+
     test_number = 1
     a = cmplx(1.0_dp, 2.0_dp, dp)
     x = complex_vector_5
@@ -99,7 +99,8 @@ contains
 
     test_number = test_number + 1
     x = complex_matrix_5x7
-    y = zi + transpose( complex_matrix_7x5 )
+    y = complex_matrix_7x5
+    y = zi + transpose(y)
     y_expected = x + y
     call scaled_add( zone, x, y )
     call test_report%assert( all_close( y, y_expected ), report_message( test_id, "complex", test_number ) )
