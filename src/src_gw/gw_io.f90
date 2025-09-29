@@ -333,14 +333,24 @@ subroutine write_header_to_file_complex_array( unit, file_format, array, lbounds
   !> Lbounds of `array`
   integer(i32), intent(in) :: lbounds(:)
 
+  ! Note for developers:
+  ! Some compilers pass the full decriptor 
+  ! for assumed rank arrays. This means
+  ! that the bounds are preserved. We 
+  ! do a check for these cases to
+  ! properly save the bounds.
+  !
+  ! This means that ubound( array ) + lbounds - 1
+  ! is not safe
+
   call assert( size(lbounds) == rank(array), 'Incompatible array rank and lbounds' )
   select case( trim(file_format) )
     case( file_format_text )
       write( unit, * ) rank( array )
-      write( unit, * ) lbounds, ubound( array ) + lbounds - 1
+      write( unit, * ) lbounds, shape( array ) + lbounds - 1
     case( file_format_binary )
       write( unit ) rank( array )
-      write( unit ) lbounds, ubound( array ) + lbounds - 1
+      write( unit ) lbounds, shape( array ) + lbounds - 1
   end select
 
 end subroutine
@@ -362,10 +372,10 @@ subroutine write_header_to_file_real_array( unit, file_format, array, lbounds )
   select case( trim(file_format) )
     case( file_format_text )
       write( unit, * ) rank( array )
-      write( unit, * ) lbounds, ubound( array ) + lbounds - 1
+      write( unit, * ) lbounds, shape( array ) + lbounds - 1
     case( file_format_binary )
       write( unit ) rank( array )
-      write( unit ) lbounds, ubound( array ) + lbounds - 1
+      write( unit ) lbounds, shape( array ) + lbounds - 1
   end select
 
 end subroutine

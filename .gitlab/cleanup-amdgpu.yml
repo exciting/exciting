@@ -1,0 +1,15 @@
+# Cleans the solPC06 runner
+# * excitingtools
+# * Regression testing framework
+
+cleanup:cleanup-amd:
+  stage: cleanup
+  tags:
+    - amd:gpu
+  script:
+    # Cleans the tmp file that the whole pipeline shares
+    - |
+      if [ -d "$VENV_PATH" ]; then
+        rm -r "$VENV_PATH"
+      fi
+  when: always

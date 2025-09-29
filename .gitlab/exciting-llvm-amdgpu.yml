@@ -1,0 +1,48 @@
+# LLVM Flang CI with and without GPU support on solPC06 runner
+
+build:llvm-amdgpu-cpu:
+  stage: build
+  tags:
+    - amd:gpu
+  script:
+    - module load amd-8248-drop-7.0.5
+    - module load aocl-tools-amd-8248-drop-7.0.5
+    - module load blis-amd-8248-drop-7.0.5
+    - module load libflame-amd-8248-drop-7.0.5
+    - module load fftw-amd-8248-drop-7.0.5
+    - module load mpich-4.3.1-amd-8248-drop-7.0.5
+    - mkdir build && cd build
+    - cmake -DCMAKE_C_COMPILER=amdclang -DCMAKE_CXX_COMPILER=amdclang++ -DCMAKE_Fortran_COMPILER=amdflang -DAMDLINALG=ON ..
+    - make -j 8 -l 8
+    - make install
+  artifacts:
+    paths:
+      - install/lib
+      - install/bin/exciting_mpismp
+      - src/version.inc
+    expire_in: 24 hrs
+
+build:llvm-amdgpu-gpu:
+  stage: build
+  tags:
+    - amd:gpu
+  script:
+    - module load rocm-6.4.1
+    - module load amd-8248-drop-7.0.5
+    - module load aocl-tools-amd-8248-drop-7.0.5
+    - module load blis-amd-8248-drop-7.0.5
+    - module load libflame-amd-8248-drop-7.0.5
+    - module load fftw-amd-8248-drop-7.0.5
+    - module load mpich-4.3.1-amd-8248-drop-7.0.5
+    - export ROCAFAR=/home/soluser/progs/rocm-afar-8248-drop-7.0.5
+    - module load magma-amd-8248
+    - mkdir build && cd build
+    - cmake -DCMAKE_C_COMPILER=${ROCAFAR}/bin/amdclang -DCMAKE_CXX_COMPILER=${ROCAFAR}/bin/amdclang++ -DCMAKE_Fortran_COMPILER=${ROCAFAR}/bin/amdflang -DAMDLINALG=ON -DAMD=ON -DAMDTARGET=gfx1102 -DMAGMA_ROOT=${MAGMA_ROOT} ..
+    - make -j 8 -l 8
+    - make install
+  artifacts:
+    paths:
+      - install/lib
+      - install/bin/exciting_mpismp
+      - src/version.inc
+    expire_in: 24 hrs

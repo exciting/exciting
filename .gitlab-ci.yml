@@ -6,6 +6,7 @@ stages:
   - python
   - build
   - test
+  - cleanup
   - deploy
 
 # Split configurations into separate files
@@ -13,7 +14,6 @@ include:
   - local: '/.gitlab/python-libs.yml'
   - local: '/.gitlab/docs.yml'
   - local: '/.gitlab/jupyter-exciting-python3-gnu-smp.yml'
-  #- local: '/.gitlab/exciting-fedora-buster-cray.yml'
   - local: '/.gitlab/exciting-fedora-buster-gnu-serial.yml'
   - local: '/.gitlab/exciting-fedora-buster-gnu-smp.yml'
   - local: '/.gitlab/exciting-fedora-buster-gnu-mpismp.yml'
@@ -22,3 +22,7 @@ include:
   - local: '/.gitlab/exciting-debian-buster-intel2021-smp.yml'
   - local: '/.gitlab/exciting-debian-buster-intel2025-serial.yml'
   - local: '/.gitlab/exciting-debian-buster-intel2025-gpu.yml'
+  - local: '/.gitlab/python-libs-amdgpu.yml'
+  - local: '/.gitlab/exciting-cray-amdgpu.yml'
+  - local: '/.gitlab/exciting-llvm-amdgpu.yml'
+  - local: '/.gitlab/cleanup-amdgpu.yml'

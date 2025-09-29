@@ -63,7 +63,7 @@ contains
     overlap_set_is_not_identity = .not. this%identity
   end function
 
-  impure elemental subroutine destructor( this )
+  pure elemental subroutine destructor( this )
     type(overlap_set), intent(inout) :: this
 
     call this%deallocate_if_allocated()
