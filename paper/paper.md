@@ -55,7 +55,7 @@ u^*_{o'\mathbf{k}'}(\mathbf{r}')
 $$
 where $W_{\mathbf{k-k'}}(\mathbf{r}, \mathbf{r}')$ is the statically screened Coulomb potential. $u_{i\mathbf{k}}(\mathbf{r})$ is the periodic part of the one-particle wavefunction of state $i$ at the reciprocal lattice point $\mathbf{k}$. In general, we cannot see, which of the matrix elements will be zero, thus we need to compute all of them. Therefore, setting up the full BSH scales with $\mathcal{O}(N_o^2 N_u^2 N_{\mathbf{k}}^2)$ and diagonalizing it directly with $\mathcal{O}(N_o^3 N_u^3 N_{\mathbf{k}}^3)$. 
 	
-The primary scaling bottleneck stems from evaluating the matrix elements of the interaction kernels. To mitigate this, we reformulate the wavefunction products using Interpolative Separable Density Fitting (ISDF) [@Lu:2015]. Specifically, we approximate these products on a discrete real-space grid, $\{\mathbf{r}\}$, by expressing them as superpositions of values evaluated on a smaller interpolation grid, $\{\mathbf{r}_\mu\} \subset \{\mathbf{r}\}$:
+The primary scaling bottleneck stems from evaluating the matrix elements of the interaction kernels. To mitigate this, we reformulate the wavefunction products using Interpolative Separable Density Fitting (ISDF) [@Lu:2015,@Lu:2016]. Specifically, we approximate these products on a discrete real-space grid, $\{\mathbf{r}\}$, by expressing them as superpositions of values evaluated on a smaller interpolation grid, $\{\mathbf{r}_\mu\} \subset \{\mathbf{r}\}$:
 $$
 u_{i\mathbf{k}}^*(\mathbf{r})u_{j\mathbf{k}'}(\mathbf{r}) \approx \sum_{\mu=1}^{N_\mu} \zeta_\mu(\mathbf{r}) u_{i\mathbf{k}}^*(\mathbf{r}_\mu) u_{j\mathbf{k}}(\mathbf{r}_\mu) \:,
 $$
@@ -102,22 +102,23 @@ $$
 where we first compute the sums over $o'$, $u'$, and $\mathbf{k}'$ to get a term that depends only on $\mathbf{r}_\nu^V$ with a complexity of $\mathcal{O}(N_\mu^V(N_o N_u N_{\bf k} + N_uN_{\bf k})$. The remaining sums can be computed with $\mathcal{O}((N_\mu^V)^2 N_\mu^V N_o N_u N_{\bf k})$, so the complexity of computing $V\cdot X$ is bounded by $\mathbf{O}((N_\mu^V)^2 + N_\mu N_o N_u N_{\bf k})$.
 Applying the screened kernel to $X$, after reordering the sums, we get
 
-
 $$
 [W \cdot X]_{ou\mathbf k} = \frac{1} {N_k} \sum_{\nu=1}^{N_\mu^{W_o}}
 u_{o\mathbf k}(\mathbf r_\nu^{W_o})
-\left\{ \sum_{\mu=1}^{N_\mu^{W_u}}
+\Bigg\{ \sum_{\mu=1}^{N_\mu^{W_u}}
 u^*_{u\mathbf k}(\mathbf r_\mu^{W_u})
-\left[
-\sum_{\mathbf{k'}}
-\tilde{W}_{\mu\nu, \mathbf{k-k'}}
-\left(\sum_{u'}
+\sum_{\mathbf{k'}} 
+\Bigg[\tilde{W}_{\mu\nu, \mathbf{k-k'}}
+$$
+$$
+\qquad\qquad\qquad \times 
+\bigg(\sum_{u'}
 u_{u'\mathbf k'}(\mathbf r_\mu^{W_u})
-\left[\sum_{o'} \\\\ % \right. \right.\right.\right. 
+\bigg[\sum_{o'} \\\\ % \right. \right.\right.\right. 
 u^*_{o'\mathbf{k'}}(\mathbf{r}_\nu^{W_o})
 X_{ o' u' \mathbf{k'}}
 %\left.\left.\left.\left.
-\right]\right)\right]\right\} \:.
+\bigg]\bigg)\Bigg]\Bigg\} \:.
 $$
 
 Here we exploit the separable structure of the decomposition so that the terms depending on ${\bf k}$ and ${\bf k'}$ are on the left and right of $\tilde{W}_{\mu\nu, \mathbf{k-k'}}$. The evaluation of the two innermost sums over $o'$ and $u'$ to $A^{\bf k'}_{\mu\nu}$ scales with $\mathcal{O}(N^{W_u}_\mu N_o N_u N_\mathbf{k} + N^{W_o}_\mu N_\mu^{W_u} N_u N_\mathbf{k})$. Then the sum over ${\bf k'}$ reads as a discrete convolution
@@ -131,13 +132,27 @@ which can be efficiently evaluated with fast Fourier transforms simultaneously w
 Due to the unfavorable scaling of solving the BSE directly, many interesting problems such as complex materials with large unit cells or systems requiring a dense Brioullin-zone sampling are not feasible. Even though Henneke and coworkers [@Henneke:2020] have already described the new algorithm and demonstrated the scaling improvement, an easy-to-use and scalable implementation was still missing. We have implemented and fully integrated this approach in the existing BSE infrastructure of the all-electron, full-potential package <span style="font-family: 'Courier New', monospace; font-weight: bold;">exciting</span> [@Gulans:2014]. Users can now easily choose which algorithm they prefer to use and have the full suite of exciton analysis implemented in <span style="font-family: 'Courier New', monospace; font-weight: bold;">exciting</span> at hand.
 
 # Results
+For computing the ISDF, two new parameters,  $n_\mathbf{r}$  and $c_\mu$, are introduced.  $n_\mathbf{r}$ is the real-space sampling density for $u_{i\mathbf{k}}(\mathbf{r})$ and is defined as
+$$
 
-To demonstrate that our implementation does indeed scale as proposed, we run BSE calculations for increasing $N_\mathbf{k}$ using the direct and the new implementation. In Fig.(\autoref{fig:scaling}) we show the wall times for the example of diamond. The new algorithm massively outperforms the direct, and the speed up increases more than linearly with $N_\mathbf{k}$.
+n_\mathbf{r} = \frac{N_\mathbf{r}}{\Omega}\:,
 
-![Runtimes of the RPA screening (blue) and the direct (black) and new (red) BSE implementations as a function of the number of ${\mathbf k}$-points, $N_\mathbf{k}$. The speedup of the algorithm is shown by the gray line.\label{fig:scaling}](ngridk_scaling.png)
+$$
+where $N_\mathbf{r}$ is the number of $\mathbf{r}$-points and $\Omega$ the unit cell volume. The sampling is chosen to be regular such that the distance between the sampling points in each lattice direction is as similar as possible. The dimensionless parameter $c_\mu$ is used to control the number of interpolation points and is defined as
+$$
 
-In Fig.(\autoref{fig:error}) we show the differences in exciton binding energies obtained from the direct implementation, which sets up and diagonalizes the full BSH, and the new implementation with fixed numbers of interpolation points: $N_\mu^V = 202$, $N_\mu^{W_o} = 322$, and $N_\mu^{W_u} = 360$ for the ISDF. Additionally, we present the spectral similarity, defined here as the area between the two curves. Even with these fixed numbers of interpolation points, the results of the new algorithm converge to those of the direct algorithm as $N_\mathbf{k}$ increases. This demonstrates that the new implementation yields results equivalent to the direct solution of the BSE but with significantly reduced computational time. Consequently, it enables more precise calculations and facilitates the study of more complex problems.
+N_\mu = c_\mu \sqrt{\sqrt{N_{\text{pairs}}}}\:,
 
-![Difference of the exciton binding energy and spectral similarity between the new method and the direct method as functions of $N_{\mathbf k}$ for the case of diamond. \label{fig:error}](Diamond_ngridk_fastDirectComparison.png)
+$$
+where $N_{\text{pairs}}$ refers to the number of wave function pairs for which ISDF is computed. Note that $N_\text{pairs}$ depends on $N_\mathbf{k}$. The double square-root dependence ensures that the overall scaling remains below $\mathcal{O}(N_\mathbf{k}^2)$. In Fig.(\autoref{fig:newparams}) we present, for the example of diamond, the difference in exciton binding energies obtained with the new implementation and a reference calculation. The reference, based on the direct implementation, sets up and diagonalizes the full BSH and depends neither on $n_\mathbf{r}$ nor $c_\mu$. The results are shown as functions of $n_\mathbf{r}$ and $c_\mu$ for a small $\mathbf{k}$-grid of $2\times 2\times 2$. Additionally, we show the spectral similarities compared to the reference calculation as functions of $n_\mathbf{r}$ and $c_\mu$. For both parameters, both properties converge as their values increase. To find the optimal interpolation grid for ISDF, we first converge $n_\mathbf{r}$, then $c_\mu$. In our example, $n_\mathbf{r}=138$ [a.u.] and $c_\mu = 40.0$ yield converged results. This corresponds to a real-space sampling of $22 \times 22 \times 22$ and numbers of interpolation points $N_\mu^V = 202$, $N_\mu^{W_o} = 322$, and $N_\mu^{W_u} = 360$.
+  ![Difference of the exciton binding energy and spectral similarity between the new method and the direct method as functions of $n_\mathbf{r}$ (upper panel) and $c_\mu$ (lower panel) for diamond on a $2 \times 2 \times 2$ $\mathbf k$-grid. \label{fig:newparams}](Diamond_ngridrdens_cisdf.png)
+
+In Fig.(\autoref{fig:error}) we compare the exciton binding energies and spectra of the new implementation to those of the old implementation for increasing $\mathbf k$-grids, while keeping $n_\mathbf{r}$ as well as $N_\mu^V$,  $N_\mu^{W_o}$, and $N_\mu^{W_u}$ fixed at the values above. We observe that the results converge as $N_\mathbf{k}$ increases. Thus, the number of interpolation points is asymptotically independent of $N_\mathbf{k}$. A similar behavior of ISDF was observed in [@Lu:2016].
+![Difference of the exciton binding energy and spectral similarity between the new method and the direct method as functions of $N_{\mathbf k}$ for diamond. \label{fig:error}](Diamond_ngridk_fastDirectComparison.png)
+
+In Fig.(\autoref{fig:scaling}) we show the wall times for solving the BSE with the new and direct implementations for increasing $N_\mathbf{k}$. The new algorithm massively outperforms the direct one, and the speedup increases more than linearly with $N_\mathbf{k}$. We also show the wall times for computing the RPA screening with increasing $N_\mathbf{k}$, which is now clearly the bottleneck in solving the BSE.
+![Runtimes of the direct (black) and new (red) BSE implementations and the RPA screening (blue) as a function of $N_\mathbf{k}$. The speedup of the algorithm is shown by the gray dashed line.\label{fig:scaling}](Diamond_ngridk_scaling.png)
+
+Altogether, we have implemented a new, low-scaling BSE solver and fully integrated it into the all-electron, full-potential solver `exciting`. We demonstrate that the new implementation yields results equivalent to the direct solution of the BSE but with significantly reduced computational time. Consequently, it enables more precise calculations and facilitates the study of more complex problems.
 
 # References
