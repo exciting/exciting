@@ -26,6 +26,7 @@ module rttddft_Overlap
   contains
     private
     procedure, public :: allocate => overlap_set_allocate
+    procedure, public :: assert_is_identity => overlap_set_assert_is_identity
     procedure, public :: calculate => overlap_set_calculate
     procedure, public :: initialize => overlap_set_initialize
     procedure, public :: is_identity => overlap_set_is_identity
@@ -49,6 +50,12 @@ contains
 
     this%identity = .not. use_lapwlo_basis 
     call this%allocate_array( [1, 1 , ki], [m, m, kf] )
+  end subroutine
+
+  subroutine overlap_set_assert_is_identity( this )
+    class(overlap_set), intent(in) :: this
+
+    call assert( this%is_identity(), "Overlap matrix is not identity" )
   end subroutine
 
   pure elemental logical function overlap_set_is_identity( this )

@@ -14,14 +14,14 @@ module rttddft_Wavefunction
   use exciting_mpi, only: mpiinfo, xmpi_allgather, xmpi_allreduce
   use mod_kpointset, only: k_set
   use modmpi, only: mpiglobal
-  use normalize, only: normalize_vectors
+  use normalize, only: normalize_vectors, norm_squared_with_positive_matrix
   use precision, only: dp, i32
   use projection, only: project_y_onto_x
   use rttddft_file_formats, only: file_handler
   use rttddft_io_unformatted, only: read_wavefunction, t, t_minus_dt, write_wavefunction
   use rttddft_Overlap, only: overlap_set
   use to_char_conversion, only: to_char
-  use xlapack, only: hermitian_matrix_multiply, matrix_multiply
+  use xlapack, only: hermitian_matrix_multiply, matrix_multiply, norm
 
   implicit none
 
@@ -51,7 +51,7 @@ module rttddft_Wavefunction
       procedure :: first_active => wavefunction_set_first_active
       procedure :: first_kpt => wavefunction_set_first_kpt
       procedure :: has_frozen => wavefunction_set_has_frozen
-      procedure(initialize_), private, deferred :: initialize
+      procedure(initialize_interface), private, deferred :: initialize
       procedure :: last_kpt => wavefunction_set_last_kpt
       procedure :: n_active => wavefunction_set_n_active
       procedure :: n_basis => wavefunction_set_n_basis
@@ -59,8 +59,10 @@ module rttddft_Wavefunction
       procedure :: n_frozen => wavefunction_set_n_frozen
       procedure :: n_kpts => wavefunction_set_n_kpts
       procedure :: n_occupied => wavefunction_set_n_occupied
+      procedure(norm_squared_interface), private, deferred :: norm_squared 
       procedure :: normalize => normalize_wavefunctions
       procedure :: obtain_number_excitations => wavefunction_set_obtain_number_excitations
+      procedure(project_active_onto_gs_interface), private, deferred :: project_active_onto_gs
       procedure :: read_from_file => wavefunction_set_read
       procedure :: restore => restore_wavefunctions
       procedure :: save => save_wavefunctions
@@ -70,17 +72,21 @@ module rttddft_Wavefunction
   !> Type to encapsulate the wavefunction set expanded in the LAPW+lo basis
   type, extends (wavefunction_set) :: wavefunction_set_lapwlo_basis
   contains
-    procedure :: initialize => initialize_set_in_lapwlo_basis
+    procedure, private :: initialize => initialize_set_in_lapwlo_basis
+    procedure, private :: norm_squared => wavefunction_set_lapwlo_basis_norm_squared
+    procedure, private :: project_active_onto_gs => wavefunction_set_lapwlo_basis_project_active_onto_gs
   end type
 
   !> Type to encapsulate the wavefunction set expanded in the KS basis
   type, extends (wavefunction_set) :: wavefunction_set_ks_basis
   contains
-    procedure :: initialize => initialize_set_in_ks_basis
+    procedure, private :: initialize => initialize_set_in_ks_basis
+    procedure, private :: norm_squared => wavefunction_set_ks_basis_norm_squared
+    procedure, private :: project_active_onto_gs => wavefunction_set_ks_basis_project_active_onto_gs
   end type
 
   abstract interface
-    subroutine initialize_( this, first_kpt, kset, save_needed, n_frozen, complete_gnd_set_lapwlo, &
+    subroutine initialize_interface( this, first_kpt, kset, save_needed, n_frozen, complete_gnd_set_lapwlo, &
         occupations, occs_tol )
       import :: dp, i32, k_set, wavefunction_set
       class(wavefunction_set), intent(inout) :: this
@@ -98,6 +104,26 @@ module rttddft_Wavefunction
       real(dp), contiguous, intent(in) :: occupations(:, :)
       !> Minimal value of occupation for the state to be 'occupied'
       real(dp), intent(in) :: occs_tol
+    end subroutine
+
+    !> Project the active states onto the ground state wavefunctions
+    subroutine project_active_onto_gs_interface( this, overlap, proj )
+      import :: dp, overlap_set, wavefunction_set
+      class(wavefunction_set), intent(in) :: this
+      !> Object that encapsulates the overlap matrix
+      class(overlap_set), intent(in) :: overlap
+      !> Projection coefficients
+      complex(dp), allocatable, intent(out) :: proj(:, :, :)
+    end subroutine
+
+    !> Compute the norm squared of the wavefunctions (both active and frozen).
+    subroutine norm_squared_interface( this, overlap, norms_squared )
+      import :: dp, overlap_set, wavefunction_set
+      class(wavefunction_set), intent(in) :: this
+      !> Object that encapsulates the overlap matrix
+      class(overlap_set), intent(in) :: overlap
+      !> Norms squared
+      real(dp), allocatable, intent(out) :: norms_squared(:, :)
     end subroutine
   end interface
 
@@ -160,7 +186,7 @@ contains
     allocate( this%groundstate, source = complete_gnd_set_lapwlo )
     this%kset = kset
     ! TODO: n_active_states to be defined by the user (issue #248)
-    n_active_states = last_occupied_for_all_ranks( occupations, occs_tol, mpiglobal )
+    call last_occupied_for_all_ranks( occupations, occs_tol, mpiglobal, n_active_states )
     allocate( this%active(n_basis, n_active_states-n_frozen, first_kpt:last_kpt), &
       source = complete_gnd_set_lapwlo(:, n_frozen + 1 : n_active_states, :) )
     if ( save_needed ) allocate( this%active_save, source = this%active )
@@ -199,8 +225,8 @@ contains
     end do
     this%kset = kset
 
-    ! TODO: issue a warning if n_active_states reduced nempty given in the input.xml
-    n_active_states = last_occupied_for_all_ranks( occupations, occs_tol, mpiglobal )
+    ! TODO: n_active_states to be defined by the user (issue #248)
+    call last_occupied_for_all_ranks( occupations, occs_tol, mpiglobal, n_active_states )
     allocate( this%active(n_gnd_states, n_active_states-n_frozen, first_kpt:last_kpt), &
       source = this%groundstate(:, n_frozen + 1 : n_active_states, :) )
     if ( save_needed ) allocate( this%active_save, source = this%active )
@@ -386,17 +412,17 @@ contains
   !> time-evolved wavefunctions onto the ground state at \(t=0\). 
   !> First, the number of electrons electrons in the ground state is obtained as
   !> \[
-  !>  N_{gs}(t)= \sum_{j\mathbf{k}}^{j\, occ} w_\mathbf{k} f_{j\mathbf{k}}
+  !>  N_{\rm gs}(t)= \sum_{ij\mathbf{k}}^{j\, \mathrm{occ}} w_\mathbf{k} f_{i\mathbf{k}}
   !>          | \langle \psi_{j\mathbf{k}}(0) | \psi_{i\mathbf{k}}(t)\rangle |^2
   !> \]
   !> Then, the total number of electrons is calculated as
   !> \[
-  !>  N_{tot}(t) = \sum_{j\mathbf{k}}^{j\, occ} w_\mathbf{k} f_{j\mathbf{k}}
-  !>          | \langle \psi_{j\mathbf{k}}(t) | \psi_{i\mathbf{k}}(t)\rangle |^2
+  !>  N_{\rm tot}(t) = \sum_{j\mathbf{k}} w_\mathbf{k} f_{j\mathbf{k}}
+  !>          | \langle \psi_{j\mathbf{k}}(t) | \psi_{j\mathbf{k}}(t)\rangle |^2
   !> \]
   !> Finally, the number of excitations is then given by
   !> \[
-  !>  N_{exc}(t) = N_{tot}(t) - N_{gs}(t)
+  !>  N_{\rm exc}(t) = N_{\rm tot}(t) - N_{\rm gs}(t)
   !> \]
   subroutine wavefunction_set_obtain_number_excitations( this, overlap, mpi_env, &
     & n_exc, n_gs )
@@ -413,31 +439,87 @@ contains
 
     integer(i32) :: ik, n_kpt, shift
     real(dp) :: buffer(2)
-    real(dp), allocatable :: occ(:, :), aux_tot(:), aux_exc(:)
+    real(dp), allocatable :: occ(:, :), aux_tot(:), aux_gs(:), norms_squared(:, :)
     complex(dp), allocatable :: proj(:, :, :)
     
     n_kpt = this%n_kpts()
     shift = this%first_kpt() - 1
 
     allocate( aux_tot(n_kpt), source = 0._dp )
-    allocate( aux_exc(n_kpt), source = 0._dp )
-    call obtain_projection_coefficients( this%groundstate, overlap%array, this%active, proj )
+    allocate( aux_gs(n_kpt), source = 0._dp )
+    call this%project_active_onto_gs( overlap, proj )
     call obtain_occupations( proj, this%occupations(this%first_active(): this%n_occupied(), :), occ )
     if ( this%has_frozen() ) &
       occ(1 : this%n_frozen(), :) = occ(1 : this%n_frozen(), :) + this%occupations(1 : this%n_frozen(), :)
-    do concurrent (ik = 1:n_kpt)
-      aux_tot(ik) = sum( occ(:, ik) )
-      aux_exc(ik) = sum( occ(:, ik), this%occupations(:, ik+shift) <= this%eps_occ )
+    call this%norm_squared( overlap, norms_squared )
+    do ik = 1, n_kpt
+      aux_tot(ik) = dot_product( this%occupations(:this%n_occupied(), ik+shift), norms_squared(:, ik+shift) )
+      aux_gs(ik) = sum( occ(:, ik), this%occupations(:, ik+shift) >= this%eps_occ )
     end do
     associate( wkpt => this%kset%wkpt, ki => this%first_kpt(), kf => this%last_kpt() )
-      n_exc = dot_product( wkpt(ki:kf), aux_exc )
-      n_gs = dot_product( wkpt(ki:kf), aux_tot ) - n_exc
+      n_gs = dot_product( wkpt(ki:kf), aux_gs )
+      n_exc = dot_product( wkpt(ki:kf), aux_tot ) - n_gs
     end associate
     buffer = [ n_exc, n_gs ]
     call xmpi_allreduce( buffer, mpi_env )
     n_exc = buffer(1); n_gs = buffer(2)
 
   end subroutine wavefunction_set_obtain_number_excitations
+
+  !> See [[project_active_onto_gs]]
+  subroutine wavefunction_set_lapwlo_basis_project_active_onto_gs( this, overlap, proj )
+    class(wavefunction_set_lapwlo_basis), intent(in) :: this
+    class(overlap_set), intent(in) :: overlap
+    complex(dp), allocatable, intent(out) :: proj(:, :, :)
+
+    call obtain_projection_coefficients( this%groundstate, overlap%array, this%active, proj )
+  end subroutine
+
+  !> See [[project_active_onto_gs]]
+  subroutine wavefunction_set_ks_basis_project_active_onto_gs( this, overlap, proj )
+    class(wavefunction_set_ks_basis), intent(in) :: this
+    class(overlap_set), intent(in) :: overlap
+    complex(dp), allocatable, intent(out) :: proj(:, :, :)
+
+    call overlap%assert_is_identity()
+    ! For KS basis, the this%active are already the projection coefficients
+    proj = this%active
+  end subroutine
+
+  !> See [[norm_squared_interface]]
+  subroutine wavefunction_set_lapwlo_basis_norm_squared( this, overlap, norms_squared )
+    class(wavefunction_set_lapwlo_basis), intent(in) :: this
+    class(overlap_set), intent(in) :: overlap
+    real(dp), allocatable, intent(out) :: norms_squared(:, :)
+
+    integer(i32) :: ik
+
+    ! N.B.: Frozen states have norm = 1
+    allocate( norms_squared(this%n_occupied(), this%first_kpt():this%last_kpt()), source = 1._dp )
+    do ik = this%first_kpt(), this%last_kpt()
+      call norm_squared_with_positive_matrix( this%active(:, :, ik), &
+        overlap%array(:, :, ik), norms_squared(this%first_active():, ik) )
+    end do
+  end subroutine
+
+  !> See [[norm_squared_interface]]
+  subroutine wavefunction_set_ks_basis_norm_squared( this, overlap, norms_squared )
+    class(wavefunction_set_ks_basis), intent(in) :: this
+    class(overlap_set), intent(in) :: overlap
+    real(dp), allocatable, intent(out) :: norms_squared(:, :)
+
+    integer(i32) :: ik, j, j_shift
+
+    call overlap%assert_is_identity()
+    ! N.B.: Frozen states have norm = 1
+    allocate( norms_squared(this%n_occupied(), this%first_kpt():this%last_kpt()), source = 1._dp )
+    j_shift = this%first_active()-1
+    do ik = this%first_kpt(), this%last_kpt()
+      do j = 1, this%n_active()
+        norms_squared(j + j_shift, ik) = norm( this%active(:, j, ik) )**2 
+      end do
+    end do
+  end subroutine
 
   !> Project the wavefunctions `y` onto `x` and store the projection coefficients.   
   !> For each `k-point` (3rd dimension), the projection `p` is calculated as
@@ -504,7 +586,7 @@ contains
     end associate
   end subroutine
 
-  !> Returns the index of the last occupied state for the current rank
+  !> (private) Return the index of the last occupied state for the current rank
   pure integer(i32) function last_occupied_for_current_rank( occupations, occs_tol )
     !> State occupations array (n_states, n_kpt)
     real(dp), contiguous, intent(in) :: occupations(:, :)
@@ -518,18 +600,21 @@ contains
       do i = size( occupations, 1 ), 1, -1
         if ( occupations(i, ik) > occs_tol ) exit
       end do
-      if ( i > last_occupied_for_current_rank ) last_occupied_for_current_rank = i
+      last_occupied_for_current_rank = max( last_occupied_for_current_rank, i )
     end do
   end function
 
-  !> (private) Returns the index of the last occupied state for all MPI ranks
-  integer(i32) function last_occupied_for_all_ranks( occupations, occs_tol, mpi_env ) result( last_occupied )
+  ! TODO: this can be converted to pure after assert is converted to pure
+  !> (private) Return the index of the last occupied state for all MPI ranks
+  subroutine last_occupied_for_all_ranks( occupations, occs_tol, mpi_env, last_occupied )
     !> State occupations array (n_states, n_kpt)
     real(dp), contiguous, intent(in) :: occupations(:, :)
     !> Minimal value of occupation for the state to be 'occupied'
     real(dp), intent(in) :: occs_tol
     !> MPI environment
     type(mpiinfo), intent(inout) :: mpi_env
+    !> Index of the last occupied state for all MPI ranks
+    integer(i32), intent(out) :: last_occupied
 
     integer(i32), allocatable :: buffer(:)
 
@@ -537,7 +622,7 @@ contains
     ! Force the same number of active states over all MPI ranks
     call xmpi_allgather( mpi_env, last_occupied, buffer )
     last_occupied = maxval( buffer )
-  end function
+  end subroutine
 
 end module rttddft_Wavefunction
 
