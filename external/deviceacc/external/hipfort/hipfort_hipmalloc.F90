@@ -26,6 +26,24 @@
 
 module hipfort_hipmalloc
 
+  use, intrinsic :: iso_fortran_env , only : int32, int64, real32, real64
+
+  integer(int32) :: elem_int32
+  integer(int64) :: elem_int64
+  real(real32)   :: elem_real32
+  real(real64)   :: elem_real64
+
+  private :: byte_size
+
+#ifdef USE_FPOINTER_INTERFACES
+  interface byte_size
+    module procedure byte_size_int32, &
+    byte_size_int64,  &
+    byte_size_real32, &
+    byte_size_real64
+  endinterface
+#endif
+
   interface hipMalloc
     !> 
     !>    @brief Allocate memory on the default accelerator
@@ -796,6 +814,34 @@ module hipfort_hipmalloc
 #ifdef USE_FPOINTER_INTERFACES
   contains
 
+    elemental function byte_size_int32(x) result(bytes)
+      integer(int32), intent(in) :: x
+      integer(int64)             :: bytes
+    
+      bytes = storage_size(x) / 8_int64
+    endfunction byte_size_int32
+
+    elemental function byte_size_int64(x) result(bytes)
+      integer(int64), intent(in) :: x
+      integer(int64)             :: bytes
+    
+      bytes = storage_size(x) / 8_int64
+    endfunction byte_size_int64
+
+    elemental function byte_size_real32(x) result(bytes)
+      real(real32), intent(in) :: x
+      integer(int64)           :: bytes
+    
+      bytes = storage_size(x) / 8_int64
+    endfunction byte_size_real32
+
+    elemental function byte_size_real64(x) result(bytes)
+      real(real64), intent(in) :: x
+      integer(int64)           :: bytes
+    
+      bytes = storage_size(x) / 8_int64
+    endfunction byte_size_real64
+
 ! scalars
                                                               
     function hipMalloc_l_0_source(ptr,dsource,source)
@@ -825,15 +871,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMalloc_l_0_source = hipMalloc_(cptr,1_8)
-        hipMalloc_l_0_source = hipMemcpy(cptr,c_loc(dsource),1_8,hipMemcpyDeviceToDevice)
+        hipMalloc_l_0_source = hipMalloc_(cptr,1_int64)
+        hipMalloc_l_0_source = hipMemcpy(cptr,c_loc(dsource),1_int64,hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMalloc_l_0_source = hipMalloc_(cptr,1_8)
-        hipMalloc_l_0_source = hipMemcpy(cptr,c_loc(source),1_8,hipMemcpyHostToDevice)
+        hipMalloc_l_0_source = hipMalloc_(cptr,1_int64)
+        hipMalloc_l_0_source = hipMemcpy(cptr,c_loc(source),1_int64,hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMalloc_l_0_source = hipMalloc_(cptr,1_8)
+        hipMalloc_l_0_source = hipMalloc_(cptr,1_int64)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -850,8 +896,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       logical(c_bool),target,dimension(:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -880,21 +926,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_l_1_source = hipMalloc_(cptr,size(dsource)*1_8)
-        hipMalloc_l_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToDevice)
+        hipMalloc_l_1_source = hipMalloc_(cptr,size(dsource,kind=int64))
+        hipMalloc_l_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMalloc_l_1_source = hipMalloc_(cptr,size(source)*1_8)
-        hipMalloc_l_1_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToDevice)
+        hipMalloc_l_1_source = hipMalloc_(cptr,size(source,kind=int64))
+        hipMalloc_l_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_l_1_source = hipMalloc_(cptr,size(mold)*1_8)
+        hipMalloc_l_1_source = hipMalloc_(cptr,size(mold,kind=int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_l_1_source = hipMalloc_(cptr,PRODUCT(dims8)*1_8)
+        hipMalloc_l_1_source = hipMalloc_(cptr,PRODUCT(dims8))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -902,7 +948,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_l_1_source = hipMalloc_(cptr,PRODUCT(dims)*1_8)
+        hipMalloc_l_1_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64)))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -932,7 +978,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_1_c_int
 #endif
       !
-      hipMalloc_l_1_c_int = hipMalloc_(cptr,length1*1_8)
+      hipMalloc_l_1_c_int = hipMalloc_(cptr,int(length1,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -956,7 +1002,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_1_c_size_t
 #endif
       !
-      hipMalloc_l_1_c_size_t = hipMalloc_(cptr,length1*1_8)
+      hipMalloc_l_1_c_size_t = hipMalloc_(cptr,int(length1,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -971,8 +1017,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       logical(c_bool),target,dimension(:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -1001,21 +1047,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_l_2_source = hipMalloc_(cptr,size(dsource)*1_8)
-        hipMalloc_l_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToDevice)
+        hipMalloc_l_2_source = hipMalloc_(cptr,size(dsource,kind=int64))
+        hipMalloc_l_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMalloc_l_2_source = hipMalloc_(cptr,size(source)*1_8)
-        hipMalloc_l_2_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToDevice)
+        hipMalloc_l_2_source = hipMalloc_(cptr,size(source,kind=int64))
+        hipMalloc_l_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_l_2_source = hipMalloc_(cptr,size(mold)*1_8)
+        hipMalloc_l_2_source = hipMalloc_(cptr,size(mold,kind=int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_l_2_source = hipMalloc_(cptr,PRODUCT(dims8)*1_8)
+        hipMalloc_l_2_source = hipMalloc_(cptr,PRODUCT(dims8))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -1023,7 +1069,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_l_2_source = hipMalloc_(cptr,PRODUCT(dims)*1_8)
+        hipMalloc_l_2_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64)))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -1053,7 +1099,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_2_c_int
 #endif
       !
-      hipMalloc_l_2_c_int = hipMalloc_(cptr,length1*length2*1_8)
+      hipMalloc_l_2_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -1077,7 +1123,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_2_c_size_t
 #endif
       !
-      hipMalloc_l_2_c_size_t = hipMalloc_(cptr,length1*length2*1_8)
+      hipMalloc_l_2_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -1092,8 +1138,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       logical(c_bool),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -1122,21 +1168,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_l_3_source = hipMalloc_(cptr,size(dsource)*1_8)
-        hipMalloc_l_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToDevice)
+        hipMalloc_l_3_source = hipMalloc_(cptr,size(dsource,kind=int64))
+        hipMalloc_l_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMalloc_l_3_source = hipMalloc_(cptr,size(source)*1_8)
-        hipMalloc_l_3_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToDevice)
+        hipMalloc_l_3_source = hipMalloc_(cptr,size(source,kind=int64))
+        hipMalloc_l_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_l_3_source = hipMalloc_(cptr,size(mold)*1_8)
+        hipMalloc_l_3_source = hipMalloc_(cptr,size(mold,kind=int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_l_3_source = hipMalloc_(cptr,PRODUCT(dims8)*1_8)
+        hipMalloc_l_3_source = hipMalloc_(cptr,PRODUCT(dims8))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -1144,7 +1190,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_l_3_source = hipMalloc_(cptr,PRODUCT(dims)*1_8)
+        hipMalloc_l_3_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64)))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -1174,7 +1220,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_3_c_int
 #endif
       !
-      hipMalloc_l_3_c_int = hipMalloc_(cptr,length1*length2*length3*1_8)
+      hipMalloc_l_3_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -1198,7 +1244,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_3_c_size_t
 #endif
       !
-      hipMalloc_l_3_c_size_t = hipMalloc_(cptr,length1*length2*length3*1_8)
+      hipMalloc_l_3_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -1213,8 +1259,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       logical(c_bool),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -1243,21 +1289,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_l_4_source = hipMalloc_(cptr,size(dsource)*1_8)
-        hipMalloc_l_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToDevice)
+        hipMalloc_l_4_source = hipMalloc_(cptr,size(dsource,kind=int64))
+        hipMalloc_l_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMalloc_l_4_source = hipMalloc_(cptr,size(source)*1_8)
-        hipMalloc_l_4_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToDevice)
+        hipMalloc_l_4_source = hipMalloc_(cptr,size(source,kind=int64))
+        hipMalloc_l_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_l_4_source = hipMalloc_(cptr,size(mold)*1_8)
+        hipMalloc_l_4_source = hipMalloc_(cptr,size(mold,kind=int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_l_4_source = hipMalloc_(cptr,PRODUCT(dims8)*1_8)
+        hipMalloc_l_4_source = hipMalloc_(cptr,PRODUCT(dims8))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -1265,7 +1311,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_l_4_source = hipMalloc_(cptr,PRODUCT(dims)*1_8)
+        hipMalloc_l_4_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64)))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -1295,7 +1341,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_4_c_int
 #endif
       !
-      hipMalloc_l_4_c_int = hipMalloc_(cptr,length1*length2*length3*length4*1_8)
+      hipMalloc_l_4_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                            int(length4,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -1319,7 +1366,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_4_c_size_t
 #endif
       !
-      hipMalloc_l_4_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*1_8)
+      hipMalloc_l_4_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                               int(length4,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -1334,8 +1382,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       logical(c_bool),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -1364,21 +1412,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_l_5_source = hipMalloc_(cptr,size(dsource)*1_8)
-        hipMalloc_l_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToDevice)
+        hipMalloc_l_5_source = hipMalloc_(cptr,size(dsource,kind=int64))
+        hipMalloc_l_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMalloc_l_5_source = hipMalloc_(cptr,size(source)*1_8)
-        hipMalloc_l_5_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToDevice)
+        hipMalloc_l_5_source = hipMalloc_(cptr,size(source,kind=int64))
+        hipMalloc_l_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_l_5_source = hipMalloc_(cptr,size(mold)*1_8)
+        hipMalloc_l_5_source = hipMalloc_(cptr,size(mold,kind=int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_l_5_source = hipMalloc_(cptr,PRODUCT(dims8)*1_8)
+        hipMalloc_l_5_source = hipMalloc_(cptr,PRODUCT(dims8))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -1386,7 +1434,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_l_5_source = hipMalloc_(cptr,PRODUCT(dims)*1_8)
+        hipMalloc_l_5_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64)))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -1416,7 +1464,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_5_c_int
 #endif
       !
-      hipMalloc_l_5_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*1_8)
+      hipMalloc_l_5_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                            int(length4,kind=int64)*int(length5,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -1440,7 +1489,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_5_c_size_t
 #endif
       !
-      hipMalloc_l_5_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*1_8)
+      hipMalloc_l_5_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                               int(length4,kind=int64)*int(length5,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -1455,8 +1505,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       logical(c_bool),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -1485,21 +1535,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_l_6_source = hipMalloc_(cptr,size(dsource)*1_8)
-        hipMalloc_l_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToDevice)
+        hipMalloc_l_6_source = hipMalloc_(cptr,size(dsource,kind=int64))
+        hipMalloc_l_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMalloc_l_6_source = hipMalloc_(cptr,size(source)*1_8)
-        hipMalloc_l_6_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToDevice)
+        hipMalloc_l_6_source = hipMalloc_(cptr,size(source,kind=int64))
+        hipMalloc_l_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_l_6_source = hipMalloc_(cptr,size(mold)*1_8)
+        hipMalloc_l_6_source = hipMalloc_(cptr,size(mold,kind=int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_l_6_source = hipMalloc_(cptr,PRODUCT(dims8)*1_8)
+        hipMalloc_l_6_source = hipMalloc_(cptr,PRODUCT(dims8))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -1507,7 +1557,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_l_6_source = hipMalloc_(cptr,PRODUCT(dims)*1_8)
+        hipMalloc_l_6_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64)))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -1537,7 +1587,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_6_c_int
 #endif
       !
-      hipMalloc_l_6_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*1_8)
+      hipMalloc_l_6_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                            int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -1561,7 +1612,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_6_c_size_t
 #endif
       !
-      hipMalloc_l_6_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*1_8)
+      hipMalloc_l_6_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                               int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -1576,8 +1628,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       logical(c_bool),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -1606,21 +1658,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_l_7_source = hipMalloc_(cptr,size(dsource)*1_8)
-        hipMalloc_l_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToDevice)
+        hipMalloc_l_7_source = hipMalloc_(cptr,size(dsource,kind=int64))
+        hipMalloc_l_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMalloc_l_7_source = hipMalloc_(cptr,size(source)*1_8)
-        hipMalloc_l_7_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToDevice)
+        hipMalloc_l_7_source = hipMalloc_(cptr,size(source,kind=int64))
+        hipMalloc_l_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_l_7_source = hipMalloc_(cptr,size(mold)*1_8)
+        hipMalloc_l_7_source = hipMalloc_(cptr,size(mold,kind=int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_l_7_source = hipMalloc_(cptr,PRODUCT(dims8)*1_8)
+        hipMalloc_l_7_source = hipMalloc_(cptr,PRODUCT(dims8))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -1628,7 +1680,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_l_7_source = hipMalloc_(cptr,PRODUCT(dims)*1_8)
+        hipMalloc_l_7_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64)))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -1658,7 +1710,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_7_c_int
 #endif
       !
-      hipMalloc_l_7_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*1_8)
+      hipMalloc_l_7_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                            int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                            int(length7,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -1682,7 +1736,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_l_7_c_size_t
 #endif
       !
-      hipMalloc_l_7_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*1_8)
+      hipMalloc_l_7_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                               int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                               int(length7,kind=int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -1715,15 +1771,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMalloc_i4_0_source = hipMalloc_(cptr,4_8)
-        hipMalloc_i4_0_source = hipMemcpy(cptr,c_loc(dsource),4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i4_0_source = hipMalloc_(cptr,byte_size(elem_int32))
+        hipMalloc_i4_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMalloc_i4_0_source = hipMalloc_(cptr,4_8)
-        hipMalloc_i4_0_source = hipMemcpy(cptr,c_loc(source),4_8,hipMemcpyHostToDevice)
+        hipMalloc_i4_0_source = hipMalloc_(cptr,byte_size(elem_int32))
+        hipMalloc_i4_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMalloc_i4_0_source = hipMalloc_(cptr,4_8)
+        hipMalloc_i4_0_source = hipMalloc_(cptr,byte_size(elem_int32))
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -1740,8 +1796,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       integer(c_int),target,dimension(:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -1770,21 +1826,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i4_1_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_i4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i4_1_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i4_1_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_i4_1_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_i4_1_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i4_1_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_i4_1_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i4_1_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_i4_1_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -1792,7 +1848,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i4_1_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_i4_1_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -1822,7 +1878,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_1_c_int
 #endif
       !
-      hipMalloc_i4_1_c_int = hipMalloc_(cptr,length1*4_8)
+      hipMalloc_i4_1_c_int = hipMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -1846,7 +1902,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_1_c_size_t
 #endif
       !
-      hipMalloc_i4_1_c_size_t = hipMalloc_(cptr,length1*4_8)
+      hipMalloc_i4_1_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -1861,8 +1917,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       integer(c_int),target,dimension(:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -1891,21 +1947,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i4_2_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_i4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i4_2_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i4_2_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_i4_2_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_i4_2_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i4_2_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_i4_2_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i4_2_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_i4_2_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -1913,7 +1969,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i4_2_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_i4_2_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -1943,7 +1999,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_2_c_int
 #endif
       !
-      hipMalloc_i4_2_c_int = hipMalloc_(cptr,length1*length2*4_8)
+      hipMalloc_i4_2_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -1967,7 +2023,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_2_c_size_t
 #endif
       !
-      hipMalloc_i4_2_c_size_t = hipMalloc_(cptr,length1*length2*4_8)
+      hipMalloc_i4_2_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -1982,8 +2038,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       integer(c_int),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -2012,21 +2068,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i4_3_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_i4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i4_3_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i4_3_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_i4_3_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_i4_3_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i4_3_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_i4_3_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i4_3_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_i4_3_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -2034,7 +2090,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i4_3_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_i4_3_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -2064,7 +2120,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_3_c_int
 #endif
       !
-      hipMalloc_i4_3_c_int = hipMalloc_(cptr,length1*length2*length3*4_8)
+      hipMalloc_i4_3_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -2088,7 +2144,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_3_c_size_t
 #endif
       !
-      hipMalloc_i4_3_c_size_t = hipMalloc_(cptr,length1*length2*length3*4_8)
+      hipMalloc_i4_3_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -2103,8 +2159,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       integer(c_int),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -2133,21 +2189,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i4_4_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_i4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i4_4_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i4_4_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_i4_4_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_i4_4_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i4_4_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_i4_4_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i4_4_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_i4_4_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -2155,7 +2211,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i4_4_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_i4_4_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -2185,7 +2241,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_4_c_int
 #endif
       !
-      hipMalloc_i4_4_c_int = hipMalloc_(cptr,length1*length2*length3*length4*4_8)
+      hipMalloc_i4_4_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -2209,7 +2266,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_4_c_size_t
 #endif
       !
-      hipMalloc_i4_4_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*4_8)
+      hipMalloc_i4_4_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -2224,8 +2282,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       integer(c_int),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -2254,21 +2312,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i4_5_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_i4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i4_5_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i4_5_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_i4_5_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_i4_5_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i4_5_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_i4_5_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i4_5_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_i4_5_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -2276,7 +2334,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i4_5_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_i4_5_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -2306,7 +2364,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_5_c_int
 #endif
       !
-      hipMalloc_i4_5_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*4_8)
+      hipMalloc_i4_5_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -2330,7 +2389,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_5_c_size_t
 #endif
       !
-      hipMalloc_i4_5_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*4_8)
+      hipMalloc_i4_5_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -2345,8 +2405,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       integer(c_int),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -2375,21 +2435,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i4_6_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_i4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i4_6_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i4_6_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_i4_6_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_i4_6_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i4_6_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_i4_6_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i4_6_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_i4_6_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -2397,7 +2457,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i4_6_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_i4_6_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -2427,7 +2487,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_6_c_int
 #endif
       !
-      hipMalloc_i4_6_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*4_8)
+      hipMalloc_i4_6_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -2451,7 +2512,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_6_c_size_t
 #endif
       !
-      hipMalloc_i4_6_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*4_8)
+      hipMalloc_i4_6_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -2466,8 +2528,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       integer(c_int),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -2496,21 +2558,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i4_7_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_i4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i4_7_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i4_7_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_i4_7_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_i4_7_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32))
+        hipMalloc_i4_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i4_7_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_i4_7_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i4_7_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_i4_7_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -2518,7 +2580,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i4_7_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_i4_7_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -2548,7 +2610,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_7_c_int
 #endif
       !
-      hipMalloc_i4_7_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8)
+      hipMalloc_i4_7_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                             int(length7,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -2572,7 +2636,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i4_7_c_size_t
 #endif
       !
-      hipMalloc_i4_7_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8)
+      hipMalloc_i4_7_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                int(length7,kind=int64)*byte_size(elem_int32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -2630,8 +2696,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       integer(c_long),target,dimension(:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -2660,21 +2726,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i8_1_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_i8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i8_1_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i8_1_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_i8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_i8_1_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i8_1_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_i8_1_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i8_1_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_i8_1_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -2682,7 +2748,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i8_1_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_i8_1_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -2712,7 +2778,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_1_c_int
 #endif
       !
-      hipMalloc_i8_1_c_int = hipMalloc_(cptr,length1*8_8)
+      hipMalloc_i8_1_c_int = hipMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -2736,7 +2802,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_1_c_size_t
 #endif
       !
-      hipMalloc_i8_1_c_size_t = hipMalloc_(cptr,length1*8_8)
+      hipMalloc_i8_1_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -2751,8 +2817,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       integer(c_long),target,dimension(:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -2781,21 +2847,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i8_2_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_i8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i8_2_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i8_2_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_i8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_i8_2_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i8_2_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_i8_2_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i8_2_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_i8_2_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -2803,7 +2869,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i8_2_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_i8_2_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -2833,7 +2899,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_2_c_int
 #endif
       !
-      hipMalloc_i8_2_c_int = hipMalloc_(cptr,length1*length2*8_8)
+      hipMalloc_i8_2_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -2857,7 +2923,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_2_c_size_t
 #endif
       !
-      hipMalloc_i8_2_c_size_t = hipMalloc_(cptr,length1*length2*8_8)
+      hipMalloc_i8_2_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -2872,8 +2938,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       integer(c_long),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -2902,21 +2968,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i8_3_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_i8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i8_3_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i8_3_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_i8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_i8_3_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i8_3_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_i8_3_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i8_3_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_i8_3_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -2924,7 +2990,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i8_3_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_i8_3_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -2954,7 +3020,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_3_c_int
 #endif
       !
-      hipMalloc_i8_3_c_int = hipMalloc_(cptr,length1*length2*length3*8_8)
+      hipMalloc_i8_3_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -2978,7 +3044,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_3_c_size_t
 #endif
       !
-      hipMalloc_i8_3_c_size_t = hipMalloc_(cptr,length1*length2*length3*8_8)
+      hipMalloc_i8_3_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -2993,8 +3059,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       integer(c_long),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -3023,21 +3089,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i8_4_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_i8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i8_4_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i8_4_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_i8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_i8_4_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i8_4_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_i8_4_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i8_4_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_i8_4_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -3045,7 +3111,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i8_4_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_i8_4_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -3075,7 +3141,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_4_c_int
 #endif
       !
-      hipMalloc_i8_4_c_int = hipMalloc_(cptr,length1*length2*length3*length4*8_8)
+      hipMalloc_i8_4_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -3099,7 +3166,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_4_c_size_t
 #endif
       !
-      hipMalloc_i8_4_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*8_8)
+      hipMalloc_i8_4_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -3114,8 +3182,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       integer(c_long),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -3144,21 +3212,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i8_5_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_i8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i8_5_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i8_5_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_i8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_i8_5_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i8_5_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_i8_5_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i8_5_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_i8_5_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -3166,7 +3234,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i8_5_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_i8_5_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -3196,7 +3264,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_5_c_int
 #endif
       !
-      hipMalloc_i8_5_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*8_8)
+      hipMalloc_i8_5_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -3220,7 +3289,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_5_c_size_t
 #endif
       !
-      hipMalloc_i8_5_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*8_8)
+      hipMalloc_i8_5_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -3235,8 +3305,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       integer(c_long),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -3265,21 +3335,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i8_6_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_i8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i8_6_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i8_6_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_i8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_i8_6_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i8_6_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_i8_6_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i8_6_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_i8_6_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -3287,7 +3357,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i8_6_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_i8_6_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -3317,7 +3387,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_6_c_int
 #endif
       !
-      hipMalloc_i8_6_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*8_8)
+      hipMalloc_i8_6_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -3341,7 +3412,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_6_c_size_t
 #endif
       !
-      hipMalloc_i8_6_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*8_8)
+      hipMalloc_i8_6_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -3356,8 +3428,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       integer(c_long),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -3386,21 +3458,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_i8_7_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_i8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_i8_7_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMalloc_i8_7_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_i8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_i8_7_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64))
+        hipMalloc_i8_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_i8_7_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_i8_7_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_i8_7_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_i8_7_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -3408,7 +3480,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_i8_7_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_i8_7_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -3438,7 +3510,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_7_c_int
 #endif
       !
-      hipMalloc_i8_7_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8)
+      hipMalloc_i8_7_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                             int(length7,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -3462,7 +3536,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_i8_7_c_size_t
 #endif
       !
-      hipMalloc_i8_7_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8)
+      hipMalloc_i8_7_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                int(length7,kind=int64)*byte_size(elem_int64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -3520,8 +3596,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       real(c_float),target,dimension(:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -3550,21 +3626,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r4_1_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_r4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r4_1_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r4_1_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_r4_1_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_r4_1_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r4_1_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_r4_1_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r4_1_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_r4_1_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -3572,7 +3648,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r4_1_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_r4_1_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -3602,7 +3678,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_1_c_int
 #endif
       !
-      hipMalloc_r4_1_c_int = hipMalloc_(cptr,length1*4_8)
+      hipMalloc_r4_1_c_int = hipMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -3626,7 +3702,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_1_c_size_t
 #endif
       !
-      hipMalloc_r4_1_c_size_t = hipMalloc_(cptr,length1*4_8)
+      hipMalloc_r4_1_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -3641,8 +3717,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       real(c_float),target,dimension(:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -3671,21 +3747,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r4_2_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_r4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r4_2_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r4_2_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_r4_2_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_r4_2_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r4_2_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_r4_2_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r4_2_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_r4_2_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -3693,7 +3769,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r4_2_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_r4_2_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -3723,7 +3799,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_2_c_int
 #endif
       !
-      hipMalloc_r4_2_c_int = hipMalloc_(cptr,length1*length2*4_8)
+      hipMalloc_r4_2_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -3747,7 +3823,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_2_c_size_t
 #endif
       !
-      hipMalloc_r4_2_c_size_t = hipMalloc_(cptr,length1*length2*4_8)
+      hipMalloc_r4_2_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -3762,8 +3838,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       real(c_float),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -3792,21 +3868,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r4_3_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_r4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r4_3_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r4_3_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_r4_3_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_r4_3_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r4_3_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_r4_3_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r4_3_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_r4_3_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -3814,7 +3890,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r4_3_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_r4_3_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -3844,7 +3920,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_3_c_int
 #endif
       !
-      hipMalloc_r4_3_c_int = hipMalloc_(cptr,length1*length2*length3*4_8)
+      hipMalloc_r4_3_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -3868,7 +3944,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_3_c_size_t
 #endif
       !
-      hipMalloc_r4_3_c_size_t = hipMalloc_(cptr,length1*length2*length3*4_8)
+      hipMalloc_r4_3_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -3883,8 +3959,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       real(c_float),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -3913,21 +3989,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r4_4_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_r4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r4_4_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r4_4_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_r4_4_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_r4_4_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r4_4_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_r4_4_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r4_4_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_r4_4_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -3935,7 +4011,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r4_4_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_r4_4_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -3965,7 +4041,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_4_c_int
 #endif
       !
-      hipMalloc_r4_4_c_int = hipMalloc_(cptr,length1*length2*length3*length4*4_8)
+      hipMalloc_r4_4_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -3989,7 +4066,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_4_c_size_t
 #endif
       !
-      hipMalloc_r4_4_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*4_8)
+      hipMalloc_r4_4_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -4004,8 +4082,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       real(c_float),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -4034,21 +4112,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r4_5_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_r4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r4_5_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r4_5_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_r4_5_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_r4_5_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r4_5_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_r4_5_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r4_5_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_r4_5_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -4056,7 +4134,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r4_5_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_r4_5_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -4086,7 +4164,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_5_c_int
 #endif
       !
-      hipMalloc_r4_5_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*4_8)
+      hipMalloc_r4_5_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -4110,7 +4189,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_5_c_size_t
 #endif
       !
-      hipMalloc_r4_5_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*4_8)
+      hipMalloc_r4_5_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -4125,8 +4205,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       real(c_float),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -4155,21 +4235,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r4_6_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_r4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r4_6_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r4_6_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_r4_6_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_r4_6_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r4_6_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_r4_6_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r4_6_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_r4_6_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -4177,7 +4257,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r4_6_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_r4_6_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -4207,7 +4287,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_6_c_int
 #endif
       !
-      hipMalloc_r4_6_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*4_8)
+      hipMalloc_r4_6_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -4231,7 +4312,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_6_c_size_t
 #endif
       !
-      hipMalloc_r4_6_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*4_8)
+      hipMalloc_r4_6_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -4246,8 +4328,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       real(c_float),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -4276,21 +4358,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r4_7_source = hipMalloc_(cptr,size(dsource)*4_8)
-        hipMalloc_r4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r4_7_source = hipMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r4_7_source = hipMalloc_(cptr,size(source)*4_8)
-        hipMalloc_r4_7_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMalloc_r4_7_source = hipMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32))
+        hipMalloc_r4_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r4_7_source = hipMalloc_(cptr,size(mold)*4_8)
+        hipMalloc_r4_7_source = hipMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r4_7_source = hipMalloc_(cptr,PRODUCT(dims8)*4_8)
+        hipMalloc_r4_7_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -4298,7 +4380,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r4_7_source = hipMalloc_(cptr,PRODUCT(dims)*4_8)
+        hipMalloc_r4_7_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -4328,7 +4410,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_7_c_int
 #endif
       !
-      hipMalloc_r4_7_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8)
+      hipMalloc_r4_7_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                             int(length7,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -4352,7 +4436,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r4_7_c_size_t
 #endif
       !
-      hipMalloc_r4_7_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8)
+      hipMalloc_r4_7_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                int(length7,kind=int64)*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -4385,15 +4471,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMalloc_r8_0_source = hipMalloc_(cptr,8_8)
-        hipMalloc_r8_0_source = hipMemcpy(cptr,c_loc(dsource),8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r8_0_source = hipMalloc_(cptr,byte_size(elem_real64))
+        hipMalloc_r8_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMalloc_r8_0_source = hipMalloc_(cptr,8_8)
-        hipMalloc_r8_0_source = hipMemcpy(cptr,c_loc(source),8_8,hipMemcpyHostToDevice)
+        hipMalloc_r8_0_source = hipMalloc_(cptr,byte_size(elem_real64))
+        hipMalloc_r8_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMalloc_r8_0_source = hipMalloc_(cptr,8_8)
+        hipMalloc_r8_0_source = hipMalloc_(cptr,byte_size(elem_real64))
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -4410,8 +4496,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       real(c_double),target,dimension(:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -4440,21 +4526,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r8_1_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_r8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r8_1_source = hipMalloc_(cptr,size(dsource)*byte_size(elem_real64))
+        hipMalloc_r8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r8_1_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_r8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_r8_1_source = hipMalloc_(cptr,size(source)*byte_size(elem_real64))
+        hipMalloc_r8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r8_1_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_r8_1_source = hipMalloc_(cptr,size(mold)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r8_1_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_r8_1_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -4462,7 +4548,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r8_1_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_r8_1_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -4492,7 +4578,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_1_c_int
 #endif
       !
-      hipMalloc_r8_1_c_int = hipMalloc_(cptr,length1*8_8)
+      hipMalloc_r8_1_c_int = hipMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -4516,7 +4602,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_1_c_size_t
 #endif
       !
-      hipMalloc_r8_1_c_size_t = hipMalloc_(cptr,length1*8_8)
+      hipMalloc_r8_1_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -4531,8 +4617,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       real(c_double),target,dimension(:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -4561,21 +4647,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r8_2_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_r8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r8_2_source = hipMalloc_(cptr,size(dsource)*byte_size(elem_real64))
+        hipMalloc_r8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r8_2_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_r8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_r8_2_source = hipMalloc_(cptr,size(source)*byte_size(elem_real64))
+        hipMalloc_r8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r8_2_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_r8_2_source = hipMalloc_(cptr,size(mold)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r8_2_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_r8_2_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -4583,7 +4669,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r8_2_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_r8_2_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -4613,7 +4699,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_2_c_int
 #endif
       !
-      hipMalloc_r8_2_c_int = hipMalloc_(cptr,length1*length2*8_8)
+      hipMalloc_r8_2_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -4637,7 +4723,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_2_c_size_t
 #endif
       !
-      hipMalloc_r8_2_c_size_t = hipMalloc_(cptr,length1*length2*8_8)
+      hipMalloc_r8_2_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -4652,8 +4738,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       real(c_double),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -4682,21 +4768,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r8_3_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_r8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r8_3_source = hipMalloc_(cptr,size(dsource)*byte_size(elem_real64))
+        hipMalloc_r8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r8_3_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_r8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_r8_3_source = hipMalloc_(cptr,size(source)*byte_size(elem_real64))
+        hipMalloc_r8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r8_3_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_r8_3_source = hipMalloc_(cptr,size(mold)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r8_3_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_r8_3_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -4704,7 +4790,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r8_3_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_r8_3_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -4734,7 +4820,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_3_c_int
 #endif
       !
-      hipMalloc_r8_3_c_int = hipMalloc_(cptr,length1*length2*length3*8_8)
+      hipMalloc_r8_3_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -4758,7 +4844,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_3_c_size_t
 #endif
       !
-      hipMalloc_r8_3_c_size_t = hipMalloc_(cptr,length1*length2*length3*8_8)
+      hipMalloc_r8_3_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -4773,8 +4859,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       real(c_double),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -4803,21 +4889,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r8_4_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_r8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r8_4_source = hipMalloc_(cptr,size(dsource)*byte_size(elem_real64))
+        hipMalloc_r8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r8_4_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_r8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_r8_4_source = hipMalloc_(cptr,size(source)*byte_size(elem_real64))
+        hipMalloc_r8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r8_4_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_r8_4_source = hipMalloc_(cptr,size(mold)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r8_4_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_r8_4_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -4825,7 +4911,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r8_4_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_r8_4_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -4855,7 +4941,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_4_c_int
 #endif
       !
-      hipMalloc_r8_4_c_int = hipMalloc_(cptr,length1*length2*length3*length4*8_8)
+      hipMalloc_r8_4_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -4879,7 +4966,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_4_c_size_t
 #endif
       !
-      hipMalloc_r8_4_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*8_8)
+      hipMalloc_r8_4_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -4894,8 +4982,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       real(c_double),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -4924,21 +5012,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r8_5_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_r8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r8_5_source = hipMalloc_(cptr,size(dsource)*byte_size(elem_real64))
+        hipMalloc_r8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r8_5_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_r8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_r8_5_source = hipMalloc_(cptr,size(source)*byte_size(elem_real64))
+        hipMalloc_r8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r8_5_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_r8_5_source = hipMalloc_(cptr,size(mold)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r8_5_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_r8_5_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -4946,7 +5034,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r8_5_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_r8_5_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -4976,7 +5064,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_5_c_int
 #endif
       !
-      hipMalloc_r8_5_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*8_8)
+      hipMalloc_r8_5_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -5000,7 +5089,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_5_c_size_t
 #endif
       !
-      hipMalloc_r8_5_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*8_8)
+      hipMalloc_r8_5_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -5015,8 +5105,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       real(c_double),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -5045,21 +5135,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r8_6_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_r8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r8_6_source = hipMalloc_(cptr,size(dsource)*byte_size(elem_real64))
+        hipMalloc_r8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r8_6_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_r8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_r8_6_source = hipMalloc_(cptr,size(source)*byte_size(elem_real64))
+        hipMalloc_r8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r8_6_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_r8_6_source = hipMalloc_(cptr,size(mold)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r8_6_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_r8_6_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -5067,7 +5157,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r8_6_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_r8_6_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -5097,7 +5187,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_6_c_int
 #endif
       !
-      hipMalloc_r8_6_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*8_8)
+      hipMalloc_r8_6_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -5121,7 +5212,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_6_c_size_t
 #endif
       !
-      hipMalloc_r8_6_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*8_8)
+      hipMalloc_r8_6_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -5136,8 +5228,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       real(c_double),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -5166,21 +5258,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_r8_7_source = hipMalloc_(cptr,size(dsource)*8_8)
-        hipMalloc_r8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_r8_7_source = hipMalloc_(cptr,size(dsource)*byte_size(elem_real64))
+        hipMalloc_r8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMalloc_r8_7_source = hipMalloc_(cptr,size(source)*8_8)
-        hipMalloc_r8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMalloc_r8_7_source = hipMalloc_(cptr,size(source)*byte_size(elem_real64))
+        hipMalloc_r8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_r8_7_source = hipMalloc_(cptr,size(mold)*8_8)
+        hipMalloc_r8_7_source = hipMalloc_(cptr,size(mold)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_r8_7_source = hipMalloc_(cptr,PRODUCT(dims8)*8_8)
+        hipMalloc_r8_7_source = hipMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -5188,7 +5280,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_r8_7_source = hipMalloc_(cptr,PRODUCT(dims)*8_8)
+        hipMalloc_r8_7_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -5218,7 +5310,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_7_c_int
 #endif
       !
-      hipMalloc_r8_7_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8)
+      hipMalloc_r8_7_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                             int(length7,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -5242,7 +5336,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_r8_7_c_size_t
 #endif
       !
-      hipMalloc_r8_7_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8)
+      hipMalloc_r8_7_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                int(length7,kind=int64)*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -5275,15 +5371,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMalloc_c4_0_source = hipMalloc_(cptr,2*4_8)
-        hipMalloc_c4_0_source = hipMemcpy(cptr,c_loc(dsource),2*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c4_0_source = hipMalloc_(cptr,2_int64*byte_size(elem_real32))
+        hipMalloc_c4_0_source = hipMemcpy(cptr,c_loc(dsource),2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMalloc_c4_0_source = hipMalloc_(cptr,2*4_8)
-        hipMalloc_c4_0_source = hipMemcpy(cptr,c_loc(source),2*4_8,hipMemcpyHostToDevice)
+        hipMalloc_c4_0_source = hipMalloc_(cptr,2_int64*byte_size(elem_real32))
+        hipMalloc_c4_0_source = hipMemcpy(cptr,c_loc(source),2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMalloc_c4_0_source = hipMalloc_(cptr,2*4_8)
+        hipMalloc_c4_0_source = hipMalloc_(cptr,2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -5300,8 +5396,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       complex(c_float_complex),target,dimension(:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -5330,21 +5426,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c4_1_source = hipMalloc_(cptr,size(dsource)*2*4_8)
-        hipMalloc_c4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c4_1_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c4_1_source = hipMalloc_(cptr,size(source)*2*4_8)
-        hipMalloc_c4_1_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMalloc_c4_1_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c4_1_source = hipMalloc_(cptr,size(mold)*2*4_8)
+        hipMalloc_c4_1_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c4_1_source = hipMalloc_(cptr,PRODUCT(dims8)*2*4_8)
+        hipMalloc_c4_1_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -5352,7 +5448,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c4_1_source = hipMalloc_(cptr,PRODUCT(dims)*2*4_8)
+        hipMalloc_c4_1_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -5382,7 +5478,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_1_c_int
 #endif
       !
-      hipMalloc_c4_1_c_int = hipMalloc_(cptr,length1*2*4_8)
+      hipMalloc_c4_1_c_int = hipMalloc_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -5406,7 +5502,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_1_c_size_t
 #endif
       !
-      hipMalloc_c4_1_c_size_t = hipMalloc_(cptr,length1*2*4_8)
+      hipMalloc_c4_1_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -5421,8 +5517,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       complex(c_float_complex),target,dimension(:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -5451,21 +5547,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c4_2_source = hipMalloc_(cptr,size(dsource)*2*4_8)
-        hipMalloc_c4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c4_2_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c4_2_source = hipMalloc_(cptr,size(source)*2*4_8)
-        hipMalloc_c4_2_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMalloc_c4_2_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c4_2_source = hipMalloc_(cptr,size(mold)*2*4_8)
+        hipMalloc_c4_2_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c4_2_source = hipMalloc_(cptr,PRODUCT(dims8)*2*4_8)
+        hipMalloc_c4_2_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -5473,7 +5569,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c4_2_source = hipMalloc_(cptr,PRODUCT(dims)*2*4_8)
+        hipMalloc_c4_2_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -5503,7 +5599,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_2_c_int
 #endif
       !
-      hipMalloc_c4_2_c_int = hipMalloc_(cptr,length1*length2*2*4_8)
+      hipMalloc_c4_2_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -5527,7 +5623,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_2_c_size_t
 #endif
       !
-      hipMalloc_c4_2_c_size_t = hipMalloc_(cptr,length1*length2*2*4_8)
+      hipMalloc_c4_2_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -5542,8 +5638,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       complex(c_float_complex),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -5572,21 +5668,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c4_3_source = hipMalloc_(cptr,size(dsource)*2*4_8)
-        hipMalloc_c4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c4_3_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c4_3_source = hipMalloc_(cptr,size(source)*2*4_8)
-        hipMalloc_c4_3_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMalloc_c4_3_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c4_3_source = hipMalloc_(cptr,size(mold)*2*4_8)
+        hipMalloc_c4_3_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c4_3_source = hipMalloc_(cptr,PRODUCT(dims8)*2*4_8)
+        hipMalloc_c4_3_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -5594,7 +5690,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c4_3_source = hipMalloc_(cptr,PRODUCT(dims)*2*4_8)
+        hipMalloc_c4_3_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -5624,7 +5720,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_3_c_int
 #endif
       !
-      hipMalloc_c4_3_c_int = hipMalloc_(cptr,length1*length2*length3*2*4_8)
+      hipMalloc_c4_3_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -5648,7 +5744,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_3_c_size_t
 #endif
       !
-      hipMalloc_c4_3_c_size_t = hipMalloc_(cptr,length1*length2*length3*2*4_8)
+      hipMalloc_c4_3_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -5663,8 +5759,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       complex(c_float_complex),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -5693,21 +5789,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c4_4_source = hipMalloc_(cptr,size(dsource)*2*4_8)
-        hipMalloc_c4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c4_4_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c4_4_source = hipMalloc_(cptr,size(source)*2*4_8)
-        hipMalloc_c4_4_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMalloc_c4_4_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c4_4_source = hipMalloc_(cptr,size(mold)*2*4_8)
+        hipMalloc_c4_4_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c4_4_source = hipMalloc_(cptr,PRODUCT(dims8)*2*4_8)
+        hipMalloc_c4_4_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -5715,7 +5811,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c4_4_source = hipMalloc_(cptr,PRODUCT(dims)*2*4_8)
+        hipMalloc_c4_4_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -5745,7 +5841,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_4_c_int
 #endif
       !
-      hipMalloc_c4_4_c_int = hipMalloc_(cptr,length1*length2*length3*length4*2*4_8)
+      hipMalloc_c4_4_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -5769,7 +5866,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_4_c_size_t
 #endif
       !
-      hipMalloc_c4_4_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*2*4_8)
+      hipMalloc_c4_4_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -5784,8 +5882,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       complex(c_float_complex),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -5814,21 +5912,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c4_5_source = hipMalloc_(cptr,size(dsource)*2*4_8)
-        hipMalloc_c4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c4_5_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c4_5_source = hipMalloc_(cptr,size(source)*2*4_8)
-        hipMalloc_c4_5_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMalloc_c4_5_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c4_5_source = hipMalloc_(cptr,size(mold)*2*4_8)
+        hipMalloc_c4_5_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c4_5_source = hipMalloc_(cptr,PRODUCT(dims8)*2*4_8)
+        hipMalloc_c4_5_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -5836,7 +5934,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c4_5_source = hipMalloc_(cptr,PRODUCT(dims)*2*4_8)
+        hipMalloc_c4_5_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -5866,7 +5964,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_5_c_int
 #endif
       !
-      hipMalloc_c4_5_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*2*4_8)
+      hipMalloc_c4_5_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -5890,7 +5989,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_5_c_size_t
 #endif
       !
-      hipMalloc_c4_5_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*2*4_8)
+      hipMalloc_c4_5_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -5905,8 +6005,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       complex(c_float_complex),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -5935,21 +6035,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c4_6_source = hipMalloc_(cptr,size(dsource)*2*4_8)
-        hipMalloc_c4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c4_6_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c4_6_source = hipMalloc_(cptr,size(source)*2*4_8)
-        hipMalloc_c4_6_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMalloc_c4_6_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c4_6_source = hipMalloc_(cptr,size(mold)*2*4_8)
+        hipMalloc_c4_6_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c4_6_source = hipMalloc_(cptr,PRODUCT(dims8)*2*4_8)
+        hipMalloc_c4_6_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -5957,7 +6057,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c4_6_source = hipMalloc_(cptr,PRODUCT(dims)*2*4_8)
+        hipMalloc_c4_6_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -5987,7 +6087,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_6_c_int
 #endif
       !
-      hipMalloc_c4_6_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*2*4_8)
+      hipMalloc_c4_6_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -6011,7 +6112,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_6_c_size_t
 #endif
       !
-      hipMalloc_c4_6_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*2*4_8)
+      hipMalloc_c4_6_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -6026,8 +6128,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       complex(c_float_complex),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -6056,21 +6158,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c4_7_source = hipMalloc_(cptr,size(dsource)*2*4_8)
-        hipMalloc_c4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c4_7_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c4_7_source = hipMalloc_(cptr,size(source)*2*4_8)
-        hipMalloc_c4_7_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMalloc_c4_7_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32))
+        hipMalloc_c4_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c4_7_source = hipMalloc_(cptr,size(mold)*2*4_8)
+        hipMalloc_c4_7_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c4_7_source = hipMalloc_(cptr,PRODUCT(dims8)*2*4_8)
+        hipMalloc_c4_7_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -6078,7 +6180,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c4_7_source = hipMalloc_(cptr,PRODUCT(dims)*2*4_8)
+        hipMalloc_c4_7_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -6108,7 +6210,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_7_c_int
 #endif
       !
-      hipMalloc_c4_7_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*2*4_8)
+      hipMalloc_c4_7_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                             int(length7,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -6132,7 +6236,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c4_7_c_size_t
 #endif
       !
-      hipMalloc_c4_7_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*2*4_8)
+      hipMalloc_c4_7_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                int(length7,kind=int64)*2_int64*byte_size(elem_real32))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -6165,15 +6271,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMalloc_c8_0_source = hipMalloc_(cptr,2*8_8)
-        hipMalloc_c8_0_source = hipMemcpy(cptr,c_loc(dsource),2*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c8_0_source = hipMalloc_(cptr,2_int64*byte_size(elem_real64))
+        hipMalloc_c8_0_source = hipMemcpy(cptr,c_loc(dsource),2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMalloc_c8_0_source = hipMalloc_(cptr,2*8_8)
-        hipMalloc_c8_0_source = hipMemcpy(cptr,c_loc(source),2*8_8,hipMemcpyHostToDevice)
+        hipMalloc_c8_0_source = hipMalloc_(cptr,2_int64*byte_size(elem_real64))
+        hipMalloc_c8_0_source = hipMemcpy(cptr,c_loc(source),2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMalloc_c8_0_source = hipMalloc_(cptr,2*8_8)
+        hipMalloc_c8_0_source = hipMalloc_(cptr,2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -6190,8 +6296,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       complex(c_double_complex),target,dimension(:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -6220,21 +6326,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c8_1_source = hipMalloc_(cptr,size(dsource)*2*8_8)
-        hipMalloc_c8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c8_1_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c8_1_source = hipMalloc_(cptr,size(source)*2*8_8)
-        hipMalloc_c8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMalloc_c8_1_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c8_1_source = hipMalloc_(cptr,size(mold)*2*8_8)
+        hipMalloc_c8_1_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c8_1_source = hipMalloc_(cptr,PRODUCT(dims8)*2*8_8)
+        hipMalloc_c8_1_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -6242,7 +6348,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c8_1_source = hipMalloc_(cptr,PRODUCT(dims)*2*8_8)
+        hipMalloc_c8_1_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -6272,7 +6378,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_1_c_int
 #endif
       !
-      hipMalloc_c8_1_c_int = hipMalloc_(cptr,length1*2*8_8)
+      hipMalloc_c8_1_c_int = hipMalloc_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -6296,7 +6402,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_1_c_size_t
 #endif
       !
-      hipMalloc_c8_1_c_size_t = hipMalloc_(cptr,length1*2*8_8)
+      hipMalloc_c8_1_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -6311,8 +6417,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       complex(c_double_complex),target,dimension(:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -6341,21 +6447,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c8_2_source = hipMalloc_(cptr,size(dsource)*2*8_8)
-        hipMalloc_c8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c8_2_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c8_2_source = hipMalloc_(cptr,size(source)*2*8_8)
-        hipMalloc_c8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMalloc_c8_2_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c8_2_source = hipMalloc_(cptr,size(mold)*2*8_8)
+        hipMalloc_c8_2_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c8_2_source = hipMalloc_(cptr,PRODUCT(dims8)*2*8_8)
+        hipMalloc_c8_2_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -6363,7 +6469,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c8_2_source = hipMalloc_(cptr,PRODUCT(dims)*2*8_8)
+        hipMalloc_c8_2_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -6393,7 +6499,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_2_c_int
 #endif
       !
-      hipMalloc_c8_2_c_int = hipMalloc_(cptr,length1*length2*2*8_8)
+      hipMalloc_c8_2_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -6417,7 +6523,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_2_c_size_t
 #endif
       !
-      hipMalloc_c8_2_c_size_t = hipMalloc_(cptr,length1*length2*2*8_8)
+      hipMalloc_c8_2_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -6432,8 +6538,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       complex(c_double_complex),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -6462,21 +6568,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c8_3_source = hipMalloc_(cptr,size(dsource)*2*8_8)
-        hipMalloc_c8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c8_3_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c8_3_source = hipMalloc_(cptr,size(source)*2*8_8)
-        hipMalloc_c8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMalloc_c8_3_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c8_3_source = hipMalloc_(cptr,size(mold)*2*8_8)
+        hipMalloc_c8_3_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c8_3_source = hipMalloc_(cptr,PRODUCT(dims8)*2*8_8)
+        hipMalloc_c8_3_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -6484,7 +6590,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c8_3_source = hipMalloc_(cptr,PRODUCT(dims)*2*8_8)
+        hipMalloc_c8_3_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -6514,7 +6620,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_3_c_int
 #endif
       !
-      hipMalloc_c8_3_c_int = hipMalloc_(cptr,length1*length2*length3*2*8_8)
+      hipMalloc_c8_3_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -6538,7 +6644,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_3_c_size_t
 #endif
       !
-      hipMalloc_c8_3_c_size_t = hipMalloc_(cptr,length1*length2*length3*2*8_8)
+      hipMalloc_c8_3_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -6553,8 +6659,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       complex(c_double_complex),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -6583,21 +6689,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c8_4_source = hipMalloc_(cptr,size(dsource)*2*8_8)
-        hipMalloc_c8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c8_4_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c8_4_source = hipMalloc_(cptr,size(source)*2*8_8)
-        hipMalloc_c8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMalloc_c8_4_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c8_4_source = hipMalloc_(cptr,size(mold)*2*8_8)
+        hipMalloc_c8_4_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c8_4_source = hipMalloc_(cptr,PRODUCT(dims8)*2*8_8)
+        hipMalloc_c8_4_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -6605,7 +6711,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c8_4_source = hipMalloc_(cptr,PRODUCT(dims)*2*8_8)
+        hipMalloc_c8_4_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -6635,7 +6741,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_4_c_int
 #endif
       !
-      hipMalloc_c8_4_c_int = hipMalloc_(cptr,length1*length2*length3*length4*2*8_8)
+      hipMalloc_c8_4_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -6659,7 +6766,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_4_c_size_t
 #endif
       !
-      hipMalloc_c8_4_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*2*8_8)
+      hipMalloc_c8_4_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -6674,8 +6782,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       complex(c_double_complex),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -6704,21 +6812,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c8_5_source = hipMalloc_(cptr,size(dsource)*2*8_8)
-        hipMalloc_c8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c8_5_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c8_5_source = hipMalloc_(cptr,size(source)*2*8_8)
-        hipMalloc_c8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMalloc_c8_5_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c8_5_source = hipMalloc_(cptr,size(mold)*2*8_8)
+        hipMalloc_c8_5_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c8_5_source = hipMalloc_(cptr,PRODUCT(dims8)*2*8_8)
+        hipMalloc_c8_5_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -6726,7 +6834,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c8_5_source = hipMalloc_(cptr,PRODUCT(dims)*2*8_8)
+        hipMalloc_c8_5_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -6756,7 +6864,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_5_c_int
 #endif
       !
-      hipMalloc_c8_5_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*2*8_8)
+      hipMalloc_c8_5_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -6780,7 +6889,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_5_c_size_t
 #endif
       !
-      hipMalloc_c8_5_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*2*8_8)
+      hipMalloc_c8_5_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -6795,8 +6905,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       complex(c_double_complex),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -6825,21 +6935,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c8_6_source = hipMalloc_(cptr,size(dsource)*2*8_8)
-        hipMalloc_c8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c8_6_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c8_6_source = hipMalloc_(cptr,size(source)*2*8_8)
-        hipMalloc_c8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMalloc_c8_6_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c8_6_source = hipMalloc_(cptr,size(mold)*2*8_8)
+        hipMalloc_c8_6_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c8_6_source = hipMalloc_(cptr,PRODUCT(dims8)*2*8_8)
+        hipMalloc_c8_6_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -6847,7 +6957,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c8_6_source = hipMalloc_(cptr,PRODUCT(dims)*2*8_8)
+        hipMalloc_c8_6_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -6877,7 +6987,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_6_c_int
 #endif
       !
-      hipMalloc_c8_6_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*2*8_8)
+      hipMalloc_c8_6_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -6901,7 +7012,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_6_c_size_t
 #endif
       !
-      hipMalloc_c8_6_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*2*8_8)
+      hipMalloc_c8_6_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -6916,8 +7028,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       complex(c_double_complex),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
          
       ! 
@@ -6946,21 +7058,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMalloc_c8_7_source = hipMalloc_(cptr,size(dsource)*2*8_8)
-        hipMalloc_c8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMalloc_c8_7_source = hipMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMalloc_c8_7_source = hipMalloc_(cptr,size(source)*2*8_8)
-        hipMalloc_c8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMalloc_c8_7_source = hipMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64))
+        hipMalloc_c8_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMalloc_c8_7_source = hipMalloc_(cptr,size(mold)*2*8_8)
+        hipMalloc_c8_7_source = hipMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMalloc_c8_7_source = hipMalloc_(cptr,PRODUCT(dims8)*2*8_8)
+        hipMalloc_c8_7_source = hipMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -6968,7 +7080,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMalloc_c8_7_source = hipMalloc_(cptr,PRODUCT(dims)*2*8_8)
+        hipMalloc_c8_7_source = hipMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64))
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -6998,7 +7110,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_7_c_int
 #endif
       !
-      hipMalloc_c8_7_c_int = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*2*8_8)
+      hipMalloc_c8_7_c_int = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                             int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                             int(length7,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -7022,7 +7136,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMalloc_c8_7_c_size_t
 #endif
       !
-      hipMalloc_c8_7_c_size_t = hipMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*2*8_8)
+      hipMalloc_c8_7_c_size_t = hipMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                int(length7,kind=int64)*2_int64*byte_size(elem_real64))
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -7945,15 +8061,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMallocManaged (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMallocManaged_i4_0_source = hipMallocManaged_(cptr,4_8,flags)
-        hipMallocManaged_i4_0_source = hipMemcpy(cptr,c_loc(dsource),4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i4_0_source = hipMallocManaged_(cptr,byte_size(elem_int32),flags)
+        hipMallocManaged_i4_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMallocManaged_i4_0_source = hipMallocManaged_(cptr,4_8,flags)
-        hipMallocManaged_i4_0_source = hipMemcpy(cptr,c_loc(source),4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i4_0_source = hipMallocManaged_(cptr,byte_size(elem_int32),flags)
+        hipMallocManaged_i4_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMallocManaged_i4_0_source = hipMallocManaged_(cptr,4_8,flags)
+        hipMallocManaged_i4_0_source = hipMallocManaged_(cptr,byte_size(elem_int32),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -7970,8 +8086,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       integer(c_int),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -8000,21 +8116,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_i4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_i4_1_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -8022,7 +8138,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_i4_1_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -8052,7 +8168,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_1_c_int
 #endif
       !
-      hipMallocManaged_i4_1_c_int = hipMallocManaged_(cptr,length1*4_8,flags)
+      hipMallocManaged_i4_1_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -8076,7 +8192,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_1_c_size_t
 #endif
       !
-      hipMallocManaged_i4_1_c_size_t = hipMallocManaged_(cptr,length1*4_8,flags)
+      hipMallocManaged_i4_1_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -8091,8 +8207,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       integer(c_int),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -8121,21 +8237,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_i4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_i4_2_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -8143,7 +8259,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_i4_2_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -8173,7 +8289,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_2_c_int
 #endif
       !
-      hipMallocManaged_i4_2_c_int = hipMallocManaged_(cptr,length1*length2*4_8,flags)
+      hipMallocManaged_i4_2_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -8197,7 +8313,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_2_c_size_t
 #endif
       !
-      hipMallocManaged_i4_2_c_size_t = hipMallocManaged_(cptr,length1*length2*4_8,flags)
+      hipMallocManaged_i4_2_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -8212,8 +8328,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       integer(c_int),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -8242,21 +8358,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_i4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_i4_3_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -8264,7 +8380,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_i4_3_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -8294,7 +8410,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_3_c_int
 #endif
       !
-      hipMallocManaged_i4_3_c_int = hipMallocManaged_(cptr,length1*length2*length3*4_8,flags)
+      hipMallocManaged_i4_3_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -8318,7 +8434,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_3_c_size_t
 #endif
       !
-      hipMallocManaged_i4_3_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*4_8,flags)
+      hipMallocManaged_i4_3_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -8333,8 +8449,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       integer(c_int),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -8363,21 +8479,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_i4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_i4_4_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -8385,7 +8501,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_i4_4_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -8415,7 +8531,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_4_c_int
 #endif
       !
-      hipMallocManaged_i4_4_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*4_8,flags)
+      hipMallocManaged_i4_4_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -8439,7 +8556,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_4_c_size_t
 #endif
       !
-      hipMallocManaged_i4_4_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*4_8,flags)
+      hipMallocManaged_i4_4_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -8454,8 +8572,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       integer(c_int),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -8484,21 +8602,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_i4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_i4_5_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -8506,7 +8624,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_i4_5_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -8536,7 +8654,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_5_c_int
 #endif
       !
-      hipMallocManaged_i4_5_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*4_8,flags)
+      hipMallocManaged_i4_5_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -8560,7 +8679,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_5_c_size_t
 #endif
       !
-      hipMallocManaged_i4_5_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*4_8,flags)
+      hipMallocManaged_i4_5_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -8575,8 +8695,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       integer(c_int),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -8605,21 +8725,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_i4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_i4_6_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -8627,7 +8747,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_i4_6_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -8657,7 +8777,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_6_c_int
 #endif
       !
-      hipMallocManaged_i4_6_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*4_8,flags)
+      hipMallocManaged_i4_6_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -8681,7 +8802,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_6_c_size_t
 #endif
       !
-      hipMallocManaged_i4_6_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*4_8,flags)
+      hipMallocManaged_i4_6_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -8696,8 +8818,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       integer(c_int),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -8726,21 +8848,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_i4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_i4_7_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipMallocManaged_i4_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -8748,7 +8870,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_i4_7_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -8778,7 +8900,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_7_c_int
 #endif
       !
-      hipMallocManaged_i4_7_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8,flags)
+      hipMallocManaged_i4_7_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                           int(length7,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -8802,7 +8926,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i4_7_c_size_t
 #endif
       !
-      hipMallocManaged_i4_7_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8,flags)
+      hipMallocManaged_i4_7_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                              int(length7,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -8835,15 +8961,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMallocManaged (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMallocManaged_i8_0_source = hipMallocManaged_(cptr,8_8,flags)
-        hipMallocManaged_i8_0_source = hipMemcpy(cptr,c_loc(dsource),8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i8_0_source = hipMallocManaged_(cptr,byte_size(elem_int64),flags)
+        hipMallocManaged_i8_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMallocManaged_i8_0_source = hipMallocManaged_(cptr,8_8,flags)
-        hipMallocManaged_i8_0_source = hipMemcpy(cptr,c_loc(source),8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i8_0_source = hipMallocManaged_(cptr,byte_size(elem_int64),flags)
+        hipMallocManaged_i8_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMallocManaged_i8_0_source = hipMallocManaged_(cptr,8_8,flags)
+        hipMallocManaged_i8_0_source = hipMallocManaged_(cptr,byte_size(elem_int64),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -8860,8 +8986,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       integer(c_long),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -8890,21 +9016,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_i8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_i8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -8912,7 +9038,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_i8_1_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -8942,7 +9068,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_1_c_int
 #endif
       !
-      hipMallocManaged_i8_1_c_int = hipMallocManaged_(cptr,length1*8_8,flags)
+      hipMallocManaged_i8_1_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -8966,7 +9092,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_1_c_size_t
 #endif
       !
-      hipMallocManaged_i8_1_c_size_t = hipMallocManaged_(cptr,length1*8_8,flags)
+      hipMallocManaged_i8_1_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -8981,8 +9107,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       integer(c_long),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -9011,21 +9137,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_i8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_i8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -9033,7 +9159,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_i8_2_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -9063,7 +9189,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_2_c_int
 #endif
       !
-      hipMallocManaged_i8_2_c_int = hipMallocManaged_(cptr,length1*length2*8_8,flags)
+      hipMallocManaged_i8_2_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -9087,7 +9213,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_2_c_size_t
 #endif
       !
-      hipMallocManaged_i8_2_c_size_t = hipMallocManaged_(cptr,length1*length2*8_8,flags)
+      hipMallocManaged_i8_2_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -9102,8 +9228,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       integer(c_long),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -9132,21 +9258,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_i8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_i8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -9154,7 +9280,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_i8_3_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -9184,7 +9310,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_3_c_int
 #endif
       !
-      hipMallocManaged_i8_3_c_int = hipMallocManaged_(cptr,length1*length2*length3*8_8,flags)
+      hipMallocManaged_i8_3_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -9208,7 +9334,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_3_c_size_t
 #endif
       !
-      hipMallocManaged_i8_3_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*8_8,flags)
+      hipMallocManaged_i8_3_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -9223,8 +9349,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       integer(c_long),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -9253,21 +9379,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_i8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_i8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -9275,7 +9401,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_i8_4_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -9305,7 +9431,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_4_c_int
 #endif
       !
-      hipMallocManaged_i8_4_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*8_8,flags)
+      hipMallocManaged_i8_4_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -9329,7 +9456,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_4_c_size_t
 #endif
       !
-      hipMallocManaged_i8_4_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*8_8,flags)
+      hipMallocManaged_i8_4_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -9344,8 +9472,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       integer(c_long),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -9374,21 +9502,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_i8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_i8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -9396,7 +9524,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_i8_5_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -9426,7 +9554,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_5_c_int
 #endif
       !
-      hipMallocManaged_i8_5_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*8_8,flags)
+      hipMallocManaged_i8_5_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -9450,7 +9579,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_5_c_size_t
 #endif
       !
-      hipMallocManaged_i8_5_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*8_8,flags)
+      hipMallocManaged_i8_5_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -9465,8 +9595,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       integer(c_long),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -9495,21 +9625,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_i8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_i8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -9517,7 +9647,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_i8_6_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -9547,7 +9677,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_6_c_int
 #endif
       !
-      hipMallocManaged_i8_6_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*8_8,flags)
+      hipMallocManaged_i8_6_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -9571,7 +9702,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_6_c_size_t
 #endif
       !
-      hipMallocManaged_i8_6_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*8_8,flags)
+      hipMallocManaged_i8_6_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -9586,8 +9718,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       integer(c_long),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -9616,21 +9748,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_i8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_i8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipMallocManaged_i8_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -9638,7 +9770,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_i8_7_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -9668,7 +9800,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_7_c_int
 #endif
       !
-      hipMallocManaged_i8_7_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8,flags)
+      hipMallocManaged_i8_7_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                           int(length7,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -9692,7 +9826,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_i8_7_c_size_t
 #endif
       !
-      hipMallocManaged_i8_7_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8,flags)
+      hipMallocManaged_i8_7_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                              int(length7,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -9725,15 +9861,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMallocManaged (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMallocManaged_r4_0_source = hipMallocManaged_(cptr,4_8,flags)
-        hipMallocManaged_r4_0_source = hipMemcpy(cptr,c_loc(dsource),4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r4_0_source = hipMallocManaged_(cptr,byte_size(elem_real32),flags)
+        hipMallocManaged_r4_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMallocManaged_r4_0_source = hipMallocManaged_(cptr,4_8,flags)
-        hipMallocManaged_r4_0_source = hipMemcpy(cptr,c_loc(source),4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r4_0_source = hipMallocManaged_(cptr,byte_size(elem_real32),flags)
+        hipMallocManaged_r4_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMallocManaged_r4_0_source = hipMallocManaged_(cptr,4_8,flags)
+        hipMallocManaged_r4_0_source = hipMallocManaged_(cptr,byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -9750,8 +9886,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       real(c_float),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -9780,21 +9916,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_r4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_r4_1_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -9802,7 +9938,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_r4_1_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -9832,7 +9968,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_1_c_int
 #endif
       !
-      hipMallocManaged_r4_1_c_int = hipMallocManaged_(cptr,length1*4_8,flags)
+      hipMallocManaged_r4_1_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -9856,7 +9992,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_1_c_size_t
 #endif
       !
-      hipMallocManaged_r4_1_c_size_t = hipMallocManaged_(cptr,length1*4_8,flags)
+      hipMallocManaged_r4_1_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -9871,8 +10007,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       real(c_float),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -9901,21 +10037,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_r4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_r4_2_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -9923,7 +10059,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_r4_2_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -9953,7 +10089,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_2_c_int
 #endif
       !
-      hipMallocManaged_r4_2_c_int = hipMallocManaged_(cptr,length1*length2*4_8,flags)
+      hipMallocManaged_r4_2_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -9977,7 +10113,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_2_c_size_t
 #endif
       !
-      hipMallocManaged_r4_2_c_size_t = hipMallocManaged_(cptr,length1*length2*4_8,flags)
+      hipMallocManaged_r4_2_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -9992,8 +10128,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       real(c_float),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -10022,21 +10158,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_r4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_r4_3_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -10044,7 +10180,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_r4_3_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -10074,7 +10210,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_3_c_int
 #endif
       !
-      hipMallocManaged_r4_3_c_int = hipMallocManaged_(cptr,length1*length2*length3*4_8,flags)
+      hipMallocManaged_r4_3_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -10098,7 +10234,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_3_c_size_t
 #endif
       !
-      hipMallocManaged_r4_3_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*4_8,flags)
+      hipMallocManaged_r4_3_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -10113,8 +10249,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       real(c_float),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -10143,21 +10279,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_r4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_r4_4_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -10165,7 +10301,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_r4_4_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -10195,7 +10331,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_4_c_int
 #endif
       !
-      hipMallocManaged_r4_4_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*4_8,flags)
+      hipMallocManaged_r4_4_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -10219,7 +10355,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_4_c_size_t
 #endif
       !
-      hipMallocManaged_r4_4_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*4_8,flags)
+      hipMallocManaged_r4_4_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -10234,8 +10370,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       real(c_float),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -10264,21 +10400,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_r4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_r4_5_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -10286,7 +10422,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_r4_5_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -10316,7 +10452,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_5_c_int
 #endif
       !
-      hipMallocManaged_r4_5_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*4_8,flags)
+      hipMallocManaged_r4_5_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -10340,7 +10476,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_5_c_size_t
 #endif
       !
-      hipMallocManaged_r4_5_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*4_8,flags)
+      hipMallocManaged_r4_5_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -10355,8 +10491,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       real(c_float),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -10385,21 +10521,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_r4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_r4_6_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -10407,7 +10543,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_r4_6_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -10437,7 +10573,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_6_c_int
 #endif
       !
-      hipMallocManaged_r4_6_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*4_8,flags)
+      hipMallocManaged_r4_6_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -10461,7 +10597,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_6_c_size_t
 #endif
       !
-      hipMallocManaged_r4_6_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*4_8,flags)
+      hipMallocManaged_r4_6_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -10476,8 +10612,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       real(c_float),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -10506,21 +10642,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,size(dsource)*4_8,flags)
-        hipMallocManaged_r4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,size(source)*4_8,flags)
-        hipMallocManaged_r4_7_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipMallocManaged_r4_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,size(mold)*4_8,flags)
+        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -10528,7 +10664,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,PRODUCT(dims)*4_8,flags)
+        hipMallocManaged_r4_7_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -10558,7 +10694,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_7_c_int
 #endif
       !
-      hipMallocManaged_r4_7_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8,flags)
+      hipMallocManaged_r4_7_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*int(length7,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -10582,7 +10718,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r4_7_c_size_t
 #endif
       !
-      hipMallocManaged_r4_7_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8,flags)
+      hipMallocManaged_r4_7_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*int(length7,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -10615,15 +10751,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMallocManaged (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMallocManaged_r8_0_source = hipMallocManaged_(cptr,8_8,flags)
-        hipMallocManaged_r8_0_source = hipMemcpy(cptr,c_loc(dsource),8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r8_0_source = hipMallocManaged_(cptr,byte_size(elem_real64),flags)
+        hipMallocManaged_r8_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMallocManaged_r8_0_source = hipMallocManaged_(cptr,8_8,flags)
-        hipMallocManaged_r8_0_source = hipMemcpy(cptr,c_loc(source),8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r8_0_source = hipMallocManaged_(cptr,byte_size(elem_real64),flags)
+        hipMallocManaged_r8_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMallocManaged_r8_0_source = hipMallocManaged_(cptr,8_8,flags)
+        hipMallocManaged_r8_0_source = hipMallocManaged_(cptr,byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -10640,8 +10776,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       real(c_double),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -10670,21 +10806,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_r8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_r8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -10692,7 +10828,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_r8_1_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -10722,7 +10858,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_1_c_int
 #endif
       !
-      hipMallocManaged_r8_1_c_int = hipMallocManaged_(cptr,length1*8_8,flags)
+      hipMallocManaged_r8_1_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -10746,7 +10882,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_1_c_size_t
 #endif
       !
-      hipMallocManaged_r8_1_c_size_t = hipMallocManaged_(cptr,length1*8_8,flags)
+      hipMallocManaged_r8_1_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -10761,8 +10897,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       real(c_double),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -10791,21 +10927,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_r8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_r8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -10813,7 +10949,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_r8_2_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -10843,7 +10979,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_2_c_int
 #endif
       !
-      hipMallocManaged_r8_2_c_int = hipMallocManaged_(cptr,length1*length2*8_8,flags)
+      hipMallocManaged_r8_2_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -10867,7 +11003,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_2_c_size_t
 #endif
       !
-      hipMallocManaged_r8_2_c_size_t = hipMallocManaged_(cptr,length1*length2*8_8,flags)
+      hipMallocManaged_r8_2_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -10882,8 +11018,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       real(c_double),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -10912,21 +11048,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_r8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_r8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -10934,7 +11070,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_r8_3_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -10964,7 +11100,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_3_c_int
 #endif
       !
-      hipMallocManaged_r8_3_c_int = hipMallocManaged_(cptr,length1*length2*length3*8_8,flags)
+      hipMallocManaged_r8_3_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -10988,7 +11124,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_3_c_size_t
 #endif
       !
-      hipMallocManaged_r8_3_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*8_8,flags)
+      hipMallocManaged_r8_3_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -11003,8 +11139,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       real(c_double),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -11033,21 +11169,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_r8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_r8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -11055,7 +11191,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_r8_4_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -11085,7 +11221,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_4_c_int
 #endif
       !
-      hipMallocManaged_r8_4_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*8_8,flags)
+      hipMallocManaged_r8_4_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -11109,7 +11245,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_4_c_size_t
 #endif
       !
-      hipMallocManaged_r8_4_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*8_8,flags)
+      hipMallocManaged_r8_4_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -11124,8 +11260,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       real(c_double),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -11154,21 +11290,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_r8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_r8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -11176,7 +11312,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_r8_5_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -11206,7 +11342,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_5_c_int
 #endif
       !
-      hipMallocManaged_r8_5_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*8_8,flags)
+      hipMallocManaged_r8_5_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -11230,7 +11366,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_5_c_size_t
 #endif
       !
-      hipMallocManaged_r8_5_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*8_8,flags)
+      hipMallocManaged_r8_5_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -11245,8 +11381,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       real(c_double),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -11275,21 +11411,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_r8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_r8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -11297,7 +11433,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_r8_6_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -11327,7 +11463,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_6_c_int
 #endif
       !
-      hipMallocManaged_r8_6_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*8_8,flags)
+      hipMallocManaged_r8_6_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -11351,7 +11487,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_6_c_size_t
 #endif
       !
-      hipMallocManaged_r8_6_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*8_8,flags)
+      hipMallocManaged_r8_6_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -11366,8 +11502,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       real(c_double),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -11396,21 +11532,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,size(dsource)*8_8,flags)
-        hipMallocManaged_r8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,size(source)*8_8,flags)
-        hipMallocManaged_r8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipMallocManaged_r8_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,size(mold)*8_8,flags)
+        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -11418,7 +11554,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,PRODUCT(dims)*8_8,flags)
+        hipMallocManaged_r8_7_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -11448,7 +11584,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_7_c_int
 #endif
       !
-      hipMallocManaged_r8_7_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8,flags)
+      hipMallocManaged_r8_7_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*int(length7,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -11472,7 +11608,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_r8_7_c_size_t
 #endif
       !
-      hipMallocManaged_r8_7_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8,flags)
+      hipMallocManaged_r8_7_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*int(length7,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -11505,15 +11641,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMallocManaged (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMallocManaged_c4_0_source = hipMallocManaged_(cptr,2*4_8,flags)
-        hipMallocManaged_c4_0_source = hipMemcpy(cptr,c_loc(dsource),2*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c4_0_source = hipMallocManaged_(cptr,2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_0_source = hipMemcpy(cptr,c_loc(dsource),2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMallocManaged_c4_0_source = hipMallocManaged_(cptr,2*4_8,flags)
-        hipMallocManaged_c4_0_source = hipMemcpy(cptr,c_loc(source),2*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c4_0_source = hipMallocManaged_(cptr,2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_0_source = hipMemcpy(cptr,c_loc(source),2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMallocManaged_c4_0_source = hipMallocManaged_(cptr,2*4_8,flags)
+        hipMallocManaged_c4_0_source = hipMallocManaged_(cptr,2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -11530,8 +11666,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       complex(c_float_complex),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -11560,21 +11696,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,size(dsource)*2*4_8,flags)
-        hipMallocManaged_c4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,size(source)*2*4_8,flags)
-        hipMallocManaged_c4_1_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,size(mold)*2*4_8,flags)
+        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -11582,7 +11718,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipMallocManaged_c4_1_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -11612,7 +11748,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_1_c_int
 #endif
       !
-      hipMallocManaged_c4_1_c_int = hipMallocManaged_(cptr,length1*2*4_8,flags)
+      hipMallocManaged_c4_1_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -11636,7 +11772,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_1_c_size_t
 #endif
       !
-      hipMallocManaged_c4_1_c_size_t = hipMallocManaged_(cptr,length1*2*4_8,flags)
+      hipMallocManaged_c4_1_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -11651,8 +11787,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       complex(c_float_complex),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -11681,21 +11817,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,size(dsource)*2*4_8,flags)
-        hipMallocManaged_c4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,size(source)*2*4_8,flags)
-        hipMallocManaged_c4_2_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,size(mold)*2*4_8,flags)
+        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -11703,7 +11839,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipMallocManaged_c4_2_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -11733,7 +11869,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_2_c_int
 #endif
       !
-      hipMallocManaged_c4_2_c_int = hipMallocManaged_(cptr,length1*length2*2*4_8,flags)
+      hipMallocManaged_c4_2_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -11757,7 +11893,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_2_c_size_t
 #endif
       !
-      hipMallocManaged_c4_2_c_size_t = hipMallocManaged_(cptr,length1*length2*2*4_8,flags)
+      hipMallocManaged_c4_2_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -11772,8 +11908,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       complex(c_float_complex),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -11802,21 +11938,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,size(dsource)*2*4_8,flags)
-        hipMallocManaged_c4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,size(source)*2*4_8,flags)
-        hipMallocManaged_c4_3_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,size(mold)*2*4_8,flags)
+        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -11824,7 +11960,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipMallocManaged_c4_3_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -11854,7 +11990,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_3_c_int
 #endif
       !
-      hipMallocManaged_c4_3_c_int = hipMallocManaged_(cptr,length1*length2*length3*2*4_8,flags)
+      hipMallocManaged_c4_3_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -11878,7 +12014,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_3_c_size_t
 #endif
       !
-      hipMallocManaged_c4_3_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*2*4_8,flags)
+      hipMallocManaged_c4_3_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -11893,8 +12029,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       complex(c_float_complex),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -11923,21 +12059,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,size(dsource)*2*4_8,flags)
-        hipMallocManaged_c4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,size(source)*2*4_8,flags)
-        hipMallocManaged_c4_4_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,size(mold)*2*4_8,flags)
+        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -11945,7 +12081,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipMallocManaged_c4_4_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -11975,7 +12111,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_4_c_int
 #endif
       !
-      hipMallocManaged_c4_4_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*2*4_8,flags)
+      hipMallocManaged_c4_4_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -11999,7 +12136,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_4_c_size_t
 #endif
       !
-      hipMallocManaged_c4_4_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*2*4_8,flags)
+      hipMallocManaged_c4_4_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -12014,8 +12152,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       complex(c_float_complex),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -12044,21 +12182,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,size(dsource)*2*4_8,flags)
-        hipMallocManaged_c4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,size(source)*2*4_8,flags)
-        hipMallocManaged_c4_5_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,size(mold)*2*4_8,flags)
+        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -12066,7 +12204,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipMallocManaged_c4_5_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -12096,7 +12234,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_5_c_int
 #endif
       !
-      hipMallocManaged_c4_5_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*2*4_8,flags)
+      hipMallocManaged_c4_5_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -12120,7 +12259,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_5_c_size_t
 #endif
       !
-      hipMallocManaged_c4_5_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*2*4_8,flags)
+      hipMallocManaged_c4_5_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -12135,8 +12275,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       complex(c_float_complex),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -12165,21 +12305,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,size(dsource)*2*4_8,flags)
-        hipMallocManaged_c4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,size(source)*2*4_8,flags)
-        hipMallocManaged_c4_6_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,size(mold)*2*4_8,flags)
+        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -12187,7 +12327,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipMallocManaged_c4_6_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -12217,7 +12357,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_6_c_int
 #endif
       !
-      hipMallocManaged_c4_6_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*2*4_8,flags)
+      hipMallocManaged_c4_6_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -12241,7 +12382,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_6_c_size_t
 #endif
       !
-      hipMallocManaged_c4_6_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*2*4_8,flags)
+      hipMallocManaged_c4_6_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -12256,8 +12398,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       complex(c_float_complex),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -12286,21 +12428,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,size(dsource)*2*4_8,flags)
-        hipMallocManaged_c4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,size(source)*2*4_8,flags)
-        hipMallocManaged_c4_7_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipMallocManaged_c4_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,size(mold)*2*4_8,flags)
+        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -12308,7 +12450,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipMallocManaged_c4_7_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -12338,7 +12480,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_7_c_int
 #endif
       !
-      hipMallocManaged_c4_7_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*2*4_8,flags)
+      hipMallocManaged_c4_7_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                           int(length7,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -12362,7 +12506,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c4_7_c_size_t
 #endif
       !
-      hipMallocManaged_c4_7_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*2*4_8,flags)
+      hipMallocManaged_c4_7_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                              int(length7,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -12395,15 +12541,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipMallocManaged (scalar version): Only one optional argument ('dsource','source') must be specified."
     
       if ( present(dsource) ) then
-        hipMallocManaged_c8_0_source = hipMallocManaged_(cptr,2*8_8,flags)
-        hipMallocManaged_c8_0_source = hipMemcpy(cptr,c_loc(dsource),2*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c8_0_source = hipMallocManaged_(cptr,2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_0_source = hipMemcpy(cptr,c_loc(dsource),2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipMallocManaged_c8_0_source = hipMallocManaged_(cptr,2*8_8,flags)
-        hipMallocManaged_c8_0_source = hipMemcpy(cptr,c_loc(source),2*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c8_0_source = hipMallocManaged_(cptr,2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_0_source = hipMemcpy(cptr,c_loc(source),2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,ptr)
       else
-        hipMallocManaged_c8_0_source = hipMallocManaged_(cptr,2*8_8,flags)
+        hipMallocManaged_c8_0_source = hipMallocManaged_(cptr,2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -12420,8 +12566,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       complex(c_double_complex),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -12450,21 +12596,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,size(dsource)*2*8_8,flags)
-        hipMallocManaged_c8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,size(source)*2*8_8,flags)
-        hipMallocManaged_c8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,size(mold)*2*8_8,flags)
+        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -12472,7 +12618,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipMallocManaged_c8_1_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -12502,7 +12648,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_1_c_int
 #endif
       !
-      hipMallocManaged_c8_1_c_int = hipMallocManaged_(cptr,length1*2*8_8,flags)
+      hipMallocManaged_c8_1_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -12526,7 +12672,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_1_c_size_t
 #endif
       !
-      hipMallocManaged_c8_1_c_size_t = hipMallocManaged_(cptr,length1*2*8_8,flags)
+      hipMallocManaged_c8_1_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -12541,8 +12687,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       complex(c_double_complex),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -12571,21 +12717,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,size(dsource)*2*8_8,flags)
-        hipMallocManaged_c8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,size(source)*2*8_8,flags)
-        hipMallocManaged_c8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,size(mold)*2*8_8,flags)
+        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -12593,7 +12739,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipMallocManaged_c8_2_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -12623,7 +12769,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_2_c_int
 #endif
       !
-      hipMallocManaged_c8_2_c_int = hipMallocManaged_(cptr,length1*length2*2*8_8,flags)
+      hipMallocManaged_c8_2_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -12647,7 +12793,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_2_c_size_t
 #endif
       !
-      hipMallocManaged_c8_2_c_size_t = hipMallocManaged_(cptr,length1*length2*2*8_8,flags)
+      hipMallocManaged_c8_2_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -12662,8 +12808,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       complex(c_double_complex),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -12692,21 +12838,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,size(dsource)*2*8_8,flags)
-        hipMallocManaged_c8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,size(source)*2*8_8,flags)
-        hipMallocManaged_c8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,size(mold)*2*8_8,flags)
+        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -12714,7 +12860,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipMallocManaged_c8_3_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -12744,7 +12890,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_3_c_int
 #endif
       !
-      hipMallocManaged_c8_3_c_int = hipMallocManaged_(cptr,length1*length2*length3*2*8_8,flags)
+      hipMallocManaged_c8_3_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -12768,7 +12914,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_3_c_size_t
 #endif
       !
-      hipMallocManaged_c8_3_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*2*8_8,flags)
+      hipMallocManaged_c8_3_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -12783,8 +12929,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       complex(c_double_complex),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -12813,21 +12959,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,size(dsource)*2*8_8,flags)
-        hipMallocManaged_c8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,size(source)*2*8_8,flags)
-        hipMallocManaged_c8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,size(mold)*2*8_8,flags)
+        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -12835,7 +12981,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipMallocManaged_c8_4_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -12865,7 +13011,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_4_c_int
 #endif
       !
-      hipMallocManaged_c8_4_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*2*8_8,flags)
+      hipMallocManaged_c8_4_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -12889,7 +13036,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_4_c_size_t
 #endif
       !
-      hipMallocManaged_c8_4_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*2*8_8,flags)
+      hipMallocManaged_c8_4_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -12904,8 +13052,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       complex(c_double_complex),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -12934,21 +13082,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,size(dsource)*2*8_8,flags)
-        hipMallocManaged_c8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,size(source)*2*8_8,flags)
-        hipMallocManaged_c8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,size(mold)*2*8_8,flags)
+        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -12956,7 +13104,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipMallocManaged_c8_5_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -12986,7 +13134,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_5_c_int
 #endif
       !
-      hipMallocManaged_c8_5_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*2*8_8,flags)
+      hipMallocManaged_c8_5_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -13010,7 +13159,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_5_c_size_t
 #endif
       !
-      hipMallocManaged_c8_5_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*2*8_8,flags)
+      hipMallocManaged_c8_5_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -13025,8 +13175,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       complex(c_double_complex),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -13055,21 +13205,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,size(dsource)*2*8_8,flags)
-        hipMallocManaged_c8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,size(source)*2*8_8,flags)
-        hipMallocManaged_c8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,size(mold)*2*8_8,flags)
+        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -13077,7 +13227,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipMallocManaged_c8_6_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -13107,7 +13257,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_6_c_int
 #endif
       !
-      hipMallocManaged_c8_6_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*2*8_8,flags)
+      hipMallocManaged_c8_6_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -13131,7 +13282,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_6_c_size_t
 #endif
       !
-      hipMallocManaged_c8_6_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*2*8_8,flags)
+      hipMallocManaged_c8_6_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -13146,8 +13298,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       complex(c_double_complex),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags   
       ! 
@@ -13176,21 +13328,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,size(dsource)*2*8_8,flags)
-        hipMallocManaged_c8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToDevice)
+        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,size(source)*2*8_8,flags)
-        hipMallocManaged_c8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToDevice)
+        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipMallocManaged_c8_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToDevice)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,size(mold)*2*8_8,flags)
+        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -13198,7 +13350,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipMallocManaged_c8_7_source = hipMallocManaged_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -13228,7 +13380,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_7_c_int
 #endif
       !
-      hipMallocManaged_c8_7_c_int = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*2*8_8,flags)
+      hipMallocManaged_c8_7_c_int = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                           int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                           int(length7,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -13252,7 +13406,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipMallocManaged_c8_7_c_size_t
 #endif
       !
-      hipMallocManaged_c8_7_c_size_t = hipMallocManaged_(cptr,length1*length2*length3*length4*length5*length6*length7*2*8_8,flags)
+      hipMallocManaged_c8_7_c_size_t = hipMallocManaged_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                              int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                              int(length7,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -13286,15 +13442,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipHostMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
 
       if ( present(dsource) ) then
-        hipHostMalloc_l_0_source = hipHostMalloc_(cptr,1_8,flags)
-        hipHostMalloc_l_0_source = hipMemcpy(cptr,c_loc(dsource),1_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_l_0_source = hipHostMalloc_(cptr,1_int64,flags)
+        hipHostMalloc_l_0_source = hipMemcpy(cptr,c_loc(dsource),1_int64,hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipHostMalloc_l_0_source = hipHostMalloc_(cptr,1_8,flags)
-        hipHostMalloc_l_0_source = hipMemcpy(cptr,c_loc(source),1_8,hipMemcpyHostToHost)
+        hipHostMalloc_l_0_source = hipHostMalloc_(cptr,1_int64,flags)
+        hipHostMalloc_l_0_source = hipMemcpy(cptr,c_loc(source),1_int64,hipMemcpyHostToHost)
         call c_f_pointer(cptr,ptr)
       else
-        hipHostMalloc_l_0_source = hipHostMalloc_(cptr,1_8,flags)
+        hipHostMalloc_l_0_source = hipHostMalloc_(cptr,1_int64,flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -13311,8 +13467,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       logical(c_bool),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -13341,21 +13497,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,size(dsource)*1_8,flags)
-        hipHostMalloc_l_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,size(dsource,kind=int64),flags)
+        hipHostMalloc_l_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,size(source)*1_8,flags)
-        hipHostMalloc_l_1_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToHost)
+        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,size(source,kind=int64),flags)
+        hipHostMalloc_l_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,size(mold)*1_8,flags)
+        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,size(mold,kind=int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*1_8,flags)
+        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,PRODUCT(dims8),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -13363,7 +13519,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,PRODUCT(dims)*1_8,flags)
+        hipHostMalloc_l_1_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64)),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -13392,7 +13548,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_1_c_int
 #endif
       !
-      hipHostMalloc_l_1_c_int = hipHostMalloc_(cptr,length1*1_8,flags)
+      hipHostMalloc_l_1_c_int = hipHostMalloc_(cptr,int(length1,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -13415,7 +13571,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_1_c_size_t
 #endif
       !
-      hipHostMalloc_l_1_c_size_t = hipHostMalloc_(cptr,length1*1_8,flags)
+      hipHostMalloc_l_1_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -13430,8 +13586,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       logical(c_bool),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -13460,21 +13616,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,size(dsource)*1_8,flags)
-        hipHostMalloc_l_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,size(dsource,kind=int64),flags)
+        hipHostMalloc_l_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,size(source)*1_8,flags)
-        hipHostMalloc_l_2_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToHost)
+        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,size(source,kind=int64),flags)
+        hipHostMalloc_l_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,size(mold)*1_8,flags)
+        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,size(mold,kind=int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*1_8,flags)
+        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,PRODUCT(dims8),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -13482,7 +13638,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,PRODUCT(dims)*1_8,flags)
+        hipHostMalloc_l_2_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64)),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -13511,7 +13667,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_2_c_int
 #endif
       !
-      hipHostMalloc_l_2_c_int = hipHostMalloc_(cptr,length1*length2*1_8,flags)
+      hipHostMalloc_l_2_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -13534,7 +13690,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_2_c_size_t
 #endif
       !
-      hipHostMalloc_l_2_c_size_t = hipHostMalloc_(cptr,length1*length2*1_8,flags)
+      hipHostMalloc_l_2_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -13549,8 +13705,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       logical(c_bool),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -13579,21 +13735,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,size(dsource)*1_8,flags)
-        hipHostMalloc_l_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,size(dsource,kind=int64),flags)
+        hipHostMalloc_l_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,size(source)*1_8,flags)
-        hipHostMalloc_l_3_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToHost)
+        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,size(source,kind=int64),flags)
+        hipHostMalloc_l_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,size(mold)*1_8,flags)
+        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,size(mold,kind=int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*1_8,flags)
+        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,PRODUCT(dims8),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -13601,7 +13757,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,PRODUCT(dims)*1_8,flags)
+        hipHostMalloc_l_3_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64)),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -13630,7 +13786,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_3_c_int
 #endif
       !
-      hipHostMalloc_l_3_c_int = hipHostMalloc_(cptr,length1*length2*length3*1_8,flags)
+      hipHostMalloc_l_3_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -13653,7 +13809,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_3_c_size_t
 #endif
       !
-      hipHostMalloc_l_3_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*1_8,flags)
+      hipHostMalloc_l_3_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -13668,8 +13824,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       logical(c_bool),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -13698,21 +13854,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,size(dsource)*1_8,flags)
-        hipHostMalloc_l_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,size(dsource,kind=int64),flags)
+        hipHostMalloc_l_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,size(source)*1_8,flags)
-        hipHostMalloc_l_4_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToHost)
+        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,size(source,kind=int64),flags)
+        hipHostMalloc_l_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,size(mold)*1_8,flags)
+        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,size(mold,kind=int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*1_8,flags)
+        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,PRODUCT(dims8),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -13720,7 +13876,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,PRODUCT(dims)*1_8,flags)
+        hipHostMalloc_l_4_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64)),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -13749,7 +13905,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_4_c_int
 #endif
       !
-      hipHostMalloc_l_4_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*1_8,flags)
+      hipHostMalloc_l_4_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                    int(length4,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -13772,7 +13929,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_4_c_size_t
 #endif
       !
-      hipHostMalloc_l_4_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*1_8,flags)
+      hipHostMalloc_l_4_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                       int(length4,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -13787,8 +13945,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       logical(c_bool),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -13817,21 +13975,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,size(dsource)*1_8,flags)
-        hipHostMalloc_l_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,size(dsource,kind=int64),flags)
+        hipHostMalloc_l_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,size(source)*1_8,flags)
-        hipHostMalloc_l_5_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToHost)
+        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,size(source,kind=int64),flags)
+        hipHostMalloc_l_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,size(mold)*1_8,flags)
+        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,size(mold,kind=int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*1_8,flags)
+        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,PRODUCT(dims8),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -13839,7 +13997,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,PRODUCT(dims)*1_8,flags)
+        hipHostMalloc_l_5_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64)),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -13868,7 +14026,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_5_c_int
 #endif
       !
-      hipHostMalloc_l_5_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*1_8,flags)
+      hipHostMalloc_l_5_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                    int(length4,kind=int64)*int(length5,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -13891,7 +14050,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_5_c_size_t
 #endif
       !
-      hipHostMalloc_l_5_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*1_8,flags)
+      hipHostMalloc_l_5_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                       int(length4,kind=int64)*int(length5,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -13906,8 +14066,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       logical(c_bool),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -13936,21 +14096,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,size(dsource)*1_8,flags)
-        hipHostMalloc_l_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,size(dsource,kind=int64),flags)
+        hipHostMalloc_l_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,size(source)*1_8,flags)
-        hipHostMalloc_l_6_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToHost)
+        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,size(source,kind=int64),flags)
+        hipHostMalloc_l_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,size(mold)*1_8,flags)
+        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,size(mold,kind=int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*1_8,flags)
+        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,PRODUCT(dims8),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -13958,7 +14118,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,PRODUCT(dims)*1_8,flags)
+        hipHostMalloc_l_6_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64)),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -13987,7 +14147,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_6_c_int
 #endif
       !
-      hipHostMalloc_l_6_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*1_8,flags)
+      hipHostMalloc_l_6_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                    int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -14010,7 +14171,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_6_c_size_t
 #endif
       !
-      hipHostMalloc_l_6_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*1_8,flags)
+      hipHostMalloc_l_6_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                       int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -14025,8 +14187,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       logical(c_bool),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       logical(c_bool),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -14055,21 +14217,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,size(dsource)*1_8,flags)
-        hipHostMalloc_l_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*1_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,size(dsource,kind=int64),flags)
+        hipHostMalloc_l_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,size(source)*1_8,flags)
-        hipHostMalloc_l_7_source = hipMemcpy(cptr,c_loc(source),size(source)*1_8,hipMemcpyHostToHost)
+        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,size(source,kind=int64),flags)
+        hipHostMalloc_l_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,size(mold)*1_8,flags)
+        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,size(mold,kind=int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*1_8,flags)
+        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,PRODUCT(dims8),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -14077,7 +14239,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,PRODUCT(dims)*1_8,flags)
+        hipHostMalloc_l_7_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64)),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -14106,7 +14268,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_7_c_int
 #endif
       !
-      hipHostMalloc_l_7_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*1_8,flags)
+      hipHostMalloc_l_7_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                    int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                    int(length7,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -14129,7 +14293,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_l_7_c_size_t
 #endif
       !
-      hipHostMalloc_l_7_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*1_8,flags)
+      hipHostMalloc_l_7_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                       int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                       int(length7,kind=int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -14162,15 +14328,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipHostMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
 
       if ( present(dsource) ) then
-        hipHostMalloc_i4_0_source = hipHostMalloc_(cptr,4_8,flags)
-        hipHostMalloc_i4_0_source = hipMemcpy(cptr,c_loc(dsource),4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i4_0_source = hipHostMalloc_(cptr,byte_size(elem_int32),flags)
+        hipHostMalloc_i4_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_int32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipHostMalloc_i4_0_source = hipHostMalloc_(cptr,4_8,flags)
-        hipHostMalloc_i4_0_source = hipMemcpy(cptr,c_loc(source),4_8,hipMemcpyHostToHost)
+        hipHostMalloc_i4_0_source = hipHostMalloc_(cptr,byte_size(elem_int32),flags)
+        hipHostMalloc_i4_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_int32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,ptr)
       else
-        hipHostMalloc_i4_0_source = hipHostMalloc_(cptr,4_8,flags)
+        hipHostMalloc_i4_0_source = hipHostMalloc_(cptr,byte_size(elem_int32),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -14187,8 +14353,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       integer(c_int),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -14217,21 +14383,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_i4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_i4_1_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -14239,7 +14405,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_i4_1_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -14268,7 +14434,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_1_c_int
 #endif
       !
-      hipHostMalloc_i4_1_c_int = hipHostMalloc_(cptr,length1*4_8,flags)
+      hipHostMalloc_i4_1_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -14291,7 +14457,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_1_c_size_t
 #endif
       !
-      hipHostMalloc_i4_1_c_size_t = hipHostMalloc_(cptr,length1*4_8,flags)
+      hipHostMalloc_i4_1_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -14306,8 +14472,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       integer(c_int),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -14336,21 +14502,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_i4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_i4_2_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -14358,7 +14524,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_i4_2_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -14387,7 +14553,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_2_c_int
 #endif
       !
-      hipHostMalloc_i4_2_c_int = hipHostMalloc_(cptr,length1*length2*4_8,flags)
+      hipHostMalloc_i4_2_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -14410,7 +14576,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_2_c_size_t
 #endif
       !
-      hipHostMalloc_i4_2_c_size_t = hipHostMalloc_(cptr,length1*length2*4_8,flags)
+      hipHostMalloc_i4_2_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -14425,8 +14591,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       integer(c_int),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -14455,21 +14621,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_i4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_i4_3_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -14477,7 +14643,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_i4_3_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -14506,7 +14672,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_3_c_int
 #endif
       !
-      hipHostMalloc_i4_3_c_int = hipHostMalloc_(cptr,length1*length2*length3*4_8,flags)
+      hipHostMalloc_i4_3_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -14529,7 +14695,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_3_c_size_t
 #endif
       !
-      hipHostMalloc_i4_3_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*4_8,flags)
+      hipHostMalloc_i4_3_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -14544,8 +14710,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       integer(c_int),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -14574,21 +14740,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_i4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_i4_4_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -14596,7 +14762,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_i4_4_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -14625,7 +14791,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_4_c_int
 #endif
       !
-      hipHostMalloc_i4_4_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*4_8,flags)
+      hipHostMalloc_i4_4_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -14648,7 +14815,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_4_c_size_t
 #endif
       !
-      hipHostMalloc_i4_4_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*4_8,flags)
+      hipHostMalloc_i4_4_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -14663,8 +14831,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       integer(c_int),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -14693,21 +14861,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_i4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_i4_5_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -14715,7 +14883,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_i4_5_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -14744,7 +14912,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_5_c_int
 #endif
       !
-      hipHostMalloc_i4_5_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*4_8,flags)
+      hipHostMalloc_i4_5_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -14767,7 +14936,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_5_c_size_t
 #endif
       !
-      hipHostMalloc_i4_5_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*4_8,flags)
+      hipHostMalloc_i4_5_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -14782,8 +14952,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       integer(c_int),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -14812,21 +14982,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_i4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_i4_6_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -14834,7 +15004,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_i4_6_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -14863,7 +15033,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_6_c_int
 #endif
       !
-      hipHostMalloc_i4_6_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*4_8,flags)
+      hipHostMalloc_i4_6_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -14886,7 +15057,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_6_c_size_t
 #endif
       !
-      hipHostMalloc_i4_6_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*4_8,flags)
+      hipHostMalloc_i4_6_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -14901,8 +15073,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_int),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       integer(c_int),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -14931,21 +15103,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_i4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_i4_7_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int32),flags)
+        hipHostMalloc_i4_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -14953,7 +15125,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_i4_7_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -14982,7 +15154,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_7_c_int
 #endif
       !
-      hipHostMalloc_i4_7_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8,flags)
+      hipHostMalloc_i4_7_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                     int(length7,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -15005,7 +15179,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i4_7_c_size_t
 #endif
       !
-      hipHostMalloc_i4_7_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8,flags)
+      hipHostMalloc_i4_7_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                        int(length7,kind=int64)*byte_size(elem_int32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -15038,15 +15214,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipHostMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
 
       if ( present(dsource) ) then
-        hipHostMalloc_i8_0_source = hipHostMalloc_(cptr,8_8,flags)
-        hipHostMalloc_i8_0_source = hipMemcpy(cptr,c_loc(dsource),8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i8_0_source = hipHostMalloc_(cptr,byte_size(elem_int64),flags)
+        hipHostMalloc_i8_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipHostMalloc_i8_0_source = hipHostMalloc_(cptr,8_8,flags)
-        hipHostMalloc_i8_0_source = hipMemcpy(cptr,c_loc(source),8_8,hipMemcpyHostToHost)
+        hipHostMalloc_i8_0_source = hipHostMalloc_(cptr,byte_size(elem_int64),flags)
+        hipHostMalloc_i8_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,ptr)
       else
-        hipHostMalloc_i8_0_source = hipHostMalloc_(cptr,8_8,flags)
+        hipHostMalloc_i8_0_source = hipHostMalloc_(cptr,byte_size(elem_int64),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -15063,8 +15239,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       integer(c_long),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -15093,21 +15269,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_i8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_i8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -15115,7 +15291,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_i8_1_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -15144,7 +15320,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_1_c_int
 #endif
       !
-      hipHostMalloc_i8_1_c_int = hipHostMalloc_(cptr,length1*8_8,flags)
+      hipHostMalloc_i8_1_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -15167,7 +15343,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_1_c_size_t
 #endif
       !
-      hipHostMalloc_i8_1_c_size_t = hipHostMalloc_(cptr,length1*8_8,flags)
+      hipHostMalloc_i8_1_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -15182,8 +15358,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       integer(c_long),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -15212,21 +15388,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_i8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_i8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -15234,7 +15410,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_i8_2_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -15263,7 +15439,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_2_c_int
 #endif
       !
-      hipHostMalloc_i8_2_c_int = hipHostMalloc_(cptr,length1*length2*8_8,flags)
+      hipHostMalloc_i8_2_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -15286,7 +15462,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_2_c_size_t
 #endif
       !
-      hipHostMalloc_i8_2_c_size_t = hipHostMalloc_(cptr,length1*length2*8_8,flags)
+      hipHostMalloc_i8_2_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -15301,8 +15477,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       integer(c_long),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -15331,21 +15507,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_i8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_i8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -15353,7 +15529,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_i8_3_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -15382,7 +15558,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_3_c_int
 #endif
       !
-      hipHostMalloc_i8_3_c_int = hipHostMalloc_(cptr,length1*length2*length3*8_8,flags)
+      hipHostMalloc_i8_3_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -15405,7 +15581,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_3_c_size_t
 #endif
       !
-      hipHostMalloc_i8_3_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*8_8,flags)
+      hipHostMalloc_i8_3_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -15420,8 +15596,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       integer(c_long),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -15450,21 +15626,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_i8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_i8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -15472,7 +15648,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_i8_4_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -15501,7 +15677,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_4_c_int
 #endif
       !
-      hipHostMalloc_i8_4_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*8_8,flags)
+      hipHostMalloc_i8_4_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -15524,7 +15701,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_4_c_size_t
 #endif
       !
-      hipHostMalloc_i8_4_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*8_8,flags)
+      hipHostMalloc_i8_4_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -15539,8 +15717,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       integer(c_long),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -15569,21 +15747,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_i8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_i8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -15591,7 +15769,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_i8_5_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -15620,7 +15798,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_5_c_int
 #endif
       !
-      hipHostMalloc_i8_5_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*8_8,flags)
+      hipHostMalloc_i8_5_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -15643,7 +15822,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_5_c_size_t
 #endif
       !
-      hipHostMalloc_i8_5_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*8_8,flags)
+      hipHostMalloc_i8_5_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -15658,8 +15838,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       integer(c_long),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -15688,21 +15868,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_i8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_i8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -15710,7 +15890,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_i8_6_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -15739,7 +15919,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_6_c_int
 #endif
       !
-      hipHostMalloc_i8_6_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*8_8,flags)
+      hipHostMalloc_i8_6_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -15762,7 +15943,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_6_c_size_t
 #endif
       !
-      hipHostMalloc_i8_6_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*8_8,flags)
+      hipHostMalloc_i8_6_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -15777,8 +15959,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       integer(c_long),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       integer(c_long),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -15807,21 +15989,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_i8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_int64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_i8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_int64),flags)
+        hipHostMalloc_i8_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_int64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -15829,7 +16011,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_i8_7_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_int64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -15858,7 +16040,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_7_c_int
 #endif
       !
-      hipHostMalloc_i8_7_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8,flags)
+      hipHostMalloc_i8_7_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                     int(length7,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -15881,7 +16065,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_i8_7_c_size_t
 #endif
       !
-      hipHostMalloc_i8_7_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8,flags)
+      hipHostMalloc_i8_7_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                        int(length7,kind=int64)*byte_size(elem_int64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -15914,15 +16100,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipHostMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
 
       if ( present(dsource) ) then
-        hipHostMalloc_r4_0_source = hipHostMalloc_(cptr,4_8,flags)
-        hipHostMalloc_r4_0_source = hipMemcpy(cptr,c_loc(dsource),4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r4_0_source = hipHostMalloc_(cptr,byte_size(elem_real32),flags)
+        hipHostMalloc_r4_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipHostMalloc_r4_0_source = hipHostMalloc_(cptr,4_8,flags)
-        hipHostMalloc_r4_0_source = hipMemcpy(cptr,c_loc(source),4_8,hipMemcpyHostToHost)
+        hipHostMalloc_r4_0_source = hipHostMalloc_(cptr,byte_size(elem_real32),flags)
+        hipHostMalloc_r4_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,ptr)
       else
-        hipHostMalloc_r4_0_source = hipHostMalloc_(cptr,4_8,flags)
+        hipHostMalloc_r4_0_source = hipHostMalloc_(cptr,byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -15939,8 +16125,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       real(c_float),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -15969,21 +16155,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_r4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_r4_1_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -15991,7 +16177,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_r4_1_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -16020,7 +16206,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_1_c_int
 #endif
       !
-      hipHostMalloc_r4_1_c_int = hipHostMalloc_(cptr,length1*4_8,flags)
+      hipHostMalloc_r4_1_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -16043,7 +16229,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_1_c_size_t
 #endif
       !
-      hipHostMalloc_r4_1_c_size_t = hipHostMalloc_(cptr,length1*4_8,flags)
+      hipHostMalloc_r4_1_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -16058,8 +16244,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       real(c_float),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -16088,21 +16274,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_r4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_r4_2_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -16110,7 +16296,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_r4_2_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -16139,7 +16325,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_2_c_int
 #endif
       !
-      hipHostMalloc_r4_2_c_int = hipHostMalloc_(cptr,length1*length2*4_8,flags)
+      hipHostMalloc_r4_2_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -16162,7 +16348,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_2_c_size_t
 #endif
       !
-      hipHostMalloc_r4_2_c_size_t = hipHostMalloc_(cptr,length1*length2*4_8,flags)
+      hipHostMalloc_r4_2_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -16177,8 +16363,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       real(c_float),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -16207,21 +16393,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_r4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_r4_3_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -16229,7 +16415,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_r4_3_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -16258,7 +16444,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_3_c_int
 #endif
       !
-      hipHostMalloc_r4_3_c_int = hipHostMalloc_(cptr,length1*length2*length3*4_8,flags)
+      hipHostMalloc_r4_3_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -16281,7 +16467,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_3_c_size_t
 #endif
       !
-      hipHostMalloc_r4_3_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*4_8,flags)
+      hipHostMalloc_r4_3_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -16296,8 +16482,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       real(c_float),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -16326,21 +16512,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_r4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_r4_4_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -16348,7 +16534,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_r4_4_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -16377,7 +16563,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_4_c_int
 #endif
       !
-      hipHostMalloc_r4_4_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*4_8,flags)
+      hipHostMalloc_r4_4_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -16400,7 +16587,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_4_c_size_t
 #endif
       !
-      hipHostMalloc_r4_4_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*4_8,flags)
+      hipHostMalloc_r4_4_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -16415,8 +16603,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       real(c_float),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -16445,21 +16633,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_r4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_r4_5_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -16467,7 +16655,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_r4_5_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -16496,7 +16684,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_5_c_int
 #endif
       !
-      hipHostMalloc_r4_5_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*4_8,flags)
+      hipHostMalloc_r4_5_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -16519,7 +16708,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_5_c_size_t
 #endif
       !
-      hipHostMalloc_r4_5_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*4_8,flags)
+      hipHostMalloc_r4_5_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -16534,8 +16724,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       real(c_float),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -16564,21 +16754,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_r4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_r4_6_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -16586,7 +16776,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_r4_6_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -16615,7 +16805,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_6_c_int
 #endif
       !
-      hipHostMalloc_r4_6_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*4_8,flags)
+      hipHostMalloc_r4_6_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -16638,7 +16829,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_6_c_size_t
 #endif
       !
-      hipHostMalloc_r4_6_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*4_8,flags)
+      hipHostMalloc_r4_6_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -16653,8 +16845,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_float),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       real(c_float),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -16683,21 +16875,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,size(dsource)*4_8,flags)
-        hipHostMalloc_r4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,size(source)*4_8,flags)
-        hipHostMalloc_r4_7_source = hipMemcpy(cptr,c_loc(source),size(source)*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real32),flags)
+        hipHostMalloc_r4_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,size(mold)*4_8,flags)
+        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*4_8,flags)
+        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -16705,7 +16897,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,PRODUCT(dims)*4_8,flags)
+        hipHostMalloc_r4_7_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -16734,7 +16926,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_7_c_int
 #endif
       !
-      hipHostMalloc_r4_7_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8,flags)
+      hipHostMalloc_r4_7_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                     int(length7,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -16757,7 +16951,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r4_7_c_size_t
 #endif
       !
-      hipHostMalloc_r4_7_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*4_8,flags)
+      hipHostMalloc_r4_7_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                        int(length7,kind=int64)*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -16790,15 +16986,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipHostMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
 
       if ( present(dsource) ) then
-        hipHostMalloc_r8_0_source = hipHostMalloc_(cptr,8_8,flags)
-        hipHostMalloc_r8_0_source = hipMemcpy(cptr,c_loc(dsource),8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r8_0_source = hipHostMalloc_(cptr,byte_size(elem_real64),flags)
+        hipHostMalloc_r8_0_source = hipMemcpy(cptr,c_loc(dsource),byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipHostMalloc_r8_0_source = hipHostMalloc_(cptr,8_8,flags)
-        hipHostMalloc_r8_0_source = hipMemcpy(cptr,c_loc(source),8_8,hipMemcpyHostToHost)
+        hipHostMalloc_r8_0_source = hipHostMalloc_(cptr,byte_size(elem_real64),flags)
+        hipHostMalloc_r8_0_source = hipMemcpy(cptr,c_loc(source),byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,ptr)
       else
-        hipHostMalloc_r8_0_source = hipHostMalloc_(cptr,8_8,flags)
+        hipHostMalloc_r8_0_source = hipHostMalloc_(cptr,byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -16815,8 +17011,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       real(c_double),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -16845,21 +17041,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_r8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_r8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -16867,7 +17063,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_r8_1_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -16896,7 +17092,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_1_c_int
 #endif
       !
-      hipHostMalloc_r8_1_c_int = hipHostMalloc_(cptr,length1*8_8,flags)
+      hipHostMalloc_r8_1_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -16919,7 +17115,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_1_c_size_t
 #endif
       !
-      hipHostMalloc_r8_1_c_size_t = hipHostMalloc_(cptr,length1*8_8,flags)
+      hipHostMalloc_r8_1_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -16934,8 +17130,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       real(c_double),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -16964,21 +17160,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_r8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_r8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -16986,7 +17182,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_r8_2_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -17015,7 +17211,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_2_c_int
 #endif
       !
-      hipHostMalloc_r8_2_c_int = hipHostMalloc_(cptr,length1*length2*8_8,flags)
+      hipHostMalloc_r8_2_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -17038,7 +17234,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_2_c_size_t
 #endif
       !
-      hipHostMalloc_r8_2_c_size_t = hipHostMalloc_(cptr,length1*length2*8_8,flags)
+      hipHostMalloc_r8_2_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -17053,8 +17249,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       real(c_double),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -17083,21 +17279,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_r8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_r8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -17105,7 +17301,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_r8_3_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -17134,7 +17330,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_3_c_int
 #endif
       !
-      hipHostMalloc_r8_3_c_int = hipHostMalloc_(cptr,length1*length2*length3*8_8,flags)
+      hipHostMalloc_r8_3_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -17157,7 +17353,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_3_c_size_t
 #endif
       !
-      hipHostMalloc_r8_3_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*8_8,flags)
+      hipHostMalloc_r8_3_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -17172,8 +17368,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       real(c_double),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -17202,21 +17398,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_r8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_r8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -17224,7 +17420,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_r8_4_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -17253,7 +17449,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_4_c_int
 #endif
       !
-      hipHostMalloc_r8_4_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*8_8,flags)
+      hipHostMalloc_r8_4_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -17276,7 +17473,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_4_c_size_t
 #endif
       !
-      hipHostMalloc_r8_4_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*8_8,flags)
+      hipHostMalloc_r8_4_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -17291,8 +17489,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       real(c_double),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -17321,21 +17519,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_r8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_r8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -17343,7 +17541,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_r8_5_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -17372,7 +17570,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_5_c_int
 #endif
       !
-      hipHostMalloc_r8_5_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*8_8,flags)
+      hipHostMalloc_r8_5_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -17395,7 +17594,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_5_c_size_t
 #endif
       !
-      hipHostMalloc_r8_5_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*8_8,flags)
+      hipHostMalloc_r8_5_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -17410,8 +17610,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       real(c_double),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -17440,21 +17640,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_r8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_r8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -17462,7 +17662,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_r8_6_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -17491,7 +17691,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_6_c_int
 #endif
       !
-      hipHostMalloc_r8_6_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*8_8,flags)
+      hipHostMalloc_r8_6_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -17514,7 +17715,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_6_c_size_t
 #endif
       !
-      hipHostMalloc_r8_6_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*8_8,flags)
+      hipHostMalloc_r8_6_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -17529,8 +17731,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       real(c_double),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       real(c_double),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -17559,21 +17761,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,size(dsource)*8_8,flags)
-        hipHostMalloc_r8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,size(source)*8_8,flags)
-        hipHostMalloc_r8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,size(source,kind=int64)*byte_size(elem_real64),flags)
+        hipHostMalloc_r8_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,size(mold)*8_8,flags)
+        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,size(mold,kind=int64)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*8_8,flags)
+        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -17581,7 +17783,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,PRODUCT(dims)*8_8,flags)
+        hipHostMalloc_r8_7_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -17610,7 +17812,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_7_c_int
 #endif
       !
-      hipHostMalloc_r8_7_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8,flags)
+      hipHostMalloc_r8_7_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                     int(length7,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -17633,7 +17837,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_r8_7_c_size_t
 #endif
       !
-      hipHostMalloc_r8_7_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*8_8,flags)
+      hipHostMalloc_r8_7_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                        int(length7,kind=int64)*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -17666,15 +17872,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipHostMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
 
       if ( present(dsource) ) then
-        hipHostMalloc_c4_0_source = hipHostMalloc_(cptr,2*4_8,flags)
-        hipHostMalloc_c4_0_source = hipMemcpy(cptr,c_loc(dsource),2*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c4_0_source = hipHostMalloc_(cptr,2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_0_source = hipMemcpy(cptr,c_loc(dsource),2_int64*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipHostMalloc_c4_0_source = hipHostMalloc_(cptr,2*4_8,flags)
-        hipHostMalloc_c4_0_source = hipMemcpy(cptr,c_loc(source),2*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_c4_0_source = hipHostMalloc_(cptr,2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_0_source = hipMemcpy(cptr,c_loc(source),2_int64*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,ptr)
       else
-        hipHostMalloc_c4_0_source = hipHostMalloc_(cptr,2*4_8,flags)
+        hipHostMalloc_c4_0_source = hipHostMalloc_(cptr,2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -17691,8 +17897,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       complex(c_float_complex),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -17721,21 +17927,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,size(dsource)*2*4_8,flags)
-        hipHostMalloc_c4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,size(source)*2*4_8,flags)
-        hipHostMalloc_c4_1_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,size(mold)*2*4_8,flags)
+        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -17743,7 +17949,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipHostMalloc_c4_1_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -17772,7 +17978,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_1_c_int
 #endif
       !
-      hipHostMalloc_c4_1_c_int = hipHostMalloc_(cptr,length1*2*4_8,flags)
+      hipHostMalloc_c4_1_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -17795,7 +18001,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_1_c_size_t
 #endif
       !
-      hipHostMalloc_c4_1_c_size_t = hipHostMalloc_(cptr,length1*2*4_8,flags)
+      hipHostMalloc_c4_1_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -17810,8 +18016,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       complex(c_float_complex),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -17840,21 +18046,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,size(dsource)*2*4_8,flags)
-        hipHostMalloc_c4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,size(source)*2*4_8,flags)
-        hipHostMalloc_c4_2_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,size(mold)*2*4_8,flags)
+        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -17862,7 +18068,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipHostMalloc_c4_2_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -17891,7 +18097,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_2_c_int
 #endif
       !
-      hipHostMalloc_c4_2_c_int = hipHostMalloc_(cptr,length1*length2*2*4_8,flags)
+      hipHostMalloc_c4_2_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -17914,7 +18120,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_2_c_size_t
 #endif
       !
-      hipHostMalloc_c4_2_c_size_t = hipHostMalloc_(cptr,length1*length2*2*4_8,flags)
+      hipHostMalloc_c4_2_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -17929,8 +18135,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       complex(c_float_complex),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -17959,21 +18165,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,size(dsource)*2*4_8,flags)
-        hipHostMalloc_c4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,size(source)*2*4_8,flags)
-        hipHostMalloc_c4_3_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,size(mold)*2*4_8,flags)
+        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -17981,7 +18187,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipHostMalloc_c4_3_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -18010,7 +18216,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_3_c_int
 #endif
       !
-      hipHostMalloc_c4_3_c_int = hipHostMalloc_(cptr,length1*length2*length3*2*4_8,flags)
+      hipHostMalloc_c4_3_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -18033,7 +18239,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_3_c_size_t
 #endif
       !
-      hipHostMalloc_c4_3_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*2*4_8,flags)
+      hipHostMalloc_c4_3_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -18048,8 +18254,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       complex(c_float_complex),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -18078,21 +18284,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,size(dsource)*2*4_8,flags)
-        hipHostMalloc_c4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,size(source)*2*4_8,flags)
-        hipHostMalloc_c4_4_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,size(mold)*2*4_8,flags)
+        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -18100,7 +18306,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipHostMalloc_c4_4_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -18129,7 +18335,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_4_c_int
 #endif
       !
-      hipHostMalloc_c4_4_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*2*4_8,flags)
+      hipHostMalloc_c4_4_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -18152,7 +18359,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_4_c_size_t
 #endif
       !
-      hipHostMalloc_c4_4_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*2*4_8,flags)
+      hipHostMalloc_c4_4_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -18167,8 +18375,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       complex(c_float_complex),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -18197,21 +18405,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,size(dsource)*2*4_8,flags)
-        hipHostMalloc_c4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,size(source)*2*4_8,flags)
-        hipHostMalloc_c4_5_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,size(mold)*2*4_8,flags)
+        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -18219,7 +18427,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipHostMalloc_c4_5_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -18248,7 +18456,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_5_c_int
 #endif
       !
-      hipHostMalloc_c4_5_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*2*4_8,flags)
+      hipHostMalloc_c4_5_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -18271,7 +18480,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_5_c_size_t
 #endif
       !
-      hipHostMalloc_c4_5_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*2*4_8,flags)
+      hipHostMalloc_c4_5_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -18286,8 +18496,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       complex(c_float_complex),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -18316,21 +18526,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,size(dsource)*2*4_8,flags)
-        hipHostMalloc_c4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,size(source)*2*4_8,flags)
-        hipHostMalloc_c4_6_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,size(mold)*2*4_8,flags)
+        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -18338,7 +18548,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipHostMalloc_c4_6_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -18367,7 +18577,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_6_c_int
 #endif
       !
-      hipHostMalloc_c4_6_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*2*4_8,flags)
+      hipHostMalloc_c4_6_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -18390,7 +18601,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_6_c_size_t
 #endif
       !
-      hipHostMalloc_c4_6_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*2*4_8,flags)
+      hipHostMalloc_c4_6_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -18405,8 +18617,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_float_complex),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       complex(c_float_complex),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -18435,21 +18647,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,size(dsource)*2*4_8,flags)
-        hipHostMalloc_c4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*4_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,size(source)*2*4_8,flags)
-        hipHostMalloc_c4_7_source = hipMemcpy(cptr,c_loc(source),size(source)*2*4_8,hipMemcpyHostToHost)
+        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real32),flags)
+        hipHostMalloc_c4_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real32),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,size(mold)*2*4_8,flags)
+        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*4_8,flags)
+        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -18457,7 +18669,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*4_8,flags)
+        hipHostMalloc_c4_7_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real32),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -18486,7 +18698,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_7_c_int
 #endif
       !
-      hipHostMalloc_c4_7_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*2*4_8,flags)
+      hipHostMalloc_c4_7_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                     int(length7,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -18509,7 +18723,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c4_7_c_size_t
 #endif
       !
-      hipHostMalloc_c4_7_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*2*4_8,flags)
+      hipHostMalloc_c4_7_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                        int(length7,kind=int64)*2_int64*byte_size(elem_real32),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -18542,15 +18758,15 @@ module hipfort_hipmalloc
       if ( nOptArgs > 1 ) ERROR STOP "ERROR: hipHostMalloc (scalar version): Only one optional argument ('dsource','source') must be specified."
 
       if ( present(dsource) ) then
-        hipHostMalloc_c8_0_source = hipHostMalloc_(cptr,2*8_8,flags)
-        hipHostMalloc_c8_0_source = hipMemcpy(cptr,c_loc(dsource),2*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c8_0_source = hipHostMalloc_(cptr,2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_0_source = hipMemcpy(cptr,c_loc(dsource),2_int64*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,ptr)
       else if ( present(source) ) then
-        hipHostMalloc_c8_0_source = hipHostMalloc_(cptr,2*8_8,flags)
-        hipHostMalloc_c8_0_source = hipMemcpy(cptr,c_loc(source),2*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_c8_0_source = hipHostMalloc_(cptr,2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_0_source = hipMemcpy(cptr,c_loc(source),2_int64*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,ptr)
       else
-        hipHostMalloc_c8_0_source = hipHostMalloc_(cptr,2*8_8,flags)
+        hipHostMalloc_c8_0_source = hipHostMalloc_(cptr,2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr)
       end if
     end function
@@ -18567,8 +18783,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(1),dims(1)
-      integer(8),intent(in),optional :: lbounds8(1),dims8(1)
+      integer(int32),intent(in),optional :: lbounds(1),dims(1)
+      integer(int64),intent(in),optional :: lbounds8(1),dims8(1)
       complex(c_double_complex),target,dimension(:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -18597,21 +18813,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,size(dsource)*2*8_8,flags)
-        hipHostMalloc_c8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_1_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,size(source)*2*8_8,flags)
-        hipHostMalloc_c8_1_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_1_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,size(mold)*2*8_8,flags)
+        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):) => tmp
@@ -18619,7 +18835,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipHostMalloc_c8_1_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):) => tmp
@@ -18648,7 +18864,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_1_c_int
 #endif
       !
-      hipHostMalloc_c8_1_c_int = hipHostMalloc_(cptr,length1*2*8_8,flags)
+      hipHostMalloc_c8_1_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -18671,7 +18887,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_1_c_size_t
 #endif
       !
-      hipHostMalloc_c8_1_c_size_t = hipHostMalloc_(cptr,length1*2*8_8,flags)
+      hipHostMalloc_c8_1_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1])
     end function
 
@@ -18686,8 +18902,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(2),dims(2)
-      integer(8),intent(in),optional :: lbounds8(2),dims8(2)
+      integer(int32),intent(in),optional :: lbounds(2),dims(2)
+      integer(int64),intent(in),optional :: lbounds8(2),dims8(2)
       complex(c_double_complex),target,dimension(:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -18716,21 +18932,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,size(dsource)*2*8_8,flags)
-        hipHostMalloc_c8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_2_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,size(source)*2*8_8,flags)
-        hipHostMalloc_c8_2_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_2_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,size(mold)*2*8_8,flags)
+        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):) => tmp
@@ -18738,7 +18954,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipHostMalloc_c8_2_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):) => tmp
@@ -18767,7 +18983,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_2_c_int
 #endif
       !
-      hipHostMalloc_c8_2_c_int = hipHostMalloc_(cptr,length1*length2*2*8_8,flags)
+      hipHostMalloc_c8_2_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -18790,7 +19006,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_2_c_size_t
 #endif
       !
-      hipHostMalloc_c8_2_c_size_t = hipHostMalloc_(cptr,length1*length2*2*8_8,flags)
+      hipHostMalloc_c8_2_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2])
     end function
 
@@ -18805,8 +19021,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(3),dims(3)
-      integer(8),intent(in),optional :: lbounds8(3),dims8(3)
+      integer(int32),intent(in),optional :: lbounds(3),dims(3)
+      integer(int64),intent(in),optional :: lbounds8(3),dims8(3)
       complex(c_double_complex),target,dimension(:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -18835,21 +19051,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,size(dsource)*2*8_8,flags)
-        hipHostMalloc_c8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_3_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,size(source)*2*8_8,flags)
-        hipHostMalloc_c8_3_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_3_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,size(mold)*2*8_8,flags)
+        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):) => tmp
@@ -18857,7 +19073,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipHostMalloc_c8_3_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):) => tmp
@@ -18886,7 +19102,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_3_c_int
 #endif
       !
-      hipHostMalloc_c8_3_c_int = hipHostMalloc_(cptr,length1*length2*length3*2*8_8,flags)
+      hipHostMalloc_c8_3_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -18909,7 +19125,7 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_3_c_size_t
 #endif
       !
-      hipHostMalloc_c8_3_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*2*8_8,flags)
+      hipHostMalloc_c8_3_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3])
     end function
 
@@ -18924,8 +19140,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(4),dims(4)
-      integer(8),intent(in),optional :: lbounds8(4),dims8(4)
+      integer(int32),intent(in),optional :: lbounds(4),dims(4)
+      integer(int64),intent(in),optional :: lbounds8(4),dims8(4)
       complex(c_double_complex),target,dimension(:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -18954,21 +19170,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,size(dsource)*2*8_8,flags)
-        hipHostMalloc_c8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_4_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,size(source)*2*8_8,flags)
-        hipHostMalloc_c8_4_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_4_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,size(mold)*2*8_8,flags)
+        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):) => tmp
@@ -18976,7 +19192,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipHostMalloc_c8_4_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):) => tmp
@@ -19005,7 +19221,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_4_c_int
 #endif
       !
-      hipHostMalloc_c8_4_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*2*8_8,flags)
+      hipHostMalloc_c8_4_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -19028,7 +19245,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_4_c_size_t
 #endif
       !
-      hipHostMalloc_c8_4_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*2*8_8,flags)
+      hipHostMalloc_c8_4_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4])
     end function
 
@@ -19043,8 +19261,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(5),dims(5)
-      integer(8),intent(in),optional :: lbounds8(5),dims8(5)
+      integer(int32),intent(in),optional :: lbounds(5),dims(5)
+      integer(int64),intent(in),optional :: lbounds8(5),dims8(5)
       complex(c_double_complex),target,dimension(:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -19073,21 +19291,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,size(dsource)*2*8_8,flags)
-        hipHostMalloc_c8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_5_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,size(source)*2*8_8,flags)
-        hipHostMalloc_c8_5_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_5_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,size(mold)*2*8_8,flags)
+        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):) => tmp
@@ -19095,7 +19313,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipHostMalloc_c8_5_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):) => tmp
@@ -19124,7 +19342,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_5_c_int
 #endif
       !
-      hipHostMalloc_c8_5_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*2*8_8,flags)
+      hipHostMalloc_c8_5_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -19147,7 +19366,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_5_c_size_t
 #endif
       !
-      hipHostMalloc_c8_5_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*2*8_8,flags)
+      hipHostMalloc_c8_5_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5])
     end function
 
@@ -19162,8 +19382,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(6),dims(6)
-      integer(8),intent(in),optional :: lbounds8(6),dims8(6)
+      integer(int32),intent(in),optional :: lbounds(6),dims(6)
+      integer(int64),intent(in),optional :: lbounds8(6),dims8(6)
       complex(c_double_complex),target,dimension(:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -19192,21 +19412,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,size(dsource)*2*8_8,flags)
-        hipHostMalloc_c8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_6_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,size(source)*2*8_8,flags)
-        hipHostMalloc_c8_6_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_6_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,size(mold)*2*8_8,flags)
+        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):) => tmp
@@ -19214,7 +19434,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipHostMalloc_c8_6_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):) => tmp
@@ -19243,7 +19463,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_6_c_int
 #endif
       !
-      hipHostMalloc_c8_6_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*2*8_8,flags)
+      hipHostMalloc_c8_6_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -19266,7 +19487,8 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_6_c_size_t
 #endif
       !
-      hipHostMalloc_c8_6_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*2*8_8,flags)
+      hipHostMalloc_c8_6_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6])
     end function
 
@@ -19281,8 +19503,8 @@ module hipfort_hipmalloc
       use hipfort_hipmemcpy, ONLY: hipMemcpy
       implicit none
       complex(c_double_complex),pointer,dimension(:,:,:,:,:,:,:),intent(inout) :: ptr
-      integer(4),intent(in),optional :: lbounds(7),dims(7)
-      integer(8),intent(in),optional :: lbounds8(7),dims8(7)
+      integer(int32),intent(in),optional :: lbounds(7),dims(7)
+      integer(int64),intent(in),optional :: lbounds8(7),dims8(7)
       complex(c_double_complex),target,dimension(:,:,:,:,:,:,:),intent(in),optional :: dsource,source,mold
       integer(kind=4),intent(in) :: flags
       !
@@ -19311,21 +19533,21 @@ module hipfort_hipmalloc
       endif
 
       if ( present(dsource) ) then
-        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,size(dsource)*2*8_8,flags)
-        hipHostMalloc_c8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource)*2*8_8,hipMemcpyDeviceToHost)
+        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,size(dsource,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_7_source = hipMemcpy(cptr,c_loc(dsource),size(dsource,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyDeviceToHost)
         call c_f_pointer(cptr,tmp,shape=shape(dsource))
         ptr(LBOUND(dsource,1):,LBOUND(dsource,2):,LBOUND(dsource,3):,LBOUND(dsource,4):,LBOUND(dsource,5):,LBOUND(dsource,6):,LBOUND(dsource,7):) => tmp
       else if ( present(source) ) then
-        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,size(source)*2*8_8,flags)
-        hipHostMalloc_c8_7_source = hipMemcpy(cptr,c_loc(source),size(source)*2*8_8,hipMemcpyHostToHost)
+        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,size(source,kind=int64)*2_int64*byte_size(elem_real64),flags)
+        hipHostMalloc_c8_7_source = hipMemcpy(cptr,c_loc(source),size(source,kind=int64)*2_int64*byte_size(elem_real64),hipMemcpyHostToHost)
         call c_f_pointer(cptr,tmp,shape=shape(source))
         ptr(LBOUND(source,1):,LBOUND(source,2):,LBOUND(source,3):,LBOUND(source,4):,LBOUND(source,5):,LBOUND(source,6):,LBOUND(source,7):) => tmp
       else if ( present(mold) ) then
-        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,size(mold)*2*8_8,flags)
+        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,size(mold,kind=int64)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,ptr,shape=shape(mold))
         ptr(LBOUND(mold,1):,LBOUND(mold,2):,LBOUND(mold,3):,LBOUND(mold,4):,LBOUND(mold,5):,LBOUND(mold,6):,LBOUND(mold,7):) => tmp
       else if ( present(dims8) ) then
-        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2*8_8,flags)
+        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,PRODUCT(dims8)*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims8)
         if ( present(lbounds8) ) then 
           ptr(lbounds8(1):,lbounds8(2):,lbounds8(3):,lbounds8(4):,lbounds8(5):,lbounds8(6):,lbounds8(7):) => tmp
@@ -19333,7 +19555,7 @@ module hipfort_hipmalloc
           ptr => tmp
         end if
       else if ( present(dims) ) then
-        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,PRODUCT(dims)*2*8_8,flags)
+        hipHostMalloc_c8_7_source = hipHostMalloc_(cptr,PRODUCT(int(dims,kind=int64))*2_int64*byte_size(elem_real64),flags)
         call c_f_pointer(cptr,tmp,shape=dims)
         if ( present(lbounds) ) then 
           ptr(lbounds(1):,lbounds(2):,lbounds(3):,lbounds(4):,lbounds(5):,lbounds(6):,lbounds(7):) => tmp
@@ -19362,7 +19584,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_7_c_int
 #endif
       !
-      hipHostMalloc_c8_7_c_int = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*2*8_8,flags)
+      hipHostMalloc_c8_7_c_int = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                     int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                     int(length7,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 
@@ -19385,7 +19609,9 @@ module hipfort_hipmalloc
       integer(kind(hipSuccess)) :: hipHostMalloc_c8_7_c_size_t
 #endif
       !
-      hipHostMalloc_c8_7_c_size_t = hipHostMalloc_(cptr,length1*length2*length3*length4*length5*length6*length7*2*8_8,flags)
+      hipHostMalloc_c8_7_c_size_t = hipHostMalloc_(cptr,int(length1,kind=int64)*int(length2,kind=int64)*int(length3,kind=int64)*&
+                                                        int(length4,kind=int64)*int(length5,kind=int64)*int(length6,kind=int64)*&
+                                                        int(length7,kind=int64)*2_int64*byte_size(elem_real64),flags)
       call c_f_pointer(cptr,ptr,shape=[length1,length2,length3,length4,length5,length6,length7])
     end function
 

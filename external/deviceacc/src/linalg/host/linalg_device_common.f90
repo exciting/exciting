@@ -36,7 +36,9 @@ module device_linalg_common_interface
               chemv_gpu, zhemv_gpu, chemm_gpu, zhemm_gpu, &
               cgeadd_gpu, zgeadd_gpu, &
               ccopy_gpu, zcopy_gpu, &
-              csetzero_gpu, zsetzero_gpu  
+              csetzero_gpu, zsetzero_gpu, &
+              chegvx_gpu, zhegvx_gpu
+
 
 
    interface
@@ -573,6 +575,80 @@ contains
 
     end subroutine csetzero_gpu
 
+    !> Solves the generalized Hermitian-definite eigenproblem for single precision:
+    !>     A*x = λ*B*x ,  A*B*x = λ*x ,  or  B*A*x = λ*x
+    !>
+    !> @param[in]     itype  - Problem type (1,2,3)
+    !> @param[in]     jobz   - 'N': values only, 'V': values & vectors
+    !> @param[in]     range  - 'A': all, 'V': by value range, 'I': by index range
+    !> @param[in]     uplo   - 'U' or 'L': triangle of A,B stored
+    !> @param[in]     n      - Order of matrices A,B
+    !> @param[in,out] hA     - C-pointer to Hermitian matrix A (destroyed on exit)
+    !> @param[in]     lda    - Leading dimension of A
+    !> @param[in,out] hB     - C-pointer to Hermitian positive-definite matrix B (destroyed)
+    !> @param[in]     ldb    - Leading dimension of B
+    !> @param[in]     vl,vu  - Value range if RANGE='V'
+    !> @param[in]     il,iu  - Index range if RANGE='I'
+    !> @param[in]     abstol - Eigenvalue convergence tolerance
+    !> @param[out]    m      - Number of eigenvalues found
+    !> @param[out]    w      - Eigenvalues (length n)
+    !> @param[out]    z      - Eigenvectors if JOBZ='V'
+    !> @param[in]     ldz    - Leading dimension of Z
+    !> @param[inout]  work   - Complex workspace
+    !> @param[in]     lwork  - Dimension of WORK
+    !> @param[inout]  hrwork  - Double workspace (≥7*n). C-pointer to the host data
+    !> @param[inout]  hiwork  - Integer workspace (≥5*n). C-pointer to the host data
+    !> @param[out]    hifail  - Indices of failed eigenvectors. C-pointer to the host data
+    !> @param[out]    info   - Exit status
+    !> @param[in,out] world - the device-host handler. CPU backend
+    subroutine chegvx_gpu(itype, jobz, range, uplo, n, hA, lda, hB, ldb, vl, vu, il, iu, abstol, &
+                          m, hw, hz, ldz, hwork, lwork, hrwork, hiwork, hifail, info, world)
+        integer(i32), intent(in)            :: itype
+        character, intent(in)               :: jobz
+        character, intent(in)               :: range
+        character, intent(in)               :: uplo
+        integer(i32), intent(in)            :: n
+        type(c_ptr), value                  :: hA
+        integer(i32), intent(in)            :: lda
+        type(c_ptr), value                  :: hB
+        integer(i32), intent(in)            :: ldb
+        real(r32), intent(in)               :: vl
+        real(r32), intent(in)               :: vu
+        integer(i32), intent(in)            :: il
+        integer(i32), intent(in)            :: iu
+        real(r32), intent(in)               :: abstol
+        integer(i32), intent(out)           :: m
+        type(c_ptr), value                  :: hw
+        type(c_ptr), value                  :: hZ
+        integer(i32), intent(in)            :: ldz
+        type(c_ptr), value                  :: hwork
+        integer(i32), intent(in)            :: lwork
+        type(c_ptr), value                  :: hrwork
+        type(c_ptr), value                  :: hiwork
+        type(c_ptr), value                  :: hifail
+        integer(i32), intent(out)           :: info
+        type(device_world_t), intent(inout) :: world
+
+        complex(r32), pointer, contiguous :: A(:,:), B(:,:), work(:), Z(:,:)
+        real(r32), pointer, contiguous    :: rwork(:), w(:)
+        integer(i32), pointer, contiguous :: iwork(:), ifail(:)
+
+        call c_f_pointer(hA, A, [n,lda])
+        call c_f_pointer(hB, B, [n,ldb])
+        call c_f_pointer(hwork, work, [max(lwork,1)])
+        call c_f_pointer(hw, w, [n])
+        call c_f_pointer(hZ, Z, [n,ldz])
+        call c_f_pointer(hrwork, rwork, [7*n])
+        call c_f_pointer(hiwork, iwork, [5*n])
+        call c_f_pointer(hifail, ifail, [n])
+
+        call chegvx(itype, jobz, range, uplo, n, A, lda, B, ldb, vl, vu, il, iu, &
+                    abstol, m, w, z, ldz, work, lwork, rwork, iwork, ifail, info)
+
+        nullify(A,B,work,w,Z,rwork,iwork,ifail)
+
+    end subroutine chegvx_gpu
+
     ! DOUBLE PRECISION
 
     !> Complex double precision LU decomposition.
@@ -1090,5 +1166,79 @@ contains
         call memset(hA, 0_c_int, size*bytes_double_complex)
 
     end subroutine zsetzero_gpu
+
+    !> Solves the generalized Hermitian-definite eigenproblem for double precision:
+    !>     A*x = λ*B*x ,  A*B*x = λ*x ,  or  B*A*x = λ*x
+    !>
+    !> @param[in]     itype  - Problem type (1,2,3)
+    !> @param[in]     jobz   - 'N': values only, 'V': values & vectors
+    !> @param[in]     range  - 'A': all, 'V': by value range, 'I': by index range
+    !> @param[in]     uplo   - 'U' or 'L': triangle of A,B stored
+    !> @param[in]     n      - Order of matrices A,B
+    !> @param[in,out] hA     - C-pointer to Hermitian matrix A (destroyed on exit)
+    !> @param[in]     lda    - Leading dimension of A
+    !> @param[in,out] hB     - C-pointer to Hermitian positive-definite matrix B (destroyed)
+    !> @param[in]     ldb    - Leading dimension of B
+    !> @param[in]     vl,vu  - Value range if RANGE='V'
+    !> @param[in]     il,iu  - Index range if RANGE='I'
+    !> @param[in]     abstol - Eigenvalue convergence tolerance
+    !> @param[out]    m      - Number of eigenvalues found
+    !> @param[out]    w      - Eigenvalues (length n)
+    !> @param[out]    z      - Eigenvectors if JOBZ='V'
+    !> @param[in]     ldz    - Leading dimension of Z
+    !> @param[inout]  work   - Complex workspace
+    !> @param[in]     lwork  - Dimension of WORK
+    !> @param[inout]  hrwork  - Double workspace (≥7*n). C-pointer to the host data
+    !> @param[inout]  hiwork  - Integer workspace (≥5*n). C-pointer to the host data
+    !> @param[out]    hifail  - Indices of failed eigenvectors. C-pointer to the host data
+    !> @param[out]    info   - Exit status
+    !> @param[in,out] world - the device-host handler. CPU backend
+    subroutine zhegvx_gpu(itype, jobz, range, uplo, n, hA, lda, hB, ldb, vl, vu, il, iu, abstol, &
+                          m, hw, hz, ldz, hwork, lwork, hrwork, hiwork, hifail, info, world)
+        integer(i32), intent(in)            :: itype
+        character, intent(in)               :: jobz
+        character, intent(in)               :: range
+        character, intent(in)               :: uplo
+        integer(i32), intent(in)            :: n
+        type(c_ptr), value                  :: hA
+        integer(i32), intent(in)            :: lda
+        type(c_ptr), value                  :: hB
+        integer(i32), intent(in)            :: ldb
+        real(r64), intent(in)               :: vl
+        real(r64), intent(in)               :: vu
+        integer(i32), intent(in)            :: il
+        integer(i32), intent(in)            :: iu
+        real(r64), intent(in)               :: abstol
+        integer(i32), intent(out)           :: m
+        type(c_ptr), value                  :: hw
+        type(c_ptr), value                  :: hZ
+        integer(i32), intent(in)            :: ldz
+        type(c_ptr), value                  :: hwork
+        integer(i32), intent(in)            :: lwork
+        type(c_ptr), value                  :: hrwork
+        type(c_ptr), value                  :: hiwork
+        type(c_ptr), value                  :: hifail
+        integer(i32), intent(out)           :: info
+        type(device_world_t), intent(inout) :: world
+
+        complex(r64), pointer, contiguous :: A(:,:), B(:,:), work(:), Z(:,:)
+        real(r64), pointer, contiguous    :: rwork(:), w(:)
+        integer(i32), pointer, contiguous :: iwork(:), ifail(:)
+
+        call c_f_pointer(hA, A, [n,lda])
+        call c_f_pointer(hB, B, [n,ldb])
+        call c_f_pointer(hwork, work, [max(lwork,1)])
+        call c_f_pointer(hw, w, [n])
+        call c_f_pointer(hZ, Z, [n,ldz])
+        call c_f_pointer(hrwork, rwork, [7*n])
+        call c_f_pointer(hiwork, iwork, [5*n])
+        call c_f_pointer(hifail, ifail, [n])
+
+        call zhegvx(itype, jobz, range, uplo, n, A, lda, B, ldb, vl, vu, il, iu, &
+                    abstol, m, w, z, ldz, work, lwork, rwork, iwork, ifail, info)
+
+        nullify(A,B,work,w,Z,rwork,iwork,ifail)
+
+    end subroutine zhegvx_gpu
 
 end module device_linalg_common_interface

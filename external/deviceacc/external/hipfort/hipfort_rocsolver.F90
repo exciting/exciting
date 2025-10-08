@@ -22395,6 +22395,115 @@ module hipfort_rocsolver
       rocsolver_zhegv_rank_1
 #endif
   end interface
+
+  !> @brief HEGVX computes a subset of the eigenvalues and optionally the corresponding
+  !> eigenvectors of a complex generalized Hermitian-definite eigenproblem.
+  !>
+  !> The problem solved is either A*x = lambda*B*x, A*B*x = lambda*x, or B*A*x = lambda*x,
+  !> depending on the value of ITYPE. Eigenvectors are computed depending on EVECT.
+  !>
+  !> @details This function computes all the eigenvalues, eigenvalues in a half-open interval (VL, VU],
+  !> or the IL-th through IU-th eigenvalues, depending on ERANGE. If EVECT = rocblas_evect_original,
+  !> the corresponding eigenvectors are also computed.
+  !>
+  !> @param[in] HANDLE  Handle to the rocBLAS library context.
+  !> @param[in] ITYPE   Specifies the form of the generalized eigenproblem.
+  !> @param[in] EVECT   Specifies whether eigenvectors are computed.
+  !> @param[in] ERANGE  Specifies the type of range of eigenvalues to compute.
+  !> @param[in] UPLO    Specifies whether upper or lower parts of A and B are stored.
+  !> @param[in] N       The order of matrices A and B.
+  !> @param[in,out] A   On entry, the matrix A. On exit, contents are destroyed.
+  !> @param[in] LDA     Leading dimension of A.
+  !> @param[in,out] B   On entry, Hermitian positive definite matrix B. On exit, triangular factor from POTRF.
+  !> @param[in] LDB     Leading dimension of B.
+  !> @param[in] VL      Lower bound of search interval. Ignored if ERANGE != rocblas_erange_value.
+  !> @param[in] VU      Upper bound of search interval. Ignored if ERANGE != rocblas_erange_value.
+  !> @param[in] IL      Index of smallest eigenvalue to compute. Ignored if ERANGE != rocblas_erange_index.
+  !> @param[in] IU      Index of largest eigenvalue to compute. Ignored if ERANGE != rocblas_erange_index.
+  !> @param[in] ABSTOL  Absolute tolerance for eigenvalues. If negative, machine epsilon * ||T||_1 used.
+  !> @param[out] NEV    Total number of eigenvalues found.
+  !> @param[out] W      Array to hold computed eigenvalues.
+  !> @param[out] Z      Array to hold computed eigenvectors (if EVECT != none).
+  !> @param[in] LDZ     Leading dimension of Z.
+  !> @param[out] IFAIL  Array indicating indices of eigenvectors that failed to converge.
+  !> @param[out] INFO   Info on success or failure of computation.
+
+  interface rocsolver_chegvx
+    function rocsolver_chegvx_(handle, itype, evect, erange, uplo, n, A, lda, &
+               B, ldb, vl, vu, il, iu, abstol, nev, W, Z, ldz, ifail, info) bind(c, name="rocsolver_chegvx")
+      use iso_c_binding
+      use hipfort_rocsolver_enums
+      use hipfort_rocblas_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_chegvx_
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value       :: n
+      type(c_ptr), value          :: A
+      integer(c_int), value       :: lda
+      type(c_ptr), value          :: B
+      integer(c_int), value       :: ldb
+      real(c_float), value        :: vl
+      real(c_float), value        :: vu
+      integer(c_int), value       :: il
+      integer(c_int), value       :: iu
+      real(c_float), value       :: abstol
+      integer(c_int), intent(out) :: nev
+      type(c_ptr), value          :: W
+      type(c_ptr), value          :: Z
+      integer(c_int), value       :: ldz
+      type(c_ptr), value          :: ifail
+      integer(c_int), intent(out) :: info
+    end function rocsolver_chegvx_
+#ifdef USE_FPOINTER_INTERFACES
+    module procedure &
+      rocsolver_chegvx_full_rank,&
+      rocsolver_chegvx_rank_0,&
+      rocsolver_chegvx_rank_1
+#endif
+  end interface
+
+  interface rocsolver_zhegvx
+    function rocsolver_zhegvx_(handle, itype, evect, erange, uplo, n, A, lda, &
+               B, ldb, vl, vu, il, iu, abstol, nev, W, Z, ldz, ifail, info) bind(c, name="rocsolver_zhegvx")
+      use iso_c_binding
+      use hipfort_rocsolver_enums
+      use hipfort_rocblas_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zhegvx_
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value       :: n
+      type(c_ptr), value          :: A
+      integer(c_int), value       :: lda
+      type(c_ptr), value          :: B
+      integer(c_int), value       :: ldb
+      real(c_double), value       :: vl
+      real(c_double), value       :: vu
+      integer(c_int), value       :: il
+      integer(c_int), value       :: iu
+      real(c_double), value       :: abstol
+      integer(c_int), intent(out) :: nev
+      type(c_ptr), value          :: W
+      type(c_ptr), value          :: Z
+      integer(c_int), value       :: ldz
+      type(c_ptr), value          :: ifail
+      integer(c_int), intent(out) :: info
+    end function rocsolver_zhegvx_
+#ifdef USE_FPOINTER_INTERFACES
+    module procedure &
+      rocsolver_zhegvx_full_rank,&
+      rocsolver_zhegvx_rank_0,&
+      rocsolver_zhegvx_rank_1
+#endif
+  end interface
+
   !>     \brief SYGV_BATCHED computes the eigenvalues and (optionally)
   !>     eigenvectors of a batch of real generalized symmetric-definite eigenproblems.
   !> 
@@ -23979,6 +24088,345 @@ module hipfort_rocsolver
       rocsolver_zhegvd_strided_batched_full_rank,&
       rocsolver_zhegvd_strided_batched_rank_0,&
       rocsolver_zhegvd_strided_batched_rank_1
+#endif
+  end interface
+
+  !> \brief
+  !>   HEEVDX computes a set of the eigenvalues and optionally the corresponding
+  !>   eigenvectors of a complex Hermitian-definite eigenproblem.
+  !>
+  !> \details
+  !>   Computes a set of the eigenvalues and optionally the corresponding
+  !>   eigenvectors of a complex Hermitian-definite eigenproblem.
+  !>   The eignvectors are computed using a divide and conquer algorithm.
+  !>
+  !>   Depending on @c erange, the routine computes:
+  !>     - all eigenvalues,
+  !>     - eigenvalues in the half-open interval (vl, vu], or
+  !>     - the il-th through iu-th eigenvalues (by index).
+  !>
+  !>   If @c evect = rocblas_evect_original, the eigenvectors corresponding to
+  !>   the selected eigenvalues are computed as well.
+  !>
+  !> @param[in] handle
+  !>   rocblas_handle. The GPU library context.
+  !>
+  !> @param[in] evect
+  !>   rocblas_evect. Specifies whether eigenvectors are computed.
+  !>   - rocblas_evect_none     : eigenvalues only.
+  !>   - rocblas_evect_original : eigenvalues and eigenvectors.
+  !>   Note: rocblas_evect_tridiagonal is not supported.
+  !>
+  !> @param[in] erange
+  !>   rocblas_erange. Specifies which eigenvalues to compute:
+  !>   - rocblas_erange_all
+  !>   - rocblas_erange_value
+  !>   - rocblas_erange_index
+  !>
+  !> @param[in] uplo
+  !>   rocblas_fill. Indicates whether the upper or lower part of A and B
+  !>   is stored. The opposite part is not referenced.
+  !>
+  !> @param[in] n
+  !>   rocblas_int. Matrix order. n >= 0.
+  !>
+  !> @param[in,out] A
+  !>   Complex array on the GPU of dimension (lda,n).
+  !>   On entry: Hermitian matrix A.
+  !>   On exit: destroyed.
+  !>
+  !> @param[in] lda
+  !>   rocblas_int. Leading dimension of A. lda >= n.
+  !>
+  !> @param[in] vl
+  !>   real type. Lower bound of interval (vl, vu].
+  !>   Ignored unless erange = rocblas_erange_value.
+  !>
+  !> @param[in] vu
+  !>   real type. Upper bound of interval (vl, vu].
+  !>   Ignored unless erange = rocblas_erange_value.
+  !>
+  !> @param[in] il
+  !>   rocblas_int. Index of smallest eigenvalue to be computed.
+  !>   Ignored unless erange = rocblas_erange_index.
+  !>
+  !> @param[in] iu
+  !>   rocblas_int. Index of largest eigenvalue to be computed.
+  !>   Ignored unless erange = rocblas_erange_index.
+  !>
+  !> @param[out] nev
+  !>   rocblas_int (device). Number of eigenvalues found.
+  !>
+  !> @param[out] W
+  !>   real array on the GPU of dimension n.
+  !>   First nev elements contain eigenvalues.
+  !>
+  !> @param[out] Z
+  !>   Complex array on the GPU of dimension (ldz,nev).
+  !>   If evect /= rocblas_evect_none and info = 0, contains the eigenvectors.
+  !>
+  !> @param[in] ldz
+  !>   rocblas_int. Leading dimension of Z. ldz >= n.
+  !>
+  !> @param[out] info
+  !>   rocblas_int (device).
+  !>   - 0: successful exit
+  !>   - i (1 <= i <= n): i columns of Z failed to converge
+  !>   - n + i: leading minor of order i of B not positive definite
+  !>
+  !> @note
+  !>   - All matrices and arrays are GPU device memory.
+  !>   - Eigenvectors (if requested) are orthonormal.
+  !>   - Divide-and-conquer algorithm is used for eigenvectors.
+  !>   - When erange = rocblas_erange_value, nev is not known in advance,
+  !>     allocate Z with n columns.
+  interface rocsolver_cheevdx
+    function rocsolver_cheevdx_(handle, evect, erange, uplo, n, A, lda, &
+                                        vl, vu, il, iu, nev, W, Z, ldz, info) bind(C, name="rocsolver_cheevdx")
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_cheevdx_
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      type(c_ptr), value    :: A
+      integer(c_int), value :: lda
+      real(c_float), value :: vl
+      real(c_float), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      type(c_ptr), value :: W
+      type(c_ptr), value :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+    end function rocsolver_cheevdx_
+
+#ifdef USE_FPOINTER_INTERFACES
+    module procedure &
+      rocsolver_cheevdx_full_rank,&
+      rocsolver_cheevdx_rank_0,&
+      rocsolver_cheevdx_rank_1
+#endif
+  end interface
+
+  interface rocsolver_zheevdx
+    function rocsolver_zheevdx_(handle, evect, erange, uplo, n, A, lda, &
+                                vl, vu, il, iu, nev, W, Z, ldz, info) bind(C, name="rocsolver_zheevdx")
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zheevdx_
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      type(c_ptr), value    :: A
+      integer(c_int), value :: lda
+      real(c_double), value :: vl
+      real(c_double), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      type(c_ptr), value :: W
+      type(c_ptr), value :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+    end function rocsolver_zheevdx_
+
+#ifdef USE_FPOINTER_INTERFACES
+    module procedure &
+      rocsolver_zheevdx_full_rank,&
+      rocsolver_zheevdx_rank_0,&
+      rocsolver_zheevdx_rank_1
+#endif
+  end interface
+
+  !> \brief
+  !>   HEGVDX computes a set of the eigenvalues and optionally the corresponding
+  !>   eigenvectors of a complex generalized Hermitian-definite eigenproblem.
+  !>
+  !> \details
+  !>   Computes a set of the eigenvalues and optionally the corresponding
+  !>   eigenvectors of a complex generalized Hermitian-definite eigenproblem.
+  !>   The eignvectors are computed using a divide and conquer algorithm.
+  !>   The generalized eigenproblem solved is one of the following, depending on
+  !>   the value of @c itype:
+  !>     - itype = rocblas_eform_1 :  A * x = lambda * B * x
+  !>     - itype = rocblas_eform_2 :  A * B * x = lambda * x
+  !>     - itype = rocblas_eform_3 :  B * A * x = lambda * x
+  !>
+  !>   When eigenvectors are computed, the matrix Z is normalized such that
+  !>   Z^H * B * Z = I, i.e. the eigenvectors are B-orthonormal.
+  !>
+  !>   Depending on @c erange, the routine computes:
+  !>     - all eigenvalues,
+  !>     - eigenvalues in the half-open interval (vl, vu], or
+  !>     - the il-th through iu-th eigenvalues (by index).
+  !>
+  !>   If @c evect = rocblas_evect_original, the eigenvectors corresponding to
+  !>   the selected eigenvalues are computed as well.
+  !>
+  !> @param[in] handle
+  !>   rocblas_handle. The GPU library context.
+  !>
+  !> @param[in] itype
+  !>   rocblas_eform. Specifies the form of the generalized eigenproblem.
+  !>
+  !> @param[in] evect
+  !>   rocblas_evect. Specifies whether eigenvectors are computed.
+  !>   - rocblas_evect_none     : eigenvalues only.
+  !>   - rocblas_evect_original : eigenvalues and eigenvectors.
+  !>   Note: rocblas_evect_tridiagonal is not supported.
+  !>
+  !> @param[in] erange
+  !>   rocblas_erange. Specifies which eigenvalues to compute:
+  !>   - rocblas_erange_all
+  !>   - rocblas_erange_value
+  !>   - rocblas_erange_index
+  !>
+  !> @param[in] uplo
+  !>   rocblas_fill. Indicates whether the upper or lower part of A and B
+  !>   is stored. The opposite part is not referenced.
+  !>
+  !> @param[in] n
+  !>   rocblas_int. Matrix order. n >= 0.
+  !>
+  !> @param[in,out] A
+  !>   Complex array on the GPU of dimension (lda,n).
+  !>   On entry: Hermitian matrix A.
+  !>   On exit: destroyed.
+  !>
+  !> @param[in] lda
+  !>   rocblas_int. Leading dimension of A. lda >= n.
+  !>
+  !> @param[in,out] B
+  !>   Complex array on the GPU of dimension (ldb,n).
+  !>   On entry: Hermitian positive definite matrix B.
+  !>   On exit: triangular factor from POTRF.
+  !>
+  !> @param[in] ldb
+  !>   rocblas_int. Leading dimension of B. ldb >= n.
+  !>
+  !> @param[in] vl
+  !>   real type. Lower bound of interval (vl, vu].
+  !>   Ignored unless erange = rocblas_erange_value.
+  !>
+  !> @param[in] vu
+  !>   real type. Upper bound of interval (vl, vu].
+  !>   Ignored unless erange = rocblas_erange_value.
+  !>
+  !> @param[in] il
+  !>   rocblas_int. Index of smallest eigenvalue to be computed.
+  !>   Ignored unless erange = rocblas_erange_index.
+  !>
+  !> @param[in] iu
+  !>   rocblas_int. Index of largest eigenvalue to be computed.
+  !>   Ignored unless erange = rocblas_erange_index.
+  !>
+  !> @param[out] nev
+  !>   rocblas_int (device). Number of eigenvalues found.
+  !>
+  !> @param[out] W
+  !>   real array on the GPU of dimension n.
+  !>   First nev elements contain eigenvalues.
+  !>
+  !> @param[out] Z
+  !>   Complex array on the GPU of dimension (ldz,nev).
+  !>   If evect /= rocblas_evect_none and info = 0, contains the eigenvectors.
+  !>
+  !> @param[in] ldz
+  !>   rocblas_int. Leading dimension of Z. ldz >= n.
+  !>
+  !> @param[out] info
+  !>   rocblas_int (device).
+  !>   - 0: successful exit
+  !>   - i (1 <= i <= n): i columns of Z failed to converge
+  !>   - n + i: leading minor of order i of B not positive definite
+  !>
+  !> @note
+  !>   - All matrices and arrays are GPU device memory.
+  !>   - Eigenvectors (if requested) are B-orthonormal: Z^H * B * Z = I.
+  !>   - Divide-and-conquer algorithm is used for eigenvectors.
+  !>   - When erange = rocblas_erange_value, nev is not known in advance,
+  !>     allocate Z with n columns.
+  interface rocsolver_chegvdx
+    function rocsolver_chegvdx_(handle, itype, evect, erange, uplo, n, A, lda, B, ldb, &
+                                        vl, vu, il, iu, nev, W, Z, ldz, info) bind(C, name="rocsolver_chegvdx")
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_chegvdx_
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      type(c_ptr), value    :: A
+      integer(c_int), value :: lda
+      type(c_ptr), value    :: B
+      integer(c_int), value :: ldb
+      real(c_float), value :: vl
+      real(c_float), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      type(c_ptr), value :: W
+      type(c_ptr), value :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+    end function rocsolver_chegvdx_
+
+#ifdef USE_FPOINTER_INTERFACES
+    module procedure &
+      rocsolver_chegvdx_full_rank,&
+      rocsolver_chegvdx_rank_0,&
+      rocsolver_chegvdx_rank_1
+#endif
+  end interface
+
+  interface rocsolver_zhegvdx
+    function rocsolver_zhegvdx_(handle, itype, evect, erange, uplo, n, A, lda, B, ldb, &
+                                        vl, vu, il, iu, nev, W, Z, ldz, info) bind(C, name="rocsolver_zhegvdx")
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zhegvdx_ 
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      type(c_ptr), value    :: A
+      integer(c_int), value :: lda
+      type(c_ptr), value    :: B
+      integer(c_int), value :: ldb
+      real(c_double), value :: vl
+      real(c_double), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      type(c_ptr), value :: W
+      type(c_ptr), value :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+    end function rocsolver_zhegvdx_
+
+#ifdef USE_FPOINTER_INTERFACES
+    module procedure &
+      rocsolver_zhegvdx_full_rank,&
+      rocsolver_zhegvdx_rank_0,&
+      rocsolver_zhegvdx_rank_1
 #endif
   end interface
   !>     \brief GETRI_OUTOFPLACE computes the inverse \f$C = A^{-1}\f$ of a general n-by-n matrix A.
@@ -59506,6 +59954,570 @@ module hipfort_rocsolver
       rocsolver_zsytrf_strided_batched_rank_1 = rocsolver_zsytrf_strided_batched_(handle,uplo,n,c_loc(A),lda,strideA,c_loc(ipiv),strideP,myInfo,batch_count)
     end function
 
+    function rocsolver_chegvdx_full_rank(handle, itype, evect, erange, uplo, n, A, lda, B, ldb, &
+                                        vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_chegvdx_full_rank
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_float_complex), target, dimension(:,:) :: A
+      integer(c_int), value :: lda
+      complex(c_float_complex), target, dimension(:,:) :: B
+      integer(c_int), value :: ldb
+      real(c_float), value :: vl
+      real(c_float), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_float), target, dimension(:) :: W
+      complex(c_float_complex), target, dimension(:,:) :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_chegvdx_full_rank = rocsolver_chegvdx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, c_loc(B), ldb, &
+                                                       vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+
+    end function rocsolver_chegvdx_full_rank
+
+    function rocsolver_chegvdx_rank_1(handle, itype, evect, erange, uplo, n, A, lda, B, ldb, &
+                                        vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_chegvdx_rank_1
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_float_complex), target, dimension(:) :: A
+      integer(c_int), value :: lda
+      complex(c_float_complex), target, dimension(:) :: B
+      integer(c_int), value :: ldb
+      real(c_float), value :: vl
+      real(c_float), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_float), target, dimension(:) :: W
+      complex(c_float_complex), target, dimension(:) :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_chegvdx_rank_1 = rocsolver_chegvdx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, c_loc(B), ldb, &
+                                                       vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+
+    end function rocsolver_chegvdx_rank_1
+
+    function rocsolver_chegvdx_rank_0(handle, itype, evect, erange, uplo, n, A, lda, B, ldb, &
+                                        vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_chegvdx_rank_0
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_float_complex), target :: A
+      integer(c_int), value :: lda
+      complex(c_float_complex), target :: B
+      integer(c_int), value :: ldb
+      real(c_float), value :: vl
+      real(c_float), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_float), target :: W
+      complex(c_float_complex), target :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_chegvdx_rank_0 = rocsolver_chegvdx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, c_loc(B), ldb, &
+                                                       vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+
+    end function rocsolver_chegvdx_rank_0
+
+    function rocsolver_zhegvdx_full_rank(handle, itype, evect, erange, uplo, n, A, lda, B, ldb, &
+                                        vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zhegvdx_full_rank
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_double_complex), target, dimension(:,:) :: A
+      integer(c_int), value :: lda
+      complex(c_double_complex), target, dimension(:,:) :: B
+      integer(c_int), value :: ldb
+      real(c_double), value :: vl
+      real(c_double), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_double), target, dimension(:) :: W
+      complex(c_double_complex), target, dimension(:,:) :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_zhegvdx_full_rank = rocsolver_zhegvdx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, c_loc(B), ldb, &
+                                                       vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+
+    end function rocsolver_zhegvdx_full_rank
+
+    function rocsolver_zhegvdx_rank_1(handle, itype, evect, erange, uplo, n, A, lda, B, ldb, &
+                                        vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zhegvdx_rank_1
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_double_complex), target, dimension(:) :: A
+      integer(c_int), value :: lda
+      complex(c_double_complex), target, dimension(:) :: B
+      integer(c_int), value :: ldb
+      real(c_double), value :: vl
+      real(c_double), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_double), target, dimension(:) :: W
+      complex(c_double_complex), target, dimension(:) :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_zhegvdx_rank_1 = rocsolver_zhegvdx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, c_loc(B), ldb, &
+                                                       vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+
+    end function rocsolver_zhegvdx_rank_1
+
+    function rocsolver_zhegvdx_rank_0(handle, itype, evect, erange, uplo, n, A, lda, B, ldb, &
+                                        vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zhegvdx_rank_0
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_double_complex), target :: A
+      integer(c_int), value :: lda
+      complex(c_double_complex), target :: B
+      integer(c_int), value :: ldb
+      real(c_double), value :: vl
+      real(c_double), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_double), target :: W
+      complex(c_double_complex), target :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_zhegvdx_rank_0 = rocsolver_zhegvdx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, c_loc(B), ldb, &
+                                                       vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+
+    end function rocsolver_zhegvdx_rank_0
+
+    function rocsolver_chegvx_full_rank(handle, itype, evect, erange, uplo, n, A, lda, &
+               B, ldb, vl, vu, il, iu, abstol, nev, W, Z, ldz, ifail, info)
+      use iso_c_binding
+      use hipfort_rocsolver_enums
+      use hipfort_rocblas_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_chegvx_full_rank
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value       :: n
+      complex(c_float_complex), target, dimension(:,:) :: A
+      integer(c_int), value       :: lda
+      complex(c_float_complex), target, dimension(:,:) :: B
+      integer(c_int), value       :: ldb
+      real(c_float), value        :: vl
+      real(c_float), value        :: vu
+      integer(c_int), value       :: il
+      integer(c_int), value       :: iu
+      real(c_float), value       :: abstol
+      integer(c_int), intent(out) :: nev
+      real(c_float), target, dimension(:) :: W
+      complex(c_float_complex), target, dimension(:,:):: Z
+      integer(c_int), value       :: ldz
+      integer(c_int), target, dimension(:) :: ifail
+      integer(c_int), intent(out) :: info
+
+      rocsolver_chegvx_full_rank = rocsolver_chegvx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, &
+               c_loc(B), ldb, vl, vu, il, iu, abstol, nev, c_loc(W), c_loc(Z), ldz, c_loc(ifail), info)
+
+    end function rocsolver_chegvx_full_rank
+
+    function rocsolver_chegvx_rank1(handle, itype, evect, erange, uplo, n, A, lda, &
+               B, ldb, vl, vu, il, iu, abstol, nev, W, Z, ldz, ifail, info)
+      use iso_c_binding
+      use hipfort_rocsolver_enums
+      use hipfort_rocblas_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_chegvx_rank1
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value       :: n
+      complex(c_float_complex), target, dimension(:) :: A
+      integer(c_int), value       :: lda
+      complex(c_float_complex), target, dimension(:) :: B
+      integer(c_int), value       :: ldb
+      real(c_float), value        :: vl
+      real(c_float), value        :: vu
+      integer(c_int), value       :: il
+      integer(c_int), value       :: iu
+      real(c_float), value       :: abstol
+      integer(c_int), intent(out) :: nev
+      real(c_float), target, dimension(:) :: W
+      complex(c_float_complex), target, dimension(:):: Z
+      integer(c_int), value       :: ldz
+      integer(c_int), target, dimension(:) :: ifail
+      integer(c_int), intent(out) :: info
+
+      rocsolver_chegvx_rank1 = rocsolver_chegvx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, &
+               c_loc(B), ldb, vl, vu, il, iu, abstol, nev, c_loc(W), c_loc(Z), ldz, c_loc(ifail), info)
+
+    end function rocsolver_chegvx_rank1
+
+    function rocsolver_chegvx_rank0(handle, itype, evect, erange, uplo, n, A, lda, &
+               B, ldb, vl, vu, il, iu, abstol, nev, W, Z, ldz, ifail, info)
+      use iso_c_binding
+      use hipfort_rocsolver_enums
+      use hipfort_rocblas_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_chegvx_rank0
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value       :: n
+      complex(c_float_complex), target :: A
+      integer(c_int), value       :: lda
+      complex(c_float_complex), target :: B
+      integer(c_int), value       :: ldb
+      real(c_float), value        :: vl
+      real(c_float), value        :: vu
+      integer(c_int), value       :: il
+      integer(c_int), value       :: iu
+      real(c_float), value       :: abstol
+      integer(c_int), intent(out) :: nev
+      real(c_float), target       :: W
+      complex(c_float_complex), target :: Z
+      integer(c_int), value       :: ldz
+      integer(c_int), target      :: ifail
+      integer(c_int), intent(out) :: info
+
+      rocsolver_chegvx_rank0 = rocsolver_chegvx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, &
+               c_loc(B), ldb, vl, vu, il, iu, abstol, nev, c_loc(W), c_loc(Z), ldz, c_loc(ifail), info)
+
+    end function rocsolver_chegvx_rank0
+
+    function rocsolver_zhegvx_full_rank(handle, itype, evect, erange, uplo, n, A, lda, &
+               B, ldb, vl, vu, il, iu, abstol, nev, W, Z, ldz, ifail, info)
+      use iso_c_binding
+      use hipfort_rocsolver_enums
+      use hipfort_rocblas_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zhegvx_full_rank
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value       :: n
+      complex(c_double_complex), target, dimension(:,:) :: A
+      integer(c_int), value       :: lda
+      complex(c_double_complex), target, dimension(:,:) :: B
+      integer(c_int), value       :: ldb
+      real(c_double), value        :: vl
+      real(c_double), value        :: vu
+      integer(c_int), value       :: il
+      integer(c_int), value       :: iu
+      real(c_double), value       :: abstol
+      integer(c_int), intent(out) :: nev
+      real(c_double), target, dimension(:) :: W
+      complex(c_double_complex), target, dimension(:,:):: Z
+      integer(c_int), value       :: ldz
+      integer(c_int), target, dimension(:) :: ifail
+      integer(c_int), intent(out) :: info
+
+      rocsolver_zhegvx_full_rank = rocsolver_zhegvx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, &
+               c_loc(B), ldb, vl, vu, il, iu, abstol, nev, c_loc(W), c_loc(Z), ldz, c_loc(ifail), info)
+
+    end function rocsolver_zhegvx_full_rank
+
+    function rocsolver_zhegvx_rank1(handle, itype, evect, erange, uplo, n, A, lda, &
+               B, ldb, vl, vu, il, iu, abstol, nev, W, Z, ldz, ifail, info)
+      use iso_c_binding
+      use hipfort_rocsolver_enums
+      use hipfort_rocblas_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zhegvx_rank1
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value       :: n
+      complex(c_double_complex), target, dimension(:) :: A
+      integer(c_int), value       :: lda
+      complex(c_double_complex), target, dimension(:) :: B
+      integer(c_int), value       :: ldb
+      real(c_double), value        :: vl
+      real(c_double), value        :: vu
+      integer(c_int), value       :: il
+      integer(c_int), value       :: iu
+      real(c_double), value       :: abstol
+      integer(c_int), intent(out) :: nev
+      real(c_double), target, dimension(:) :: W
+      complex(c_double_complex), target, dimension(:):: Z
+      integer(c_int), value       :: ldz
+      integer(c_int), target, dimension(:) :: ifail
+      integer(c_int), intent(out) :: info
+
+      rocsolver_zhegvx_rank1 = rocsolver_zhegvx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, &
+               c_loc(B), ldb, vl, vu, il, iu, abstol, nev, c_loc(W), c_loc(Z), ldz, c_loc(ifail), info)
+
+    end function rocsolver_zhegvx_rank1
+
+    function rocsolver_zhegvx_rank0(handle, itype, evect, erange, uplo, n, A, lda, &
+               B, ldb, vl, vu, il, iu, abstol, nev, W, Z, ldz, ifail, info)
+      use iso_c_binding
+      use hipfort_rocsolver_enums
+      use hipfort_rocblas_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zhegvx_rank0
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_eform_ax)), value :: itype
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value       :: n
+      complex(c_double_complex), target :: A
+      integer(c_int), value       :: lda
+      complex(c_double_complex), target :: B
+      integer(c_int), value       :: ldb
+      real(c_double), value        :: vl
+      real(c_double), value        :: vu
+      integer(c_int), value       :: il
+      integer(c_int), value       :: iu
+      real(c_double), value       :: abstol
+      integer(c_int), intent(out) :: nev
+      real(c_double), target      :: W
+      complex(c_double_complex), target :: Z
+      integer(c_int), value       :: ldz
+      integer(c_int), target      :: ifail
+      integer(c_int), intent(out) :: info
+
+      rocsolver_zhegvx_rank0 = rocsolver_zhegvx_(handle, itype, evect, erange, uplo, n, c_loc(A), lda, &
+               c_loc(B), ldb, vl, vu, il, iu, abstol, nev, c_loc(W), c_loc(Z), ldz, c_loc(ifail), info)
+
+    end function rocsolver_zhegvx_rank0
+
+        function rocsolver_cheevdx_full_rank(handle, evect, erange, uplo, n, A, lda, &
+                                         vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_cheevdx_full_rank
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_float_complex), target, dimension(:,:) :: A
+      integer(c_int), value :: lda
+      real(c_float), value :: vl
+      real(c_float), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_float), target, dimension(:) :: W
+      complex(c_float_complex), target, dimension(:,:) :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_cheevdx_full_rank = rocsolver_cheevdx_(handle, evect, erange, uplo, n, c_loc(A), lda, &
+                                                       vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+    end function rocsolver_cheevdx_full_rank
+
+
+    function rocsolver_cheevdx_rank_1(handle, evect, erange, uplo, n, A, lda, &
+                                      vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_cheevdx_rank_1
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_float_complex), target, dimension(:) :: A
+      integer(c_int), value :: lda
+      real(c_float), value :: vl
+      real(c_float), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_float), target, dimension(:) :: W
+      complex(c_float_complex), target, dimension(:) :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_cheevdx_rank_1 = rocsolver_cheevdx_(handle, evect, erange, uplo, n, c_loc(A), lda, &
+                                                    vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+    end function rocsolver_cheevdx_rank_1
+
+    function rocsolver_cheevdx_rank_0(handle, evect, erange, uplo, n, A, lda, &
+                                      vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_cheevdx_rank_0
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_float_complex), target :: A
+      integer(c_int), value :: lda
+      real(c_float), value :: vl
+      real(c_float), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_float), target :: W
+      complex(c_float_complex), target :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_cheevdx_rank_0 = rocsolver_cheevdx_(handle, evect, erange, uplo, n, c_loc(A), lda, &
+                                                    vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+    end function rocsolver_cheevdx_rank_0
+
+    function rocsolver_zheevdx_full_rank(handle, evect, erange, uplo, n, A, lda, &
+                                         vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zheevdx_full_rank
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_double_complex), target, dimension(:,:) :: A
+      integer(c_int), value :: lda
+      real(c_double), value :: vl
+      real(c_double), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_double), target, dimension(:) :: W
+      complex(c_double_complex), target, dimension(:,:) :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_zheevdx_full_rank = rocsolver_zheevdx_(handle, evect, erange, uplo, n, c_loc(A), lda, &
+                                                       vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+    end function rocsolver_zheevdx_full_rank
+
+    function rocsolver_zheevdx_rank_1(handle, evect, erange, uplo, n, A, lda, &
+                                      vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zheevdx_rank_1
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_double_complex), target, dimension(:) :: A
+      integer(c_int), value :: lda
+      real(c_double), value :: vl
+      real(c_double), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_double), target, dimension(:) :: W
+      complex(c_double_complex), target, dimension(:) :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_zheevdx_rank_1 = rocsolver_zheevdx_(handle, evect, erange, uplo, n, c_loc(A), lda, &
+                                                    vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+    end function rocsolver_zheevdx_rank_1
+
+    function rocsolver_zheevdx_rank_0(handle, evect, erange, uplo, n, A, lda, &
+                                      vl, vu, il, iu, nev, W, Z, ldz, info)
+      use iso_c_binding
+      use hipfort_rocblas_enums
+      use hipfort_rocsolver_enums
+      implicit none
+      integer(kind(rocblas_status_success)) :: rocsolver_zheevdx_rank_0
+      type(c_ptr), value :: handle
+      integer(kind(rocblas_evect_original)), value :: evect
+      integer(kind(rocblas_erange_all)), value :: erange
+      integer(kind(rocblas_fill_upper)), value :: uplo
+      integer(c_int), value :: n
+      complex(c_double_complex), target :: A
+      integer(c_int), value :: lda
+      real(c_double), value :: vl
+      real(c_double), value :: vu
+      integer(c_int), value :: il
+      integer(c_int), value :: iu
+      integer(c_int), intent(out) :: nev
+      real(c_double), target :: W
+      complex(c_double_complex), target :: Z
+      integer(c_int), value :: ldz
+      integer(c_int), intent(out) :: info
+
+      rocsolver_zheevdx_rank_0 = rocsolver_zheevdx_(handle, evect, erange, uplo, n, c_loc(A), lda, &
+                                                    vl, vu, il, iu, nev, c_loc(W), c_loc(Z), ldz, info)
+    end function rocsolver_zheevdx_rank_0
   
 #endif
 end module hipfort_rocsolver

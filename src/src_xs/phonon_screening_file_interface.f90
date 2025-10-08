@@ -1,6 +1,6 @@
 module phonon_screening_file_interface
 
-    use precision, only: sp, dp
+    use precision, only: sp, dp, str_1024
     use modmpi, only: mpiglobal, terminate_mpi_env
 
     implicit none
@@ -155,31 +155,27 @@ contains
         integer(sp) :: nspecies
         !> Running index phonon mode
         integer(sp) ::  imode
-        !> Running index lines
-        integer(sp) :: ilines
-        !> Running index atoms
-        integer(sp)  :: iatom
-        !> Running index species
-        integer(sp)  :: ispecies
         !> Running index combined atoms and species
         integer(sp)  :: ias
         !> fileindex
         integer(sp) :: fid
-        !> Characters to read
-        character(len=40) :: char(4)
+        !> Line buffers
+        character(len=str_1024) :: line, fstr 
+        !> I/O status
+        integer(sp) :: ios
         !> helper array phonon eigenvectors
         real(dp) :: e_real(3)
         !> helper array phonon eigenvectors
         real(dp) :: e_imag(3)
-        integer(sp) :: var1
-        !> Format for reading
-        character(len=40) ::fmt
         !> mpiinfo
         type(mpiinfo) :: mpiglobal
         !> Number of phonon modes
         integer(sp) :: n_phonon_modes
         !> q-vectors as read from file (for comparison with expected q-vectors)
         real(dp), allocatable :: qvecs_read(:, :)
+        !> Positions in the buffers
+        integer(sp) :: pos1, pos2
+
 
 
         ! Get some infos
@@ -189,51 +185,48 @@ contains
         n_phonon_modes = 3*natmtot
 
         allocate(qvecs_read(3, nqpoints))
-
         allocate (evec_ph_local(3, natmtot, n_phonon_modes, nqpoints))
-        ! Define format for reading QE output file
-
-        if (natmtot .le. 3._dp) then
-            fmt = '(4X,A4,X,A1,4X,I1,A1,A1,7X,F10.5)'
-        else
-            fmt = '(4X,A4,X,A1,4X,I2,A1,A1,7X,F10.5)'
-        end if
 
         call getunit(fid)
         open (unit=fid, file=trim(fname), status='old', action='read')
 
-        do iq = 1, nqpoints
-            ! Skip file info
-            do ilines = 1, 2
-                read (fid, *)
-            end do
+        iq = 0
+        ! Iterate over the file
+        do 
+            ! Try to read the line, if EOS exit
+            read(fid, '(A)', iostat=ios) line
+            if (ios /= 0) exit
 
-            ! Read q-vector
-            read (fid, '(A10,3F10.5)') char(1), qvecs_read(:, iq)
+            ! Detect q-point
+            if (index(line, 'q =') /= 0) then
+                iq = iq + 1
+                imode = 0
+                pos1 = index(line,'=') + 1
+                fstr = adjustl(line(pos1:))
+                read(fstr,*) qvecs_read(:, iq)
+                cycle
+            end if
 
-            ! Skip line
-            read (fid, *)
-
-            !Read frequencies
-            do imode = 1, n_phonon_modes
-
-                read (fid, fmt) char(1), char(2), var1, char(3), char(4), freq_ph(imode, iq)
+            ! Detect frequency line
+            if (index(line, 'freq') /= 0) then
+                imode = imode + 1
                 ias = 0
-                do ispecies = 1, nspecies
-                    do iatom = 1, natoms(ispecies)
-                        ias = ias + 1
+                pos1 = index(line, '=') + 1
+                pos2 = index(line(pos1:), '[') - 2
+                fstr = adjustl(line(pos1:pos1+pos2))
+                read(fstr, *) freq_ph(imode, iq)
+                cycle
+            end if
 
-                        ! read eigenvectors
-                        read (fid, *) char(1), e_real(1), e_imag(1), e_real(2), e_imag(2), e_real(3), e_imag(3)
-
-                        evec_ph_local(:, ias, imode, iq) = cmplx(e_real, e_imag)
-                    end do
-                end do
-
-            end do
-
-            !Skip stars
-            read (fid, *)
+            ! Detect eigenvector line
+            if (index(line, '(') /= 0 .and. index(line, 'freq') == 0) then
+                ias = ias + 1
+                pos1 = index(line,'(') + 1
+                pos2 = index(line,')') - 1
+                fstr = adjustl(line(pos1:pos2))
+                read(fstr,*) e_real(1), e_imag(1), e_real(2), e_imag(2), e_real(3), e_imag(3)
+                evec_ph_local(:, ias, imode, iq) = cmplx(e_real, e_imag, kind=dp)
+            end if
 
         end do
 
@@ -465,3 +458,4 @@ contains
     end subroutine check_file_existence
 
 end module phonon_screening_file_interface
+

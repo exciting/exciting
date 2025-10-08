@@ -6,7 +6,6 @@ stages:
   - python
   - build
   - test
-  - cleanup
   - deploy
 
 # Split configurations into separate files
@@ -25,4 +24,3 @@ include:
   - local: '/.gitlab/python-libs-amdgpu.yml'
   - local: '/.gitlab/exciting-cray-amdgpu.yml'
   - local: '/.gitlab/exciting-llvm-amdgpu.yml'
-  - local: '/.gitlab/cleanup-amdgpu.yml'

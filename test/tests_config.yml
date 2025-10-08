@@ -673,14 +673,12 @@ hybrid/HSE-Si-exact-singularity:
    failing_builds:
       - !Build intel_mpiandsmp
       - !Build intelLLVM_mpiandsmp
-      - !Build flang_mpiandsmp
    comments: 'Test is flakey when run in the CI with Intel parallel build.'
 
 hybrid/HSE-Si:
    failing_builds:
       - !Build intel_mpiandsmp
       - !Build intelLLVM_mpiandsmp
-      - !Build flang_mpiandsmp
    comments: 'Test is flakey when run in the CI with Intel parallel build.'
 
 # TODO(Cecilia) Issue 54
@@ -688,7 +686,6 @@ hybrid/PBE0-Si:
    failing_builds:
       - !Build intel_mpiandsmp
       - !Build intelLLVM_mpiandsmp
-      - !Build flang_mpiandsmp
    comments: 'Test is flakey when run in the CI with Intel parallel build.'
 
 hybrid/PBEH-spin-Si:

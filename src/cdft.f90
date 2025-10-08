@@ -365,10 +365,17 @@ subroutine initialize_cdft_global_arrays( psi_gs, first_k )
   complex(dp), contiguous, intent(in) :: psi_gs(:, :, first_k:)
 
   call deallocate_cdft_global_arrays()
-  associate( n_basis => size( psi_gs, 1 ), n_states => size( psi_gs, 2 ), last_k => ubound( psi_gs, 3 ) )
-    allocate( prod(n_basis, n_states, first_k:last_k), source=zzero )
-    allocate( evecfv_gs(n_basis, n_states, first_k:last_k), source=psi_gs )
-  end associate
+  if (size( psi_gs, 3) /= 0) then
+    associate( n_basis => size( psi_gs, 1 ), n_states => size( psi_gs, 2 ), last_k => ubound( psi_gs, 3 ) )
+      allocate( prod(n_basis, n_states, first_k:last_k), source=zzero )
+      allocate( evecfv_gs(n_basis, n_states, first_k:last_k), source=psi_gs )
+    end associate
+  else
+    associate( n_basis => size( psi_gs, 1 ), n_states => size( psi_gs, 2 ))
+      allocate( prod(n_basis, n_states, 0) )
+      allocate( evecfv_gs(n_basis, n_states, 0) )
+    end associate
+  end if
 end subroutine
 
 

@@ -195,6 +195,11 @@ if(NOT CPUBACKEND)
 
     set(ROCM_VERSION_NUM ${ROCM_VERSION_MAJOR}.${ROCM_VERSION_MINOR}${ROCM_VERSION_PATCH})
 
+    if (NOT ROCM_VERSION_NUM GREATER_EQUAL 6.20)
+        message("Fatal error: ROCm version 6.2.0 or greater is required. 
+	         Use TheRock or spack to install a more modern version.")
+    endif()
+
     if (ROCM_VERSION_NUM GREATER_EQUAL 6.22)
 	if (AMD_HIPSETVALIDDEVICE_SUPPORTED)
 	    message(STATUS "ROCM defines and supports setting valid devices")
@@ -305,9 +310,6 @@ if(NOT CPUBACKEND)
     #Linear algebra
     set(SRC_DEVICEACC_LINALG ${DEVICEACC_SRC_DIR}/linalg/device/linalg_device_common.f90)
     # FFT
-    if (AMD)
-        file(GLOB SRC_DEVICEACC_HIPFORT "${DEVICEACC_SOURCE_DIR}/external/hipfort/*.f90")
-    endif()
     set(SRC_DEVICEACC_FFT ${SRC_DEVICEACC_FFT} ${DEVICEACC_SRC_DIR}/fft/device/fft_device_t.f90)
     # Allocation
     set(SRC_DEVICEACC_MEMORY ${DEVICEACC_SRC_DIR}/memory/common/memory_device.f90
@@ -316,6 +318,15 @@ if(NOT CPUBACKEND)
     # Macros
     set(DEVICEACC_MACROS ${DEVICEACC_SRC_DIR}/macros/device/offload.fpp)
     include_directories(${DEVICEACC_SRC_DIR}/macros/device/)
+    # Vendor specific
+    if (AMD)
+        file(GLOB SRC_DEVICEACC_HIPFORT 
+		  "${DEVICEACC_SOURCE_DIR}/external/hipfort/*.f90"
+	          "${DEVICEACC_SOURCE_DIR}/external/hipfort/*.F90")
+    endif()
+    if (NVIDIA)
+        file(GLOB SRC_DEVICEACC_CUDA "${DEVICEACC_SOURCE_DIR}/external/cuda_fortran/*.f90")
+    endif()
 else()
     set(SRC_DEVICEACC_CONTROL ${DEVICEACC_SRC_DIR}/control/host/device_world_t.f90)
     set(SRC_DEVICEACC_LINALG  ${DEVICEACC_SRC_DIR}/linalg/host/linalg_device_common.f90)
@@ -333,12 +344,13 @@ set(SRC_DEVICEACC ${SRC_MAGMA_F90}
                   ${SRC_DEVICEACC_LINALG}
                   ${SRC_DEVICEACC_FFT}
                   ${SRC_DEVICEACC_MEMORY}
-	          ${SRC_DEVICEACC_HIPFORT})
+                  ${SRC_DEVICEACC_HIPFORT}
+                  ${SRC_DEVICEACC_CUDA})
 
 if(NOT CPUBACKEND)
     # Create a link variable for the link against it and not its dependencies
     if (NVIDIA)
-        set(LINKS_DEVICEACC ${devacc_link_libs} ${MAGMA_ROOT}/lib/libmagma.so CUDA::cufft CUDA::cudart)
+        set(LINKS_DEVICEACC ${devacc_link_libs} ${MAGMA_ROOT}/lib/libmagma.so CUDA::cufft CUDA::cudart CUDA::cusolver)
     elseif(AMD)
         set(LINKS_DEVICEACC ${devacc_link_libs} ${MAGMA_ROOT}/lib/libmagma.so ${rocfftlib} ${rocsolverlib})
     elseif(INTEL)
