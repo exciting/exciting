@@ -56,11 +56,6 @@ Subroutine effmass
 ! compute "relativistic mass" on the G-grid
       Call genmeffig
       ik0 = 0
-! begin parallel loop over k-points
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(evalfv,evecfv,evecsv) &
-!$OMP PRIVATE(i1,i2,i3,j1,j2,j3,ist)
-!$OMP DO
       Do ik = 1, nkpt
          Allocate (evalfv(nstfv, nspnfv))
          Allocate (evecfv(nmatmax, nstfv, nspnfv))
@@ -72,6 +67,7 @@ Subroutine effmass
 ! initialise the eigenvectors if we use the Davidson eigensolver
          if (input%groundstate%solver%type.eq.'Davidson') evecfv=zzero
 ! solve the first- and second-variational secular equations
+! using multithreading.  
          Call seceqn (ik, evalfv, evecfv, evecsv)
 ! copy eigenvalues to new array
          j1 = i1 + input%properties%masstensor%ndspem
@@ -82,8 +78,6 @@ Subroutine effmass
          End Do
          Deallocate (evalfv, evecfv, evecsv)
       End Do
-!$OMP END DO
-!$OMP END PARALLEL
       call mt_hscf%release() 
 
       if (allocated(meffig)) deallocate(meffig)

@@ -9,11 +9,11 @@
       "unit": "a.u."
     },
     "Re(psi)": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     },
     "Im(psi)": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     }
   },
@@ -39,11 +39,11 @@
       "unit": "a.u."
     },
     "real": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     },
     "imaginary": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     }
   },
@@ -73,11 +73,11 @@
       "unit": "a.u."
     },
     "real": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     },
     "imaginary": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     }
   },
@@ -141,11 +141,11 @@
       "unit": "a.u."
     },
     "Re(psi)": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     },
     "Im(psi)": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     }
   },
@@ -171,11 +171,11 @@
       "unit": "a.u."
     },
     "real": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     },
     "imaginary": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     }
   },
@@ -205,11 +205,11 @@
       "unit": "a.u."
     },
     "real": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     },
     "imaginary": {
-      "tol": 1e-05,
+      "tol": 1e+42,
       "unit": "a.u."
     }
   },

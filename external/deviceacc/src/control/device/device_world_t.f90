@@ -25,6 +25,7 @@ module m_device_world_t
     use omp_lib
 #if defined(NVIDIAGPU)
     use magma2
+    use cusolver_fortran, only: cusolverDnCreate, cusolverDnDestroy
 #endif
 #if defined(AMDGPU)
     use magma2
@@ -45,8 +46,10 @@ module m_device_world_t
         integer(c_int), private :: host = -1
         !> Number of devices
         integer, private :: ndevices = -1
-        !> Device queue for linear algebra
+        !> Device queue for MAGMA
         type(c_ptr), allocatable, private  :: queue(:)
+        !> Solver handler
+        type(c_ptr), private  :: solver_handler
         !> The number of teams in the device
         integer, private :: num_teams
         !> The maximum number of threads per team
@@ -55,7 +58,7 @@ module m_device_world_t
         logical, private :: cpu_backend = .false.
     contains
         procedure, public :: init, finish, is_queue_set, get_queue, synchronize, get_device, get_num_teams, using_cpu_backend, &
-                             get_num_threads, simd_size, get_stream, get_linalg_handle
+                             get_num_threads, simd_size, get_stream, get_blas_handler, get_solver_handler
     end type device_world_t
 
 interface
@@ -69,10 +72,10 @@ end interface
 
 #if defined(AMDGPU)
 interface
-    function hipDeviceSynchronize() bind(c, name="hipDeviceSynchronize")
+    function DeviceSynchronize() bind(c, name="hipDeviceSynchronize")
         use iso_c_binding
-        integer(c_int) :: hipDeviceSynchronize
-    end function hipDeviceSynchronize
+        integer(c_int) :: DeviceSynchronize
+    end function DeviceSynchronize
 
 #if defined(AMD_CAN_SET_VALID_DEVICES)
     function hipSetValidDevices(device_arr, len) bind(c, name="hipSetValidDevices")
@@ -87,7 +90,13 @@ end interface
 #endif
 
 #if defined(NVIDIAGPU) 
-interface 
+interface
+
+    function DeviceSynchronize() bind(c, name="cudaDeviceSynchronize")
+        use iso_c_binding
+        integer(c_int) :: DeviceSynchronize
+    end function DeviceSynchronize
+
     function cudaSetValidDevices(device_arr, len) bind(c, name="cudaSetValidDevices")
         use iso_c_binding
         integer(c_int) :: cudaSetValidDevices  ! Return type
@@ -170,6 +179,7 @@ contains
 
             ! Having multiple processes share devices is not recommended.
             ! Therefore, we fail in that case
+            print *, omp_get_num_devices(),  omp_get_default_device(), nprocs
             if ( nprocs > omp_get_num_devices() - omp_get_default_device() ) then
                 error stop "Error(device_world_t%init): Having multiple processes share devices is not recommended."
             end if
@@ -246,6 +256,14 @@ contains
         !$omp end parallel
 #endif
 
+        ! For NVIDIA cards we need to init cudaSolver
+#if defined(NVIDIAGPU)
+        cerror = cusolverDnCreate(this%solver_handler)
+        if (cerror /= 0) then
+            error stop "Error(device_world_t%init): cusolver initialization failed."
+        end if
+#endif
+
         ! For AMD cards we need to make a global init
 #if defined(AMDGPU)
         cerror = rocfft_setup()
@@ -297,6 +315,14 @@ contains
 
         ! Make a final sync call only in case
         call this%synchronize()
+
+        ! Final call for the solvers
+#if defined(NVIDIAGPU)
+        cerror = cusolverDnDestroy(this%solver_handler)
+        if (cerror /= 0) then
+            error stop "Error(device_world_t%finish): cusolver cleanup failed."
+        end if
+#endif
 
         ! Final call for FFT libraries
 #if defined(AMDGPU)
@@ -353,7 +379,12 @@ contains
 #if defined(NVIDIAGPU) || defined(AMDGPU)
         ! This synchronizes the MAGMA stream, which is also used for FFTs
         call magma_queue_sync(this%queue(omp_get_thread_num()+1))
+
+        ! Synchronize the device for non-MAGMA kernels
+        cerror = DeviceSynchronize()
+        if (cerror /= 0) error stop "Error(device_world_t%synchronize): DeviceSynchronize (CUDA/AMD) failed."
 #endif
+
         ! We also wait for all nonwait OpenMP pure kernels
         !$omp taskwait
     end subroutine synchronize
@@ -413,18 +444,32 @@ contains
 #endif
     end function get_stream
 
-    !> Returns the underlying linear algebra handler
+    !> Returns the underlying linear algebra handler (LAPACK/BLAS)
     !> for Intel returns the pointer of the queue, which can be used for
     !> depend constructs
-    type(c_ptr) function get_linalg_handle(this)
+    type(c_ptr) function get_blas_handler(this)
         class(device_world_t), intent(in) :: this
 #if defined(NVIDIAGPU)
-        get_linalg_handle = magma_queue_get_cublas_handle(this%queue(omp_get_thread_num()+1))
+        get_blas_handler = magma_queue_get_cublas_handle(this%queue(omp_get_thread_num()+1))
 #elif defined(AMDGPU)
-        get_linalg_handle = magma_queue_get_hipblas_handle(this%queue(omp_get_thread_num()+1))
+        get_blas_handler = magma_queue_get_hipblas_handle(this%queue(omp_get_thread_num()+1))
 #else
-        get_linalg_handle = this%queue(omp_get_thread_num()+1)
+        get_blas_handler = this%queue(omp_get_thread_num()+1)
 #endif
-    end function get_linalg_handle
+    end function get_blas_handler
+
+    !> Returns the underlying linear algebra handler (Solver)
+    !> for Intel returns the pointer of the queue, which can be used for
+    !> depend constructs
+    type(c_ptr) function get_solver_handler(this)
+        class(device_world_t), intent(in) :: this
+#if defined(NVIDIAGPU)
+        get_solver_handler = this%solver_handler
+#elif defined(AMDGPU)
+        get_solver_handler = magma_queue_get_hipblas_handle(this%queue(omp_get_thread_num()+1))
+#else
+        get_solver_handler = this%queue(omp_get_thread_num()+1)
+#endif
+    end function get_solver_handler
 
 end module m_device_world_t

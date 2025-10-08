@@ -24,6 +24,9 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv, cdft_maximum_overlap)
       Use modinput
       Use modmain
       Use modmpi
+#ifdef USEOMP
+      use omp_lib
+#endif
 
       !> k-point index
       Integer, Intent (In) :: ik
@@ -45,6 +48,12 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv, cdft_maximum_overlap)
   ! allocatable arrays
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
 
+#ifdef USEOMP
+      ! It is really a bad idea from a programer point of view to execute this from more than
+      ! one thread as the diagonalization is performed using multithreading. Moreover, in some
+      ! cases it can lead to hanging executions.
+      if (omp_in_parallel()) call terminate("Error(seceqn): cannot be called inside a parallel region (OpenMP).")
+#endif
       
       Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
       apwalm=zzero

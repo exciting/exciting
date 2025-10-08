@@ -19,9 +19,8 @@
 !> Module containing unified calls to linear algebra device accelerated routines
 module device_linalg_common_interface
 
-    ! The iso_c_binding is included inside the pragmas because its positioning differs in both cases
+    use iso_c_binding, only: c_ptr, c_int, c_size_t, c_f_pointer
 #if defined(NVIDIAGPU)
-    use iso_c_binding, only: c_ptr, c_int, c_size_t
     use magma2, only: MagmaLeft, MagmaRight, MagmaLower, MagmaUpper, MagmaNoTrans, &
                       MagmaTrans, MagmaConjTrans, magma_memset_async, &
                       magma_get_zgetri_nb, magma_zgemm, magma_get_cgetri_nb, &
@@ -32,9 +31,14 @@ module device_linalg_common_interface
                       magma_zhemm, magma_cgetrf_gpu, magma_chemv, magma_zgerc, &
                       magma_zgetrf_gpu, magma_cgeru, magma_cgemm_batched_strided, magma_zgetri_gpu, &
                       magma_zaxpy, magma_cgemm
+    use cusolver_fortran, only: cusolver_status_success, CUSOLVER_EIG_TYPE_1, CUSOLVER_EIG_TYPE_2, &
+                                CUSOLVER_EIG_TYPE_3, CUSOLVER_EIG_MODE_VECTOR, CUSOLVER_EIG_MODE_NOVECTOR, &
+                                CUSOLVER_EIG_RANGE_ALL, CUSOLVER_EIG_RANGE_V, CUSOLVER_EIG_RANGE_I, &
+                                CUBLAS_FILL_MODE_LOWER, CUBLAS_FILL_MODE_UPPER, &
+                                cusolverDnChegvdx_bufferSize, cusolverDnChegvdx, &
+                                cusolverDnZhegvdx_bufferSize, cusolverDnZhegvdx
 #endif
 #if defined(AMDGPU)
-    use iso_c_binding, only: c_ptr, c_int, c_size_t, c_loc
     use magma2, only: MagmaLeft, MagmaRight, MagmaLower, MagmaUpper, MagmaNoTrans, &
                       MagmaTrans, MagmaConjTrans, magma_memset_async, magma_zgemm, &
                       magma_zdotu, magma_cdotu, magma_zdotc, magma_cdotc, &
@@ -44,14 +48,22 @@ module device_linalg_common_interface
                       magma_zhemm, magma_chemv, magma_zgerc, &
                       magma_cgeru, magma_cgemm_batched_strided, &
                       magma_zaxpy, magma_cgemm
-   use hipfort_rocblas_enums, only: rocblas_status_success
-   use hipfort_rocsolver,    only: rocsolver_cgetrf, rocsolver_zgetrf, &
-                                   rocsolver_cgetri, rocsolver_zgetri
-   use m_memory_device,      only: get_device_pointer
+
+   use hipfort_rocblas_enums, only: rocblas_status_success, &
+                                    rocblas_fill_upper, rocblas_fill_lower
+   use hipfort_rocsolver_enums, only: rocblas_eform_ax, rocblas_eform_abx, rocblas_eform_bax, &
+                                      rocblas_evect_original, rocblas_evect_none, &
+                                      rocblas_erange_all, rocblas_erange_value, rocblas_erange_index
+   use hipfort_rocsolver,     only: rocsolver_cgetrf, rocsolver_zgetrf, &
+                                    rocsolver_cgetri, rocsolver_zgetri, &
+                                    rocsolver_chegvx, rocsolver_zhegvx
+
+   use m_memory_device,       only: get_device_pointer, allocate_device_memory, deallocate_device_memory, &
+                                    bytes_double_complex
 #endif
 #if defined(INTELGPU)
-    use iso_c_binding, only: c_ptr, c_int, c_size_t, c_f_pointer
-    use onemkl_lapack_omp_offload_lp64, only: cgetrf, zgetrf, cgetri, zgetri
+    use onemkl_lapack_omp_offload_lp64, only: cgetrf, zgetrf, cgetri, zgetri, &
+                                              chegvx, zhegvx
     use onemkl_blas_omp_offload_lp64,   only: cgemm, zgemm, chemv, zhemv, chemm, zhemm, &
                                               cgemm_batch_strided, zgemm_batch_strided, &
                                               cdotu, zdotu, cdotc, zdotc, caxpy, zaxpy, &
@@ -72,7 +84,8 @@ module device_linalg_common_interface
               chemv_gpu,  zhemv_gpu, chemm_gpu, zhemm_gpu, &
               cgeadd_gpu, zgeadd_gpu, &
               ccopy_gpu,  zcopy_gpu, &
-              csetzero_gpu, zsetzero_gpu
+              csetzero_gpu, zsetzero_gpu, &
+              chegvx_gpu, zhegvx_gpu
 
 contains
 
@@ -103,7 +116,7 @@ contains
 
         !$omp target data map(tofrom: ipiv, info)
         !$omp target data use_device_addr(info)
-        cerror = rocsolver_cgetrf(world%get_linalg_handle(), m, n, dA, lda, &
+        cerror = rocsolver_cgetrf(world%get_blas_handler(), m, n, dA, lda, &
                                   get_device_pointer(ipiv, world%get_device()), &
                                   info)
         if (cerror /= rocblas_status_success) error stop "Error(cgetrf_gpu): rocsolver_cgetrf failed"
@@ -119,7 +132,7 @@ contains
         !on the GPU without explicitly transferring it back and forth between the CPU and GPU.
         call c_f_pointer(dA, A, [lda,n])
 
-        !$omp target data map(tofrom: info, ipiv)
+        !$omp target data map(from: info, ipiv)
         !$omp dispatch is_device_ptr(A)
         call cgetrf(m, n, A, lda, ipiv, info)
         !$omp end target data
@@ -154,7 +167,7 @@ contains
         !$omp target data map(to: ipiv)
         !$omp target data map(tofrom: info)
         !$omp target data use_device_addr(info)
-        cerror = rocsolver_cgetri(world%get_linalg_handle(), n , dA, lda, &
+        cerror = rocsolver_cgetri(world%get_blas_handler(), n , dA, lda, &
                                   get_device_pointer(ipiv, world%get_device()), &
                                   info)
         if (cerror /= rocblas_status_success) error stop "Error(cgetri_gpu): rocsolver_cgetri failed"
@@ -760,6 +773,223 @@ contains
 
     end subroutine csetzero_gpu
 
+     !> Solves the generalized Hermitian-definite eigenproblem for single precision:
+    !>     A*x = λ*B*x ,  A*B*x = λ*x ,  or  B*A*x = λ*x
+    !>
+    !> @param[in]     itype  - Problem type (1,2,3)
+    !> @param[in]     jobz   - 'N': values only, 'V': values & vectors
+    !> @param[in]     range  - 'A': all, 'V': by value range, 'I': by index range
+    !> @param[in]     uplo   - 'U' or 'L': triangle of A,B stored
+    !> @param[in]     n      - Order of matrices A,B
+    !> @param[in,out] A      - Hermitian matrix A (destroyed on exit)
+    !> @param[in]     lda    - Leading dimension of A
+    !> @param[in,out] B      - Hermitian positive-definite matrix B (destroyed)
+    !> @param[in]     ldb    - Leading dimension of B
+    !> @param[in]     vl,vu  - Value range if RANGE='V'
+    !> @param[in]     il,iu  - Index range if RANGE='I'
+    !> @param[in]     abstol - Eigenvalue convergence tolerance
+    !> @param[out]    m      - Number of eigenvalues found
+    !> @param[out]    w      - Eigenvalues (length n)
+    !> @param[out]    z      - Eigenvectors if JOBZ='V'
+    !> @param[in]     ldz    - Leading dimension of Z
+    !> @param[inout]  work   - Complex workspace
+    !> @param[in]     lwork  - Dimension of WORK
+    !> @param[inout]  rwork  - Double workspace (≥7*n)
+    !> @param[inout]  iwork  - Integer workspace (≥5*n)
+    !> @param[out]    ifail  - Indices of failed eigenvectors
+    !> @param[out]    info   - Exit status
+    !> @param[in,out] world - the device-host handler. CPU backend
+    subroutine chegvx_gpu(itype, jobz, range, uplo, n, dA, lda, dB, ldb, vl, vu, il, iu, abstol, &
+                          m, dw, dz, ldz, dwork, lwork, drwork, diwork, difail, info, world)
+        integer(i32), intent(in)            :: itype
+        character, intent(in)               :: jobz
+        character, intent(in)               :: range
+        character, intent(in)               :: uplo
+        integer(i32), intent(in)            :: n
+        type(c_ptr), value                  :: dA
+        integer(i32), intent(in)            :: lda
+        type(c_ptr), value                  :: dB
+        integer(i32), intent(in)            :: ldb
+        real(r32), intent(in)               :: vl
+        real(r32), intent(in)               :: vu
+        integer(i32), intent(in)            :: il
+        integer(i32), intent(in)            :: iu
+        real(r32), intent(in)               :: abstol
+        integer(i32), intent(out)           :: m
+        type(c_ptr), value                  :: dw
+        type(c_ptr), value                  :: dZ
+        integer(i32), intent(in)            :: ldz
+        type(c_ptr), value                  :: dwork
+        integer(i32), intent(in)            :: lwork
+        type(c_ptr), value                  :: drwork
+        type(c_ptr), value                  :: diwork
+        type(c_ptr), value                  :: difail
+        integer(i32), intent(out)           :: info
+        type(device_world_t), intent(inout) :: world
+
+#if defined(NVIDIAGPU)
+
+        integer(c_int) :: cusolver_itype, cusolver_jobz, cusolver_range, cusolver_uplo, cerr, cusolver_lwork
+        complex(r32), pointer, contiguous :: work(:), A(:,:), Z(:,:)
+        integer(i32) :: i, j
+
+        if (itype == 1) then
+                cusolver_itype = CUSOLVER_EIG_TYPE_1
+        else if (itype == 2) then
+                cusolver_itype = CUSOLVER_EIG_TYPE_2
+        else if (itype == 3) then
+                cusolver_itype = CUSOLVER_EIG_TYPE_3
+        else
+                error stop "Error(chegvx_gpu): itype is not valid"
+        end if
+
+        cusolver_jobz = merge(CUSOLVER_EIG_MODE_VECTOR, CUSOLVER_EIG_MODE_NOVECTOR, jobz == 'V' .or. jobz == 'v')
+
+        if (range == "A" .or. range == "a") then
+                cusolver_range = CUSOLVER_EIG_RANGE_ALL
+        else if (range == "V" .or. range == "v") then
+                cusolver_range = CUSOLVER_EIG_RANGE_V
+        else if (range == "I" .or. range == "i") then
+                cusolver_range = CUSOLVER_EIG_RANGE_I
+        else
+                error stop "Error(chegvx_gpu): range is not valid"
+        end if
+
+        cusolver_uplo = merge(CUBLAS_FILL_MODE_LOWER, CUBLAS_FILL_MODE_UPPER, uplo == 'L' .or. uplo == 'l')
+
+        ! The querry of the workspace is done in a way that mimics the behaviour of LAPACK
+        ! We call cusolverDnChegvdx_bufferSize and save the result to work array
+        ! that resides in the device.
+        if (lwork < 0) then
+                call c_f_pointer(dwork, work, [1])
+                cerr = cusolverDnChegvdx_bufferSize(world%get_solver_handler(), cusolver_itype, cusolver_jobz, &
+                                                    cusolver_range, cusolver_uplo, n, &
+                                                    dA, lda, dB, ldb, vl, vu, il, iu, &
+                                                    m, dw, cusolver_lwork)
+                call world%synchronize()
+
+                if (cerr /= 0) error stop "Error(chegvx_gpu): cusolverDnChegvdx_bufferSize failed"
+                !$omp target has_device_addr(work)
+                work(1) = cusolver_lwork
+                !$omp end target
+                nullify(work)
+                info = 0_i32
+                return
+        end if
+
+        !$omp target data map(from: info)
+        !$omp target data use_device_addr(info)
+        cerr =  cusolverDnChegvdx(world%get_solver_handler(), cusolver_itype, cusolver_jobz, &
+                                  cusolver_range, cusolver_uplo, &
+                                  n, dA, lda, dB, ldb, vl, vu, il, iu, &
+                                  m, dW, dwork, lwork, info)
+        call world%synchronize()
+        !$omp end target data
+        !$omp end target data
+
+        if (cerr /= 0) error stop "Error(chegvx_gpu): cusolverDnChegvdx failed"
+
+        ! Copy the vectors as cusolver simply puts it into A
+        if (jobz == "V" .or. jobz == "v") then
+                call c_f_pointer(dA, A, [lda,n])
+                call c_f_pointer(dZ, Z, [ldz,m])
+                !$omp target has_device_addr(A,Z)
+                !$omp teams distribute parallel do collapse(2) default(none) &
+                !$omp shared(n,m,A,Z) private(i,j)
+                do j = 1, m
+                    do i = 1, n
+                       Z(i,j) = A(i,j)
+                    end do
+                end do
+                !$omp end target
+                nullify(A,Z)
+        end if
+
+#endif
+
+#if defined(AMDGPU)
+
+        integer(c_int) :: rocsolver_itype, rocsolver_jobz, rocsolver_range, rocsolver_uplo, cerr
+        complex(r32), pointer, contiguous :: work(:)
+
+        if (itype == 1) then
+                rocsolver_itype = rocblas_eform_ax
+        else if (itype == 2) then
+                rocsolver_itype = rocblas_eform_abx
+        else if (itype == 3) then
+                rocsolver_itype = rocblas_eform_bax
+        else
+                error stop "Error(chegvx_gpu): itype is not valid"
+        end if
+
+        rocsolver_jobz = merge(rocblas_evect_original, rocblas_evect_none, jobz == 'V' .or. jobz == 'v')
+
+        if (range == "A" .or. range == "a") then
+                rocsolver_range = rocblas_erange_all
+        else if (range == "V" .or. range == "v") then
+                rocsolver_range = rocblas_erange_value
+        else if (range == "I" .or. range == "i") then
+                rocsolver_range = rocblas_erange_index
+        else
+                error stop "Error(chegvx_gpu): range is not valid"
+        end if
+
+        rocsolver_uplo = merge(rocblas_fill_lower, rocblas_fill_upper, uplo == 'L' .or. uplo == 'l')
+
+        ! The querry of the workspace is done like in LAPACK
+        ! Note that rocsolver does allocate the workspace itself, we set the
+        ! size of the workspace to 1. This minimal size is due to C allocation behaviour with 
+        ! 0 sized pointers (they might be in some compilers set to NULL).
+        if (lwork < 0) then
+                call c_f_pointer(dwork, work, [1])
+                !$omp target has_device_addr(work)
+                work(1) = 1
+                !$omp end target
+                nullify(work)
+                info = 0_i32
+                return
+        end if
+
+        !$omp target data map(from: m, info)
+        !$omp target data use_device_addr(m, info)
+        cerr = rocsolver_chegvx(world%get_solver_handler(), rocsolver_itype, rocsolver_jobz, &
+                                rocsolver_range, rocsolver_uplo, n, dA, lda, dB, ldb, vl, vu, il, iu, &
+                                abstol, m, dW, dZ, ldz, difail, info)
+        call world%synchronize()
+        !$omp end target data
+        !$omp end target data
+
+        if (cerr /= 0) error stop "Error(chegvx_gpu): rocsolver_chegvdx failed"
+
+#endif
+
+#if defined(INTELGPU)
+
+        complex(r32), pointer, contiguous :: A(:,:), B(:,:), work(:), Z(:)
+        real(r32), pointer, contiguous    :: rwork(:), w(:)
+        integer(i32), pointer, contiguous :: iwork(:), ifail(:)
+
+        call c_f_pointer(dA, A, [n,lda])
+        call c_f_pointer(dB, B, [n,ldb])
+        call c_f_pointer(dwork, work, [max(lwork,1)])
+        call c_f_pointer(dw, w, [n])
+        call c_f_pointer(dZ, Z, [n,ldz])
+        call c_f_pointer(drwork, rwork, [7*n])
+        call c_f_pointer(diwork, iwork, [5*n])
+        call c_f_pointer(difail, ifail, [n])
+
+        !$omp target data map(from: m,info)
+        !$omp dispatch is_device_ptr(A,B,work,w,Z,rwork,iwork,ifail)
+        call chegvx(itype, jobz, range, uplo, n, A, lda, B, ldb, vl, vu, il, iu, &
+                    abstol, m, w, z, ldz, work, lwork, rwork, iwork, ifail, info)
+        !$omp end target data
+
+        nullify(A,B,work,w,Z,rwork,iwork,ifail)
+
+#endif
+
+    end subroutine chegvx_gpu
+
     !!!!!!!!!!!!!!!  DOUBLE PRECISION !!!!!!!!!!!!!!
     
     !> Complex double precision LU decomposition.
@@ -785,9 +1015,9 @@ contains
 #if defined(AMDGPU)
         integer(kind(rocblas_status_success)) :: cerror
 
-        !$omp target data map(tofrom: ipiv, info)
+        !$omp target data map(from: ipiv, info)
         !$omp target data use_device_addr(info)
-        cerror = rocsolver_zgetrf(world%get_linalg_handle(), m, n, dA, lda, &
+        cerror = rocsolver_zgetrf(world%get_blas_handler(), m, n, dA, lda, &
                                   get_device_pointer(ipiv, world%get_device()), &
                                   info)
         if (cerror /= rocblas_status_success) error stop "Error(zgetrf_gpu): rocsolver_zgetrf failed"
@@ -802,7 +1032,7 @@ contains
         ! on the GPU without explicitly transferring it back and forth between the CPU and GPU.
         call c_f_pointer(dA, A, [lda,n])
 
-        !$omp target data map(tofrom: info, ipiv)
+        !$omp target data map(from: info, ipiv)
         !$omp dispatch is_device_ptr(A)
         call zgetrf(m, n, A, lda, ipiv, info)
         !$omp end target data
@@ -837,7 +1067,7 @@ contains
         !$omp target data map(to: ipiv)
         !$omp target data map(tofrom: info) 
         !$omp target data use_device_addr(info)
-        cerror = rocsolver_zgetri(world%get_linalg_handle(), n, dA, lda, &
+        cerror = rocsolver_zgetri(world%get_blas_handler(), n, dA, lda, &
                                   get_device_pointer(ipiv, world%get_device()), &
                                   info)
         if (cerror /= rocblas_status_success) error stop "Error(zgetri_gpu): rocsolver_zgetri failed"
@@ -1442,5 +1672,234 @@ contains
 #endif
 
     end subroutine zsetzero_gpu 
+
+    !> Solves the generalized Hermitian-definite eigenproblem for double precision:
+    !>     A*x = λ*B*x ,  A*B*x = λ*x ,  or  B*A*x = λ*x
+    !>
+    !> @param[in]     itype  - Problem type (1,2,3)
+    !> @param[in]     jobz   - 'N': values only, 'V': values & vectors
+    !> @param[in]     range  - 'A': all, 'V': by value range, 'I': by index range
+    !> @param[in]     uplo   - 'U' or 'L': triangle of A,B stored
+    !> @param[in]     n      - Order of matrices A,B
+    !> @param[in,out] A      - Hermitian matrix A (destroyed on exit)
+    !> @param[in]     lda    - Leading dimension of A
+    !> @param[in,out] B      - Hermitian positive-definite matrix B (destroyed)
+    !> @param[in]     ldb    - Leading dimension of B
+    !> @param[in]     vl,vu  - Value range if RANGE='V'
+    !> @param[in]     il,iu  - Index range if RANGE='I'
+    !> @param[in]     abstol - Eigenvalue convergence tolerance
+    !> @param[out]    m      - Number of eigenvalues found
+    !> @param[out]    w      - Eigenvalues (length n)
+    !> @param[out]    z      - Eigenvectors if JOBZ='V'
+    !> @param[in]     ldz    - Leading dimension of Z
+    !> @param[inout]  work   - Complex workspace
+    !> @param[in]     lwork  - Dimension of WORK
+    !> @param[inout]  rwork  - Double workspace (≥7*n)
+    !> @param[inout]  iwork  - Integer workspace (≥5*n)
+    !> @param[out]    ifail  - Indices of failed eigenvectors
+    !> @param[out]    info   - Exit status
+    !> @param[in,out] world - the device-host handler. CPU backend
+    subroutine zhegvx_gpu(itype, jobz, range, uplo, n, dA, lda, dB, ldb, vl, vu, il, iu, abstol, &
+                          m, dw, dz, ldz, dwork, lwork, drwork, diwork, difail, info, world)
+        integer(i32), intent(in)            :: itype
+        character, intent(in)               :: jobz
+        character, intent(in)               :: range
+        character, intent(in)               :: uplo
+        integer(i32), intent(in)            :: n
+        type(c_ptr), value                  :: dA
+        integer(i32), intent(in)            :: lda
+        type(c_ptr), value                  :: dB
+        integer(i32), intent(in)            :: ldb
+        real(r64), intent(in)               :: vl
+        real(r64), intent(in)               :: vu
+        integer(i32), intent(in)            :: il
+        integer(i32), intent(in)            :: iu
+        real(r64), intent(in)               :: abstol
+        integer(i32), intent(out)           :: m
+        type(c_ptr), value                  :: dw
+        type(c_ptr), value                  :: dZ
+        integer(i32), intent(in)            :: ldz
+        type(c_ptr), value                  :: dwork
+        integer(i32), intent(in)            :: lwork
+        type(c_ptr), value                  :: drwork
+        type(c_ptr), value                  :: diwork
+        type(c_ptr), value                  :: difail
+        integer(i32), intent(out)           :: info
+        type(device_world_t), intent(inout) :: world
+
+#if defined(NVIDIAGPU)
+
+        integer(c_int) :: cusolver_itype, cusolver_jobz, cusolver_range, cusolver_uplo, cerr, cusolver_lwork
+        complex(r64), pointer, contiguous :: work(:), A(:,:), Z(:,:)
+        integer(i32) :: i, j
+
+        if (itype == 1) then
+                cusolver_itype = CUSOLVER_EIG_TYPE_1
+        else if (itype == 2) then
+                cusolver_itype = CUSOLVER_EIG_TYPE_2
+        else if (itype == 3) then
+                cusolver_itype = CUSOLVER_EIG_TYPE_3
+        else
+                error stop "Error(zhegvx_gpu): itype is not valid"
+        end if
+
+        cusolver_jobz = merge(CUSOLVER_EIG_MODE_VECTOR, CUSOLVER_EIG_MODE_NOVECTOR, jobz == 'V' .or. jobz == 'v')
+
+        if (range == "A" .or. range == "a") then
+                cusolver_range = CUSOLVER_EIG_RANGE_ALL
+        else if (range == "V" .or. range == "v") then
+                cusolver_range = CUSOLVER_EIG_RANGE_V
+        else if (range == "I" .or. range == "i") then
+                cusolver_range = CUSOLVER_EIG_RANGE_I
+        else
+                error stop "Error(zhegvx_gpu): range is not valid"
+        end if
+
+        cusolver_uplo = merge(CUBLAS_FILL_MODE_LOWER, CUBLAS_FILL_MODE_UPPER, uplo == 'L' .or. uplo == 'l')
+
+        ! The querry of the workspace is done in a way that mimics the behaviour of LAPACK
+        ! We call cusolverDnZhegvdx_bufferSize and save the result to work array
+        ! that resides in the device.
+        if (lwork < 0) then
+                call c_f_pointer(dwork, work, [1])
+                cerr = cusolverDnZhegvdx_bufferSize(world%get_solver_handler(), cusolver_itype, cusolver_jobz, &
+                                                    cusolver_range, cusolver_uplo, n, &
+                                                    dA, lda, dB, ldb, vl, vu, il, iu, &
+                                                    m, dw, cusolver_lwork)
+                call world%synchronize()
+
+                if (cerr /= 0) error stop "Error(zhegvx_gpu): cusolverDnZhegvdx_bufferSize failed"
+                !$omp target has_device_addr(work)
+                work(1) = cusolver_lwork
+                !$omp end target
+                nullify(work)
+                info = 0_i32
+                return
+        end if
+
+        !$omp target data map(from: info)
+        !$omp target data use_device_addr(info)
+        cerr =  cusolverDnZhegvdx(world%get_solver_handler(), cusolver_itype, cusolver_jobz, &
+                                  cusolver_range, cusolver_uplo, &
+                                  n, dA, lda, dB, ldb, vl, vu, il, iu, &
+                                  m, dW, dwork, lwork, info)
+        call world%synchronize()
+        !$omp end target data
+        !$omp end target data
+
+        if (cerr /= 0) error stop "Error(zhegvx_gpu): cusolverZnChegvdx failed"
+
+        ! Copy the vectors as cusolver simply puts it into A
+        if (jobz == "V" .or. jobz == "v") then
+                call c_f_pointer(dA, A, [lda,n])
+                call c_f_pointer(dZ, Z, [ldz,m])
+                !$omp target has_device_addr(A,Z)
+                !$omp teams distribute parallel do collapse(2) default(none) &
+                !$omp shared(n,m,A,Z) private(i,j)
+                do j = 1, m
+                    do i = 1, n
+                       Z(i,j) = A(i,j)
+                    end do
+                end do
+                !$omp end target
+                nullify(A,Z)
+        end if
+
+#endif
+
+#if defined(AMDGPU)
+
+        integer(c_int) :: rocsolver_itype, rocsolver_jobz, rocsolver_range, rocsolver_uplo, cerr
+        complex(r64), pointer, contiguous :: work(:)
+
+        if (itype == 1) then
+                rocsolver_itype = rocblas_eform_ax
+        else if (itype == 2) then
+                rocsolver_itype = rocblas_eform_abx
+        else if (itype == 3) then
+                rocsolver_itype = rocblas_eform_bax
+        else
+                error stop "Error(zhegvx_gpu): itype is not valid"
+        end if
+
+        rocsolver_jobz = merge(rocblas_evect_original, rocblas_evect_none, jobz == 'V' .or. jobz == 'v')
+
+        if (range == "A" .or. range == "a") then
+                rocsolver_range = rocblas_erange_all
+        else if (range == "V" .or. range == "v") then
+                rocsolver_range = rocblas_erange_value
+        else if (range == "I" .or. range == "i") then
+                rocsolver_range = rocblas_erange_index
+        else
+                error stop "Error(zhegvx_gpu): range is not valid"
+        end if
+
+        rocsolver_uplo = merge(rocblas_fill_lower, rocblas_fill_upper, uplo == 'L' .or. uplo == 'l')
+
+        ! The querry of the workspace is done like in LAPACK
+        ! Note that rocsolver does allocate the workspace itself, we set the
+        ! size of the workspace to 1. This minimal size is due to C allocation behaviour with
+        ! 0 sized pointers (they might be in some compilers set to NULL).
+        if (lwork < 0) then
+                call c_f_pointer(dwork, work, [1])
+                !$omp target has_device_addr(work)
+                work(1) = 1
+                !$omp end target
+                nullify(work)
+                info = 0_i32
+                return
+        end if
+
+        !$omp target data map(from: m, info)
+        !$omp target data use_device_addr(m, info)
+        cerr = rocsolver_zhegvx(world%get_solver_handler(), rocsolver_itype, rocsolver_jobz, &
+                                rocsolver_range, rocsolver_uplo, n, dA, lda, dB, ldb, vl, vu, il, iu, &
+                                abstol, m, dW, dZ, ldz, difail, info)
+        call world%synchronize()
+        !$omp end target data
+        !$omp end target data
+
+        ! NOTE(mrm): rocsolver_zhegvdx should be faster but fails
+        !            inside exciting (rocm 6.4.2). Independent reproducers works.
+        !            What works is zhegvd and taking only the wanted states
+        !!$omp target data map(from: m, info)
+        !!$omp target data use_device_addr(m, info)
+        !cerr = rocsolver_zhegvdx(world%get_solver_handler(), rocsolver_itype, rocsolver_jobz, &
+        !                         rocsolver_range, rocsolver_uplo, n, dA, lda, dB, ldb, vl, vu, il, iu, &
+        !                         m, dW, dZ, ldz, info)
+        !call world%synchronize()
+        !!$omp end target data
+        !!$omp end target data
+
+        if (cerr /= 0) error stop "Error(zhegvx_gpu): rocsolver_zhegvdx failed"
+
+#endif
+
+#if defined(INTELGPU)
+
+        complex(r64), pointer, contiguous :: A(:,:), B(:,:), work(:), Z(:)
+        real(r64), pointer, contiguous    :: rwork(:), w(:)
+        integer(i32), pointer, contiguous :: iwork(:), ifail(:)
+
+        call c_f_pointer(dA, A, [n,lda])
+        call c_f_pointer(dB, B, [n,ldb])
+        call c_f_pointer(dwork, work, [max(lwork,1)])
+        call c_f_pointer(dw, w, [n])
+        call c_f_pointer(dZ, Z, [n,ldz])
+        call c_f_pointer(drwork, rwork, [7*n])
+        call c_f_pointer(diwork, iwork, [5*n])
+        call c_f_pointer(difail, ifail, [n])
+
+        !$omp target data map(from: m,info)
+        !$omp dispatch is_device_ptr(A,B,work,w,Z,rwork,iwork,ifail)
+        call zhegvx(itype, jobz, range, uplo, n, A, lda, B, ldb, vl, vu, il, iu, &
+                    abstol, m, w, z, ldz, work, lwork, rwork, iwork, ifail, info)
+        !$omp end target data
+
+        nullify(A,B,work,w,Z,rwork,iwork,ifail)
+
+#endif
+
+    end subroutine zhegvx_gpu
 
 end module device_linalg_common_interface

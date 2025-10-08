@@ -60,7 +60,11 @@ contains
         type(plotlabels) :: self
         integer :: axis
         character(size(self%axis(axis)%latexunit)+1) :: unit
-        write(unit,*) self%axis(axis)%latexunit
+        if (size(self%axis(axis)%latexunit) /= 0)  then
+            write(unit,*) self%axis(axis)%latexunit
+        else
+            unit = " "
+        end if
     end function
 
     function get_graceunit(self,axis) result(unit)

@@ -22,6 +22,35 @@ build:llvm-amdgpu-cpu:
       - src/version.inc
     expire_in: 24 hrs
 
+test:llvm-amdgpu-cpu:
+  stage: test
+  tags:
+   - amd:gpu
+  dependencies:
+    - build:llvm-amdgpu-cpu
+  before_script:
+    - source /etc/profile.d/modules.sh
+    - python3 -m venv excitngenv
+    - source excitngenv/bin/activate
+    - python3 -m pip install -U pip setuptools
+    - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib pytest pyyaml termcolor
+    - cd tools/exciting_tools
+    - python3 -m pip install -e .[dev,schemaparsing,h5_parsing,serialisation]
+    - cd ../..
+    - module load amd-8248-drop-7.0.5
+    - module load aocl-tools-amd-8248-drop-7.0.5
+    - module load blis-amd-8248-drop-7.0.5
+    - module load libflame-amd-8248-drop-7.0.5
+    - module load fftw-amd-8248-drop-7.0.5
+    - module load mpich-4.3.1-amd-8248-drop-7.0.5
+  script:
+   # Run exciting unit tests
+    - export OMP_NUM_THREADS=8 && install/bin/exciting_mpismp -run-unit-tests -kill-on-failure
+   # Install test framework parsers
+    - pip3 install -e tools/exciting_tools
+   # Run exciting app tests
+    - cd test/ && export OMP_NUM_THREADS=2 && python3 runtest.py -np 4 -omp 2 -bp $PWD/../install/bin/ -e exciting_mpismp -repeat-tests 2
+
 build:llvm-amdgpu-gpu:
   stage: build
   tags:
@@ -46,3 +75,37 @@ build:llvm-amdgpu-gpu:
       - install/bin/exciting_mpismp
       - src/version.inc
     expire_in: 24 hrs
+
+test:llvm-amdgpu-gpu:
+  stage: test
+  tags:
+   - amd:gpu
+  resource_group: llvm-amdgpu-gpu-tests   # Ensures only ONE instance runs at a time per resource group (We are using both GPUs)
+  dependencies:
+    - build:llvm-amdgpu-gpu
+  before_script:
+    - source /etc/profile.d/modules.sh
+    - python3 -m venv excitngenv
+    - source excitngenv/bin/activate
+    - python3 -m pip install -U pip setuptools
+    - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib pytest pyyaml termcolor
+    - cd tools/exciting_tools
+    - python3 -m pip install -e .[dev,schemaparsing,h5_parsing,serialisation]
+    - cd ../..
+    - module load rocm-6.4.1
+    - module load amd-8248-drop-7.0.5
+    - module load aocl-tools-amd-8248-drop-7.0.5
+    - module load blis-amd-8248-drop-7.0.5
+    - module load libflame-amd-8248-drop-7.0.5
+    - module load fftw-amd-8248-drop-7.0.5
+    - module load mpich-4.3.1-amd-8248-drop-7.0.5
+    - export ROCAFAR=/home/soluser/progs/rocm-afar-8248-drop-7.0.5
+    - module load magma-amd-8248
+  script:
+   # Run exciting unit tests
+    - export OMP_NUM_THREADS=8 && install/bin/exciting_mpismp -run-unit-tests -kill-on-failure
+   # Install test framework parsers
+    - pip3 install -e tools/exciting_tools
+   # Run exciting app tests
+    - cd test/ && export OMP_OFFLOAD=MANDATORY && export OMP_NUM_THREADS=8 && python3 runtest.py -np 2 -omp 4 -bp $PWD/../install/bin/ -e exciting_mpismp -t GW/ZnO-PBESOL groundstate/PBE_SOL-Al
+

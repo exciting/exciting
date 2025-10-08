@@ -665,7 +665,6 @@ Subroutine init1
 20    Continue
 #endif
 !
-      nullify(arpackinverse)
       Call timesec (ts1)
       call stopwatch("exciting:init1", 0)
 !
