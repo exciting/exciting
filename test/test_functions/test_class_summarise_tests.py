@@ -94,7 +94,7 @@ def get_test_results(test_dir: str, output_files_to_check: List[str]) -> dict:
 def test_print_successful(successful_test_dir):
 
     gs_files = ['INFO.OUT', 'evalcore.xml', 'geometry.xml', 'eigval.xml', 'atoms.xml']
-    test_results = ExTestResults(successful_test_dir, completed=True, timing=0.0)
+    test_results = ExTestResults(successful_test_dir, completed=True, err_msg="", timing=0.0)
     test_results_dict = get_test_results(successful_test_dir, gs_files)
     test_results.set_results(test_results_dict)
 
@@ -135,7 +135,7 @@ Failed test cases: 0
 
 def test_print_failing_testcase(failing_arrays1d2d_test_dir):
 
-    test_results = ExTestResults(failing_arrays1d2d_test_dir, completed=True, timing=0.0)
+    test_results = ExTestResults(failing_arrays1d2d_test_dir, completed=True, err_msg="", timing=0.0)
     test_results_dict = get_test_results(failing_arrays1d2d_test_dir, ['EVALQP.DAT'])
     test_results.set_results(test_results_dict)
 
@@ -180,9 +180,9 @@ def test_timings(successful_test_dir):
     Test the SummariseTests class for timings
     """
     # Initialised with no test results, other than name, completed and timing
-    slow_test = ExTestResults(name='Slow test', completed=True, timing=600.0)
-    avg_test = ExTestResults(name='Average-speed test', completed=True, timing=10.0)
-    fast_test = ExTestResults(name='Fast test', completed=True, timing=0.99)
+    slow_test = ExTestResults(name='Slow test', completed=True, err_msg="", timing=600.0)
+    avg_test = ExTestResults(name='Average-speed test', completed=True, err_msg="", timing=10.0)
+    fast_test = ExTestResults(name='Fast test', completed=True, err_msg="", timing=0.99)
 
     report = SummariseTests()
     report.add(slow_test)
