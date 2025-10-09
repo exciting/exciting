@@ -275,7 +275,7 @@
             penta(ip)=ibit
           end select
         enddo
-        write(90,'(a7,3i4)')'istp = ',it,is,ip
+        !write(90,'(a7,3i4)')'istp = ',it,is,ip
 !-----------------------------------------------------------------------
 !    Finding how the region is formed, end
 !-----------------------------------------------------------------------

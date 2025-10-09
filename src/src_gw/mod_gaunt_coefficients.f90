@@ -87,7 +87,10 @@ contains
 !EOP
 !BOC
         ntot = (maxj+1)*(maxj+2)*(maxj+3)*(16*maxj*maxj+29*maxj+10)/60
-        if (allocated(gauntcoef)) deallocate(gauntcoef)
+        if (allocated(gauntcoef)) then
+          OMP_OFFLOAD target exit data map(delete: gauntcoef)
+          deallocate(gauntcoef)
+        end if
         allocate(gauntcoef(ntot), source=0.0_dp)
         i = 0
         do l1 = 0, maxj
