@@ -153,9 +153,6 @@ MODULE mod_kpointset
         integer(i32), allocatable :: tnodes(:,:) ! coordinates of tetrahedron
         integer(i32), allocatable :: wtet(:)     ! weight of each tetrahedron
         real(dp) :: tvol                     ! volume of the tetrahedra relative to the BZ volume
-
-        contains
-          procedure, public :: write => write_k_set_hdf5, read => read_k_set_hdf5
     end type k_set
 
 !-------------------------------------------------------------------------------
@@ -221,8 +218,6 @@ MODULE mod_kpointset
         real(dp), allocatable :: gknrc(:,:,:)    ! length of G+k-vectors
         real(dp), allocatable :: tpgknrc(:,:,:,:)! (theta, phi) coordinates of G+k-vectors
         complex(dp), allocatable :: sfacgknr(:,:,:,:) ! structure factor for the G+k-vectors
-        contains
-          procedure, public :: write => write_gk_set_hdf5, read => read_gk_set_hdf5
     end type Gk_set
 
 !-------------------------------------------------------------------------------
@@ -326,9 +321,6 @@ MODULE mod_kpointset
         ! ikkp with ik' >= ik ordered according to corresponding
         ! iq value
         integer(i32), allocatable :: ikkp_qordered(:)
-
-        contains
-        procedure, public :: write => write_q_set_hdf5, read => read_q_set_hdf5
 
     end type q_set
 
@@ -2691,7 +2683,7 @@ CONTAINS
     !> Write an instance of [[k_set]] to an HDF5 file at `[[path]]/[[groupname]]`.
     subroutine write_k_set_hdf5(this, xh5, path, groupname)
       !> Instance to be written
-      class(k_set), intent(in) :: this
+      type(k_set), intent(in) :: this
       !> Initialized HDF5 file handle
       type(xhdf5_type), intent(inout) :: xh5
       !> Path in the HDF5 file to write instance to
@@ -2731,7 +2723,7 @@ CONTAINS
     !> Read an instance of [[k_set]] from an HDF5 file at `[[path]]/[[groupname]]`.
     subroutine read_k_set_hdf5(this, xh5, path, groupname)
       !> Instance to be read
-      class(k_set), intent(out) :: this
+      type(k_set), intent(inout) :: this
       !> Initialized HDF5 file handle
       type(xhdf5_type), intent(inout) :: xh5
       !> Path in the HDF5 file to read instance from
@@ -2814,8 +2806,8 @@ CONTAINS
 
     !> Write an instance of [[gk_set]] to an HDF5 file at `[[path]]/[[groupname]]`.
     subroutine write_gk_set_hdf5(this, xh5, path, groupname)
-        !> Instance to be written
-      class(gk_set), intent(in) :: this
+      !> Instance to be written
+      type(gk_set), intent(in) :: this
       !> Initialized HDF5 file handle
       type(xhdf5_type), intent(inout) :: xh5
       !> Path in the HDF5 file to write instance to
@@ -2855,7 +2847,7 @@ CONTAINS
     !> Read an instance of [[gk_set]] from an HDF5 file at `[[path]]/[[groupname]]`.
     subroutine read_gk_set_hdf5(this, xh5, path, groupname)
       !> Instance to be read
-      class(gk_set), intent(out) :: this
+      type(gk_set), intent(inout) :: this
       !> Initialized HDF5 file handle
       type(xhdf5_type), intent(inout) :: xh5
       !> Path in the HDF5 file to read instance from
@@ -2945,7 +2937,7 @@ CONTAINS
     !> Write an instance of [[q_set]] to an HDF5 file at `[[path]]/[[groupname]]`.
     subroutine write_q_set_hdf5(this, xh5, path, groupname)
       !> Instance to be written
-      class(q_set), intent(in) :: this
+      type(q_set), intent(in) :: this
       !> Initialized HDF5 file handle
       type(xhdf5_type), intent(inout) :: xh5
       !> Path in the HDF5 file to write instance to
@@ -2959,7 +2951,7 @@ CONTAINS
       group = groupname
       call xh5%initialize_group_update_groupname(path, group)
 
-      call this%qset%write(xh5, group, qset_group)
+      call write_k_set_hdf5(this%qset, xh5, group, qset_group)
       call xh5%write(group, h5ds_ikikp2iq_nr, this%ikikp2iq_nr)
       call xh5%write(group, h5ds_ikikp2ig_nr, this%ikikp2ig_nr)
       call xh5%write(group, h5ds_ikiq2ikp_nr, this%ikiq2ikp_nr)
@@ -2972,7 +2964,7 @@ CONTAINS
     !> Read an instance of [[q_set]] from an HDF5 file at `[[path]]/[[groupname]]`.
     subroutine read_q_set_hdf5(this, xh5, path, groupname)
       !> Instance to be read
-      class(q_set), intent(out) :: this
+      type(q_set), intent(inout) :: this
       !> Initialized HDF5 file handle
       type(xhdf5_type), intent(inout) :: xh5
       !> Path in the HDF5 file to read instance from
@@ -2986,7 +2978,7 @@ CONTAINS
       group =  join_paths(path, groupname)
 
       call delete_q_vectors(this)
-      call this%qset%read(xh5, group, qset_group)
+      call read_k_set_hdf5(this%qset, xh5, group, qset_group)
 
       call xh5%dataset_shape(group, h5ds_ikikp2iq_nr, dsshape, .false.)
       allocate(this%ikikp2iq_nr(dsshape(1), dsshape(2)))

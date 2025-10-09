@@ -5,8 +5,10 @@ module mod_hybrids
 
     use modmain
     use modgw
+    use mod_bands, only: evalfv
     use mod_coulomb_potential, only: delete_coulomb_potential
     use mod_misc_gw, only : gammapoint
+    use mod_gaunt_coefficients, only: delete_gaunt_coefficients
     use mod_kpointset, only: delete_Gk_vectors, delete_k_vectors, delete_kq_vectors, delete_G_vectors
     use modmpi, only: rank
 #include "offload.fpp"
@@ -46,6 +48,9 @@ contains
         call delete_product_basis
         call delete_core_states
 
+        ! Delete Gaunt coefficients
+        call delete_gaunt_coefficients()
+
         ! Deallocate all the reciprocal space meshes
 #if defined(FLANG_OPENMP_DERIVED_TYPE_MAP_BUG_WORKAROUND)
         OMP_OFFLOAD target exit data map(delete: Gset%ivg, Gkqset%igkig, Gset%intgv, Gset%ivgig, Gqbarc%igigk)
@@ -59,6 +64,9 @@ contains
         call delete_Gk_vectors(Gqset)
         call delete_Gk_vectors(Gqbarc)
         call delete_kq_vectors(kqset)
+
+        ! Deleting from the device some GS objects
+        OMP_OFFLOAD target exit data map(delete: idxas, idxlo, idxlm, lorbl, apword, nlorb, corind, evalcr, evalfv)
 
         nullify(input%gw%MixBasis)
         nullify(input%gw%BareCoul)

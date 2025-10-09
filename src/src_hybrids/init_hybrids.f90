@@ -2,12 +2,14 @@
 subroutine init_hybrids()
     use modinput
     use modgw
+    use mod_bands, only: evalfv
     use modmpi, only : rank, mpiglobal
     use vx_enums, only: HYB_PBE0, HYB_HSE
     use mod_lattice, only : omega !unit cell volume
     use errors_warnings, only: terminate_if_false
     use precision, only: dp, str_16 
     use hse_singularity , only : hse_singularity_exact_solution, hse_singularity_Taylor_expansion    
+#include "offload.fpp"
     implicit none
     integer :: lmax, ik
     integer :: number_k_points
@@ -89,6 +91,11 @@ subroutine init_hybrids()
     ! interstitial region
     !-------------------------------------------------------------------------------
     input%gw%GBatchCount = input%groundstate%Hybrid%GBatchCount
+
+    !----------------------------------
+    ! Upload GS globals to the devices
+    !----------------------------------
+    OMP_OFFLOAD target enter data map(always, to: idxas, idxlo, idxlm, lorbl, apword, nlorb, corind, evalcr, evalfv)
 
     return
 end subroutine
