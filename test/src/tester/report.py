@@ -12,17 +12,19 @@ from ..tester.compare import ErrorFinder
 
 
 class TestResults:
-    def __init__(self, name: str, completed: bool, timing: float, test_results: Optional[dict] = None):
+    def __init__(self, name: str, completed: bool, err_msg: str, timing: float, test_results: Optional[dict] = None):
         """
         Initialise NewTest class to store the assertion results for a set of regression-tested files,
         for a given test case.
 
         :param str name: Test case name
         :param bool completed: Test case completed execution
+        :param str err_msg: Error message if test case failed to complete
         :param dict test_results: Dictionary of errors and tolerances for each tested file in the test case.
         """
         self.test_name = name
         self.completed = completed
+        self.err_msg = err_msg
         self.timing = timing
 
         self.file_names: List[str] = []
@@ -102,7 +104,7 @@ class TestResults:
         :param bool fail_if_unevaluated: If true, unevaluated files count as a failure
         """
         if not handle_errors:
-            assert self.completed, "Test execution failed to complete"
+            assert self.completed, f"Test execution failed to complete with error: {self.err_msg}"
             if fail_if_unevaluated:
                 assert (len(self.files_with_errors) == 0) and (len(self.unevaluated_files) == 0), "Test case failed"
             else:

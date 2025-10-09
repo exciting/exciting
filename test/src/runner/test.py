@@ -119,7 +119,7 @@ def execute_and_compare_single_test(test_dir: str,
     """
     run_success, err_mess, timing = execute_job(calculation, my_env=my_env)
 
-    test_results = TestResults(test_dir, run_success, timing)
+    test_results = TestResults(test_dir, run_success, err_mess, timing)
 
     flatten_directory(calculation.run_dir)
 
