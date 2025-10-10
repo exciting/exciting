@@ -19,10 +19,13 @@ subroutine genscclieff(iqr,  nmax, n, scieff)
 
   ! Local variables
   logical :: tq0
-  complex(8), allocatable :: scrn(:, :), scrnw(:, :, :), scrnh(:, :)
+  complex(8), allocatable :: scrn(:, :), scrnw(:, :, :), scrnh(:, :), eps_inverse_wings(:,:)
+  complex(8) :: eps_inverse_head
   character(256) :: fneps0
 
 
+
+  allocate(eps_inverse_wings(n-1,2))
 
   allocate(scrn(n, n), scrnw(n, 2, 3), scrnh(3, 3))
   scrn=zzero
@@ -46,7 +49,7 @@ subroutine genscclieff(iqr,  nmax, n, scieff)
           eps0=scrn, eps0wg=scrnw, eps0hd=scrnh, fname=fneps0,&
           debug=input%xs%dbglev>2)
     ! Averaging using Lebedev-Laikov spherical grids
-    call angavsc0(n, nmax, scrnh, scrnw, scrn, scieff)
+    call angavsc0(n, nmax, scrnh, scrnw, scrn, scieff,eps_inverse_head,eps_inverse_wings)
   else
     ! Read form direct access file.
     call geteps0_finite_q(qvec=vqcr(:,iqr), iq=iqr, iw=1, w=0.0d0,&
