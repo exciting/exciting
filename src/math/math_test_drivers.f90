@@ -14,6 +14,7 @@ module math_test_drivers
   use sh_product_test, only: sh_product_test_driver
   use projection_test, only: projection_test_driver
   use matrix_contraction_test, only: matrix_contraction_test_driver
+  use iterative_solver_test, only: iterative_solver_test_driver
 
   private
   public :: math_test_driver
@@ -46,6 +47,7 @@ module math_test_drivers
     call sh_product_test_driver(mpiglobal, kill_on_failure)
     call projection_test_driver(mpiglobal, kill_on_failure)
     call matrix_contraction_test_driver(mpiglobal, kill_on_failure)
+    call iterative_solver_test_driver(mpiglobal, kill_on_failure)
   end subroutine math_test_driver
 
 end module math_test_drivers

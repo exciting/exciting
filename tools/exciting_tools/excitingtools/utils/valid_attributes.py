@@ -830,8 +830,7 @@ BSE_attribute_types = {"aresbse": (bool, 1),
                        "xasspecies": (int, 1),
                        "xes": (bool, 1)} 
 
-fastBSE_attribute_types = {"clanczos": (float, 1),
-                           "cvtsteplim": (int, 1),
+fastBSE_attribute_types = {"cvtsteplim": (int, 1),
                            "cvttol": (float, 1),
                            "ngridr": (int, 3),
                            "nisdf": (int, 3),

@@ -59,10 +59,8 @@ contains
     !> Test report object
     type(unit_test_type) :: test_report
 
-    integer(i32), parameter :: n_assertions_test_is_positive_definite = 4
     !> Number of assertions
-    integer(i32), parameter :: n_assertions = 124 + &
-                                              n_assertions_test_is_positive_definite
+    integer(i32), parameter :: n_assertions = 128
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)

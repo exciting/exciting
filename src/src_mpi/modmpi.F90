@@ -34,6 +34,7 @@
 module modmpi
   use trace, only: trace_back
   use asserts, only: assert
+  use iso_fortran_env, only: error_unit
 #ifdef MPI
   use mpi
 #endif
@@ -149,7 +150,7 @@ contains
 #else
     call mpi_finalize(ierr)
     if (ierr /= 0) then
-       write (*, *) "Error (finitmpi): ierr =", ierr
+       write(error_unit, *) "Error (finitmpi): ierr =", ierr
     end if
 #endif
 #endif
@@ -250,21 +251,35 @@ contains
 
 #ifdef MPI
       if(mpiglobal%rank == 0) then
-         write(*,'(a)') trim(adjustl(err_msg))
+         write(error_unit,'(a)') trim(adjustl(err_msg))
       end if
 
       call mpi_abort(mpi_comm_world, error_code, ierr)
 
       if(ierr == 0) then
-         write(*, '(a)') trim(adjustl(err_msg))
+         write(error_unit, '(a)') trim(adjustl(err_msg))
       else
-         write(*, '(a)') trim(adjustl(err_msg))//' - zombie processes might remain!'
+         write(error_unit, '(a)') trim(adjustl(err_msg))//' - zombie processes might remain!'
       end if
 #else
       write(*, '(a)') err_msg
       stop
 #endif
     end subroutine terminate
+
+    !> Prints a user warning to stderr without terminating the code.
+    subroutine warn_if_false(condition, message)
+      !> Condition to check
+      logical, intent(in) :: condition
+      !> Warning to print
+      character(*), intent(in) :: message
+
+      if(condition) then
+        if(mpiglobal%is_root) then
+          write(error_unit, '("Warning: ", a)') trim(adjustl(message))
+        end if
+      end if
+    end subroutine
 
     !> Resolve MPI error code to error message.
     !> Appends `errstring` with `errmsg` and the resolved MPI error message

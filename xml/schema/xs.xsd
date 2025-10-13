@@ -2063,20 +2063,10 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="" name="nlanczos" use="optional" type="xs:integer" default="0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="nlanczos" use="optional" type="xs:integer" default="100">
               <xs:annotation>
                 <xs:documentation>
                   Number Lanczos iterations
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="" name="clanczos" use="optional" type="fortrandouble" default="0.01">
-              <xs:annotation>
-                <xs:documentation>
-                  Define the number of Lanczos iterations by the portion <inlinemath> c </inlinemath> of the BSE Hamiltonian size 
-                  <inlinemath> n_\text{BSH} </inlinemath> such that <inlinemath> n_\text{Lanczos} = c \cdot n_\text{BSH} </inlinemath>.
-                  If the element <attref>nlanczos</attref> is given (<inlinemath> > 0 </inlinemath>), this element is ignored.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>

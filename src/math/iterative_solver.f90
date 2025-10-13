@@ -1,7 +1,8 @@
 !> Lanczos algorithm for the ISDF BSH as implemented for fast BSE.
 module iterative_solver
-  use precision, only: dp
+  use precision, only: dp, i32
   use asserts, only: assert
+  use modmpi, only: terminate_if_false
   use math_utils, only: all_zero
   use xlapack, only: norm
 
@@ -10,13 +11,16 @@ module iterative_solver
   private
   public :: lanczos
 
+  !> Zero tolerance
+  real(dp), parameter :: zero_tol = 1e-10
+
   contains
 
   !> Calculate \( k \) lanczos steps for the Bethe-Salpeter Hamiltonian \( \mathbf{H} \) such that
   !> \[
   !>   \mathbf{H} \cdot \mathbf{Q}_k = \mathbf{Q}_k \cdot \mathbf{T}_k
   !> \]
-  !> where \( \mathbf{Q}_k^H \mathbf{Q}_k = \mathbf I_{k \times k}, \mathbf{Q} \in \mathcal{C}^{N \times k \) is,
+  !> where \( \mathbf{Q}_k^H \mathbf{Q}_k = \mathbf I_{k \times k}, \: \mathbf{Q} \in \mathcal{C}^{N \times k} \) is,
   !> a transformation matrix, \( \mathbf{T}_k \in \mathcal{R}^{k \times \k} \) is a symmetric tridiagonal matrix,
   !> and \( N \) is the size of the Hamiltonian. \( k \) is chosen such that \( k \ll N \).
   !> The diagonal parts \( t_{ii} \) and sub diagonal parts \( t_{ii+1} \) are calculated iteratively as
@@ -28,12 +32,14 @@ module iterative_solver
   !> \]
   !> where \( \mathbf{q_i} \) is the \( i \)'th column of \( \mathbf{Q} \). \( \mathbf{q}_{i+1} \) is calculated 
   !> as follows
-  !> [
+  !> \[
   !>   \mathbf{q}_{i+1} = \frac{ \mathbf{H} - t_{ii}}{t_{i+1}} \cdot \mathbf{q_i}.
-  !> ]
+  !> \]
   !> The first column of \( \mathbf{Q} \), \( \mathbf{q}_1 \) must be given.
   !> If the algorithm breaks down before the \( k \)'th itereration it returns the results so far.
-  subroutine lanczos(k, matrix_vector_product, q_1, alpha, beta, save_Q, Q_k)
+  !> If the algorithm breaks down in the first iteration, the output arrays stay deallocated.
+  !> It is the responsibility of the user to verify that [[lanczos]] did not fail.
+  subroutine lanczos(k, matrix_vector_product, q_1, alpha, beta, Q_k)
     !> Maximum number of lanczos iterations
     integer, intent(in) :: k
     !> Matrix vector product to be used
@@ -50,53 +56,57 @@ module iterative_solver
     real(dp), intent(out), allocatable :: alpha(:)
     !> Sub diagonal of \( \mathbf{T}_k \)
     real(dp), intent(out), allocatable :: beta(:)
-    !> Save the transformation matrix. If set to false, `[[Q_k]]` is not
-    !> touched.
-    logical, intent(in) :: save_Q
-    !> Transformation matrix. If `[[save_Q]]` is `.false.`, this matrix will not be allocated.
-    complex(dp), intent(out), allocatable :: Q_k(:, :)
+    !> Transformation matrix. Will be only saved if present.
+    complex(dp), intent(out), allocatable, optional :: Q_k(:, :)
     
-    ! local variables
-    integer :: iter, k_, n_matrix 
+    logical :: save_Q
+    integer(i32) :: iter, k_run, n_matrix
     real(dp), allocatable :: alpha_(:), beta_(:)
-    complex(dp), allocatable :: Q_k_(:, :), q_vec(:), q_vec_old(:), x(:)
+    complex(dp), allocatable :: x(:), q_vec(:), q_vec_old(:)
 
     n_matrix = size(q_1)
-    call assert(k <= n_matrix, 'k is larger than the size of the matrix.')
+    save_Q = present(Q_k)
 
-    allocate(alpha_(k))
-    allocate(beta_(0 : k))
+    call assert(k >= 1, 'k is smaller then 1..')
+    call assert(k <= n_matrix, 'k is larger than the size of the matrix.')
+    call assert(norm(q_1) >= zero_tol, 'norm(q_1) is zero.')
+
+    allocate(alpha(k))
+    allocate(beta(0 : k))
     allocate(x(n_matrix))
+    if(save_Q) allocate(Q_k(n_matrix, k+1))
 
     q_vec = q_1 / norm(q_1)
     q_vec_old = q_vec
-    beta_(0) = 0.0_dp
+    if (save_Q) Q_k(:, 1) = q_vec
 
-    if (save_Q) then
-      allocate(Q_k_(n_matrix, k+1))
-      Q_k_(:, 1) = q_vec
-    end if
-
-    
+    beta(0) = 0.0_dp
+    k_run = 0
     do iter=1, k
       call matrix_vector_product(q_vec, x)
-      x = x - beta_(iter-1) * q_vec_old
-      alpha_(iter) = real(dot_product(q_vec, x), kind=dp)
-      x = x - alpha_(iter) * q_vec
-      beta_(iter) = norm(x)
+      x = x - beta(iter-1) * q_vec_old
+      alpha(iter) = real(dot_product(q_vec, x), kind=dp)
+      x = x - alpha(iter) * q_vec
+      beta(iter) = norm(x)
 
       ! Break loop if linear independence is reached
-      if (all_zero(beta_(iter))) exit
+      if (beta(iter) <= zero_tol) exit
 
       q_vec_old = q_vec
-      q_vec = x / beta_(iter)
-      if (save_Q) Q_k_(:, iter+1) = q_vec
-      k_ = iter
+      q_vec = x / beta(iter)
+      if (save_Q) Q_k(:, iter+1) = q_vec
+      k_run = iter
     end do
 
-    alpha = alpha_(:k_)
-    beta = beta_(1 : k_)
-    if (save_Q) Q_k = Q_k_(:, :k_)
+    if(k_run > 0) then
+      alpha = alpha(:k_run)
+      beta = beta(1 : k_run)
+      if(save_Q) Q_k = Q_k(:, :k_run)
+    else
+      ! Break down in the first iteration cannot yield a result
+      deallocate(alpha, beta)
+      if(save_Q) deallocate(Q_k)
+    end if
   end subroutine lanczos
 
 end module iterative_solver
