@@ -152,7 +152,7 @@ Subroutine getevecsv (vpl, evecsv)
 ! apply SU(2) symmetry matrix to second-variational states
       Do i = 1, nstsv
          Do ist = 1, n_basis_functions_sv  
-          evecsv(ist : ist+n_basis_functions_sv, i) = matmul(su2, evecsv(ist : ist+n_basis_functions_sv, i))
+           evecsv([ist, ist+n_basis_functions_sv], i) = matmul(su2, evecsv([ist, ist+n_basis_functions_sv], i))
          End Do
       End Do
       Return
