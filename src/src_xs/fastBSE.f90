@@ -3,7 +3,7 @@ module fastBSE
   use constants, only: pi, zzero
   use asserts, only: assert 
   use modinput, only: input_type
-  use modmpi, only: mpiinfo, terminate_if_false, distribute_loop
+  use modmpi, only: mpiinfo, terminate_if_false, distribute_loop, warn_if_false
   use seed_generation, only: set_seed
   use math_utils, only: random_order
   use distributions, only: lorentzian
@@ -11,22 +11,18 @@ module fastBSE
   use xlapack, only: norm, diagonalize_symtridiag, matrix_multiply
   use os_utils, only: join_paths
   use unit_conversion, only: hartree_to_ev
-
+  use xstring
   use xfftw, only: fft_type, FFTW_FORWARD, abort_if_not_fftw3
   use unit_cell_utils, only: reciprocal_lattice, volume_parallelepiped
   use dynamic_indices, only: dynindex_type
   use xgrid, only: regular_grid_type, setup_unitcell_grid, setup_fft_grid
-
   use xhdf5, only: xhdf5_type, abort_if_not_hdf5
   use formatted_file_parsers, only: read_eigen_energies, read_grid_coordinates, read_QP_energies
-
   use bethe_salpeter_hamiltonian, only: bsh_type, vexc_isdf_kernel_type, wscr_isdf_kernel_type
   use bse_diagonal, only: setup_transition_energies
   use iterative_solver, only: lanczos
   use bse_post_processing, only: calculate_absorption_spectrum, setup_symmetric_matrix
-
   use bse_utils, only: bse_type_to_bool
-
   use fastBSE_groundstate_properties, only: read_transitions_hdf5
   use fastBSE_isdf, only: read_isdf_hdf5
   use write_screening, only: read_screened_coulomb_hdf5
@@ -406,7 +402,16 @@ module fastBSE
     do i_dim=1, 3
 
       ! Run Lanczos iteration
-      call lanczos(nlanczos, bsh_times_vector, dipole_matrix_elements(:, i_dim), alpha, beta, save_exc_evecs, Q_lanczos)
+      if(save_exc_evecs) then
+        call lanczos(nlanczos, bsh_times_vector, dipole_matrix_elements(:, i_dim), alpha, beta, Q_lanczos)
+      else
+        call lanczos(nlanczos, bsh_times_vector, dipole_matrix_elements(:, i_dim), alpha, beta)
+      end if
+      call terminate_if_false(allocated(alpha), 'Error(fastBSE/diagonalize): For i_dim = ' // to_char(i_dim) &
+              // 'Lanczos broke down in the first iteration. This means that the compressed BSH is extremly linear ' &
+              // 'dependent. Thus, either the ISDF does not work well and you need to increase input%xs%fastBSEnisdf ' &
+              // 'or fastBSE is not appropriate for your problem. This might be the case for problems with only few ' &
+              // 'transitions.')
       n_its = size(alpha)
 
       ! Prepare tridiagonal matrix for gauss quadrature
@@ -517,21 +522,11 @@ module fastBSE
       type(input_type), intent(in) :: input 
       integer(i32), intent(in) :: n_transitions
 
-      integer(i32) :: n_lanczos
-      real(dp) :: c_lanczos 
+      call warn_if_false(input%xs%fastBSE%nlanczos > n_transitions, 'fastBSE: diagonalize: ' &
+              // 'input%xs%fastBSE%nlanczos > n_transitions: Parameter will be set to the maximum limit of ' &
+              // 'n_transitions for further execution!')
 
-      n_lanczos = input%xs%fastBSE%nlanczos
-      c_lanczos = input%xs%fastBSE%clanczos
-
-      call assert(n_lanczos >= 0, 'n_lanczos > 0.')
-      call assert(c_lanczos >= 0._dp, 'c_lanczos < 0.0.')
-      call assert(c_lanczos <= 1._dp, 'c_lanczos > 1.0.')
-
-      if (n_lanczos > 0) then
-        select_nlanczos = min(n_lanczos, n_transitions)
-      else 
-        select_nlanczos = ceiling(c_lanczos * n_transitions, kind=i32)
-      end if 
+      select_nlanczos = min(input%xs%fastBSE%nlanczos, n_transitions)
     end function
 
 
@@ -664,7 +659,7 @@ module fastBSE
       open(newunit=unit, file=fname, form='formatted', action='write', status='replace')
 
       write(unit, '(A)') '# fastBSE exciton eigen energies'
-      write(unit, '(A)') '# The three rows correspond to the results of the three Lanczos runs, each for one of the'
+      write(unit, '(A)') '# The three columns correspond to the results of the three Lanczos runs, each for one of the'
       write(unit, '(A)') '# directions of <p> as starting point.'
       write(unit, '(A)') '# '
       write(unit, '(A, E23.16, A)') '# Energy unit: ', 1 / energy_conversion, ' Hartree'
@@ -694,10 +689,10 @@ module fastBSE
       open(newunit=unit, file=fname, form='formatted', action='write', status='replace')
 
       write(unit, '(A)') '# fastBSE oscillator strength'
-      write(unit, '(A)') '# The three rows correspond to the results of the three Lanczos runs, each for one of the'
+      write(unit, '(A)') '# The three columns correspond to the results of the three Lanczos runs, each for one of the'
       write(unit, '(A)') '# directions of <p> as input for the lanczos algorithm.'
       write(unit, '(A)') '# '
-      write(unit, '(A, A22, 1x, A23, 1x, A23)') '#', 'osc. str. -> <p_1>', 'E -> <p_2>', 'E -> <p_3>'
+      write(unit, '(A, A22, 1x, A23, 1x, A23)') '#', 'osc. str. -> <p_1>', 'osc. str. -> <p_2>', 'osc. str. -> <p_3>'
       write(unit, '(SP, E23.16, 1x, E23.16, 1x, E23.16)') &
               (oscillator_strength(i_exciton, 1), oscillator_strength(i_exciton, 2), oscillator_strength(i_exciton, 3), i_exciton=1, n_exciton)
       close(unit)
@@ -764,25 +759,9 @@ module fastBSE
               'Error(fastBSE): fastBSE only supports valence excitations.')
     end if
 
-    if(input%xs%fastBSE%nlanczos < 0) then
+    if(input%xs%fastBSE%nlanczos <= 0) then
       call terminate_mpi_env(mpi_env, &
-              'Error(fastBSE): input%xs%fastBSE%nlanczos < 0. Choose a value >= 0.')
-    end if
-
-    if(input%xs%fastBSE%clanczos < 0._dp) then
-      call terminate_mpi_env(mpi_env, &
-              'Error(fastBSE): input%xs%fastBSE%clanczos < 0.0. Choose a value 0.0 <= clanczos <= 1.0.')
-    end if
-
-    if(input%xs%fastBSE%clanczos > 1._dp) then
-      call terminate_mpi_env(mpi_env, &
-              'Error(fastBSE): input%xs%fastBSE%clanczos > 1.0. Choose a value 0.0 <= clanczos <= 1.0.')
-    end if
-
-    if(input%xs%fastBSE%clanczos == 0._dp .and. input%xs%fastBSE%nlanczos == 0) then
-      call terminate_mpi_env(mpi_env, &
-              'Error(fastBSE): input%xs%fastBSE%clanczos == 0.0 and input%xs%fastBSE%nlanczos == 0. &
-              At least one must be larger than zero.')
+              'Error(fastBSE): input%xs%fastBSE%nlanczos < 0. Choose a value > 0.')
     end if
 
   end subroutine
