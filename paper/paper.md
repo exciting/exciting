@@ -28,7 +28,7 @@ Solving the Bethe-Salpeter Equation (BSE) is essential for understanding excited
 
 # Theoretical background
 
-The  Bethe-Salpeter Equation (BSE) within many body perturbation theory (MBPT) provides the state-of-the-art frame work for describing light-matter interaction. In particular, it is used to obtain optical absorption spectra, including the effects of excitons, which are bound electron-hole states. By expanding the electron-hole wavefunctions in the transition basis, solving the BSE can be reduced to a Schr\"odinger like equation. Setting up and diagonalizing the Bethe-Salpeter Hamiltonian (BSH) are the computationally expensive tasks[@Vorwerk:2019]. The BSH is given as
+The  Bethe-Salpeter Equation (BSE) within many body perturbation theory (MBPT) provides the state-of-the-art frame work for describing light-matter interaction. In particular, it is used to obtain optical absorption spectra, including the effects of excitons, which are bound electron-hole states. By expanding the electron-hole wavefunctions in the transition basis, solving the BSE can be reduced to a Schr{\"}odinger like equation. Setting up and diagonalizing the Bethe-Salpeter Hamiltonian (BSH) are the computationally expensive tasks[@Vorwerk:2019]. The BSH is given as
 $$
 H^{BSH} = D + \gamma V - W \:,
 $$
@@ -101,7 +101,6 @@ u^*_{o'\mathbf k'}(\mathbf{r}_\nu^V)
 $$
 where we first compute the sums over $o'$, $u'$, and $\mathbf{k}'$ to get a term that depends only on $\mathbf{r}_\nu^V$ with a complexity of $\mathcal{O}(N_\mu^V(N_o N_u N_{\bf k} + N_uN_{\bf k})$. The remaining sums can be computed with $\mathcal{O}((N_\mu^V)^2 N_\mu^V N_o N_u N_{\bf k})$, so the complexity of computing $V\cdot X$ is bounded by $\mathbf{O}((N_\mu^V)^2 + N_\mu N_o N_u N_{\bf k})$.
 Applying the screened kernel to $X$, after reordering the sums, we get
-\bigskip
 
 $$
 [W \cdot X]_{ou\mathbf k} = \frac{1} {N_k} \sum_{\nu=1}^{N_\mu^{W_o}}
@@ -153,3 +152,4 @@ In Fig.(\autoref{fig:scaling}) we show the wall times for solving the BSE with t
 Altogether, we have implemented a new, low-scaling BSE solver and fully integrated it into the all-electron, full-potential package <span style="font-family: 'Courier New', monospace; font-weight: bold;">exciting</span>. We demonstrate that the new implementation yields results equivalent to the direct solution of the BSE but with significantly reduced computational time. Consequently, it enables more precise calculations and facilitates the study of more complex problems.
 
 # References
+
