@@ -107,6 +107,7 @@ contains
     integer(i32) :: i, k
 
     this%array = zzero
+    ! TODO: use DO CONCURRENT here after ifort2021 support is dropped
     do k = lbound( this%array, 3 ), ubound( this%array, 3 )
       do i = 1, size( this%array, 1 )
         this%array(i, i, k) = zone

@@ -2,27 +2,11 @@
 
 import re
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
-import numpy as np
+from excitingtools.parser_utils.parser_utils import numpy_gen_from_txt
 
 path_type = Union[Path, str]
-
-
-def numpy_gen_from_txt(name: path_type, skip_header: Optional[int] = 0) -> np.ndarray:
-    """Numpy genfromtxt, dressed in try/expect.
-
-    Not worth generalising, as would need to support genfromtxt's API.
-
-    :param name: File name.
-    :param skip_header: Optional number of header lines to skip.
-    :return data: Parsed data.
-    """
-    try:
-        data = np.genfromtxt(name, skip_header=skip_header)
-    except ValueError:
-        raise ValueError(f"Failed to parse {name}")
-    return data
 
 
 def parse_EPSILON_NAR(name: path_type) -> dict:

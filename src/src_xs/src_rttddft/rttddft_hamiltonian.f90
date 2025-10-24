@@ -1,8 +1,3 @@
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-! Copyright (C) Exciting Code, SOL group. 2020
-
-! Reference: https://doi.org/10.1088/2516-1075/ac0c26
 ! TODO(Ronaldo): Refactor to reduce the number of global variables
 !> Module that manages the hamiltonian matrix in RT-TDDFT
 module rttddft_Hamiltonian
@@ -48,6 +43,8 @@ module rttddft_Hamiltonian
     type(hermitian_matrix_set), public :: V_KS_0
     !> Hamiltonian eigenvalues at time \(t = 0\)
     real(dp), public, allocatable :: initial_eigenvalues(:, :)
+    !> If `.true.`, explicit evaluation should be performed in [[hamiltonian_set_calculate]]
+    logical, private :: explicit_evaluation_needed = .true.
     !> `mathcalH` gives the impact of an ion displacement on the hamiltonian matrix
     !> \[ \left[ \left\langle 
     !> \frac{\partial \phi_{\mu'}^{\mathbf{k}}}{\partial \mathbf{R}_J}
@@ -68,43 +65,40 @@ module rttddft_Hamiltonian
     procedure, private :: calculate_ik => hamiltonian_set_calculate_lapw_basis_ik
     procedure, public  :: calculate => hamiltonian_set_calculate
     procedure, public  :: copy_H_t => hamiltonian_set_copy_H_t
-    procedure, public  :: set_IPA => hamiltonian_set_attribute_IPA
     final              :: destructor
   end type
 
 contains
-  pure subroutine hamiltonian_set_attribute_IPA( this, state )
-    class(hamiltonian_set), intent(inout) :: this
-    logical, intent(in) :: state
-
-    this%IPA = state
-  end subroutine
 
   subroutine hamiltonian_set_allocate( this, max_dimension, ki, dims, n_states, &
-      allocate_H_past, allocate_H_0, is_LAPWLO_basis, MD )
+      allocate_H_past, evolve_H0, is_LAPWLO_basis, MD, is_IPA )
     class(hamiltonian_set), intent(inout) :: this
     !> Maximum dimension of the matrices for all \( \mathbf{k} \)-points
     integer(i32), intent(in) :: max_dimension
-    !> First \( \mathbf{k} \)-point
+    !> First \( \mathbf{k} \)-point managed by MPI process
     integer(i32), intent(in) :: ki
     !> \( \mathbf{k} \)-dependent dimensions
     integer(i32), intent(in) :: dims(ki:)
-    !> Number of KS states
+    !> Number of KS states (n_occupied + n_empty). Relevant only with `is_LAPWLO_basis` = `.False.`
     integer(i32), intent(in) :: n_states
     !> if `.True`, allocate `H_t_minus_dt`
     logical, intent(in) :: allocate_H_past
-    !> if `.True`, allocate `H_0`
-    logical, intent(in) :: allocate_H_0
-    !> if `.True`, the unperturbed KS basis is used
+    !> if `.True`, evolve explicitly time-independent `H_0`
+    logical, intent(in) :: evolve_H0
+    !> if `.True`, LAPW+lo basis is used
     logical, intent(in) :: is_LAPWLO_basis
     !> if `.True`, MD is carried out
-    logical, intent(in) :: MD
+    logical, intent(in) :: MD ! TODO: two logicals should actually be passed: molecular_dynamics%on and molecular_dynamics%valence_corrections
+    !> if `.True`, independent particle approximation is employed
+    logical, intent(in) :: is_IPA
 
     logical :: is_KS_basis
     integer(i32) :: kf
 
     call assert( max_dimension >= maxval( dims ), 'm must be >= maxval( dims )' )
+    this%IPA = is_IPA
     is_KS_basis = .not. is_LAPWLO_basis
+    if ( is_KS_basis ) call assert ( max_dimension == n_states, 'max_dimension must be equal to n_states' )
     kf = ubound( dims, 1 )
     if( MD ) then ! H_t and H_t_minus_dt matrices are not hermitian
       allocate( generic_matrix_set :: this%H_t )
@@ -115,9 +109,9 @@ contains
     end if
     call this%H_t%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] )
     if( allocate_H_past ) call this%H_t_minus_dt%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] )
-    if( allocate_H_0 ) call this%H_0%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] ) 
+    if( ( .not. evolve_H0 ) .and. ( is_LAPWLO_basis ) ) call this%H_0%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] ) 
     if( MD ) allocate( this%mathcalH(max_dimension, max_dimension, n_cartesian, natmtot, ki:kf) )
-    if( is_KS_basis ) call this%V_KS_0%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] )
+    if ( is_KS_basis ) call this%V_KS_0%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] )
     if( allocated( this%dims ) ) deallocate( this%dims )
     if( is_KS_basis ) then 
       allocate( this%dims(ki:kf), source = max_dimension ) 
@@ -148,7 +142,7 @@ contains
 
   !> Interface to decide if calculate in LAPW or KS basis and call the corresponding subroutines.
   subroutine hamiltonian_set_calculate( this, l_max_pot, apwalm, Gkset, ks_lapwlo_transition_matrix,&
-    printTimings, t_ham, a_tot, obtain_mathcalH, t_MD)
+    printTimings, t_ham, a_tot, obtain_mathcalH, t_MD )
     class(hamiltonian_set), intent(inout) :: this
     !> Maximal value of l in spherical harmonics expansion of DFT potential
     integer(i32), intent(in) :: l_max_pot
@@ -176,6 +170,8 @@ contains
       call this%calculate_in_lapw_basis( l_max_pot, apwalm, Gkset, &
         printTimings, t_ham, a_tot, obtain_mathcalH, t_MD )
     end if
+    ! with IPA, the Hamiltonian should only be calculated from scratch at t = 0
+    if ( this%IPA ) this%explicit_evaluation_needed = .false.
   end subroutine
 
   !> Obtain the field-free hamiltonian at time \( t \) in the LAPW+lo basis.
@@ -222,11 +218,7 @@ contains
     if( timings_detailed ) call assert( timings_general, 'timings_general must be true if timings_detailed is true')
 
     if( timings_general ) call timesec( t_i )
-    if( this%IPA ) then
-      call this%H_0%assert_allocated()
-      call this%H_t%copy_from( this%H_0 )
-    else
-
+    if( this%explicit_evaluation_needed ) then
       ! Interface to input variables
       valence_relativity = ( trim( input%groundstate%ValenceRelativity ) /= 'none' )
 
@@ -260,6 +252,9 @@ contains
             mt_part, cfunig, a_tot, obtain_mathcalH )
         end do
       end if
+    else
+      call this%H_0%assert_allocated()
+      call this%H_t%copy_from( this%H_0 )
     end if
 
     if( timings_general ) then
@@ -299,9 +294,9 @@ contains
     ! It is better to split the two cases (even with some code duplication): 
     ! - to avoid an "if" inside the double loop over atoms
     ! - to avoid allocating "tmp" when not needed (this can be a large array)
-    associate( np => Gkset%ngk(1, ik), m => size(this%H_t%array, 1), n => size(this%H_t%array, 1) )
+    associate( np => Gkset%ngk(1, ik) )
     if( get_mathcalH ) then
-      call assert( present(a_tot), "a_tot must be present" )
+      call assert( present( a_tot ), "a_tot must be present" )
       tmp = this%H_t%array(:, :, ik)
       do is = 1, nspecies
         do ia = 1, natoms(is)
@@ -327,7 +322,7 @@ contains
     call me_ir_mat( Gkset, ik, zone/2, kin_ir, zone, this%H_t%array(:, :, ik), gradient_product=.true. )
   end subroutine
 
-  !> (private) Update the `mathcalH` matrix for a given atom and k-point
+  !> (private) Update the `mathcalH` matrix for a given atom and \( \mathbf{k} \)-point.
   subroutine update_mathcalH_ik_ias( is, ia, n_pw, gplusk_cart, ham_ik_ias, a_tot, mathcalH_ik_ias )
     !> Species index
     integer(i32), intent(in) :: is
@@ -405,7 +400,7 @@ contains
     !> Matching coefficients of the (L)APWs
     !> (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
     complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, :)
-    !> Set of G+k vectors for LAPW expansion
+    !> Set of \( \mathbf{G} + \mathbf{k} \) vectors for LAPW expansion
     type(Gk_set), intent(in) :: Gkset
     !> KS-LAPW+lo transition matrix (nmatmax, n_basis_ks, first_kpt : last_kpt)
     complex(dp), contiguous, intent(in) :: ks_lapwlo_transition_matrix(:, :, :)
@@ -436,7 +431,7 @@ contains
     this%H_t%array = zzero
     call this%H_t%copy_from( this%initial_eigenvalues )
 
-    if( .not. this%IPA ) then
+    if( this%explicit_evaluation_needed ) then
       call this%H_t%subtract( this%V_KS_0 )
 
       call me_mt_alloc( mt_contribution )
@@ -469,7 +464,7 @@ contains
         ! final hamiltonian
         this%H_t%array(:, :, ik) = this%H_t%array(:, :, ik) + local_effective_potential
       end do ! ik
-    end if ! .not. this%IPA
+    end if ! this%explicit_evaluation_needed
 
     if( timings_general ) call timesec_RTTDDFT( ti, t_ham%total )
   end subroutine
@@ -500,7 +495,7 @@ contains
 
     real(dp), parameter :: interaction_tol = 1.e-14_dp
     integer(i32) :: ik, i
-    real(dp) :: a_scaled(3), fact
+    real(dp) :: a_scaled(n_cartesian), fact
 
     a_scaled = a_tot%components / c
     fact = 0.5_dp * dot_product( a_scaled, a_scaled )
@@ -508,8 +503,11 @@ contains
     associate( m => size( this%H_t%array, 1 ), n_kpts => size( this%H_t%array, 3 ) )
       call assert( size( pmat, 4 ) == n_kpts, "pmat and hamiltonian have different n_kpts" )
       if( overlap%is_identity() ) then
-        do concurrent( i = 1 : m, ik = lbound(this%H_t%array, 3) : ubound(this%H_t%array, 3) )
-          this%H_t%array(i, i, ik) = this%H_t%array(i, i, ik) + fact
+        ! TODO: use DO CONCURRENT here after ifort2021 support is dropped
+        do ik = lbound(this%H_t%array, 3), ubound(this%H_t%array, 3)
+          do i = 1, m
+            this%H_t%array(i, i, ik) = this%H_t%array(i, i, ik) + cmplx( fact, kind = dp )
+          end do
         end do
       else
         call assert( all( shape( overlap%array ) == shape( this%H_t%array ) ), &

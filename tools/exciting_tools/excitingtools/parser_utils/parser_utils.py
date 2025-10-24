@@ -2,8 +2,31 @@
 
 import re
 from json import JSONDecodeError, loads
-from typing import Any, Dict
+from pathlib import Path
+from typing import Any, Dict, Union
 from xml.etree import ElementTree
+
+import numpy as np
+
+from excitingtools.parser_utils.erroneous_file_error import ErroneousFileError
+
+path_type = Union[Path, str]
+
+
+def numpy_gen_from_txt(name: path_type, skip_header: int = 0) -> np.ndarray:
+    """Numpy genfromtxt, dressed in try/expect.
+
+    Not worth generalising, as would need to support genfromtxt's API.
+
+    :param name: File name.
+    :param skip_header: Optional number of header lines to skip.
+    :return data: Parsed data.
+    """
+    try:
+        data = np.genfromtxt(name, skip_header=skip_header)
+    except ValueError as exc:
+        raise ErroneousFileError(f"Failed to parse {name}.") from exc
+    return data
 
 
 def find_element(root: ElementTree.Element, tag: str) -> ElementTree.Element:

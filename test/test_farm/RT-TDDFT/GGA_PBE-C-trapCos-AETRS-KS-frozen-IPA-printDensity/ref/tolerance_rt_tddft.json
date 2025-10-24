@@ -1,0 +1,245 @@
+{
+  "eigval.xml": {
+    "eigenvalue": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    },
+    "occupancy": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "evalcore.xml": {
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "l": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "k": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "eigenvalue": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    }
+  },
+  "atoms.xml": {
+    "RelativityModel": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "chemicalSymbol": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "GridType": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "xctype": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "TotalNumberOfGridPoints": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "NumberOfMTGridPoints": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "rmin": {
+      "tol": 1e-10,
+      "unit": "Bohr",
+      "message": "rmin can be very small. Should set the tolerance to the smallest plausible value"
+    },
+    "rmt": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "rmax": {
+      "tol": 1e-08,
+      "unit": "Bohr"
+    },
+    "n": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "l": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "kappa": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "energy": {
+      "tol": 1e-08,
+      "unit": "Hartree"
+    }
+  },
+  "CURRENT.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jx": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jy": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "Jz": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    }
+  },
+  "N_EXCITATIONS.OUT": {
+    "Time": {
+      "tol": 1e-08,
+      "unit": "a.u."
+    },
+    "number_electrons_GroundState": {
+      "tol": 5e-07,
+      "unit": "null"
+    },
+    "number_electrons_ExcitedState": {
+      "tol": 5e-07,
+      "unit": "null"
+    },
+    "sum": {
+      "tol": 1e-06,
+      "unit": "null"
+    }
+  },
+  "EIGVAL_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "eigenvalues": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    }
+  },
+  "PROJECTION_COEFFS_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "projection": {
+      "tol": 1e-08,
+      "unit": "null"
+    }
+  },
+  "DELTARHO3D_5.xsf": {
+    "grid": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    }, 
+    "origin": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point1": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point2": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point3": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "DELTARHO3D": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    }
+  },
+  "DELTARHO3D_10.xsf": {
+    "grid": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    }, 
+    "origin": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point1": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point2": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point3": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "DELTARHO3D": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    }
+  },
+  "DELTARHO3D_15.xsf": {
+    "grid": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    }, 
+    "origin": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point1": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point2": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point3": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "DELTARHO3D": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    }
+  },
+  "DELTARHO3D_18.xsf": {
+    "grid": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    }, 
+    "origin": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point1": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point2": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "point3": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    },
+    "DELTARHO3D": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    }
+  }
+}

@@ -4,23 +4,20 @@ Parsers for real-time TDDFT output files
 
 from pathlib import Path
 from typing import List, Union
-from xml.etree.ElementTree import ParseError
 
 import numpy as np
 
 from excitingtools.parser_utils.grep_parser import grep
+from excitingtools.parser_utils.parser_utils import numpy_gen_from_txt
 
 path_type = Union[Path, str]
 
 
-def parse_nexc(name: path_type, skiprows=1):
+def parse_nexc(name: path_type):
     """
     Parser for N_EXCITATIONS.OUT
     """
-    try:
-        data = np.genfromtxt(name, skip_header=skiprows)
-    except Exception:
-        raise ParseError
+    data = numpy_gen_from_txt(name, skip_header=1)
     out = {
         "Time": data[:, 0],
         "number_electrons_GroundState": data[:, 1],
@@ -31,15 +28,22 @@ def parse_nexc(name: path_type, skiprows=1):
     return out
 
 
-def parse_jind(name: path_type, skiprows=0):
+def parse_jind(name: path_type):
     """
     Parser for CURRENT.OUT
     """
-    try:
-        data = np.genfromtxt(name, skip_header=skiprows)
-    except Exception:
-        raise ParseError
+    data = numpy_gen_from_txt(name)
     out = {"Time": data[:, 0], "Jx": data[:, 1], "Jy": data[:, 2], "Jz": data[:, 3]}
+
+    return out
+
+
+def parse_rttddft_polarization(name: path_type):
+    """
+    Parser for POLARIZATION_RTTDDFT.OUT
+    """
+    data = numpy_gen_from_txt(name)
+    out = {"Time": data[:, 0], "Px": data[:, 1], "Py": data[:, 2], "Pz": data[:, 3]}
 
     return out
 
@@ -48,10 +52,7 @@ def parse_etot(name: path_type):
     """
     Parser for TOTENERGY_RTTDDFT.OUT
     """
-    try:
-        data = np.genfromtxt(name, skip_header=1)
-    except Exception:
-        raise ParseError
+    data = numpy_gen_from_txt(name, skip_header=1)
     out = {
         "Time": data[:, 0],
         "ETOT": data[:, 1],
@@ -207,10 +208,7 @@ def parse_atom_position_velocity_force(name: path_type) -> dict:
     :return dict out: each dict key corresponds to time, position (3 columns), velocity (3 columns), total force (3 columns).
     The 3 columns refer to the x, y, z components
     """
-    try:
-        data = np.genfromtxt(name, skip_header=0)
-    except Exception:
-        raise ParseError
+    data = numpy_gen_from_txt(name)
     out = {
         "Time": data[:, 0],
         "x": data[:, 1],
@@ -227,7 +225,7 @@ def parse_atom_position_velocity_force(name: path_type) -> dict:
     return out
 
 
-def parse_force(name: path_type, skiprows=0):
+def parse_force(name: path_type):
     """
     Parser for X_????.OUT, where X can be:
     - FCR: core corrections to forces
@@ -235,10 +233,7 @@ def parse_force(name: path_type, skiprows=0):
     - FHF: Hellman-Feynman term of forces
     - FVAL: valence corrections to forces
     """
-    try:
-        data = np.genfromtxt(name, skip_header=skiprows)
-    except Exception:
-        raise ParseError
+    data = numpy_gen_from_txt(name)
     out = {"Time": data[:, 0], "Fx": data[:, 1], "Fy": data[:, 2], "Fz": data[:, 3]}
 
     return out

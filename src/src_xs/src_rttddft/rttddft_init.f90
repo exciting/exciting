@@ -1,11 +1,3 @@
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-! Copyright (C) Exciting Code, SOL group. 2020
-
-! Created Jan 2021 (Ronaldo)
-! Improved documentation: July 2021 (Ronaldo)
-! Reference: https://doi.org/10.1088/2516-1075/ac0c26
-
 !> Module implementing general initializations for RT-TDDFT
 module rttddft_init
   use asserts, only: assert
@@ -82,7 +74,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   class(propagator_type), allocatable, intent(out) :: propagator
   !> Argument that encapsulates the vector potential
   type(Vector_Potential), intent(in) :: vec_pot
-  !> \(\mathbf{A}_{tot}\) at time \( t-\Delta t\) 
+  !> \(\mathbf{A}_{\rm tot}\) at time \( t-\Delta t\) 
   class(Vector_Potential_Field), intent(in) :: a_tot_t_minus_dt
   !> variable that is an interface to the input keys defined in `input.xml` inside the `MD` block
   type(MD_input_keys), intent(in) :: molecular_dynamics
@@ -122,15 +114,15 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   type(Electric_Field), intent(in) :: e_vec
   !> \(\mathbf{E}\) at time \( t = t_{\rm start} - \Delta t \) 
   type(Electric_Field), intent(in) :: e_vec_save
-  !> Spurious paramagnetic current density obtained at \( t = 0 \)
+  !> Spurious paramagnetic current density obtained at \( t = 0 \). Only used with velocity-gauge field coupling.
   type(Current_Density_Field), intent(out) :: j_para_spurious
-  !> GS polarization obtained at \( t = 0 \)
+  !> GS polarization obtained at \( t = 0 \). Only used with Berry-phase field coupling.
   type(Polarization), intent(out) :: p_vec_init
   !> Energy gap
   real(dp), intent(out) :: energy_gap
 
   integer(i32) :: ik, first_kpt, last_kpt, l_max_pot, ham_dimension, kgrid_neighbours
-  logical :: allocate_H0, evolve_H0, my_rank_writes_to_output, success
+  logical :: evolve_H0, my_rank_writes_to_output, success
   real(dp) :: occs_tol
   type(Vector_Potential_Field) :: a_aux
   type(Current_Density) :: j_aux
@@ -139,7 +131,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   complex(dp), allocatable :: psi_gnd_lapwlo_copy(:, :, :)
   integer(i32), allocatable :: ik_to_array_position(:), k_shifts(:, :, :), shift_positions(:)
   real(dp), allocatable :: dk_vec(:, :, :), occupations(:, :)
-  logical, allocatable :: k_needed(:), proc_needed(:)
+  logical, allocatable :: k_needed(:)
 
   call adjust_input_and_init_exciting_globals( input )
   l_max_pot = input%groundstate%lmaxvr
@@ -165,13 +157,12 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   call distribute_loop( mpi_env_k, kset_rttddft%nkpt, first_kpt, last_kpt )
   
   evolve_H0 = ( molecular_dynamics%on .or. ( .not. rt_inp%eeInteraction%use_ipa() ) )
-  allocate_H0 = (.not. evolve_H0) .and. rt_inp%use_lapwlo_basis()
 
   ! Neighbour is a k point from another MPI rank, which is reachable in 1 or 2 jumps
   ! by one of the k points controlled by the current MPI rank
   kgrid_neighbours = 0
   if ( rt_inp%use_berry_phase() ) call get_kgrid_neighbours_info( first_kpt, last_kpt, &
-    kset_rttddft, Gset, k_ptrs, dk_vec, k_needed, proc_needed, kgrid_neighbours, &
+    kset_rttddft, Gset, k_ptrs, dk_vec, k_needed, kgrid_neighbours, &
     shift_positions, k_shifts )
 
   ham_dimension = nmatmax
@@ -183,7 +174,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     allocate( occupations(nstfv, first_kpt : last_kpt), source = real_zero )
     allocate( apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt + kgrid_neighbours) )
     call H%allocate( ham_dimension, first_kpt, nmat(1, first_kpt:last_kpt), nstfv, &
-       propagator%extrapolation_needed(), allocate_H0, rt_inp%use_lapwlo_basis(), molecular_dynamics%valence_corrections )
+       propagator%extrapolation_needed(), evolve_H0, rt_inp%use_lapwlo_basis(), &
+       molecular_dynamics%on, rt_inp%eeInteraction%use_ipa() )
     call overlap%allocate( rt_inp%use_lapwlo_basis(), ham_dimension, first_kpt, last_kpt )
     if ( rt_inp%use_velocity_gauge() ) allocate( pmat(ham_dimension, ham_dimension, 3, first_kpt : last_kpt) )
     if ( ( molecular_dynamics%on ) .and. ( molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative ) ) &
@@ -294,18 +286,18 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k, rt_inp%restart_file_handler, kset_rttddft%nkpt )
     end if
   end if
-  
-  ! Attention: we allways need `IPA` to be false before the **first** call to `H%calculate`
-  call H%set_IPA( .false. )
+
   call H%calculate( l_max_pot, apwalm, Gkset, psi_gnd_lapwlo )
-  if ( rt_inp%use_ks_basis() .and. evolve_H0 ) then
-    ! at t = 0, obtain the effective potential 
+  if ( rt_inp%use_ks_basis() ) then
+    ! at t = 0, obtain the effective potential: since H%V_KS_0 was not initialized
+    ! until this point, now H%H_t = H%H_t(t = 0) + H%V_KS_0
     call H%V_KS_0%copy_from( H%H_t ) 
     call H%V_KS_0%subtract( H%initial_eigenvalues )
+    ! and put correct values in H%H_t (so addressing H%H_t further is safe)
+    call H%calculate( l_max_pot, apwalm, Gkset, psi_gnd_lapwlo )
+  else
+    if ( .not. evolve_H0 ) call H%H_0%copy_from( H%H_t )
   end if
-  if ( .not. evolve_H0 .and. rt_inp%use_lapwlo_basis() ) call H%H_0%copy_from( H%H_t )
-  ! Attention: now set `IPA` to its correct value
-  call H%set_IPA( rt_inp%eeInteraction%use_ipa() )
 
   a_aux%components = 0._dp
   call overlap%initialize( apwalm, Gkset, pmatmt, a_aux, mathcalH=H%mathcalH, mathcalB=mathcalB )
@@ -850,7 +842,7 @@ end subroutine calc_planewave_matrix_elements
 !> Gather the information about neighbouring \( \mathbf{k} \) points based on the 
 !> \( \mathbf{k} \) grid and MPI \( \mathbf{k} \)-sets
 subroutine get_kgrid_neighbours_info( first_kpt, last_kpt, kset_rttddft, Gset, k_ptrs, dk_vec, &
-    k_needed, proc_needed, kgrid_neighbours, shift_positions, k_shifts )
+    k_needed, kgrid_neighbours, shift_positions, k_shifts )
   !> Index of the first \( \mathbf{k} \) point treated by the current (MPI) rank
   integer(i32), intent(in) :: first_kpt
   !> Index of the last \( \mathbf{k} \) point treated by the current (MPI) rank
@@ -865,8 +857,6 @@ subroutine get_kgrid_neighbours_info( first_kpt, last_kpt, kset_rttddft, Gset, k
   real(dp), allocatable, intent(out) :: dk_vec(:, :, :)
   !> Array whose i's element is '.True.', if the current process needs information from \( \mathbf{k} \) point number i
   logical, allocatable, intent(out) :: k_needed(:)
-  !> Array whose i's element is '.True.', if the current process needs information from the process number i - 1
-  logical, allocatable, intent(out) :: proc_needed(:)
   !> Number of MPI processes containing \( \mathbf{k} \) points 'neighbouring' \( \mathbf{k} \) points from the current process
   integer(i32), intent(out) :: kgrid_neighbours
   !> Positions of the BZ shifts in the IR potential array
@@ -949,11 +939,6 @@ subroutine get_kgrid_neighbours_info( first_kpt, last_kpt, kset_rttddft, Gset, k
   allocate( k_needed(kset_rttddft%nkpt), source = .false. )
   do i = 1, kset_rttddft%nkpt
     if ( visited_k_pts(i) == 1 ) k_needed(i) = .true.
-  end do
-
-  allocate( proc_needed(mpi_env_k%procs), source = .false. )
-  do i = 1, mpi_env_k%procs
-    if ( visited_procs(i) == 1 ) proc_needed(i) = .true.
   end do
 
 end subroutine
