@@ -1,0 +1,72 @@
+<input>
+  <title>C</title>
+  <structure speciespath="./">
+    <crystal scale="6.7407">
+      <basevect>0.0 0.5 0.5 </basevect>
+      <basevect>0.5 0.0 0.5 </basevect>
+      <basevect>0.5 0.5 0.0 </basevect>
+    </crystal>
+    <species speciesfile="C.xml" rmt="1.4">
+      <atom coord="0.00 0.00 0.00"/>
+      <atom coord="0.25 0.25 0.25"/>
+    </species>
+  </structure>
+  <groundstate
+    ngridk="2 2 2"
+    rgkmax="5.0"
+    gmaxvr="12.0"
+    epsengy="1e-6"
+    reducek="false"
+    nosym="true"
+    vkloff="0.01 -0.03 0.05"
+    do="fromscratch"
+    mixerswitch="1"
+    mixer="msec"
+    findlinentype="Wigner_Seitz"
+    frozencore="false"
+    outputlevel="high"
+    nempty="3"
+    useDensityMatrix="false"
+    radialgridtype="cubic-2"
+    xctype="GGA_PBE">
+  </groundstate>
+  <xs
+    xstype ="RT-TDDFT"
+    ngridk="2 2 2"
+    vkloff="0.01 0.03 -0.05"
+    nosym="true"
+    reducek="false"
+    nempty="20">
+    <realTimeTDDFT
+      propagator="AETRS"
+      timeStep="0.25d0"
+      endTime="4.5d0"
+      printTimingGeneral="false"
+      calculateNExcitedElectrons="true"
+      printAfterIterations="4"
+      basis="unperturbedKS"
+      subtractJ0="true"
+      eeInteraction="IPA"
+      numberOfFrozenStates="1">
+      <pmat readFromFile="false" writeToFile="false" forceHermitian="true" />
+      <laser fieldType="total">
+      <trapCos amplitude='5.d0' omega='4.d0' phase='0.d0' t0='0.0d0' riseTime='1.d0'
+                width='2.d0' direction='x'/>
+      </laser>
+      <screenshots niter="5">
+        <eigenvalues nEigenvalues="-1" tolerance="1d-14" />
+        <projectionCoefficients printAbsoluteValue="true" format="F10.5" />
+        <deltadensityplot> 
+          <plot3d>
+            <box grid="8 8 8">
+              <origin coord=" 0.0 0.0 0.0"/>
+              <point  coord=" -1.0  1.0  0.0"/>
+              <point  coord=" 1.0  -1.0  1.0"/>
+              <point  coord=" 1.0  1.0  -1.0"/>
+            </box>
+          </plot3d>
+        </deltadensityplot>
+      </screenshots>
+    </realTimeTDDFT>
+  </xs>
+</input>

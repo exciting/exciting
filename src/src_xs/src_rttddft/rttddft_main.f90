@@ -1,9 +1,3 @@
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-! Copyright (C) Exciting Code, SOL group. 2020
-
-! Reference: https://doi.org/10.1088/2516-1075/ac0c26
-
 !> This module is the kernel of a RT-TDDFT calculation.
 !> It contains the subroutine `coordinate_rttddft_calculation`, which manages
 !> a RT-TDDFT calculation. 
@@ -209,6 +203,7 @@ contains
       end if
     end if
 
+    call j_ind%set_spurious( j_para_spurious )
     if( rt%restart_previous_calculation() .and. rt%use_velocity_gauge() ) then
       call j_ind%evaluate_paramagnetic( psi, pmat, mpi_env_k )
       call j_ind%evaluate_diamagnetic( chgval/Omega, vec_pot%a_tot )
@@ -273,12 +268,15 @@ contains
     i_print = 1
     first_step = int( time / dt, kind = i32 ) + 1
     last_step = int( rt%t_end / dt, kind = i32 )
+    
     ! This is the most important loop (performed for each time step \(\Delta t\)
     do it = first_step, last_step
 
       if( rt%printTimings%general() )  call timing%reset()
       ! Variable to store the timing of each iteration
       if( rt%printTimings%general() ) timei = timeiter
+      j_ind_save = j_ind
+      p_vec_prev = p_vec
 
       ! Shall the screenshot be taken on the current step
       take_screenshot = .false.
@@ -303,14 +301,10 @@ contains
       ! where the step is from t_in to t_out
       time = time + dt
       e_field%components = - vec_pot%get_dA_dt( time ) / c
-
-      j_ind_save = j_ind
-      p_vec_prev = p_vec
-      
+     
       if ( rt%use_velocity_gauge() ) then
         ! Update the paramagnetic component of the induced current density
         call j_ind%evaluate_paramagnetic( psi, pmat, mpi_env_k )
-        if ( rt%subtract_J0 ) call j_ind%paramagnetic%add_vector( -j_para_spurious%components )
       else
         call get_td_overlap_det_and_berry_coupling_term( first_kpt, e_field, pws_for_berry_phase, &
           psi, psi%kset, k_ptrs, td_overlap_det, berry_coupling_term )
@@ -329,7 +323,7 @@ contains
       if ( .not. rt%eeInteraction%use_ipa() ) call update_potential( rt%printTimings, timing%t_RTTDDFT%pot, rt%eeInteraction%coulomb_only() )
       
       if( rt%printTimings%general() ) call timesec( timei )
-      ! Check if we need to save aind, pvec, atot and aext
+      ! Check if we need to save aind, p_vec and a_ind
       if( vec_pot%is_external_field_given() .and. rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) then
         a_ind_save = vec_pot%a_ind
         p_vec_save = p_vec
@@ -681,7 +675,6 @@ contains
       j_t = j_t_minus_dt
       if ( rt%use_velocity_gauge() ) then
         call j_t%evaluate_paramagnetic( psi, pmat, mpi_env )
-        if ( rt%subtract_J0 ) call j_t%paramagnetic%add_vector( -j_para_spurious%components )
       else
         e_vec%components = - a_t%get_dA_dt( time ) / c
         call get_td_overlap_det_and_berry_coupling_term( first_kpt, e_vec, pws_for_berry_phase, &

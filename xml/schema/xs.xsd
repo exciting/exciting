@@ -754,7 +754,7 @@
                 <xs:documentation> 
                   When restarting a calculation, append the specified string 
                   (as extension) to the following files: <pre>CURRENT.OUT</pre>, 
-                  <pre>POLARIZATION.OUT</pre>, <pre>VECTOR_POTENTIAL.OUT</pre>, 
+                  <pre>POLARIZATION_RTTDDFT.OUT</pre>, <pre>VECTOR_POTENTIAL.OUT</pre>, 
                   <pre>ELECTRIC_FIELD.OUT</pre>, <pre>N_EXCITATIONS.OUT</pre>, and 
                   <pre>TOTENERGY_RTTDDFT.OUT</pre>. Instead of reading from the default 
                   file name <pre>fname.OUT</pre>, the program will read from 
@@ -916,7 +916,7 @@
               type="xs:integer" default="50"> 
               <xs:annotation>
                 <xs:documentation> Determine how frequently data
-                  are printed to file. Information regarding the fields (<pre>POLARIZATION.OUT</pre>, <pre>VECTOR_POTENTIAL.OUT</pre>, etc.)
+                  are printed to file. Information regarding the fields (<pre>POLARIZATION_RTTDDFT.OUT</pre>, <pre>VECTOR_POTENTIAL.OUT</pre>, etc.)
                   is accumulated and then printed at once. If <attref>saveState</attref> is <pre>"true"</pre>, 
                   a restart file is also printed out every 
                   <attref>printAfterIterations</attref> steps.

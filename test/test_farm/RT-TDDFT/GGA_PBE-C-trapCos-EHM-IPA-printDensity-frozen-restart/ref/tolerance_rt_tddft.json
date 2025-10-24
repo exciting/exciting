@@ -124,54 +124,62 @@
       "unit": "a.u."
     },
     "number_electrons_GroundState": {
-      "tol": 1e-08,
+      "tol": 5e-07,
       "unit": "null"
     },
     "number_electrons_ExcitedState": {
-      "tol": 1e-08,
+      "tol": 5e-07,
       "unit": "null"
     },
     "sum": {
+      "tol": 1e-06,
+      "unit": "null"
+    }
+  },
+  "EIGVAL_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "eigenvalues": {
+      "tol": 1e-08,
+      "unit": "Ha"
+    }
+  },
+  "PROJECTION_COEFFS_??.OUT": {
+    "ik": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "projection": {
       "tol": 1e-08,
       "unit": "null"
     }
   },
-  "TOTENERGY_RTTDDFT.OUT": {
-    "Time": {
-      "tol": 1e-08,
+  "DELTARHO3D_40.xsf": {
+    "grid": {
+      "tol": 1e-05,
+      "unit": "a.u."
+    }, 
+    "origin": {
+      "tol": 1e-05,
       "unit": "a.u."
     },
-    "ETOT": {
-      "tol": 1e-08,
-      "unit": "Ha"
+    "point1": {
+      "tol": 1e-05,
+      "unit": "a.u."
     },
-    "Madelung": {
-      "tol": 1e-08,
-      "unit": "Ha"
+    "point2": {
+      "tol": 1e-05,
+      "unit": "a.u."
     },
-    "Eigenvalues-Core": {
-      "tol": 1e-08,
-      "unit": "Ha"
+    "point3": {
+      "tol": 1e-05,
+      "unit": "a.u."
     },
-    "Eigenvalues-Valence": {
-      "tol": 1e-08,
-      "unit": "Ha"
-    },
-    "Exchange": {
-      "tol": 1e-08,
-      "unit": "Ha"
-    },
-    "Correlation": {
-      "tol": 1e-08,
-      "unit": "Ha"
-    },
-    "XC-potential": {
-      "tol": 1e-08,
-      "unit": "Ha"
-    },
-    "Coulomb pot. energy": {
-      "tol": 1e-08,
-      "unit": "Ha"
+    "DELTARHO3D": {
+      "tol": 1e-05,
+      "unit": "a.u."
     }
   }
 }

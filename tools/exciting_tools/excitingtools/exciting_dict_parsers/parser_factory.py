@@ -96,6 +96,7 @@ _file_to_parser = {
     "POLARIZABILITY_FACTOR_Q*": gw_taskgroup_parser.parse_polarizability_factor,
     "CURRENT.OUT": RT_TDDFT_parser.parse_jind,
     "N_EXCITATIONS.OUT": RT_TDDFT_parser.parse_nexc,
+    "POLARIZATION_RTTDDFT.OUT": RT_TDDFT_parser.parse_rttddft_polarization,
     "TOTENERGY_RTTDDFT.OUT": RT_TDDFT_parser.parse_etot,
     "EIGVAL_*": RT_TDDFT_parser.parse_eigval_screenshots,
     "PROJECTION_COEFFS_*": RT_TDDFT_parser.parse_proj_screenshots,

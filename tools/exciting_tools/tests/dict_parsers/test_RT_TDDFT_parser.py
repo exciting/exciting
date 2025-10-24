@@ -5,7 +5,11 @@ Test for the RT_TDDFT_parser
 import numpy as np
 import pytest
 
-from excitingtools.exciting_dict_parsers.RT_TDDFT_parser import parse_occupations, parse_proj_screenshots
+from excitingtools.exciting_dict_parsers.RT_TDDFT_parser import (
+    parse_occupations,
+    parse_proj_screenshots,
+    parse_rttddft_polarization,
+)
 
 occupations_str = """ik =       1
       1     1.97843104
@@ -84,3 +88,34 @@ def test_parse_proj_screenshots(proj_file_str, reference_parsed_dict, tmp_path) 
     key = "projection"
     is_equal = is_equal and all([np.allclose(x, y) for (x, y) in zip(proj_out[key], reference_parsed_dict[key])])
     assert is_equal
+
+
+polarization_str = """    0.000      0.000000000000      0.000000000000      0.000000000000
+    0.250      0.000042635973      0.000299503212     -0.000231974189
+    0.500      0.000147610141      0.000898510863     -0.000695923325
+    0.750      0.000169024762      0.001497518242     -0.001159871764
+    1.000      0.000183708164      0.002096473012     -0.001623779322
+    1.250      0.000347417937      0.002695405154     -0.002087664441
+    1.500      0.000396776702      0.003294365230     -0.002551571230
+"""
+
+polarization_ref = {
+    "Time": np.array([0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5]),
+    "Px": np.array(
+        [0.0, 0.000042635973, 0.000147610141, 0.000169024762, 0.000183708164, 0.000347417937, 0.000396776702]
+    ),
+    "Py": np.array(
+        [0.0, 0.000299503212, 0.000898510863, 0.001497518242, 0.002096473012, 0.002695405154, 0.003294365230]
+    ),
+    "Pz": np.array(
+        [0.0, -0.000231974189, -0.000695923325, -0.001159871764, -0.001623779322, -0.002087664441, -0.002551571230]
+    ),
+}
+
+
+def test_parse_rttddft_polarization(tmp_path) -> None:
+    pol_file_path = tmp_path / "POLARIZATION_RTTDDFT.OUT"
+    pol_file_path.write_text(polarization_str)
+    pol_out = parse_rttddft_polarization(pol_file_path.as_posix())
+    for key in ["Time", "Px", "Py", "Pz"]:
+        np.testing.assert_allclose(pol_out[key], polarization_ref[key])

@@ -359,7 +359,7 @@ contains
         call mpi_file_open( handle, trim(file_name), &
           MPI_MODE_WRONLY + MPI_MODE_CREATE, MPI_INFO_NULL, unit, ierr )
     end select
-    call terminate_if_false( ierr == MPI_SUCCESS, "Error opening file"//trim(file_name) )
+    call terminate_if_false( ierr == MPI_SUCCESS, "Error opening file "//trim(file_name) )
   end subroutine
 
 end module 

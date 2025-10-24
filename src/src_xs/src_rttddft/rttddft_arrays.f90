@@ -87,7 +87,7 @@ contains
     ji = lbound(this%array, 1); jf = ubound(this%array, 1) 
     do k = ki, kf
       do j = ji, jf
-        this%array(j, j, k) = diagonal(j-ji+1, k-ki+1)
+        this%array(j, j, k) = cmplx( diagonal(j-ji+1, k-ki+1), kind = dp )
       end do
     end do
   end subroutine

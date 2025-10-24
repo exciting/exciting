@@ -1,19 +1,9 @@
-
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-! Copyright (C) Exciting Code, SOL group. 2020
-
-! HISTORY
-! Created: May 2019 (Ronaldo)
-! Improved documentation: July 2021 (Ronaldo)
-! Reference: https://doi.org/10.1088/2516-1075/ac0c26
-
 !> Module that deals with the Current Density in RT-TDDFT calculations
 module rttddft_CurrentDensity
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
   use mod_lattice, only: Omega
   use physical_constants, only: c
-  use precision, only: dp
+  use precision, only: i32, dp
   use rttddft_VectorField, only: Uniform_Vector_Field
   use rttddft_VectorPotential, only: Vector_Potential_Field
   use xlapack, only: dot_multiply, hermitian_matrix_multiply
@@ -23,20 +13,26 @@ module rttddft_CurrentDensity
 
   private
 
+  !> Number of cartesian directions
+  integer(i32), parameter :: n_cartesian = 3
+
   !> Type to store any component of current density as a vector with `x`, `y`, and `z` components
   type, public, extends(Uniform_Vector_Field) :: Current_Density_Field
   end type
 
   !> Current density stored as a vector with the components along `x`, `y`, and `z`
   type, public :: Current_Density
-    !> diagmagnetic part of the current density
-    !> \(\mathbf{J}_{dia} = -\frac{N}{c\Omega}\mathbf{A}\)
+    !> Diagmagnetic part of the current density
+    !> \(\mathbf{J}_{\rm dia} = -\frac{N}{c\Omega}\mathbf{A}\)
     type(Current_Density_Field) :: diamagnetic
-    !> paramagnetic part of the current density
+    !> Paramagnetic part of the current density
     type(Current_Density_Field) :: paramagnetic
+    !> Spurious paramagnetic current density obtained at \( t = 0 \).
+    type(Current_Density_Field), private :: spurious
   contains
     procedure, public :: evaluate_paramagnetic => Current_Density_evaluate_paramagnetic
     procedure, public :: evaluate_diamagnetic => Current_Density_evaluate_diamagnetic
+    procedure, public :: set_spurious => Current_Density_set_spurious
     procedure, public :: total => Current_Density_total
     procedure, public :: total_components => Current_Density_total_components
   end type
@@ -55,7 +51,7 @@ contains
   !> Result is an array with the components
   pure function Current_Density_total_components( this ) result( r )
     class(Current_Density), intent(in) :: this
-    real(dp) :: r(3)
+    real(dp) :: r(n_cartesian)
 
     r = this%paramagnetic%components + this%diamagnetic%components
   end function
@@ -78,11 +74,12 @@ contains
   !> \[
   !>    \mathbf{J}(t) = \frac{\mathrm{i}}{\Omega} \sum_{j\mathbf{k}}
   !>      w_{\mathbf{k}}f_{j\mathbf{k}} \left\langle \psi_{j\mathbf{k}}(t) \big|
-  !>      \nabla \big|\psi_{j\mathbf{k}}(t)\right\rangle
+  !>      \nabla \big|\psi_{j\mathbf{k}}(t)\right\rangle - \mathbf{J}_{\rm spurious}
   !>  \]
   !> where \( \Omega \) is the unit cell volume , \( w_{\mathbf{k}} \) is the 
-  !> k-point weight and \( f_{j\mathbf{k}} \) is the occupation number of the
-  !> corresponding KS state.
+  !> \( \mathbf{k} \)-point weight, \( f_{j\mathbf{k}} \) is the occupation number of the
+  !> corresponding KS state, and \mathbf{J}_{\rm spurious} is the spurious current 
+  !> attributed to numerical inaccuracy.
   subroutine Current_Density_evaluate_paramagnetic( this, psi, p_mat, mpi_env )
     class(Current_Density), intent(inout) :: this
     !> Basis-expansion coefficients of the KS-wavefunctions at time \( t \)
@@ -92,8 +89,8 @@ contains
     !> MPI environment
     type(mpiinfo), intent(in) :: mpi_env
 
-    integer :: ik, ist, j, n_states, n_basis, first_active, shift
-    real(dp) :: aux(3)
+    integer(i32) :: ik, ist, j, n_states, n_basis, first_active, shift
+    real(dp) :: aux(n_cartesian)
     real(dp), allocatable :: acc(:)
     complex(dp), allocatable :: draft(:, :)
     real(dp), parameter :: tol_default = 1e-6_dp
@@ -109,7 +106,7 @@ contains
     !$OMP& SHARED(n_states, psi, p_mat, first_active, shift)
     do ik = psi%first_kpt(), psi%last_kpt()
       ! For the x, y, and z components ...
-      do j = 1, 3
+      do j = 1, n_cartesian
         call hermitian_matrix_multiply( p_mat(:, :, j, ik+shift), psi%active(:, :, ik), draft, 'U', 'L', tol_default )
         do ist = 1, n_states
           acc(ist) = real( dot_multiply( psi%active(:, ist, ik), draft(:, ist), conjg_a=.true. ), dp )
@@ -121,6 +118,16 @@ contains
     
     this%paramagnetic%components = aux / Omega
     call xmpi_allreduce( this%paramagnetic%components, mpi_env )
-  end subroutine  
+    call this%paramagnetic%add_vector( -this%spurious%components )
+  end subroutine
+
+  !> Set the spurious component to a use-provided value.
+  pure subroutine Current_Density_set_spurious( this, j_para_spurious )
+    class(Current_Density), intent(inout) :: this
+    !> Spurious paramagnetic current density \mathbf{J}_{\rm spurious} obtained at \( t = 0 \)
+    type(Current_Density_Field), intent(in) :: j_para_spurious
+
+    this%spurious = j_para_spurious
+  end subroutine
 
 end module rttddft_CurrentDensity
