@@ -32,6 +32,7 @@
 
 !> Main exciting MPI module, in the process of being depreciated
 module modmpi
+  use precision, only: i32
   use trace, only: trace_back
   use asserts, only: assert
   use iso_fortran_env, only: error_unit
@@ -50,9 +51,9 @@ module modmpi
   !> Groups of MPI communicators connected via inter-communicator
   type procgroup
     !> Total number of process groups this group belongs to
-    integer(4) :: ngroups
+    integer(i32) :: ngroups
     !> Group id
-    integer(4) :: id
+    integer(i32) :: id
     !> MPI information for current process group
     type(mpiinfo) :: mpi
     !> Inter-groups communicator
@@ -72,12 +73,12 @@ module modmpi
   !> Nodes as procgroup
   type(procgroup) :: mpinodes
   !> Variables (contained equivalently contained in mpiglobal)
-  integer(4) :: rank
-  integer(4) :: procs
-  integer(4) :: ierr
+  integer(i32) :: rank = 0
+  integer(i32) :: procs
+  integer(i32) :: ierr
 
   !> Variables (contained in mpinodes)
-  integer(4) :: firstinnode_comm
+  integer(i32) :: firstinnode_comm
   !> Some parts use these
   logical :: splittfile, firstinnode
 
@@ -132,7 +133,7 @@ contains
   !>
   !> Note: For other communicators you need to make sure they have finished communication.
   subroutine finitmpi()
-    integer(4) :: ierr = 0
+    integer(i32) :: ierr = 0
     logical :: flag
 
     ! Wait for everyone to reach this point
@@ -319,11 +320,11 @@ contains
     function nofset(myrank, set, nprocs)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    ! integer(4) :: myrank  ! MPI rank
-    ! integer(4) :: set     ! Total number of elements to distribute
-    ! integer(4), optional :: nprocs ! Number of processes in communicator
+    ! integer(i32) :: myrank  ! MPI rank
+    ! integer(i32) :: set     ! Total number of elements to distribute
+    ! integer(i32), optional :: nprocs ! Number of processes in communicator
     ! OUT:
-    ! integer(4) :: nofset  ! Number of elements for that rank
+    ! integer(i32) :: nofset  ! Number of elements for that rank
     !
     ! !DESCRIPTION:
     !   This functions helps with distributing a set of $N_\text{el}$ elements
@@ -339,10 +340,10 @@ contains
     !   Added sanity checks. (Aurich)
     !EOP
     !BOC
-      integer(4) :: nofset
-      integer(4), intent(in) :: myrank, set
-      integer(4), intent(in), optional :: nprocs
-      integer(4) :: np
+      integer(i32) :: nofset
+      integer(i32), intent(in) :: myrank, set
+      integer(i32), intent(in), optional :: nprocs
+      integer(i32) :: np
 
       np = mpiglobal%procs
       if(present(nprocs)) np = nprocs
@@ -364,11 +365,11 @@ contains
     function firstofset(myrank, set, nprocs)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    ! integer(4) :: myrank  ! MPI rank
-    ! integer(4) :: set     ! Total number of elements to distribute
-    ! integer(4), optional :: nprocs  ! Number of processes in commuincator
+    ! integer(i32) :: myrank  ! MPI rank
+    ! integer(i32) :: set     ! Total number of elements to distribute
+    ! integer(i32), optional :: nprocs  ! Number of processes in commuincator
     ! OUT:
-    ! integer(4) :: firstofset ! Index of the total set for the first index
+    ! integer(i32) :: firstofset ! Index of the total set for the first index
     !                          ! of the current subset
     !
     ! !DESCRIPTION:
@@ -388,10 +389,10 @@ contains
     !   Added sanity checks. (Aurich)
     !EOP
     !BOC
-      integer(4) :: firstofset
-      integer(4), intent(in) :: myrank, set
-      integer(4), intent(in), optional :: nprocs
-      integer(4) :: i, np
+      integer(i32) :: firstofset
+      integer(i32), intent(in) :: myrank, set
+      integer(i32), intent(in), optional :: nprocs
+      integer(i32) :: i, np
 
       np = mpiglobal%procs
       if(present(nprocs)) np = nprocs
@@ -416,11 +417,11 @@ contains
     function lastofset(myrank, set, nprocs)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    ! integer(4) :: myrank  ! MPI rank
-    ! integer(4) :: set     ! Total number of elements to distribute
-    ! integer(4) :: nprocs  ! Number of processes in commuincator
+    ! integer(i32) :: myrank  ! MPI rank
+    ! integer(i32) :: set     ! Total number of elements to distribute
+    ! integer(i32) :: nprocs  ! Number of processes in commuincator
     ! OUT:
-    ! integer(4) :: lastofset  ! Index of the total set for the first index
+    ! integer(i32) :: lastofset  ! Index of the total set for the first index
     !                          ! of the current subset
     !
     ! !DESCRIPTION:
@@ -440,10 +441,10 @@ contains
     !   Added sanity checks. (Aurich)
     !EOP
     !BOC
-      integer(4) :: lastofset
-      integer(4), intent(in) :: myrank, set
-      integer(4), intent(in), optional :: nprocs
-      integer(4) :: i, np
+      integer(i32) :: lastofset
+      integer(i32), intent(in) :: myrank, set
+      integer(i32), intent(in), optional :: nprocs
+      integer(i32) :: i, np
 
       np = mpiglobal%procs
       if(present(nprocs)) np = nprocs
@@ -516,11 +517,11 @@ contains
     function procofindex(k, set, nprocs)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    ! integer(4) :: k    ! Element number k
-    ! integer(4) :: set  ! Total number of distributed elements
-    ! integer(4), optional :: nprocs ! Number of processes in communicator
+    ! integer(i32) :: k    ! Element number k
+    ! integer(i32) :: set  ! Total number of distributed elements
+    ! integer(i32), optional :: nprocs ! Number of processes in communicator
     ! OUT:
-    ! integer(4) :: procofindex  ! Rank that holds the element
+    ! integer(i32) :: procofindex  ! Rank that holds the element
     !
     ! !DESCRIPTION:
     !   This functions helps with distributing a set of $N_\text{el}$ elements
@@ -537,10 +538,10 @@ contains
     !   Added sanity checks. (Aurich)
     !EOP
     !BOC
-      integer(4) :: procofindex
-      integer(4), intent(in) :: k, set
-      integer(4), intent(in), optional :: nprocs
-      integer(4) :: iproc, np
+      integer(i32) :: procofindex
+      integer(i32), intent(in) :: k, set
+      integer(i32), intent(in), optional :: nprocs
+      integer(i32) :: iproc, np
 
       ! Sanity checks
       if( k < 1 ) then
@@ -585,11 +586,11 @@ contains
     function lastproc(col, set, nprocs)
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    ! integer(4) :: col ! ``Column" of process grid (i.e. an element index of rank 0)
-    ! integer(4) :: set ! Total number of distributed elements.
-    ! integer(4), optional :: nprocs  ! Number of processes in communicator
+    ! integer(i32) :: col ! ``Column" of process grid (i.e. an element index of rank 0)
+    ! integer(i32) :: set ! Total number of distributed elements.
+    ! integer(i32), optional :: nprocs  ! Number of processes in communicator
     ! OUT:
-    ! integer(4) :: lastproc ! Number of processes active in process column
+    ! integer(i32) :: lastproc ! Number of processes active in process column
     !
     ! !DESCRIPTION:
     !   This functions helps with collecting a set of $N_\text{el}$ elements which were
@@ -642,10 +643,10 @@ contains
     !EOP
     !BOC
       implicit none
-      integer(4) :: lastproc
-      integer(4), intent(in) :: col, set
-      integer(4), intent(in), optional :: nprocs
-      integer(4) :: np
+      integer(i32) :: lastproc
+      integer(i32), intent(in) :: col, set
+      integer(i32), intent(in), optional :: nprocs
+      integer(i32) :: np
 
       ! Sanity checks
       if( set < 1 ) then
@@ -737,281 +738,6 @@ contains
     end subroutine barrier
     !EOC
 
-    !BOP
-    ! !ROUTINE: mpi_allgatherv_ifc
-    ! !INTERFACE:
-    subroutine mpi_allgatherv_ifc(set, rlen, rlenv, ibuf, rlpbuf, rbuf, zbuf,&
-      & inplace, comm)
-    ! !INPUT/OUTPUT PARAMETERS:
-    ! In:
-    ! integer(4) :: set              ! Number of elements in distributed set
-    ! integer(4), optional :: rlen   ! Number of data elements per element (constant)
-    ! integer(4), optional :: rlenv(set) ! Number of data elements per element
-    ! logical, optional :: inplace   ! Use mpi_in_place
-    ! type(mpiifo), optional :: comm ! MPI communicator type
-    ! In/Out:
-    ! integer(4), optional :: ibuf(*) ! Buffers to send/recive
-    ! real(4), optional :: rlbuf(*)   ! for different data types
-    ! real(8), optional :: rbuf(*)    !
-    ! complex(8), optional :: zbuf(*) !
-    !
-    ! !DESCRIPTION:
-    !   Wrapper routine for {\tt MPI\_ALLGATHERV} for different
-    !   data types which is adapted for the k-point set
-    !   distribution scheme. That is this works, if {\it set} number
-    !   of elements (e.g. k-points) is distributed over all
-    !   processes in the {\tt MPI} communicator {\it comm} using
-    !   a continuous distribution as created by the functions
-    !   {\tt nofset, firstofset, lastofset}.
-    !   The routine can handle a constant number of data elements per
-    !   set element by specifying {\tt rlen} or a set element dependent
-    !   number of data elements by passing {\tt rlenv(set)}.
-    !
-    ! !REVISION HISTORY:
-    !   Added to documentation scheme. (Aurich)
-    !   Added input parameter for communicator and
-    !   a switch for inplace allgather. (Aurich)
-    !   Added support for set element dependent number
-    !   of data elements. (Aurich)
-    !EOP
-    !BOC
-      implicit none
-      integer(4), intent(in) :: set
-      integer(4), intent(in), optional :: rlen
-      integer(4), intent(in), optional :: rlenv(set)
-      logical, intent(in), optional :: inplace
-      type(mpiinfo), intent(in), optional :: comm
-      integer(4), intent(inout), optional :: ibuf(*)
-      real(4), intent(inout), optional :: rlpbuf(*)
-      real(8), intent(inout), optional :: rbuf(*)
-      complex(8), intent(inout), optional :: zbuf(*)
-
-      ! Arrays for out of place send
-      integer(4), allocatable :: bufi(:)
-      real(4), allocatable :: bufrlp(:)
-      real(8), allocatable :: bufr(:)
-      complex(8), allocatable :: bufz(:)
-
-      type(mpiinfo) :: mpicom
-      integer(4) :: ierr
-      integer(4), allocatable :: buf_n(:), buf_dspls(:)
-      integer(4) :: j
-      logical :: ti, tr, trlp, tz, tinplace
-      integer(4) :: myrank, myprocs, mycomm
-
-      ! Sanity checks
-      if( set < 1 ) then
-        write(*,*) "Error (mpi_allgatherv_ifc): set < 1"
-        call terminate
-      end if
-      if(present(inplace)) then
-        tinplace = inplace
-      else
-        tinplace = .false.
-      end if
-      if(present(comm)) then
-        mpicom = comm
-      else
-        mpicom = mpiglobal
-      end if
-      ti = present(ibuf)
-      tr = present(rbuf)
-      trlp = present(rlpbuf)
-      tz = present(zbuf)
-      if(count((/ti, tr, trlp, tz/)).ne.1) then
-        write(*,*)
-        write(*,'("Error (mpi_allgatherv_ifc): Exactly one array must be defined.")')
-        write(*,*)
-        call terminate
-      end if
-      if(present(rlen) .and. present(rlenv)&
-        & .or. .not. present(rlen) .and. .not. present(rlenv)) then
-        write(*,*)
-        write(*,'("Error (mpi_allgatherv_ifc): Specifiy either rlen or rlenv")')
-        write(*,*)
-        call terminate
-      end if
-      if(present(rlen)) then
-        if(rlen < 0) then
-          write(*,'("Error (mpi_allgatherv_ifc): rlen < 0")')
-          call terminate
-        end if
-      end if
-      if(present(rlenv)) then
-        if(any(rlenv < 0)) then
-          write(*,'("Error (mpi_allgatherv_ifc): rlenv < 0")')
-          call terminate
-        end if
-      end if
-
-      myrank = mpicom%rank
-      myprocs = mpicom%procs
-      mycomm = mpicom%comm
-
-#ifdef MPI
-      allocate(buf_n(myprocs), buf_dspls(myprocs))
-
-      ! Number of elements in send buffer (flattened array)
-      if(present(rlen)) then
-        buf_n =(/(rlen*nofset(j, set, myprocs), j = 0, myprocs-1)/)
-      else
-        do j = 0, myprocs-1
-          buf_n(j+1) = sum(rlenv(firstofset(j,set,myprocs):lastofset(j,set,myprocs)))
-        end do
-      end if
-
-      ! Displacements within receive buffer (flattened array)
-      if(present(rlen)) then
-        buf_dspls =(/(rlen*(firstofset(j, set, myprocs)-1), j = 0, myprocs-1)/)
-      else
-        do j = 0, myprocs-1
-          buf_dspls(j+1) = sum(buf_n(1:j))
-        end do
-      end if
-
-      ! Integers
-      if(ti) then
-
-        if(.not. tinplace) then
-          ! Make send buffer
-          allocate(bufi(buf_n(myrank+1)))
-          if(buf_n(myrank+1) > 0) then
-            bufi(:)= ibuf(buf_dspls(myrank+1)+1:buf_dspls(myrank+1)+buf_n(myrank+1))
-          end if
-          call mpi_allgatherv(bufi, &
-            buf_n(myrank+1), &
-            mpi_integer, &
-            ibuf, &
-            buf_n, &
-            buf_dspls, &
-            mpi_integer, &
-            mycomm, &
-            ierr)
-          deallocate(bufi)
-        else
-          ! Use receive buffer as sendbuffer
-          call mpi_allgatherv(mpi_in_place, &
-            buf_n(myrank+1), &
-            mpi_integer, &
-            ibuf, &
-            buf_n, &
-            buf_dspls, &
-            mpi_integer, &
-            mycomm, &
-            ierr)
-        end if
-
-      end if
-
-      ! Floats
-      if(trlp) then
-
-        if(.not. tinplace) then
-          ! Make send buffer
-          allocate(bufrlp(buf_n(myrank+1)))
-          if(buf_n(myrank+1) > 0) then
-            bufrlp(:) =&
-              & rlpbuf(buf_dspls(myrank+1)+1:buf_dspls(myrank+1)+buf_n(myrank+1))
-          end if
-          call mpi_allgatherv(bufrlp, &
-            buf_n(myrank+1), &
-            mpi_real4, &
-            rlpbuf, &
-            buf_n, &
-            buf_dspls, &
-            mpi_real4, &
-            mycomm, &
-            ierr)
-          deallocate(bufrlp)
-        else
-          ! Use receive buffer as sendbuffer
-          call mpi_allgatherv(mpi_in_place, &
-            buf_n(myrank+1), &
-            mpi_real4, &
-            rlpbuf, &
-            buf_n, &
-            buf_dspls, &
-            mpi_real4, &
-            mycomm, &
-            ierr)
-        end if
-
-      end if
-
-      ! Doubles
-      if(tr) then
-
-        if(.not. tinplace) then
-          ! Make send buffer
-          allocate(bufr(buf_n(myrank+1)))
-          if(buf_n(myrank+1) > 0) then
-            bufr(:)= rbuf(buf_dspls(myrank+1)+1:buf_dspls(myrank+1)+buf_n(myrank+1))
-          end if
-          call mpi_allgatherv(bufr, &
-            buf_n(myrank+1), &
-            mpi_double_precision, &
-            rbuf, &
-            buf_n, &
-            buf_dspls, &
-            mpi_double_precision, &
-            mycomm, &
-            ierr)
-          deallocate(bufr)
-        else
-          ! Use receive buffer as sendbuffer
-          call mpi_allgatherv(mpi_in_place, &
-            buf_n(myrank+1), &
-            mpi_double_precision, &
-            rbuf, &
-            buf_n, &
-            buf_dspls, &
-            mpi_double_precision, &
-            mycomm, &
-            ierr)
-        end if
-
-      end if
-
-      ! Complex doubles
-      if(tz) then
-
-        if(.not. tinplace) then
-          ! Make send buffer
-          allocate(bufz(buf_n(myrank+1)))
-          if(buf_n(myrank+1) > 0) then
-            bufz(:)= zbuf(buf_dspls(myrank+1)+1:buf_dspls(myrank+1)+buf_n(myrank+1))
-          end if
-          call mpi_allgatherv(bufz, &
-            buf_n(myrank+1), &
-            mpi_double_complex, &
-            zbuf, &
-            buf_n, &
-            buf_dspls, &
-            mpi_double_complex, &
-            mycomm, &
-            ierr)
-          deallocate(bufz)
-        else
-          ! Use receive buffer as sendbuffer
-          call mpi_allgatherv(mpi_in_place, &
-            buf_n(myrank+1), &
-            mpi_double_complex, &
-            zbuf, &
-            buf_n, &
-            buf_dspls, &
-            mpi_double_complex, &
-            mycomm, &
-            ierr)
-        end if
-
-      end if
-
-      deallocate(buf_n, buf_dspls)
-
-#endif
-    end subroutine
-    !EOC
-
     !++++++++++++++++++++++++++++++++++++++++++++!
     ! Setup routine for distributing N elements  !
     ! to P processes where each element may have !
@@ -1048,13 +774,13 @@ contains
 
       implicit none
 
-      integer(4), intent(in) :: ngroups
+      integer(i32), intent(in) :: ngroups
       type(procgroup), intent(out) :: mygroup
 
-      integer(4) :: color, key, i
-      integer(4) :: global_group, interprocs_group
-      integer(4) :: ngprocs, dangling_procs
-      integer(4), allocatable :: proclist(:)
+      integer(i32) :: color, key, i
+      integer(i32) :: global_group, interprocs_group
+      integer(i32) :: ngprocs, dangling_procs
+      integer(i32), allocatable :: proclist(:)
 
 #ifdef MPI
 
@@ -1229,23 +955,23 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
       implicit none
 
       ! Vars for splitting the MPI com
-      integer(4) :: color, key, i
-      integer(4) :: global_group, interprocs_group
+      integer(i32) :: color, key, i
+      integer(i32) :: global_group, interprocs_group
 
       ! Vars for determining "node" layout
-      integer(4) :: strsize
-      integer(4) :: procnamelen
-      integer(4) :: pos1, pos2, n
+      integer(i32) :: strsize
+      integer(i32) :: procnamelen
+      integer(i32) :: pos1, pos2, n
 #ifdef MPI
-      integer(4) :: recvstatus(mpi_status_size)
+      integer(i32) :: recvstatus(mpi_status_size)
 #endif
       character(200) :: procname, myprocname
       character(len=200*mpiglobal%procs) :: neighbors, neighborssend
       logical :: lbuffer
-      integer(4) :: mynodesize, mynode, nnodes
-      integer(4), allocatable :: mynoderanks(:)
-      integer(4), allocatable :: nodechefs(:)
-      integer(4), parameter :: tag = 25
+      integer(i32) :: mynodesize, mynode, nnodes
+      integer(i32), allocatable :: mynoderanks(:)
+      integer(i32), allocatable :: nodechefs(:)
+      integer(i32), parameter :: tag = 25
 
 #ifdef MPI
 
@@ -1672,159 +1398,6 @@ write (*, '("setup_proc_groups@rank",i3,"mycolor=", i3," mygroup%mpi%comm=",i16)
           deallocate( tmp )
         end function find_blocks
     end function gen_schedule
-
-
-    !++++++++++++++++++++++++++++++!
-    ! Older code should be removed !
-    !++++++++++++++++++++++++++++++!
-
-    !++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-    ! Primitive node information gathering (Old version)   !
-    !++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
-!    !BOP
-!    ! !ROUTINE: get_isfirstinnode
-!    ! !INTERFACE:
-!    subroutine get_isfirstinnode(strsize)
-!    ! !INPUT/OUTPUT PARAMETERS:
-!    ! IN:
-!    ! integer(4) :: strsize ! Size of neighbour string
-!    !
-!    ! !DESCRIPTION:
-!    ! The routine uses the processor name returned by
-!    ! {\tt mpi\_get\_processor\_name} to determine the first rank
-!    ! on each node (nodechef). For those ranks a mpi group
-!    ! and communicator is created. Also sets the firstinnode
-!    ! flag in the modmpi module.
-!    !
-!    ! !REVISION HISTORY:
-!    ! Added to documentation scheme. (Aurich)
-!    !EOP
-!    !BOC
-!
-!      integer(4), intent(in)::strsize
-!#ifdef MPI
-!      integer(4) :: ierr
-!      integer(4) :: recvstatus(mpi_status_size), i
-!      character(len = strsize) :: neighbors, neighborssend
-!      character(200) :: procname
-!      logical :: lbuffer
-!      integer(4) :: procnamelen
-!      integer(4) :: nnodes
-!      integer(4) :: world_group, firstinnode_group
-!      integer(4), allocatable :: nodechefs(:)
-!      integer(4), parameter :: tag = 25
-!
-!      allocate(nodechefs(procs))
-!
-!      procname = ''
-!      neighbors = ''
-!      neighborssend = ''
-!
-!      call mpi_get_processor_name(procname, procnamelen, ierr)
-!
-!      ! The following code is illustrated by the example
-!      ! with 4 threads and 2 physical processors A and B.
-!      !   rank 0 has an empty neighbors string (ns) "" and a procname (pn) of "A",
-!      !   it sends ",A" to rank 1
-!      !   rank 1 now has ns=",A" and pn="A", it sends ",A,A" to rank 2
-!      !   rank 2 now has ns=",A,A" and pn="B", it sends ",A,A,B" to rank 3
-!      !   rank 3 now has ns=",A,A,B" and pn="B", it has no one to send to.
-!      !   Each rank checks if pn is in ns, if not it is the nodechef.
-!      if(rank .gt. 0) then
-!        call mpi_recv(neighbors, strsize, mpi_character,&
-!          & rank-1, tag, mpi_comm_world, recvstatus, ierr)
-!      end if
-!      if(rank .lt. procs-1) then
-!        write(neighborssend,*) adjustl(trim(neighbors))//","//adjustl(trim(procname))
-!        call mpi_send(neighborssend, strsize, mpi_character,&
-!          & rank+1, tag, mpi_comm_world, ierr)
-!      endif
-!      if(index(neighbors, adjustl(trim(procname))).gt.0) then
-!        firstinnode = .false.
-!      else
-!        firstinnode = .true.
-!      endif
-!
-!      ! The following collects all the rank numbes that are nodechefs
-!      ! in the first 1:nnodes elements of nodechefs and chreates
-!      ! a mpi group and communicator for internode communication.
-!      nnodes = 0
-!      do i = 0, procs-1
-!        lbuffer = firstinnode
-!        call mpi_bcast(lbuffer, 1, mpi_logical, i, mpi_comm_world, ierr)
-!        if(lbuffer)then
-!           nnodes = nnodes+1
-!           nodechefs(nnodes)= i
-!        endif
-!      end do
-!      call mpi_comm_group(mpi_comm_world, world_group, ierr)
-!      call mpi_group_incl(world_group, nnodes, nodechefs, firstinnode_group, ierr)
-!      call mpi_comm_create(mpi_comm_world, firstinnode_group, firstinnode_comm, ierr)
-!
-!      deallocate(nodechefs)
-!      call mpi_group_free(world_group)
-!      call mpi_group_free(firstinnode_group)
-!
-!#endif
-!    end subroutine
-!    !EOC
-
-    !+++++++++++++++++++++++++++++++++++++++++++!
-    ! Old k-point partitioning routines.      !
-    !+++++++++++++++++++++++++++++++++++++++++++!
-    ! These have be superceded but still require replacing in:
-    !
-    ! For procofk:
-    ! * getevalfv.f90, putevalfv.f90
-    ! * getevecfv.f90, getevecsv.f90, putevecfv.f90, putevalsv.f90
-    ! * getoccsv.f90, putoccsv.f90
-    !
-    ! For firstk and lastk:
-    ! * src_hybrids/putvxnl.f90
-    ! * Several src_xs/src_rttddft/ routines (sigh)
-
-   !> Number of k-points on MPI process.
-   !> Only used by the depreciated routines, firstk and lastk.
-   function nofk(process, nkpt)
-     integer(4) :: nofk
-     integer(4), intent(in) :: process
-     integer, intent(in) :: nkpt
-     nofk = nkpt / procs
-     if((mod(nkpt, procs) .gt. process)) nofk = nofk + 1
-   end function nofk
-
-   function firstk(process, nkpt)
-      integer(4) :: firstk
-      integer(4), intent(in) :: process
-      integer, intent(in) :: nkpt
-      integer(4)::i
-      firstk = 1
-      do i = 0, process - 1
-         firstk = firstk + nofk(i, nkpt)
-      end do
-   end function firstk
-
-   function lastk(process, nkpt)
-      integer(4) :: lastk, i
-      integer(4), intent(in) :: process
-      integer, intent(in) :: nkpt
-      lastk = 0
-      do i = 0, process
-         lastk = lastk + nofk(i, nkpt)
-      end do
-   end function lastk
-
-   function procofk(k, nkpt)
-      integer(4) :: procofk
-      integer(4), intent(in) :: k
-      integer, intent(in) :: nkpt
-      integer(4) :: iproc
-      procofk = 0
-      do iproc = 0, procs - 1
-         if(k .gt. lastk(iproc, nkpt)) procofk = procofk + 1
-      end do
-   end function procofk
 
 !> Find a 2D grid distribution, given n_processes and n_groups.
 !>

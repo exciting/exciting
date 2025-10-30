@@ -8,13 +8,13 @@
 !Revision March 2014 (UW)
 
 subroutine deltax
+use exciting_mpi, only: xmpi_allgatherv
 use modmain
 use modmpi
 implicit none
 ! local variables
 integer is,ia,ias,ik
 integer ir,irc,it,idm
-integer :: msize
 real(8) tau,resp,t1
 ! allocatable arrays
 complex(8), allocatable :: vnlvv_full(:,:)
@@ -42,17 +42,13 @@ if (iscl.lt.1) return
 !********************************************
 allocate(vnlvv_full(nstsv,nkpt))
 #ifdef MPI
-         Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
+         Do ik = firstofset(rank, nkpt), lastofset(rank, nkpt)
 #else
          Do ik = 1, nkpt
 #endif       
              call oepvnlk_deltax(ik,vnlvv_full(1,ik))     
          End Do
-#ifdef MPI
-         msize = nstsv
-       call mpi_allgatherv_ifc(nkpt,rlen=msize,zbuf=vnlvv_full)
-#endif
-
+      call xmpi_allgatherv( mpiglobal, vnlvv_full, nstsv * (lastofset(rank, nkpt) - firstofset(rank, nkpt) + 1) )
 !********************************************
 ! Calculation of the potential discontinuity
 !         after last iteration
@@ -70,11 +66,7 @@ allocate(vnlvv_full(nstsv,nkpt))
   !write(*,*) "EFERMI = ", efermi
   !write(*,*) "nstsv = ", nstsv
 
-#ifdef MPI
-Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
-#else
-Do ik = 1, nkpt
-#endif       
+do ik = firstofset(rank, nkpt), lastofset(rank, nkpt)
 
      call getevalsv(vkl(1,ik),evalsvp)
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
@@ -125,10 +117,7 @@ Do ik = 1, nkpt
 
 !  end do
    End Do  ! kpoints
-   
-#ifdef MPI
-       call mpi_allgatherv_ifc(nkpt,rlen=nstsv,rbuf=delta)
-#endif
+   call xmpi_allgatherv( mpiglobal, delta, nstsv * (lastofset(rank, nkpt) - firstofset(rank, nkpt) + 1) )
 ! Write delta into file
 If (rank .Eq. 0) then 
    open(500,file='DELTAX'//trim(filext),action='WRITE',form='FORMATTED')

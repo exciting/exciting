@@ -7,6 +7,7 @@ module phonons
   use phonons_inout
 
   use modmpi
+  use exciting_mpi, only: xmpi_allgatherv
   use precision, only: dp
   use block_data_file, only: block_data_file_type
 
@@ -175,7 +176,7 @@ module phonons
           evalk(:, ik) = evalt
         end do
         ! gather eigenvalues at all processes
-        call mpi_allgatherv_ifc( dfpt_kset%nkpt, rlen=nmatmaxk, inplace=.true., comm=mpiglobal, rbuf=evalk )
+        call xmpi_allgatherv( mpiglobal, evalk, nmatmaxk * (ik2 - ik1 + 1) )
         ! get occupation numbers
         occk = 0.0_dp
         call find_fermi( dfpt_kset%nkpt, dfpt_kset%wkpt, nstfv, evalk(1:nstfv, :), chgval, occmax, &
@@ -270,7 +271,7 @@ module phonons
 
       integer :: iq, iirrep, dirrep, &
                  id, id1, id2, ik, ik1, ik2, &
-                 iv(3), nmatmaxk, nmatmaxkq
+                 iv(3), nmatmaxk, nmatmaxkq, n_kpts_mpilocal
       integer, target :: ngkmaxk, ngkmaxkq
       real(dp) :: vql(3)
       logical :: write_info, success, from_file
@@ -364,8 +365,10 @@ module phonons
         call feveck%write( ik, eveck )
         call feveckq%write( ik, eveckq )
       end do
-      call mpi_allgatherv_ifc( ph_kset%nkpt, rlen=nstfv, comm=mpilocal, rbuf=evalk )
-      call mpi_allgatherv_ifc( ph_kset%nkpt, rlen=nmatmaxkq, comm=mpilocal, rbuf=evalkq )
+      n_kpts_mpilocal = lastofset( mpilocal%rank, ph_kset%nkpt, mpilocal%procs ) - &
+        firstofset( mpilocal%rank, ph_kset%nkpt, mpilocal%procs ) + 1
+      call xmpi_allgatherv( mpilocal, evalk, nstfv * n_kpts_mpilocal )
+      call xmpi_allgatherv( mpilocal, evalkq, nmatmaxkq * n_kpts_mpilocal )
       ! get occupation numbers
       occk = 0.0_dp
       call find_fermi( ph_kset%nkpt, ph_kset%wkpt, nstfv, evalk, chgval, occmax, &

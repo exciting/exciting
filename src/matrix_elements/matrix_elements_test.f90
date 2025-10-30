@@ -8,10 +8,10 @@
 !>
 !> This module provides unit tests for the general matrix elements module [[matrix_elements(module)]].
 !>
-!> @note The numerical parameters of this tests are set to the minimum to achieve the correct
+!> The numerical parameters of this tests are set to the minimum to achieve the correct
 !> results with the module tolerance `tol`. For higher accuracy, the numerical parameters have
 !> to be changed. Especially, `lmaxb` and `lmaxo` (and to some extend also `num_rad`) govern both
-!> the accuracy and the cost of the calculations while `rgkmax` has very little impact. @endnote
+!> the accuracy and the cost of the calculations while `rgkmax` has very little impact.
 !> 
 !> The idea of the tests is the following
 !> 

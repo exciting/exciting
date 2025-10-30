@@ -22,7 +22,7 @@ module write_screening
 
     use constants, only: zzero
     use precision, only: i32, dp
-    use modmpi, only: mpiinfo, distribute_loop, terminate_mpi_env, mpi_allgatherv_ifc, terminate_if_false
+    use modmpi, only: mpiinfo, distribute_loop, terminate_mpi_env, terminate_if_false
     use os_utils, only: join_paths
     use grid_utils, only: mesh_1d
     use xhdf5
@@ -199,7 +199,6 @@ contains
         use mod_xsgrids, only: q, g_q
         use mod_symmetry, only: maxsymcrys
         use modinput, only: input
-        use m_getunit, only: getunit
         use putgeteps0, only: puteps0_finite_q, puteps0_zero_q
 
         !> Head of DM at Gamma for reduced q-vectors
@@ -348,11 +347,10 @@ contains
     !> 'gk_set' and 'q_set', the suffix '_nr' is assigned to all variables
     !> referring to quantities on the non-reduced q-grid.
     subroutine write_screened_coulomb_interaction(h5file, h5path, mpi_env)
-
+        use exciting_mpi, only: xmpi_allgatherv
         use mod_xsgrids, only: q, g_q
         use mod_symmetry, only: maxsymcrys
         use modinput, only: input
-        use m_getunit, only: getunit
         use modxs, only: eps0dirname
         use math_utils, only: mod1
         use modmpi, only: mpiglobal
@@ -431,8 +429,7 @@ contains
         end do
 
         ! Communicate array-parts wrt. reduced q-grid
-        call mpi_allgatherv_ifc(set=q%qset%nkpt, rlen=g_q%ngkmax**2,&
-          & zbuf=w, inplace=.true., comm=mpi_env)
+        call xmpi_allgatherv( mpiglobal, w, g_q%ngkmax**2 * (last - first + 1) )
 
         ! Find results for finite non-reduced q-vectors
         

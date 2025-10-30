@@ -61,7 +61,7 @@ module phonons_force
     !> This subroutine computes the response of the contribution from a single \({\bf k}\) 
     !> point to the first term upon a phonon-like perturbation \(\delta^{\bf q}_{I \mu}\).
     !>
-    !> @note The result is added to the input array! @endnote
+    !> The result is added to the input array!
     subroutine ph_frc_dpulay_k( ik, kset, Gkset, Gkqset, fst, lst, evalk, devalk, occk, docck, eveck, deveck, deveckf, apwalmk, apwalmkq, pat, gamma, dforce, &
         dHmat_mt_basis, order )
       use dfpt_eigensystem, only: Smat_mt_basis, Hmat_mt_basis
@@ -252,7 +252,7 @@ module phonons_force
     !> This subroutine computes the response of the contribution from a single \({\bf k}\) 
     !> point to the first term upon a phonon-like perturbation \(\delta^{\bf q}_{I \mu}\).
     !>
-    !> @note The result is added to the input array! @endnote
+    !> The result is added to the input array!
     subroutine ph_frc_dsurf_k( ik, kset, Gkset, Gkqset, fst, lst, evalk, devalk, occk, docck, eveck, deveck, deveckf, pat, gamma, dforce, &
         dpot_ir, order )
       use phonons_eigensystem, only: gen_dcfun_ig
@@ -456,7 +456,7 @@ module phonons_force
     !> This subroutine computes the response of the second integral term upon a 
     !> phonon-like perturbation \(\delta^{\bf q}_{I \mu}\).
     !>
-    !> @note The result is added to the input array! @endnote
+    !> The result is added to the input array!
     subroutine ph_frc_dpulay_int( drho_mt, dpot_mt, dforce )
       use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr
       use mod_muffin_tin, only: lmmaxvr, nrmtmax, nrmt
@@ -520,7 +520,7 @@ module phonons_force
     !> This subroutine computes the response of the Hellmann-Feynman force upon a 
     !> phonon-like perturbation \(\delta^{\bf q}_{I \mu}\).
     !>
-    !> @note The result is added to the input array! @endnote
+    !> The result is added to the input array!
     subroutine ph_frc_dhf( drho_mt, dpot_coul_mt, dforce )
       use constants, only: fourpi, sqrt_two
       use mod_atoms, only: natmtot, nspecies, natoms, idxas, spr, spzn

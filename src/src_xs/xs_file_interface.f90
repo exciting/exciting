@@ -44,10 +44,6 @@ contains
     !> Extract the number of \(|\mathbf{G}+\mathbf{q}|\) points
     !> per \(\mathbf{q}\)-point from file and distributes it to all processes.
     subroutine read_n_gq(file_name_q, n_gqvecs)
-
-        use modmpi, only: mpiglobal
-        use exciting_mpi, only: xmpi_bcast
-
         !> Name of file containing q-vectors
         character(*), intent(in) :: file_name_q
         !> Number of q-vectors
@@ -83,15 +79,10 @@ contains
     !> is assumed to be GQPOINTS_SCR_QXXXXX.OUT where XXXXX is the q-vector index
     !> with leading zeros.
     subroutine read_gq_vectors(dir_name_Gq, n_gqvecs, gq_vecs)
-        use modmpi, only: mpiglobal, mpi_allgatherv_ifc
-        use exciting_mpi, only: xmpi_bcast
-        use modxs, only: qpari, qparf
-
         !> Directory with the files containing the (G+q)-vectors
         character(*), intent(in) :: dir_name_Gq
         !> Number of (G+q)-vectors  for each q-vector
         integer, intent(in) :: n_gqvecs(:)
-
         !>  (G+q)-vectors for each q-vector
         real(dp), intent(out) :: gq_vecs(:, :, :)
         !> Number of q-vectors

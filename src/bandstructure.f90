@@ -33,12 +33,13 @@ subroutine bandstr
   use mod_Gkvector, only: gkc, ngk, ngkmax, sfacgk, tpgkc
   use mod_eigensystem, only: mt_hscf, MTInitAll, MTNullify, nmatmax, evalsingular, singular
   use mod_eigenvalue_occupancy, only: efermi, evalsv, nstfv, nstsv
+  use exciting_mpi, only: xmpi_allgatherv
   use mod_kpoint, only: nkpt, vkl
   use mod_muffin_tin, only: idxlm, lmmaxapw
   use mod_plotting, only: dpp1d, dvp1d, nvp1d
   use mod_potential_and_density, only: meffig, m2effig, xctype
   use mod_spin, only: nspinor, nspnfv
-  use modmpi, only: barrier, firstk, lastk, mpi_allgatherv_ifc, mpiglobal, rank, splittfile, terminate
+  use modmpi, only: barrier, firstofset, lastofset, mpiglobal, rank, splittfile, terminate
   use FoX_wxml, only: xmlf_t, xml_AddAttribute, xml_AddCharacters, xml_AddXMLPI, xml_Close, &
                       xml_EndElement, xml_NewElement, xml_OpenFile
   use m_write_hdf5, only: hdf5_bandstructure_output
@@ -46,7 +47,7 @@ subroutine bandstr
   use secular_equation, only: seceqn
   use mod_gen_lo, only: genlofr
 
-  Integer(i32) :: lmax, lmmax, l, m, lm
+  Integer(i32) :: lmax, lmmax, l, m, lm, n_kpts_current_rank
   Integer(i32) :: ik, ispn, is, ia, ias, iv, ist
   Real (dp) :: emin, emax, sum
   Character (len=str_256) :: fname
@@ -113,7 +114,7 @@ subroutine bandstr
 #ifdef MPI
   call barrier
   splittfile = .True.
-  Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
+  Do ik = firstofset(rank, nkpt), lastofset(rank, nkpt)
 #else
   splittfile = .False.
   Do ik = 1, nkpt
@@ -180,13 +181,10 @@ subroutine bandstr
     ! end loop over k-points
   End Do
   call mt_hscf%release()
-#ifdef MPI
-  If (input%properties%bandstructure%character) Then
-    Call mpi_allgatherv_ifc(nkpt, (lmax+1)*natmtot*nstsv, rlpbuf=bc)
-  End If
-  Call mpi_allgatherv_ifc(nkpt, nstsv, rbuf=evalsv)
-  call barrier
-#endif
+  n_kpts_current_rank = lastofset(rank, nkpt) - firstofset(rank, nkpt) + 1
+  if ( input%properties%bandstructure%character ) &
+    call xmpi_allgatherv( mpiglobal, bc, (lmax + 1) * natmtot * nstsv * n_kpts_current_rank )
+  call xmpi_allgatherv( mpiglobal, evalsv, nstsv * n_kpts_current_rank )
 
   if (allocated(meffig)) deallocate(meffig)
   if (allocated(m2effig)) deallocate(m2effig)

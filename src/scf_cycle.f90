@@ -1,7 +1,7 @@
 subroutine scf_cycle(verbosity)
     use cdft, only: cdft_input_keys, deallocate_cdft_global_arrays, determine_cdft_occupations, &
       file_extension_GS, initialize_cdft_global_arrays, update_occupations_with_the_maximum_overlap_method
-    use exciting_mpi, only: xmpi_bcast, xmpi_allreduce
+    use exciting_mpi, only: xmpi_bcast, xmpi_allreduce, xmpi_allgatherv
     use lo_recommendation, only: recommend_local_orbital_trial_energies
     use mod_APW_LO, only: apwn, apwe0, lorbe0, lorbl, lorbord, lorbn, maxapword, maxlapw, nlorb
     use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, spr, spsymb
@@ -23,7 +23,7 @@ subroutine scf_cycle(verbosity)
     use mod_timing, only: stopwatch, time_density_init, time_pot_init, timefor, timefv, &
       timeinit, timeio, timemat, timemixer, timemt, timepot, timerho, timesv
     use modinput, only: input, getfixspinnumber
-    use modmpi, only: barrier, firstofset, lastofset, mpiglobal, mpi_allgatherv_ifc, &
+    use modmpi, only: barrier, firstofset, lastofset, mpiglobal, &
       procs, rank, splittfile
     use precision, only: dp, i32
     use scl_xml_out_Module, only: deltae, dforcemax, iscl, scl_iter_xmlout, scl_xml_out_write, scl_xml_write_moments
@@ -387,8 +387,8 @@ subroutine scf_cycle(verbosity)
             End Do ! ik
 
 ! end k-point loop -------------------------------------------------------------
-            call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstsv, rbuf=evalsv)
-            if (task==7) call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=nstfv, rbuf=engyknst)
+            call xmpi_allgatherv( mpiglobal, evalsv, nstsv * (last_k - first_k + 1) )
+            if ( task == 7 ) call xmpi_allgatherv( mpiglobal, engyknst, nstfv * (last_k - first_k + 1) )
         end if
 
         call timesec(tb)

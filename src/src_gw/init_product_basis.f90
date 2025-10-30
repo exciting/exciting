@@ -12,7 +12,6 @@ subroutine init_product_basis()
     &                                bradketc, bradketa, bradketlo, &
     &                                lmixmax, locmatsiz, locmixind, mbindex, &
     &                                rtl, rrint
-    use modmpi,                only: mpi_allgatherv_ifc, barrier, rank
     use reallocate
     use precision,             only: i32, dp
     use mod_gen_lo,            only: genlofr

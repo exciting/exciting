@@ -233,7 +233,7 @@ contains
   !> This subroutine calculates the diagonal matrix elements of
   !> the exchange correlation potential (only for valence states).
   subroutine calcvxcnn( first_band, last_band, kpt_indexes, kpt_lattice_coord, mpi_env )
-    use exciting_mpi, only: mpiinfo
+    use exciting_mpi, only: mpiinfo, xmpi_allgatherv
     use modinput, only: input
     use mod_APW_LO, only: apwordmax, nlomax, nlotot
     use mod_LDA_LU, only: ldapu, llu
@@ -246,7 +246,7 @@ contains
     use mod_misc, only: filext
     use mod_muffin_tin, only: lmmaxapw, lmmaxvr
     use modgw, only: Gkqset, Gkset, kset, kqset, time_vxc
-    use modmpi, only: barrier, mpi_allgatherv_ifc, distribute_loop
+    use modmpi, only: distribute_loop, mpiglobal
     use modxs, only: isreadstate0
     use vector_multiplication, only: dot_multiply
     
@@ -360,11 +360,8 @@ contains
     deallocate(vxcrlolo)
     if (hybridhf) deallocate(vxnl)
     
-#ifdef MPI
-    call mpi_allgatherv_ifc(n_kpt, last_band-first_band+1, zbuf=vxcnn%diag_elements)
-    call barrier
-#endif
-
+    call xmpi_allgatherv( mpiglobal, vxcnn%diag_elements, &
+      (last_band - first_band + 1) * (i_last - i_first + 1) )
     ! Here we enforce degeneracies in the VXCNN (the degeneracy lifting is a numerical artifact here)
     do i = i_first, i_last
       ikp = kpt_indexes(i)

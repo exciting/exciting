@@ -302,7 +302,7 @@ module dfpt_eigensystem
     !> where \({\bf p'}\) might be different from \({\bf p}\) when the perturbation carries a non-zero
     !> wavevector (e.g. phonon-like perturbation).
     !>
-    !> @note The result is added to the input matrix! @endnote
+    !> The result is added to the input matrix!
     subroutine dfpt_eig_gen_dHmat( ip, Gpset1, Gpset2, fst1, lst1, fst2, lst2, evec1, evec2, apwalm1, apwalm2, &
         dHmat_mt_basis, dpot_cfun_ig, dkin_cfun_ig, dHmat, &
         Gset, diagonal )

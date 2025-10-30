@@ -1,15 +1,15 @@
 
 subroutine task_emac_q()
     use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
+    use exciting_mpi, only: xmpi_allgatherv
     use modinput
     use modmain
-    use modmpi, only: mpi_allgatherv_ifc, rank, firstofset, lastofset, barrier, terminate, mpiglobal
+    use modmpi, only: rank, firstofset, lastofset, terminate, mpiglobal
     use modgw
     use mod_coulomb_potential, only: barc, delete_coulomb_potential
     use invert_dielectric_function, only: calcinveps
     use modxs, only: symt2
     use mod_mpi_gw
-    use modmpi, only: mpi_allgatherv_ifc, rank, firstofset, lastofset, barrier, terminate, mpiglobal
     use m_getunit
     use mod_bands, only: numin, nstdf
 
@@ -185,11 +185,7 @@ subroutine task_emac_q()
       if (allocated(barc)) deallocate(barc)
 
     end do ! i
-
-#ifdef MPI
-    call mpi_allgatherv_ifc(nq,rlen=freq%nomeg,zbuf=emac_q)
-    call barrier
-#endif
+    call xmpi_allgatherv( mpiglobal, emac_q, freq%nomeg * (iqend - iqstart + 1) )
 
     ! generate q-path
     allocate(vq_path(nq))

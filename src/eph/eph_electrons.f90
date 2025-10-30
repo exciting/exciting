@@ -4,6 +4,7 @@ module eph_electrons
 
   use precision, only: dp
   use asserts, only: assert
+  use exciting_mpi, only: xmpi_allgatherv
   use modmpi
   use matrix_fourier_interpolation, only: mfi_type
   use block_data_file, only: block_data_file_type
@@ -396,8 +397,7 @@ contains
       if (allocated(eval)) deallocate( eval )
       if (allocated(evec_dfpt)) deallocate( evec_dfpt )
     end if
-
-    call mpi_allgatherv_ifc( kset%nkpt, rlen=wf_nst*wf_nwf, zbuf=eveck, inplace=.true. )
+    call xmpi_allgatherv( mpiglobal, eveck, wf_nst * wf_nwf * (ik2 - ik1 + 1) )
 
     ! read localization centers (transformed to lattice coordinates)
     if (allocated(centers)) deallocate( centers )

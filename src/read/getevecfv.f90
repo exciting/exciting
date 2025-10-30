@@ -104,7 +104,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
          End If
       End Do
       If (splittfile) Then
-         koffset = ik - firstk (procofk(ik, nkpt), nkpt) + 1
+         koffset = ik - firstofset (procofindex(ik, nkpt), nkpt) + 1
       Else
          koffset = ik
       End If

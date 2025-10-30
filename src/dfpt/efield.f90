@@ -6,6 +6,7 @@ module efield
   use efield_variables
 
   use modmpi
+  use exciting_mpi, only: xmpi_allgatherv
   use precision, only: dp
   use block_data_file, only: block_data_file_type
 
@@ -122,7 +123,7 @@ module efield
         call dfpt_eig_ks( ik, dfpt_kset, dfpt_Gset, dfpt_Gkset, nmatmax, evalk(:, ik), eveck, &
                p0set=dfpt_kset, Gp0set=dfpt_Gkset, feval=fevalk0, fevec=feveck0 )
       end do
-      call mpi_allgatherv_ifc( dfpt_kset%nkpt, rlen=nmatmax, comm=mpiglobal, rbuf=evalk )
+      call xmpi_allgatherv( mpiglobal, evalk, nmatmax * (ik2 - ik1 + 1) )
       ! get occupation numbers
       occk = 0.0_dp
       call find_fermi( dfpt_kset%nkpt, dfpt_kset%wkpt, nstfv, evalk(1:nstfv, :), chgval, occmax, &

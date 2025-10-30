@@ -1,7 +1,6 @@
 module mod_wannier_projection
   use mod_wannier_variables
   use mod_wannier_helper
-
   use mod_atoms
   use mod_eigensystem
   use mod_APW_LO
@@ -11,6 +10,7 @@ module mod_wannier_projection
   use mod_Gkvector,              only: ngkmax_ptr
   use mod_spin,                  only: nspinor
   use mod_potential_and_density, only: veffmt
+  use exciting_mpi, only: xmpi_allgatherv
 
   implicit none
 
@@ -527,7 +527,7 @@ module mod_wannier_projection
       allocate( auxmat( nmatmax_ptr, wf_nprojtot))
 
       auxmat = zzero
-      do ik = firstofset( mpiglobal%rank, wf_kset%nkpt), lastofset( mpiglobal%rank, wf_kset%nkpt)   
+      do ik = firstofset( mpiglobal%rank, wf_kset%nkpt), lastofset( mpiglobal%rank, wf_kset%nkpt)
         call wfhelp_getevec( ik, evecfv)
         call match( wf_Gkset%ngk( 1, ik), wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm(:, :, :, :, 1))
 
@@ -559,9 +559,9 @@ module mod_wannier_projection
                auxmat, nmatmax_ptr, zzero, &
                wfpro_proj( wf_fst, 1, ik), wf_nst)
 
-      end do 
-      call mpi_allgatherv_ifc( set=wf_kset%nkpt, rlen=wf_nst*wf_nprojtot, zbuf=wfpro_proj)
-      call barrier
+      end do
+      call xmpi_allgatherv( mpiglobal, wfpro_proj, wf_nst * wf_nprojtot * &
+        (lastofset( mpiglobal%rank, wf_kset%nkpt ) - firstofset( mpiglobal%rank, wf_kset%nkpt ) + 1) )
 
       deallocate( evecfv, apwalm, auxmat)
       deallocate( rolpi)

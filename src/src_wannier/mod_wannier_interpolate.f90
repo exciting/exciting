@@ -1,4 +1,5 @@
 module mod_wannier_interpolate
+  use exciting_mpi, only: xmpi_allgatherv
   use modmain
   use mod_wannier
   use m_linalg
@@ -460,9 +461,8 @@ module mod_wannier_interpolate
 !$omp end parallel
 #endif
       if( parallel) then
-        call mpi_allgatherv_ifc( set=wfint_kset%nkpt, rlen=wf_nwf, rbuf=wfint_eval)
-        call mpi_allgatherv_ifc( set=wfint_kset%nkpt, rlen=wf_nwf*wf_nwf, zbuf=wfint_transform)
-        call barrier
+        call xmpi_allgatherv( mpiglobal, wfint_eval, wf_nwf * (q2 - q1 + 1) )
+        call xmpi_allgatherv( mpiglobal, wfint_transform, wf_nwf**2 * (q2 - q1 + 1) )
       end if
       deallocate( hwq)
     
@@ -767,8 +767,9 @@ module mod_wannier_interpolate
 #ifdef USEOMP
 !$omp end parallel
 #endif
-      call mpi_allgatherv_ifc( set=wfint_kset%nkpt, rlen=(lmax+1)*natmtot*wf_nwf, rbuf=bc)
-      call barrier
+      call xmpi_allgatherv( mpiglobal, bc, (lmax + 1) * natmtot * wf_nwf * &
+        (lastofset( mpiglobal%rank, wfint_kset%nkpt ) - firstofset( mpiglobal%rank, wfint_kset%nkpt ) + 1) )
+
 
       if( allocated( radcoeffr)) deallocate( radcoeffr)
       if( allocated( radolp)) deallocate( radolp)
@@ -955,8 +956,7 @@ module mod_wannier_interpolate
           end do
         end do
         deallocate( dmat, auxmat, ulm)
-        call mpi_allgatherv_ifc( set=wfint_kset%nkpt, rlen=lmmax*natmtot*wf_nwf, rbuf=fpdos)
-        call barrier
+        call xmpi_allgatherv( mpiglobal, fpdos, lmmax*natmtot * wf_nwf * (q2 - q1 + 1) )
 
         do ias = 1, natmtot
           do l = 0, lmax

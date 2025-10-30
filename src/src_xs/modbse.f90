@@ -9,6 +9,7 @@
 !BOC
 module modbse
   use modmpi
+  use exciting_mpi, only: xmpi_allgatherv
 #ifdef USEOMP
   use omp_lib
 #endif
@@ -942,12 +943,9 @@ module modbse
 #ifdef MPI
       if( .not. fserial) then
         ! Collect kousize on all processes
-        call mpi_allgatherv_ifc(set=nk_max, rlen=1, ibuf=kousize,&
-          & inplace=.true., comm=mpiglobal)
-
+        call xmpi_allgatherv( mpiglobal, kousize, k2 - k1 + 1 )
         ! Collect koulims on all processes
-        call mpi_allgatherv_ifc(set=nk_max, rlen=4, ibuf=koulims,&
-          & inplace=.true., comm=mpiglobal)
+        call xmpi_allgatherv( mpiglobal, koulims, 4 * (k2 - k1 + 1) )
       end if
 #endif
       ! Calculate maximal no(k_+) and nu(k_-)
@@ -998,7 +996,7 @@ module modbse
       allocate(de(hamsize))
 
       ! If rank was participating in k-loop.
-      if(k2 > 0) then
+      if( k2 > 0 ) then
         ! Apply selection flag to local arrays
         ! and store result in global counterparts.
         i1 = sum(kousize(1:k1-1))+1
@@ -1008,6 +1006,9 @@ module modbse
         smap(3,i1:i2) = pack(smap_loc(3,:),sflag)
         ofac(i1:i2) = pack(ofac_loc,sflag)
         de(i1:i2) = pack(de_loc,sflag)
+      else
+        i1 = 0
+        i2 = -1
       end if
 
       ! Local auxiliary local arrays not needed anymore
@@ -1019,14 +1020,11 @@ module modbse
 #ifdef MPI
       if( .not. fserial) then
         ! Collect ofac on all processes
-        call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=ofac,&
-          & inplace=.true., comm=mpiglobal)
+        call xmpi_allgatherv( mpiglobal, ofac, i2 - i1 + 1 )
         ! Collect de on all processes
-        call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize, rbuf=de,&
-          & inplace=.true., comm=mpiglobal)
+        call xmpi_allgatherv( mpiglobal, de, i2 - i1 + 1 )
         ! Collect smap on all processes
-        call mpi_allgatherv_ifc(set=nk_max, rlenv=kousize*3, ibuf=smap,&
-          & inplace=.true., comm=mpiglobal)
+        call xmpi_allgatherv( mpiglobal, smap, 3 * (i2 - i1 + 1) )
       end if
 #endif
       ! Energy sorting

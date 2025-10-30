@@ -282,7 +282,7 @@ module weinert
     !> In addition, the multipole moments of the charge distribution in the sphere are calculated as
     !> \[ q^{{\rm MT},\alpha}_{lm} = \int_0^{R_\alpha} s^{l+2} \, n^\alpha_{lm}(s) \, {\rm d}s \,. \]
     !>
-    !> @note \(v_{\rm sph}({\rm r})\) as defined above goes to zero on the muffin-tin surface.@endnote
+    !> \(v_{\rm sph}({\rm r})\) as defined above goes to zero on the muffin-tin surface.
     subroutine poisson_and_multipoles_mt( lmax, nr, r, zrhomt, zvclmt, qlm)
       use constants, only: fourpi
       !> maximum angular momentum \(l\)

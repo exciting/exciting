@@ -358,12 +358,11 @@ contains
         use grid_utils, only: index_column_vector_in_array
         use constants, only: zzero
         use math_utils, only: identity_complex_dp
-        use modmpi, only: mpiglobal, distribute_loop, &
-                          mpi_allgatherv_ifc, terminate_if_false
+        use modmpi, only: mpiglobal, distribute_loop, terminate_if_false
         use mod_kpointset, only: Gk_set, k_set
         use diel_mat_type, only: dielectric_matrix_type
         use grid_utils, only: indices_zero_vectors
-        use exciting_mpi, only: xmpi_bcast
+        use exciting_mpi, only: xmpi_allgatherv, xmpi_bcast
 
         !> (G+q)-vectors of the unit cell in cartesian coordinates
         type(Gk_set), intent(inout)  :: gq_set_uc
@@ -480,13 +479,8 @@ contains
                 end do
             end do
         end do
-
         ! Gather body on all processes
-        call mpi_allgatherv_ifc(set=q_set_sc%nkpt, &
-                                rlen=size(eps_sc%body, dim=1)**2, &
-                                zbuf=eps_sc%body, inplace=.true., &
-                                comm=mpiglobal)
-
+        call xmpi_allgatherv( mpiglobal, eps_sc%body, size( eps_sc%body, dim=1 )**2 * (iq_end - iq_start + 1) )
     end subroutine
 
 end module

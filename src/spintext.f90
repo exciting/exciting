@@ -9,6 +9,7 @@
 !
 module spintexture
   ! !USES:
+  use exciting_mpi, only: xmpi_allgatherv
   Use modmain
   Use modmpi
   Use FoX_wxml, only: xmlf_t, xml_OpenFile, xml_NewElement, xml_AddAttribute, xml_EndElement, xml_Close
@@ -146,11 +147,10 @@ module spintexture
 #ifdef MPI
     Call MPI_barrier (MPI_COMM_WORLD, ierr)
     splittfile = .True.
-    Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
 #else
     splittfile = .False.
-    Do ik = 1, nkpt
 #endif
+    do ik = firstofset(rank, nkpt), lastofset(rank, nkpt)
       Allocate (evalfv(nstfv, nspnfv))
       Allocate (evecfv(nmatmax, nstfv, nspnfv))
       Allocate (evecsv(nstsv, nstsv))
@@ -173,16 +173,9 @@ module spintexture
     End Do !iki
     call mt_hscf%release()
     
-#ifdef MPI
-    Call mpi_allgatherv_ifc(nkpt, 3*nst, rbuf=stext)
-    Call mpi_allgatherv_ifc(nkpt, nstsv, rbuf=evalsv)
-#endif
-  If (rank==0) then
-  !xml  
-    call write_spintexture_xml(fname, stext, evalsv, band_min, band_max)
-  End If
-      
-
+    call xmpi_allgatherv( mpiglobal, stext, 3 * nst * (lastofset( rank, nkpt ) - firstofset( rank, nkpt ) + 1) )
+    call xmpi_allgatherv( mpiglobal, evalsv, nstsv * (lastofset( rank, nkpt ) - firstofset( rank, nkpt ) + 1) )
+    if ( rank == 0 ) call write_spintexture_xml( fname, stext, evalsv, band_min, band_max )
   End Subroutine calculate_spintexture
 
   Subroutine write_spintexture_xml(fname, stext, eval, band_min, band_max)

@@ -9,6 +9,7 @@ module mod_wannier
   use mod_optkgrid
   use mod_kpointset
   use xlapack, only: svd_divide_conquer
+  use exciting_mpi, only: xmpi_allgatherv
 
   use mod_pwmat
 
@@ -275,8 +276,7 @@ module mod_wannier
                   100.d0*(dble( idxn - 1)/wf_n_ntot + dble( cntk)/(k2 - k1 + 1)/wf_n_ntot)
             end if
           end do
-          call mpi_allgatherv_ifc( set=wf_kset%nkpt, rlen=wf_nst*wf_nst, zbuf=wf_m0( :, :, :, idxn))
-          call barrier
+          call xmpi_allgatherv( mpiglobal, wf_m0( :, :, :, idxn), wf_nst**2 * (k2 - k1 + 1) )
         end do
         if( mpiglobal%rank .eq. 0) then
           write(*,*)

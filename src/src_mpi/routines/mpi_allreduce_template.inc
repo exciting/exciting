@@ -16,7 +16,7 @@
 #define SMALL small_buffer
 #define GENERATENAMESMALL(name) CONCATENATE(GENERATENAME(name),SMALL) 
 #define LARGE large_buffer
-#define GENERATENAMELARGE(name) CONCATENATE(GENERATENAME(name),LARGE) 
+#define GENERATENAMELARGE(name) CONCATENATE(GENERATENAME(name),LARGE)
 
 !> Wrapper for calling `mpi_allreduce`, assuming an in-place reduce. 
 subroutine GENERATENAME(PROCEDURENAME1)( buffer, mpi_env, large_buffer_interface )

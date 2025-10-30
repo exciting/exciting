@@ -100,12 +100,8 @@ Subroutine oepmain
             dbxir(:,:) = 0.d0
          End If
 ! calculate the k-dependent residuals
-#ifdef MPI
-         Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
-#else
-         Do ik = 1, nkpt
-#endif            
-             Call oepresk(ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
+         do ik = firstofset(rank, nkpt), lastofset(rank, nkpt)
+            Call oepresk(ik, vnlcv, vnlvv, dvxmt, dvxir, dbxmt, dbxir)
          End Do
 #ifdef MPI
          msize = lmmaxvr*nrcmtmax*natmtot
