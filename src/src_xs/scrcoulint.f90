@@ -12,7 +12,7 @@ subroutine scrcoulint(iqmt, fra)
   use mod_misc, only: filext
   use modinput, only: input, issvlo
   use modmpi
-  use exciting_mpi, only: xmpi_bcast
+  use exciting_mpi, only: xmpi_allgatherv, xmpi_bcast
   use constants, only: zzero, zone
   use mod_APW_LO, only: lolmax
   use mod_qpoint, only: iqmap, vql, vqc, nqpt, ivq, wqpt
@@ -445,8 +445,7 @@ subroutine scrcoulint(iqmt, fra)
   filext = fileext_ematrad_write
 
   ! Communicate array-parts wrt. q-points
-  call mpi_allgatherv_ifc(set=nqptr, rlen=ngqmax*ngqmax,&
-    & zbuf=scieffg, inplace=.true., comm=mpiglobal)
+  call xmpi_allgatherv( mpiglobal, scieffg, ngqmax**2 * (qparf - qpari + 1) )
 
   if(mpiglobal%rank == 0) then
     call timesec(tscc1)
@@ -888,7 +887,7 @@ subroutine scrcoulint(iqmt, fra)
 
   ! Gather info about resonant diagonal elements 
   !   Communicate array-parts wrt. q-points
-  call mpi_allgatherv_ifc(mpiglobal%procs,rlen=3,zbuf=bsedt)
+  call xmpi_allgatherv( mpiglobal, bsedt, 3 )
   !   BSE kernel diagonal parameters
   bsedl = minval(dble(bsedt(1, :)))
   bsedu = maxval(dble(bsedt(2, :)))

@@ -10,15 +10,13 @@
 !
 !
 Character (256) Function outfilenamestring (filetag, ik)
-      Use modmpi, Only: procs, lastk, firstk, procofk, splittfile
+      Use modmpi, Only: procs, lastofset, firstofset, procofindex, splittfile
       Use modmain, Only: scrpath, task
       use mod_kpoint, only: nkpt
       Use mod_misc, Only: filext
       Use modinput
       Implicit None
-!external lastk,firstk
-!
-!character(256):: outfilenamestring
+      
       Character (256), Intent (In) :: filetag
       Integer, Intent (In) :: ik
       Character (256) :: tmp, tmp2, krange, scrpathtmp
@@ -31,8 +29,8 @@ Character (256) Function outfilenamestring (filetag, ik)
       If ((task .Eq. 0) .Or. (task .Eq. 1) .Or. (task .Eq. 2) .Or. &
       &   (task .Eq. 3) .Or. (task.eq.200) .Or. (task .Eq. 7)) Then
          If ((procs .Gt. 1) .And. splittfile) Then
-            Write (tmp, '(I5)') firstk (procofk(ik, nkpt), nkpt)
-            Write (tmp2, '(I5)') lastk (procofk(ik, nkpt), nkpt)
+            Write (tmp, '(I5)') firstofset (procofindex(ik, nkpt), nkpt)
+            Write (tmp2, '(I5)') lastofset (procofindex(ik, nkpt), nkpt)
             krange = trim (adjustl(tmp)) // '-' // trim (adjustl(tmp2))
             scrpathtmp = scrpath
              outfilenamestring = trim (scrpathtmp) // trim (filetag) // trim(krange) // trim(filext)

@@ -264,7 +264,7 @@ module dfpt_density_potential
     !>   \delta C^{n{\bf k},\alpha}_{\lambda'}
     !>   + \sum_n \delta f_{n{\bf k}} \, {C^{n{\bf k},\alpha}_\lambda}^\ast \, C^{n{\bf k},\alpha}_{\lambda'} \;.\]
     !>
-    !> @note The result is added to the input variables.
+    !> The result is added to the input variables.
     !> 
     !> @warning This subroutine does not account for contributions coming from the variation of the
     !>          basis functions upon the perturbation and only accounts for the variation of the 
@@ -530,7 +530,7 @@ module dfpt_density_potential
     !> \end{align*}\]
     !> See subroutines [[apply_xckernel_mt(subroutine)]] and [[apply_xckernel_ir(subroutine)]] for more details
     !> and the reason of the exact form \(f^{\rm GGA}_{\rm xc,1}({\bf r})\).
-    !> @note Exchange-correlation types other than LDA and GGA are not yet supported by this subroutine.
+    !> Exchange-correlation types other than LDA and GGA are not yet supported by this subroutine.
     subroutine gen_xc_kernel( rhomt, rhoir, xc_kernel_mt, xc_kernel_ir )
       use constants, only: zzero
       use mod_potential_and_density, only: xctype, xcdescr

@@ -181,12 +181,12 @@ module matrix_elements_lapw_lo
     !>
     !> See also [[me_lapwlo_mt_gaunt_sum(subroutine)]].
     !
-    !> @note
+    !>
     !>
     !> *   More convenient interfaces for standard usecases are provided by the polymorphic
     !>     subroutine [[me_mt_prepare(subroutine)]].
     !>
-    !> @endnote
+    !>
     subroutine me_lapwlo_mt_rignt( is, ias, lmax_op, alpha, rfun, beta, rignt, &
         left_radial_derivative, right_radial_derivative, &
         left_gradient, right_gradient, surface_integral, gradient_product, real_expansion )
@@ -770,7 +770,7 @@ module matrix_elements_lapw_lo
     !> \[ M^{\alpha,{\rm out}}_{\mu \nu} = a\, M^\alpha_{\mu \nu} + b\, M^{\alpha,{\rm in}}_{\mu \nu} \; . \]
     !>
     !
-    !> @note
+    !>
     !>
     !> *   More convenient interfaces for standard usecases are provided by the polymorphic
     !>     subroutine [[me_mt_mat(subroutine)]].
@@ -778,7 +778,7 @@ module matrix_elements_lapw_lo
     !>     is used or whether the integration domain \(\mathcal{D}\) is the interior or the surface of the MT
     !>     had already been made in the calculation of `rignt`! See [[me_lapwlo_mt_rignt(subroutine)]].
     !>
-    !> @endnote
+    !>
     subroutine me_lapwlo_mt_mat( is, ias, ngp1, ngp2, apwalm1, apwalm2, alpha, rignt, beta, mat, &
         left_evec, right_evec, diagonal_only, left_local_orbitals, right_local_orbitals )
       use mod_APW_LO, only: nlotot
@@ -1105,7 +1105,7 @@ module matrix_elements_lapw_lo
     !> This routine computes
     !> \[ M^{{\rm IR},{\rm out}}_{\mu \nu} = a\, M^{\rm IR}_{\mu \nu} + b\, M^{{\rm IR},{\rm in}}_{\mu \nu} \; . \]
     !
-    !> @note 
+    !> 
     !>
     !> *   More convenient interfaces for standard usecases are provided by the polymorphic
     !>     subroutine [[me_ir_mat(subroutine)]].
@@ -1114,7 +1114,7 @@ module matrix_elements_lapw_lo
     !> *   In general, also a different function than the interstitial characteristic function \(\Theta_{\rm IR}({\bf r})\)
     !>     can be used. See therefore [[me_lapwlo_ir_opig(subroutine)]].
     !>
-    !> @endnote
+    !>
     subroutine me_lapwlo_ir_mat( Gpset1, ip1, Gpset2, ip2, Gset_op, alpha, opig, beta, mat, &
         left_evec, right_evec, diagonal_only, G_shift, &
         left_gradient, right_gradient, gradient_product, non_reduced_p1, non_reduced_p2 )

@@ -5,6 +5,7 @@
 !
 !
 Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
+      use exciting_mpi, only: xmpi_allgatherv
       Use modmain
       Use modinput
       use modmpi
@@ -134,10 +135,7 @@ Subroutine rfarray (lmax, ld, rfmt, rfir, np, vpl, fp)
 10       Continue
          fp (ip) = sum
       End Do
-#ifdef MPI
-      Call mpi_allgatherv_ifc(np,rlen=1,rbuf=fp)
-      Call barrier
-#endif    
+      call xmpi_allgatherv( mpiglobal, fp, lastofset(mod(rank,np),np) - firstofset(mod(rank,np),np) + 1 )
       Deallocate (rlm, zfft, ya, c)
       Return
 End Subroutine

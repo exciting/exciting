@@ -24,6 +24,7 @@ subroutine macro_polarization( pol, mode)
   use mod_Gvector, only: intgv
   use mod_Gkvector, only: gkmax
   use mod_gen_lo, only: genlofr
+  use exciting_mpi, only: xmpi_allgatherv
 
   ! !INPUT/OUTPUT PARAMETERS:
   !   pol     : total, electronic, and ionic polarization vector (inout,real(3,3))
@@ -45,7 +46,7 @@ subroutine macro_polarization( pol, mode)
   real(8), intent( inout)  :: pol(3,3)
   character(*), intent( in):: mode
 
-  integer :: ik1, ik2, d1, d2, d3, ix, iy, iz, nocc, nplane, is, ia, ist, vi(3)
+  integer :: ik1, ik2, d1, d2, d3, ix, iy, iz, nocc, nplane, is, ia, ist, vi(3), k_i, k_f
   real(8) :: pel(3), pion(3), ptot(3), vr(3), phase, berrypel, berrypion, zion, vk(3), vkv(3)
   complex(8) :: det, pavg
   type( k_set) :: kset
@@ -116,7 +117,9 @@ subroutine macro_polarization( pol, mode)
 
     ! compute electronic contribution to Berry phase
     prodv = zzero
-    do ia = firstofset( mpiglobal%rank, kset%ngridk( d2)*kset%ngridk( d3)), lastofset( mpiglobal%rank, kset%ngridk( d2)*kset%ngridk( d3))
+    k_i = firstofset( mpiglobal%rank, kset%ngridk( d2)*kset%ngridk( d3))
+    k_f = lastofset( mpiglobal%rank, kset%ngridk( d2)*kset%ngridk( d3))
+    do ia = k_i, k_f 
       iy = (ia-1)/kset%ngridk( d2)
       ix = ia - iy*kset%ngridk( d2) - 1
       prodv( ia) = zone
@@ -142,8 +145,7 @@ subroutine macro_polarization( pol, mode)
         prodv( ia) = prodv( ia)*det
       end do
     end do
-    call mpi_allgatherv_ifc( rlen=1, set=kset%ngridk( d2)*kset%ngridk( d3), zbuf=prodv)
-    call barrier
+    call xmpi_allgatherv( mpiglobal, prodv, k_f - k_i + 1 )
     prod = reshape( prodv, (/kset%ngridk( d2), kset%ngridk( d3)/))
     pavg = zzero
     do ix = 1, kset%ngridk( d2)

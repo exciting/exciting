@@ -28,14 +28,10 @@
 !> *   the interior of an individual muffin-tin sphere, \(\alpha\)
 !> *   the surface of an individual muffin-tin sphere, \(\partial \alpha\)
 !>
-!> @note 
 !> This module only provides convenient user interfaces.
 !> The underlying procedures are contained in [[matrix_elements_lapw_lo(module)]].
-!> @endnote
-!
-! See 'matrix_elements.md' for further documentation and usage.
-!>{!../src/matrix_elements/matrix_elements.md!}
-!>
+!> See 'matrix_elements.md' for further documentation and usage.
+!> {!../src/matrix_elements/matrix_elements.md!}
 module matrix_elements
   use precision, only: dp
 
@@ -116,7 +112,7 @@ module matrix_elements
   !>    surface_integral, gradient_product] )`, 
   !> where `rfun` and `rignt` can be real or complex valued.
   !>
-  !> @note Fore more flexible use, employ [[me_lapwlo_mt_rignt(subroutine)]] directly. @endnote
+  !> For a more flexible use, employ [[me_lapwlo_mt_rignt(subroutine)]] directly.
   interface me_mt_prepare
     procedure :: mt_rignt_real, mt_rignt_complex
   end interface
@@ -137,7 +133,7 @@ module matrix_elements
   !> `me_ir_prepare( a, opir, b, opig [, Gset_op] )`, 
   !> where `opir` can be real or complex valued.
   !>
-  !> @note Fore more flexible use, employ [[me_lapwlo_ir_opig(subroutine)]] directly. @endnote
+  !> For a more flexible use, employ [[me_lapwlo_ir_opig(subroutine)]] directly.
   interface me_ir_prepare
     procedure :: ir_opig_real, ir_opig_complex
   end interface
@@ -168,7 +164,7 @@ module matrix_elements
   !>
   !> Use the optional arguments `left_local_orbitals` and `right_local_orbitals` to include or exclude LOs from the calculation.
   !>
-  !> @note For more flexible usage, employ [[me_lapwlo_mt_mat(subroutine)]] directly. @endnote
+  !> For a more flexible usage, employ [[me_lapwlo_mt_mat(subroutine)]] directly. 
   interface me_mt_mat
     procedure :: mt_mat_apwalm_real, mt_mat_apwalm_complex, &
                  mt_mat_evec_real, mt_mat_evec_complex, &
@@ -206,7 +202,7 @@ module matrix_elements
   !> Use the optional argument `gradient_product` to use
   !> \({\bf \nabla}^\top \chi_\mu({\bf r}) \cdot {\bf \nabla} \chi_\nu({\bf r})\) instead.
   !>
-  !> @note For more flexible usage, employ [[me_lapwlo_ir_mat(subroutine)]] directly. @endnote
+  !> For a more flexible usage, employ [[me_lapwlo_ir_mat(subroutine)]] directly. 
   interface me_ir_mat
     procedure :: ir_mat_basis, ir_mat_evec, &
                  ir_mat_basis_single, ir_mat_evec_single

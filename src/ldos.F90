@@ -8,6 +8,7 @@ subroutine ldos()
                               nstfv, nstsv, vkl, vgkl, evalsv, ngk, gkc, tpgkc, sfacgk, omega, nkpt, &
                               ikmap, efermi, avec, task
     use constants, only: twopi
+    use exciting_mpi, only: xmpi_allgatherv
     use mod_rgrid
     use mod_xsf_format
     use mod_cube_format
@@ -157,11 +158,8 @@ subroutine ldos()
         end do ! ib
 
     end do ! ik
-#ifdef MPI
-    call mpi_allgatherv_ifc(nkpt, inplace=.False., rlen=np*nstsv, rbuf=weight)
-    call barrier()
-#endif
-
+    call xmpi_allgatherv( mpiglobal, weight, &
+        np * nstfv * (lastofset( rank, nkpt ) - firstofset( rank, nkpt ) + 1) )
     ! memory cleaning
     deallocate(zdata)
     deallocate(rho)

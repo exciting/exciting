@@ -70,7 +70,7 @@ module phonons_eigensystem
     !> computes the corresponding contribution to the Hamiltonian matrix response, 
     !> \(\delta^{\bf q}_{I \mu} {\bf H}^0\) (see [[dfpt_eig_gen_dHmat(subroutine)]]).
     !> 
-    !> @note The result is added to the input matrix! @endnote
+    !> The result is added to the input matrix!
     subroutine ph_eig_gen_dSHmat( ik, Gkset, Gkqset, fst, lst, eveck, eveckq, apwalmk, apwalmkq, dSmat, dHmat, &
         pat, dHmat_mt_basis, dpot_cfun_ig, dkin_cfun_ig )
       use mod_kpointset, only: Gk_set
@@ -277,7 +277,7 @@ module phonons_eigensystem
     !> See [[gen_dapwalm(subroutine)]] for the calculation of the response of the matching coefficients
     !> \(A^\kappa_{{\bf G+k},lm,\xi}\).
     !>
-    !> @note The result is added to the input matrix! @endnote
+    !> The result is added to the input matrix!
     subroutine gen_dSH0_mt( ik, Gkset, Gkqset, fst1, lst1, fst2, lst2, eveck, eveckq, apwalmk, apwalmkq, pat, dSmat, dHmat, &
         diagonal )
       use constants, only: zone
@@ -375,7 +375,7 @@ module phonons_eigensystem
     !> See [[gen_dcfun_ig(subroutine)]] for the Foruier transform of the smooth characteristic 
     !> function response \(\delta^{\bf q}_{\kappa\alpha} \Theta({\bf r})\).
     !>
-    !> @note The result is added to the input matrix! @endnote
+    !> The result is added to the input matrix!
     subroutine gen_dSH0_ir( ik, Gkset, Gkqset, fst1, lst1, fst2, lst2, eveck, eveckq, pat, dSmat, dHmat, &
         diagonal )
       use matrix_elements

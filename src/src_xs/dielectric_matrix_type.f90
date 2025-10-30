@@ -75,7 +75,7 @@ contains
     !> with leading zeros.
     subroutine setup_dielectric_matrix_from_file(this, eps0_dirname, n_gqvecs, &
                                                  qvecs)
-        use modmpi, only: mpiglobal, mpi_allgatherv_ifc, terminate_if_false
+        use modmpi, only: mpiglobal, terminate_if_false
         use exciting_mpi, only: xmpi_bcast
         use math_utils, only: all_zero
         use constants, only: zzero

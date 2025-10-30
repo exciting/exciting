@@ -1,6 +1,6 @@
 
 subroutine fermisurf
-
+  use exciting_mpi, only: xmpi_allgatherv
   use modmain
   use modmpi
   use constants, only : zzero
@@ -55,9 +55,7 @@ subroutine fermisurf
     call seceqn(ik,evalfv,evecfv,evecsv)
     deallocate(evalfv,evecfv,evecsv)
   end do ! ik
-#ifdef MPI  
-  call mpi_allgatherv_ifc(nkpt,rlen=nstsv,rbuf=evalsv)
-#endif
+  call xmpi_allgatherv( mpiglobal, evalsv, nstsv * (lastofset(mod(rank,nkpt),nkpt) - firstofset(mod(rank,nkpt),nkpt) + 1) )
   call mt_hscf%release()
   if (allocated(meffig)) deallocate(meffig)
   if (allocated(m2effig)) deallocate(m2effig)

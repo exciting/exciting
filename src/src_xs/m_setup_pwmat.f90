@@ -1,8 +1,9 @@
 module m_setup_pwmat
+  use constants, only: zzero
+  use exciting_mpi, only: xmpi_allgatherv
   use modmpi
   use modscl
   use modinput
-  use constants, only: zzero
   use modbse
   use mod_kpoint, only: vkl
   use mod_misc, only: filext
@@ -218,10 +219,8 @@ module m_setup_pwmat
       end do
 
       ! Gather moug 
-      if(input%xs%bse%distribute) then 
-        call mpi_allgatherv_ifc(set=nk_bse, rlen=nu_bse_max*no_bse_max, zbuf=muog,&
-          & inplace=.true., comm=mpiglobal)
-      end if
+      if( input%xs%bse%distribute ) &
+        call xmpi_allgatherv( mpiglobal, muog, nu_bse_max * no_bse_max * (ik2 - ik1 + 1) )
 
       call ematqdealloc
       deallocate(muo)

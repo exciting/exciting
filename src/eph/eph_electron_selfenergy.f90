@@ -273,11 +273,11 @@ contains
   !>  \]
   !> where \(\tilde{\Sigma}^{\rm FM, aux}_{nn'}({\bf k},\omega,T)\) is the Hilbert transform of \(\Sigma^{\rm FM, aux}_{nn'}({\bf k},\omega,T)\).
   !>
-  !> @note
+  !>
   !> The Hilbert transform is computed using splines. Large oscillations in the spline fit can be suppressed by smoothing
   !> the input self-energy. Smooting can be achieved by a convolution with a Lorentzian of width `eta`. This is supposed
   !> to result in the same broadening as using the same value for `eta` in [[eph_else_gen_fan_migdal_smearing(subroutine)]].
-  !> @endnote
+  !>
   subroutine eph_else_gen_fan_migdal_from_aux( freqs, selfen_fm )
     !> frequency grid \(\omega\) (in increasing order)
     real(dp), intent(in) :: freqs(:)

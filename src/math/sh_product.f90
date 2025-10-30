@@ -13,14 +13,14 @@
 !>   = \langle R_{l_1 m_1} | R_{l_3 m_3} | R_{l_2 m_2} \rangle \]
 !> is used.
 !>
-!> @note
+!>
 !> In general, the expansion of the third function contains non-zero
 !> expansion coeffiencts up to order
 !> \( l_{3,{\rm max}} = l_{1,{\rm max}} + l_{2,{\rm max}} \).
 !> The expansion of the third function can be truncated to smaller order
 !> by setting
 !> \( l_{3,{\rm max}} < l_{1,{\rm max}} + l_{2,{\rm max}} \).
-!> @endnote
+!>
 subroutine dshmul( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
   use precision, only: dp
   use asserts, only: assert
@@ -114,14 +114,14 @@ end subroutine dshmul
 !>   = (-1)^{m_2} \langle Y_{l_1 m_1} | Y_{l_3 m_3} | Y_{l_2 -m_2} \rangle \]
 !> is used.
 !>
-!> @note
+!>
 !> In general, the expansion of the third function contains non-zero
 !> expansion coeffiencts up to order
 !> \( l_{3,{\rm max}} = l_{1,{\rm max}} + l_{2,{\rm max}} \).
 !> The expansion of the third function can be truncated to smaller order
 !> by setting
 !> \( l_{3,{\rm max}} < l_{1,{\rm max}} + l_{2,{\rm max}} \).
-!> @endnote
+!>
 subroutine zshmul( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
   use precision, only: dp
   use asserts, only: assert
@@ -214,14 +214,14 @@ end subroutine zshmul
 !>   = \langle Y_{l_2 m_2} | Y_{l_3 m_3} | Y_{l_1 m_1} \rangle \]
 !> is used.
 !>
-!> @note
+!>
 !> In general, the expansion of the third function contains non-zero
 !> expansion coeffiencts up to order
 !> \( l_{3,{\rm max}} = l_{1,{\rm max}} + l_{2,{\rm max}} \).
 !> The expansion of the third function can be truncated to smaller order
 !> by setting
 !> \( l_{3,{\rm max}} < l_{1,{\rm max}} + l_{2,{\rm max}} \).
-!> @endnote
+!>
 subroutine zshmulc( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
   use precision, only: dp
   use asserts, only: assert

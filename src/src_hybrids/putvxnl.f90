@@ -12,8 +12,8 @@ subroutine putvxnl()
 
 !$OMP CRITICAL
 
-  ikfirst = firstk(rank, nkpt)
-  iklast = lastk(rank, nkpt)
+  ikfirst = firstofset(rank, nkpt)
+  iklast = lastofset(rank, nkpt)
 
   ! Save < m | \Sigma_x | n >
   inquire(IoLength=Recl) nkpt, nstfv ,vxnl(:,:,ikfirst)

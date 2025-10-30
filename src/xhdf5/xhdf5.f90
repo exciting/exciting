@@ -578,7 +578,7 @@ module xhdf5
     !> Name of the data set to read from.
     character(*), intent(in) :: dataset
     !> On output, contains the array chunk, handled by the current MPI rank.
-    integer(i32), intent(in), contiguous, target :: datachunk(..)
+    integer(i32), intent(out), contiguous, target :: datachunk(..)
     !> Offset of array chunk handled by the current MPI rank in the whole array. 
     integer(i32), intent(in), optional :: offset(:)
 

@@ -27,7 +27,7 @@ module rttddft_init
   use mod_spin, only: nspnfv
   use modinput, only: input, getstructHybrid, emptynode, input_type
   use modmpi, only: rank, mpi_env_k, barrier, distribute_loop, terminate_if_false, &
-    procofindex, firstk, lastk
+    procofindex, firstofset, lastofset
   use modxs, only: isreadstate0
   use muffin_tin_basis, only: mt_basis_type
   use precision, only: dp, i32, str_128, sp
@@ -681,8 +681,8 @@ subroutine get_data_from_neighbours( first_kpt, last_kpt, n_kpt, k_needed, &
   do broadcasting_rank = 0, mpi_env_k%procs - 1
     
     ! broadcasters' k points range
-    first_kpt_bcast = firstk( broadcasting_rank, n_kpt )
-    last_kpt_bcast = lastk( broadcasting_rank, n_kpt )
+    first_kpt_bcast = firstofset( broadcasting_rank, n_kpt )
+    last_kpt_bcast = lastofset( broadcasting_rank, n_kpt )
 
     do ik = first_kpt_bcast, last_kpt_bcast
       if ( .not. k_needed_global(ik) ) continue

@@ -18,10 +18,8 @@ Subroutine core_overlap
   Use constants, only: zzero
   Use mod_atoms, only: spr, spl, natmtot, idxas
   Use mod_muffin_tin, only: nrcmtmax, lmmaxapw, nrmt, idxlm, nrcmt, rcmt
-  Use modmpi, only: rank, barrier, ierr, firstk, lastk, mpi_allgatherv_ifc 
-#ifdef MPI
-  Use mpi, only: MPI_COMM_WORLD, MPI_barrier 
-#endif
+  Use modmpi, only: rank, firstofset, lastofset, mpiglobal
+  use exciting_mpi, only: xmpi_allgatherv
   Use FoX_wxml
   Use mod_spin, only: nspnfv
   Use modxas, only: preml, ucore, ecore, mj2ml, spj, mj, ncg
@@ -46,7 +44,7 @@ Subroutine core_overlap
   ! local variables
   Integer :: lxas
   Integer :: ik, is, ia, ias, ist1, ist2, irc, ir
-  Integer :: lm1, lm2
+  Integer :: lm1, lm2, n_kpts_current_rank
   Real (8), Allocatable :: evalfv (:,:)
   Complex (8), Allocatable :: apwalmt (:, :, :, :)
   Complex (8), Allocatable :: evecfv (:, :)
@@ -118,13 +116,9 @@ Subroutine core_overlap
   !---------------------------------------!
   ! begin parallel loop over k-points     !
   !---------------------------------------!
-#ifdef MPI
-!TODO(Alex) Issue #23 Refactor mpi module
-  Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
-#else
-  Do ik = 1, nkpt
-#endif
 
+  !TODO(Alex) Issue #23 Refactor mpi module
+  do ik = firstofset(rank, nkpt), lastofset(rank, nkpt)
     ! initialise the eigenvectors if we use the Davidson eigensolver
     if (input%groundstate%solver%type.eq.'Davidson') evecfv=zzero
 
@@ -174,10 +168,9 @@ Subroutine core_overlap
 
   Deallocate (evalfv, evecfv, evecsv)
   ! gather results when using MPI
-#ifdef MPI
-  Call mpi_allgatherv_ifc(nkpt, nstfv*ncg, rbuf=de)
-  Call mpi_allgatherv_ifc(nkpt, nstfv*ncg, zbuf=overlap)
-#endif
+  n_kpts_current_rank = lastofset(rank, nkpt) - firstofset(rank, nkpt) + 1
+  call xmpi_allgatherv( mpiglobal, de, nstfv * ncg * n_kpts_current_rank )
+  call xmpi_allgatherv( mpiglobal, overlap, nstfv * ncg * n_kpts_current_rank )
 
 !TODO(Bene #159): Replace HDF5 legacy wrappers with the new ones.
 !#ifdef _HDF5_

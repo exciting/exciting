@@ -59,7 +59,7 @@ module efield_eigensystem
     !> computes the corresponding contribution to the Hamiltonian matrix response, 
     !> \(\delta^{\bf q}_{I \mu} {\bf H}^0\) (see [[dfpt_eig_gen_dHmat(subroutine)]]).
     !> 
-    !> @note The result is added to the input matrix! @endnote
+    !> The result is added to the input matrix!
     subroutine ef_eig_gen_dHmat( ik, Gkset, fst, lst, evalk, eveck, apwalmk, dHmat, &
         ip, dHmat_mt_basis, dpot_cfun_ig, dkin_cfun_ig )
       use mod_kpointset, only: Gk_set

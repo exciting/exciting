@@ -1,6 +1,7 @@
 !> Mock arrays for testing.
 module mock_arrays
-  use precision, only: dp, sp
+  use precision, only: dp, i32, sp
+  use constants, only: zi
 
   implicit none
 
@@ -8,6 +9,7 @@ module mock_arrays
   public :: fill_array, value_map_real_rank1, &
                         value_map_real_rank2, &
                         value_map_real_rank3, &
+                        value_map_complex_rank1, &
                         value_map_complex_rank2, &
                         value_map_complex_rank3, &
                         value_map_complex_rank4
@@ -15,7 +17,7 @@ module mock_arrays
 
 ! double arrays
 
-  !> Real vecor with 5 elements
+  !> Real vector with 5 elements
   real(dp), parameter, public :: real_vector_5(5) = [ 31.18072641_dp,  -4.72689264_dp,  48.67919055_dp, -41.66440826_dp, &
                                           -40.21374565_dp]
   !> Real vector with 7 elements
@@ -319,6 +321,7 @@ module mock_arrays
                         fill_real_array_rank1,& 
                         fill_real_array_rank2,&
                         fill_real_array_rank3,&
+                        fill_complex_array_rank1,&
                         fill_complex_array_rank2,&
                         fill_complex_array_rank3,&
                         fill_complex_array_rank4                
@@ -334,7 +337,7 @@ module mock_arrays
         !>    a_{m} = 1.5m   
         !>                                      \].
         pure function value_map_real_rank1(m) result(b)
-                integer(sp), intent(in) :: m 
+                integer(i32), intent(in) :: m 
                 real(dp) :: b
                 b = 1.5_dp * m
         end function
@@ -346,7 +349,7 @@ module mock_arrays
         !>    a_{mn} = m + 2n 
         !>                                      \].
         pure function value_map_real_rank2(m, n) result(b)
-                integer(sp), intent(in) :: m, n
+                integer(i32), intent(in) :: m, n
                 real(dp) :: b
                 b = 1_dp*m + 2_dp*n
         end function
@@ -358,9 +361,21 @@ module mock_arrays
         !>    a_{mnl} = m + 2(n+l) 
         !>                                      \].
         pure function value_map_real_rank3(m, n, l) result(b)
-                integer(sp), intent(in) :: m, n, l
+                integer(i32), intent(in) :: m, n, l
                 real(dp) :: b
                 b = 1._dp*m + 2_dp*(n+l)
+        end function
+
+        !> Given its indices, this function maps
+        !> one element of a complex double-precision
+        !> array \( \mathbf{a} \) of rank 1 according to the arbitrary expression
+        !> \[
+        !>    a_{m} = 1.2m + i^(m/sqrt(3))   
+        !>                                      \].
+        pure function value_map_complex_rank1( m ) result( b )
+                integer(i32), intent(in) :: m
+                complex(dp) :: b
+                b = 1.2_dp * cmplx( m, dp ) + zi**(real( m, dp ) / sqrt( 3._dp ))
         end function
        
         !> Given its indices, this function maps
@@ -370,7 +385,7 @@ module mock_arrays
         !>    a_{mn} = m + 2n \cdot i   
         !>                                      \].
         pure function value_map_complex_rank2(m, n) result(b)
-                integer(sp), intent(in) :: m, n
+                integer(i32), intent(in) :: m, n
                 complex(dp) :: b
                 b = cmplx(m, 2*n, dp)
         end function
@@ -382,7 +397,7 @@ module mock_arrays
         !>    a_{mnl} = m + 2(n+l) \cdot i   
         !>                                      \].
         pure function value_map_complex_rank3(m, n, l) result(b)
-                integer(sp), intent(in) :: m, n, l
+                integer(i32), intent(in) :: m, n, l
                 complex(dp) :: b
                 b = cmplx(m, 2*(n+l), dp)
         end function
@@ -394,7 +409,7 @@ module mock_arrays
         !>    a_{mnlk} = m + l + 2nk \cdot i   
         !>                                      \].
         pure function value_map_complex_rank4(m, n, l, k) result(b)
-                integer(sp), intent(in) :: m, n, l, k
+                integer(i32), intent(in) :: m, n, l, k
                 complex(dp) :: b
                 
                 b = cmplx(m + l, 2*n*k, dp)
@@ -422,7 +437,7 @@ module mock_arrays
         !> according to a value map.
         subroutine fill_real_array_rank1(array, value_map)
                 real(dp), intent(out) :: array(:)
-                integer(sp) :: n
+                integer(i32) :: n
 
                 interface
                         pure function value_map(a) result(b)
@@ -442,7 +457,7 @@ module mock_arrays
         !> according to a value map.
         subroutine fill_real_array_rank2(array, value_map)
                 real(dp), intent(out) :: array(:, :)
-                integer(sp) :: n, m
+                integer(i32) :: n, m
 
                 interface
                         pure function value_map(a, b) result(c)
@@ -467,7 +482,7 @@ module mock_arrays
         subroutine fill_real_array_rank3(array, value_map)
 
                 real(dp), intent(out) :: array(:, :, :)
-                integer(sp) :: m, n, l
+                integer(i32) :: m, n, l
                 interface
                         pure function value_map(a, b, c) result(d)
                                 use precision, only: dp
@@ -485,13 +500,35 @@ module mock_arrays
                 end do
 
         end subroutine fill_real_array_rank3
+
+
+        !> Fills a complex double-precision array \( \mathbf{a} \) of rank 1
+        !> according to a value map.
+        subroutine fill_complex_array_rank1( array, value_map )
+                complex(dp), intent(out) :: array(:)
+                integer(i32) :: m
+
+                interface
+                        pure function value_map(a) result(c)
+                                use precision, only: dp
+                                integer, intent(in) :: a
+                                complex(dp) :: c
+                        end function value_map
+                end interface
+
+
+                do m = 1, size(array, dim=1)
+                        array(m) = value_map(m)
+                end do
+
+        end subroutine fill_complex_array_rank1
                                                     
         
         !> Fills a complex double-precision array \( \mathbf{a} \) of rank 2
         !> according to a value map.
         subroutine fill_complex_array_rank2(array, value_map)
                 complex(dp), intent(out) :: array(:, :)
-                integer(sp) :: n, m
+                integer(i32) :: n, m
 
                 interface
                         pure function value_map(a, b) result(c)
@@ -517,7 +554,7 @@ module mock_arrays
         subroutine fill_complex_array_rank3(array, value_map)
 
                 complex(dp), intent(out) :: array(:, :, :)
-                integer(sp) :: m, n, l
+                integer(i32) :: m, n, l
                 interface
                         pure function value_map(a, b, c) result(d)
                                 use precision, only: dp
@@ -543,7 +580,7 @@ module mock_arrays
         subroutine fill_complex_array_rank4(array, value_map)
 
                 complex(dp), intent(out) :: array(:, :, :, :)
-                integer(sp) :: m, n, l, k
+                integer(i32) :: m, n, l, k
 
                 !> Allows to 
                 interface

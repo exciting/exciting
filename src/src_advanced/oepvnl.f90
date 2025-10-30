@@ -7,6 +7,7 @@
 !
 ! Modified March 2014 (UW)
 Subroutine oepvnl (vnlcv, vnlvv)
+      use exciting_mpi, only: xmpi_allgatherv
       Use modmain
       Use modmpi
       Use modinput, only: input 
@@ -20,7 +21,7 @@ Subroutine oepvnl (vnlcv, vnlvv)
 
       verbosity=input%groundstate%outputlevelnumber
 #ifdef MPI
-      Do ik = firstk(rank, nkpt), lastk(rank, nkpt)
+      Do ik = firstofset(rank, nkpt), lastofset(rank, nkpt)
          If (verbosity>1) then
             Write (*, '("Info(oepvnl): ", I6, " of ", I6, " k-points on pr&
             &oc:", I6)') ik, nkpt, rank
@@ -34,9 +35,6 @@ Subroutine oepvnl (vnlcv, vnlvv)
 #endif
             Call oepvnlk (ik, vnlcv(:, :, :, ik), vnlvv(:, :, ik))
          End Do
-#ifdef MPI
-        call mpi_allgatherv_ifc(nkpt,rlen=ncrmax*natmtot*nstsv,zbuf=vnlcv)
-        call mpi_allgatherv_ifc(nkpt,rlen=nstsv*nstsv,zbuf=vnlvv)
-#endif
-         Return
+         call xmpi_allgatherv( mpiglobal, vnlcv, ncrmax * natmtot * nstsv * (lastofset(rank, nkpt) - firstofset(rank, nkpt) + 1) )
+         call xmpi_allgatherv( mpiglobal, vnlvv, nstsv**2 * (lastofset(rank, nkpt) - firstofset(rank, nkpt) + 1) )
    End Subroutine

@@ -7,12 +7,13 @@
 ! !INTERFACE:
 subroutine exccoulint(iqmt)
 ! !USES:
-  use mod_misc, only: filext
   use constants, only: zone, zzero
+  use exciting_mpi, only: xmpi_allgatherv
+  use mod_misc, only: filext
   use mod_APW_LO, only: lolmax
   use mod_lattice, only: omega
   use modinput, only: input, issvlo
-  use modmpi, only: rank, barrier, mpi_allgatherv_ifc
+  use modmpi, only: rank, barrier
   use modxs, only: xsgnt, unitout,&
                  & ngq, nqmt,&
                  & totalqlmt, ivgmt,&
@@ -23,7 +24,6 @@ subroutine exccoulint(iqmt)
   use m_xsgauntgen, only: xsgauntgen, xasgauntgen
   use m_findgntn0, only: findgntn0, findgntn0_clear
   use m_genfilname
-  use m_getunit
   use modbse
   use m_ematqk
   use m_putgetbsemat
@@ -333,9 +333,7 @@ subroutine exccoulint(iqmt)
   if(allocated(muo)) deallocate(muo)
 
   ! Communicate array-parts wrt. k-points
-  call mpi_allgatherv_ifc(set=nk_bse,&
-    & rlen=nu_bse_max*no_bse_max*numgq, zbuf=ematuok,&
-    & inplace=.true., comm=mpiglobal)
+  call xmpi_allgatherv( mpiglobal, ematuok, nu_bse_max * no_bse_max * numgq * (kparf - kpari + 1) )
 
   if(mpiglobal%rank == 0) then
     call timesec(tpw1)

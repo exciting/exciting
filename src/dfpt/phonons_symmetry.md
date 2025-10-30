@@ -7,9 +7,9 @@ vector \({\bf \tau}_S\) such that each atom \(\kappa\) is mapped into an
 chemically equivalent atom \(\kappa'\), i.e,
 \[ \mathcal{S}\, {\bf \tau}_\kappa = {\bf \rm S} ({\bf \tau}_\kappa + {\bf \tau}_S)
    = {\bf \tau}_{\kappa'} + {\bf R}_S \;.\]
-@note Mostly, in the literature, the symmetry operations are defined by the rotation
+Mostly, in the literature, the symmetry operations are defined by the rotation
 followed by the translation. In \(\texttt{exciting}\), they are defined by the translation
-followed by the rotation. @endnote
+followed by the rotation.
 
 The goal is to exploit the symmetries of the crystal to reduce the
 computational costs. To this end, we want to reduce the number of 
