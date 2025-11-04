@@ -1,10 +1,10 @@
-!> Module providing expansion coefficients M^i_{nm}
+!> Module providing expansion coefficients \( M^i_{nm} \)
 !> that are used to expand products of two Kohn-Sham wavefunctions
 !> in either the mixed basis or in the v-diagonal basis.
 !> n and m can each be either valence or core states.
-!> All four possible combination of valence and core
+!> All four possible combinations of valence and core
 !> are organized in blocks.
-!>
+!>```
 !>         -- m -->
 !>   +--------+--------+
 !>   |        |        |
@@ -15,7 +15,7 @@
 !> v |   CV   |   CC   |
 !>   |        |        |
 !>   +--------+--------+
-!>
+!>```
 !> Note: core-core contribution is not yet implemented
 module mod_expand_products
   use modmain,                        only: zzero, zone
@@ -25,19 +25,24 @@ module mod_expand_products
   use mod_pointer_remapping,          only: remap_fortran_pointer
   use mod_device_offload,             only: device_world
   use device_linalg_common_interface, only: zgemm_gpu
-  use m_memory_device,                only: allocate_device_memory, &
-       deallocate_device_memory, &
-       bytes_double_complex, &
-       get_device_pointer
+  use m_memory_device,                only: allocate_device_memory,   &
+                                            deallocate_device_memory, &
+                                            bytes_double_complex,     &
+                                            get_device_pointer
   use mod_coulomb_potential,          only: barc
   use modmpi,                         only: terminate_if_false
   use xstring,                        only: newline
   use asserts,                        only: assert
   implicit none
 
-  !> Flags indicating computation type: 
-  !> valence-valence, core-valence, valence-core, or core-core
-  integer(i32), parameter :: FLAG_VV=1, FLAG_CV=2, FLAG_VC=3, FLAG_CC=4
+  !> Flag indicating computation type: valence-valence 
+  integer(i32), parameter :: FLAG_VV=1
+  !> Flag indicating computation type: core-valence
+  integer(i32), parameter :: FLAG_CV=2
+  !> Flag indicating computation type: valence-core
+  integer(i32), parameter :: FLAG_VC=3
+  !> Flag indicating computation type: core-core
+  integer(i32), parameter :: FLAG_CC=4
 
   private
   public :: expand_products_generic, split_interval
@@ -48,68 +53,90 @@ contains
   !> Main routine for expanding wavefunction products into their valence/core
   !> blocks. This routine initializes the output array and delegates the actual
   !> computations to specialized helper routines.
-  !>
-  !> @param ik            k-point index
-  !> @param iq            q-point index
-  !> @param n_val_start   first valence-n index
-  !> @param n_val_end     last  valence-n index
-  !> @param n_core_start  first core-n index
-  !> @param n_core_end    last  core-n index
-  !> @param m_val_start   first valence-m index
-  !> @param m_val_end     last  valence-m index
-  !> @param m_core_start  first core-m index
-  !> @param m_core_end    last  core-m index
-  !> @param minm          Array of expansion coefficients in either
-  !>                      mixed basis or v-diagonal (Coulomb) basis
-  !>                      The array's 2nd dim runs from
-  !>                      n_val_start…n_val_end + n_core_start…n_core_end,
-  !>                      and 3rd dim likewise covers m_val_start…m_val_end +
-  !>                      m_core_start…m_core_end.
-  !> @param apply_barc   logical: if true output the product v^{1/2}*M^i_{nm} instead of just M^i_{nm}
-  subroutine expand_products_generic( ik, iq,                         &
-       n_val_start, n_val_end,         &
-       n_core_start, n_core_end,       &
-       m_val_start, m_val_end,         &
-       m_core_start, m_core_end,       &
-       minm,                           &
-       apply_barc )
-    integer(i32), intent(in)    :: ik, iq
-    integer(i32), intent(in)    :: n_val_start, n_val_end
-    integer(i32), intent(in)    :: n_core_start, n_core_end
-    integer(i32), intent(in)    :: m_val_start, m_val_end
-    integer(i32), intent(in)    :: m_core_start, m_core_end
-    complex(dp),  allocatable, intent(inout)  :: minm(:,:,:)
-    logical,    intent(in)      :: apply_barc
+  subroutine expand_products_generic( ik, iq,                   &
+                                      n_val_start, n_val_end,   &
+                                      n_core_start, n_core_end, &
+                                      m_val_start, m_val_end,   &
+                                      m_core_start, m_core_end, &
+                                      minm,                     &
+                                      apply_barc )
+    !> k-point index
+    integer(i32), intent(in)                  :: ik
+    !> q-point index
+    integer(i32), intent(in)                  :: iq
+    !> first valence-n index
+    integer(i32), intent(in)                  :: n_val_start
+    !> last  valence-n index
+    integer(i32), intent(in)                  :: n_val_end
+    !> first core-n index
+    integer(i32), intent(in)                  :: n_core_start
+    !> last  core-n index
+    integer(i32), intent(in)                  :: n_core_end
+    !> first valence-m index
+    integer(i32), intent(in)                  :: m_val_start
+    !> last  valence-m index
+    integer(i32), intent(in)                  :: m_val_end
+    !> first core-m index
+    integer(i32), intent(in)                  :: m_core_start
+    !> last  core-m index
+    integer(i32), intent(in)                  :: m_core_end
+    !> Array of expansion coefficients in either
+    !> mixed basis or v-diagonal (Coulomb) basis
+    !> The array's 2nd dim runs from
+    !> n_val_start…n_val_end + n_core_start…n_core_end,
+    !> and 3rd dim likewise covers
+    !> m_val_start…m_val_end + m_core_start…m_core_end.
+    complex(dp),  intent(inout), allocatable  :: minm(:,:,:)
+    !> If true, store \( v^{1/2} M^i_{nm} \) in the v-diagonal (Coulomb-eigen)
+    !> basis; otherwise store \( M^i_{nm} \) in the mixed basis.
+    logical,      intent(in)                  :: apply_barc
 
-    integer(i32)      :: nstart,nend,mstart,mend
-    integer(i32)      :: ie1,ie2,im
-    integer(i32)      :: dim_n, dim_n_val, dim_n_core
-    integer(i32)      :: dim_m, dim_m_val, dim_m_core
-    integer(i32)      :: basis_size
+    ! local variables
+    integer(i32)                              :: nstart,nend,mstart,mend
+    integer(i32)                              :: ie1,ie2,im
+    integer(i32)                              :: dim_n, dim_n_val, dim_n_core
+    integer(i32)                              :: dim_m, dim_m_val, dim_m_core
+    integer(i32)                              :: basis_size
+    integer(i32)                              :: n_core_offset, m_core_offset
 
-    !> Determine the basis size. It differs between mbsiz and matsiz depending on the 
-    !> application or not of the bare Coulomb potential
+    call assert( allocated(minm), 'minm must be allocated before call')
+    call assert( lbound(minm,1) == 1, &
+         'First dimension of minm must have lower bound 1.' )
+    
+    ! Determine the basis size. It differs between mbsiz and matsiz depending on the 
+    ! application or not of the bare Coulomb potential
     basis_size = size(minm,1)
-    !> If apply_barc is true, then the first dimension of minm should be mbsiz
-    call assert(basis_size == mbsiz .or. (.not. apply_barc), &
-         'First dimension of minm must equal mbsiz, if v-diagonal basis is used.')
 
-    !> Determine minm bounds
+    if (apply_barc) then
+       call assert(allocated(barc), 'barc must be allocated if apply_barc=.true.')
+       call assert( basis_size == mbsiz, &
+            'First dimension of minm must equal mbsiz when v-diagonal basis (barc) is applied.' )
+    else
+       call assert( basis_size == matsiz, &
+            'First dimension of minm must equal matsiz when barc is not applied.' )
+    end if
+
+    ! Determine minm bounds
     nstart = lbound(minm,2); nend   = ubound(minm,2)
     mstart = lbound(minm,3); mend   = ubound(minm,3)
 
-
     dim_n      = nend - nstart + 1
-    dim_n_val  = max(n_val_end - n_val_start + 1, 0)
-    dim_n_core = max(n_core_end - n_core_start + 1, 0)
+    dim_n_val  = max(n_val_end - n_val_start + 1, 0_i32)
+    dim_n_core = max(n_core_end - n_core_start + 1, 0_i32)
     dim_m      = mend - mstart + 1
-    dim_m_val  = max(m_val_end - m_val_start + 1, 0)
-    dim_m_core = max(m_core_end - m_core_start + 1, 0)
+    dim_m_val  = max(m_val_end - m_val_start + 1, 0_i32)
+    dim_m_core = max(m_core_end - m_core_start + 1, 0_i32)
 
     call assert( dim_n_val + dim_n_core == dim_n, &
          'Dimension mismatch for n in M^i_{nm}' )
-
-    !> Zero full array (Intel-optimized if available)
+    call assert( dim_m_val + dim_m_core == dim_m, &
+         'Dimension mismatch for m in M^i_{nm}' )
+    call assert( (dim_n_val==0) .or. (lbound(minm,2) <= n_val_start .and. n_val_end <= ubound(minm,2)), &
+         'Valence n-subrange must lie within minm second-dimension bounds' )
+    call assert( (dim_m_val==0) .or. (lbound(minm,3) <= m_val_start .and. m_val_end <= ubound(minm,3)), &
+         'Valence m-subrange must lie within minm third-dimension bounds' )
+    
+    ! Zero full array (Intel-optimized if available)
     OMP_OFFLOAD target
 #if __INTEL_COMPILER
     !$omp teams distribute parallel do collapse(3)
@@ -122,48 +149,66 @@ contains
 #endif
     OMP_OFFLOAD end target
 
-    !> Dispatch blocks if non-empty
+    ! Compute offset for placing core blocks inside the global minm layout
+    n_core_offset = block_offset( n_core_start, n_core_end, &
+                                  n_val_start,  n_val_end,  &
+                                  lbound(minm,2), ubound(minm,2) )
+    m_core_offset = block_offset( m_core_start, m_core_end, &
+                                  m_val_start,  m_val_end,  &
+                                  lbound(minm,3), ubound(minm,3) )
+    
+    ! Dispatch blocks if non-empty
     if(n_val_start<=n_val_end .and. m_val_start<=m_val_end) then
        call expand_products_block_wrapper(ik,iq,n_val_start,n_val_end,m_val_start,m_val_end, &
-            FLAG_VV,minm, 0, 0, apply_barc)
+            FLAG_VV,minm, 0_i32, 0_i32, apply_barc)
     end if
     if(n_core_start<=n_core_end .and. m_val_start<=m_val_end) then
        call expand_products_block_wrapper(ik,iq,n_core_start,n_core_end,m_val_start,m_val_end, &
-            FLAG_CV,minm, dim_n_val, 0, apply_barc)
+            FLAG_CV,minm, n_core_offset, 0_i32, apply_barc)
     end if
     if(n_val_start<=n_val_end .and. m_core_start<=m_core_end) then
        call expand_products_block_wrapper(ik,iq,n_val_start,n_val_end,m_core_start,m_core_end, &
-            FLAG_VC,minm, 0, m_val_end, apply_barc)
+            FLAG_VC,minm, 0_i32, m_core_offset, apply_barc)
     end if
     if(n_core_start<=n_core_end .and. m_core_start<=m_core_end) then
        call expand_products_block_wrapper(ik,iq,n_core_start,n_core_end,m_core_start,m_core_end, &
-            FLAG_CC,minm, dim_n_val, dim_m_val, apply_barc)
+            FLAG_CC,minm, n_core_offset, m_core_offset, apply_barc)
     end if
   end subroutine expand_products_generic
 
   !> Helper: allocates device buffer, maps slice, calls block, copies back
-  !> @param ik           k-point
-  !> @param iq           q-point
-  !> @param n1,n2        range of n indices
-  !> @param m1,m2        range of m indices
-  !> @param flag         Computation flag for valence/core combination (VV, CV, VC, CC)
-  !> @param minm         same as in generic:
-  !>                     full coverage in the 2nd/3rd dims.
-  !> @param n_offset     shift to apply to the 2nd index of minm
-  !> @param m_offset     shift to apply to the 3rd index of minm
-  !> @param apply_barc   logical: if true output the product v^{1/2}*M^i_{nm} instead of just M^i_{nm}
   subroutine expand_products_block_wrapper( ik, iq, n1, n2, m1, m2, flag, minm, n_offset, m_offset, apply_barc )
-    integer(i32), intent(in)   :: ik, iq, n1, n2, m1, m2, flag
-    complex(dp), allocatable, intent(inout) :: minm(:,:,:)
-    integer(i32), intent(in)   :: n_offset, m_offset
-    logical,    intent(in)     :: apply_barc
+    !> k-point index
+    integer(i32), intent(in)                 :: ik
+    !> q-point index
+    integer(i32), intent(in)                 :: iq
+    !> first n index
+    integer(i32), intent(in)                 :: n1
+    !> last n index
+    integer(i32), intent(in)                 :: n2
+    !> first m index
+    integer(i32), intent(in)                 :: m1
+    !> last m index
+    integer(i32), intent(in)                 :: m2
+    !> Computation flag for valence/core combination (VV, CV, VC, CC)
+    integer(i32), intent(in)                 :: flag
+    !> Array of expansion coefficients same as in generic (with full coverage in the 2nd/3rd dims)
+    complex(dp),  intent(inout), allocatable :: minm(:,:,:)
+    !> shift to apply to the 2nd index of minm
+    integer(i32), intent(in)                 :: n_offset
+    !> shift to apply to the 3rd index of minm
+    integer(i32), intent(in)                 :: m_offset
+    !> If true, store \( v^{1/2} M^i_{nm} \) in the v-diagonal (Coulomb-eigen)
+    !> basis; otherwise store \( M^i_{nm} \) in the mixed basis.
+    logical,      intent(in)                 :: apply_barc
 
     integer(i32)  :: d1, d2, d3
     integer(i32)  :: dev, ie1, ie2, im
     type(c_ptr)   :: buf_cptr
     complex(dp), pointer, contiguous :: buf(:,:,:)
     integer(c_size_t) :: num_of_elements
-
+    integer(i32)  :: nloc, nrows
+    
     dev = device_world%get_device()
 
     d1 = size(minm,1)
@@ -183,15 +228,18 @@ contains
 
     call expand_products_block(ik, iq, n1, n2, m1, m2, buf_cptr, flag, apply_barc)
 
+    nloc = merge(matsiz, locmatsiz, flag==FLAG_VV)
+    nrows = merge(mbsiz, nloc, apply_barc)  ! if barc: mbsiz, else nloc
+    
     OMP_OFFLOAD target has_device_addr(buf)
 #if __INTEL_COMPILER
     !$omp teams distribute parallel do collapse(3)
-    do ie2 = m1,m2; do ie1 = n1,n2; do im = 1,d1
+    do ie2 = m1,m2; do ie1 = n1,n2; do im = 1,nrows
        minm(im,n_offset+ie1,m_offset+ie2) = buf(im,ie1,ie2)
     end do; end do; end do
     !$omp end teams distribute parallel do
 #else
-    minm(:,n_offset+n1:n_offset+n2,m_offset+m1:m_offset+m2) = buf(:,n1:n2,m1:m2)
+    minm(1:nrows,n_offset+n1:n_offset+n2,m_offset+m1:m_offset+m2) = buf(1:nrows,n1:n2,m1:m2)
 #endif
     OMP_OFFLOAD end target
 
@@ -201,17 +249,28 @@ contains
 
   !> Performs the low-level computation for a specific block type
   !> (valence-valence, core-valence, valence-core, core-core). 
-  !>
-  !> @param ik, iq            k-point and q-point indices.
-  !> @param nstart, nend      Range of "n" indices.
-  !> @param mstart, mend      Range of "m" indices.
-  !> @param buf_cptr          Device pointer to the output buffer.
-  !> @param flag              Computation flag for valence/core combination (VV, CV, VC, CC)
-  !> @param apply_barc        Apply v^(1/2) if true.
   subroutine expand_products_block( ik, iq, nstart, nend, mstart, mend, buf_cptr, flag, apply_barc )
-    integer(i32), intent(in)  :: ik, iq, nstart, nend, mstart, mend, flag
+    !> k-point index
+    integer(i32), intent(in)  :: ik
+    !> q-point index
+    integer(i32), intent(in)  :: iq
+    !> first n index
+    integer(i32), intent(in)  :: nstart
+    !> last n index
+    integer(i32), intent(in)  :: nend
+    !> first m index
+    integer(i32), intent(in)  :: mstart
+    !> last m index
+    integer(i32), intent(in)  :: mend
+    !> Device pointer to the output buffer
     type(c_ptr), value        :: buf_cptr
+    !> Computation flag for valence/core combination (VV, CV, VC, CC)
+    integer(i32), intent(in)  :: flag
+    !> If true, store \( v^{1/2} M^i_{nm} \) in the v-diagonal (Coulomb-eigen)
+    !> basis; otherwise store \( M^i_{nm} \) in the mixed basis.
     logical,    intent(in)    :: apply_barc
+
+    ! local variables
     complex(dp), allocatable  :: tmp(:,:,:)
     integer(i32)              :: nmdim, nloc, ie1, ie2, im
     integer(i32)              :: dev
@@ -229,27 +288,27 @@ contains
 
     select case(flag)
     case(FLAG_VV)
-       !> Valence-Valence
-       !> For GPU compilation tmp is filled in the GPU
-       !> so no transfer is needed
+       ! Valence-Valence
+       ! For GPU compilation tmp is filled in the GPU
+       ! so no transfer is needed
        call calcminm2(ik,iq,nstart,nend,mstart,mend,tmp)
     case(FLAG_CV)
-       !> Core-Valence
+       ! Core-Valence
        call calcmicm(ik,iq,nstart,nend,mstart,mend,tmp)
-       !> Uploading to the GPU
+       ! Uploading to the GPU
        OMP_OFFLOAD target update to(tmp)
     case(FLAG_VC)
-       !> Valence-Core
+       ! Valence-Core
        call calcminc(ik,iq,nstart,nend,mstart,mend,tmp)
-       !> Upload to the GPU
+       ! Upload to the GPU
        OMP_OFFLOAD target update to(tmp)
     case(FLAG_CC)
        write(error_message, '(A,A,A)') &
             'ERROR(expand_products:expand_products_block):', newline, &
             'Core-Core contribution is not yet implemented.'
        call terminate_if_false(.false., trim(error_message))
-       !> Core-Core
-       !call calcmicc(ik,iq,nstart,nend,mstart,mend,tmp)
+       ! Core-Core
+       ! call calcmicc(ik,iq,nstart,nend,mstart,mend,tmp)
     case default
        write(error_message, '(A,A,A,I0)') &
             'ERROR(expand_products:expand_products_block):', newline, &
@@ -258,7 +317,7 @@ contains
     end select
 
     if (apply_barc) then
-       !> Multiply by barc:  v^{1/2} * tmp -> buf
+       ! Multiply by barc:  v^{1/2} * tmp -> buf
        call zgemm_gpu('c','n', mbsiz, nmdim, nloc, &
             zone, get_device_pointer(barc,dev), matsiz, &
             get_device_pointer(tmp,dev),        nloc, &
@@ -290,30 +349,29 @@ contains
 
 
   !> Splits a given interval into valence and core regions based on a split point.
-  !>
-  !> @param mstart, mend       Original interval bounds.
-  !> @param msplit             Index dividing valence and core regions.
-  !> @param m_val_start, m_val_end  Valence region bounds after split.
-  !> @param m_core_start, m_core_end Core region bounds after split.
-  !>                      These are shifted by msplit such that core indexings starts with 1.  
-  !>
   !> On exit, any region with start>end should be treated as empty.
   subroutine split_interval(     &
        mstart, mend, msplit,     &
        m_val_start, m_val_end,   &
        m_core_start, m_core_end)
-    implicit none
 
     !-- Inputs
-    integer, intent(in)  :: mstart        ! lower bound of original interval
-    integer, intent(in)  :: mend          ! upper bound of original interval
-    integer, intent(in)  :: msplit        ! core/valence splitting point
+    !> lower bound of original interval
+    integer(i32), intent(in)  :: mstart
+    !> upper bound of original interval
+    integer(i32), intent(in)  :: mend
+    !> core/valence splitting point
+    integer(i32), intent(in)  :: msplit        
 
     !-- Outputs
-    integer, intent(out) :: m_val_start   ! start of valence-region
-    integer, intent(out) :: m_val_end     ! end   of valence-region
-    integer, intent(out) :: m_core_start  ! start of core-region (core indices after msplit start with 1 again)
-    integer, intent(out) :: m_core_end    ! end   of core-region (core indices after msplit start with 1 again)
+    !> start of valence-region
+    integer(i32), intent(out) :: m_val_start
+    !> end of valence-region
+    integer(i32), intent(out) :: m_val_end
+    !> start of core-region (core indices after msplit start with 1 again)
+    integer(i32), intent(out) :: m_core_start
+    !> end of core-region (core indices after msplit start with 1 again)
+    integer(i32), intent(out) :: m_core_end   
 
     !---- valence-region: [mstart, min(mend, msplit)] ----------------------
     m_val_start = mstart
@@ -326,5 +384,73 @@ contains
     ! If m_core_end < m_core_start, this region is empty (start>end).
 
   end subroutine split_interval
+  
+  !> Compute offset for placing the core block inside the global minm layout.
+  !>
+  !> This routine provides robust handling of all combinations of valence
+  !> and core blocks with arbitrary Fortran lower bounds. The following
+  !> rules are applied:
+  !>
+  !>   * If both valence and core blocks are present:
+  !>     Pack core immediately after valence, i.e.
+  !>     shifted_core_start = valence_end + 1
+  !>     (No gaps between blocks.)
+  !>
+  !>   * If the valence block is empty (core-only case):
+  !>     Preserve original core positions relative to the global bounds
+  !>     such that:
+  !>     shifted_core_start = global_lbound
+  !>     (No artificial index shift.)
+  !>
+  !>   * If the core block is empty:
+  !>     Return offset = 0  (unused).
+  !>
+  !> On exit, the returned offset may be added to each core-index:
+  !> ie1_shifted = core_index + offset
+  integer(i32) function block_offset( core_start, core_end,  &
+                              valence_start,  valence_end,           &
+                              global_lbound, global_ubound )     &
+                              result(offset)
+    !-- Inputs
+    !> first core index in original indexing
+    integer(i32), intent(in) :: core_start
+    !> last core index in original indexing
+    integer(i32), intent(in) :: core_end
+    !> first valence index in original indexing
+    integer(i32), intent(in) :: valence_start
+    !> last valence index in original indexing
+    integer(i32), intent(in) :: valence_end
+    !> global lower bound (e.g. lbound(minm,2))
+    integer(i32), intent(in) :: global_lbound
+    !> global upper bound (e.g. ubound(minm,2))
+    integer(i32), intent(in) :: global_ubound
 
+    !-- Local flags
+    logical :: has_core, has_valence
+
+    has_core = (core_start <= core_end)
+    has_valence  = (valence_start  <= valence_end)
+
+    if (has_valence) then
+       ! Pack core directly behind valence:  (valence_end+1) → first core
+       offset = (valence_end + 1_i32) - core_start
+    else
+       ! Core-only: preserve original positioning relative to global bounds
+       !   i.e. shifted_core_start == global_lbound
+       offset = global_lbound - core_start
+    end if
+
+    if (has_core) then
+       !-- Safety check: shifted core block must lie within global bounds
+       call assert( (offset + core_start) >= global_lbound .and. &
+            (offset + core_end)   <= global_ubound,              &
+            'block_offset: shifted core block out of global bounds' )
+    else
+       ! Empty core block → offset unused
+       offset = 0_i32
+    end if
+
+  end function block_offset
+
+  
 end module mod_expand_products
