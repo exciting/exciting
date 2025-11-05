@@ -6,38 +6,8 @@ module math_utils_test
   use modmpi, only: mpiinfo
   use unit_test_framework, only : unit_test_type
   use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
-  use math_utils, only: all_close, &
-                        all_zero, &
-                        diag, &
-                        is_square, &
-                        is_hermitian, &
-                        is_positive_definite, &
-                        is_unitary, &
-                        kronecker_product, &
-                        determinant, &
-                        permanent, &
-                        mod1, &
-                        random_order, &
-                        boundary_mask, &
-                        round_towards_zero, &
-                        calculate_all_vector_distances, &
-                        calculate_all_vector_differences, &
-                        outer_sum, &
-                        get_subinterval_indices, &
-                        fractional_part, &
-                        integer_part, &
-                        get_degeneracies
-
-  use mock_arrays, only: real_symmetric_matrix_5x5, &
-                         real_orthogonal_matrix_5x5, &
-                         real_matrix_5x7, &
-                         real_rank_4_matrix_5x7, &
-                         real_positive_definite_matrix_5x5, &
-                         complex_hermitian_matrix_5x5, &
-                         complex_unitary_matrix_5x5, &
-                         complex_matrix_5x7, &
-                         complex_positive_definite_matrix_5x5
-
+  use math_utils
+  use mock_arrays
 
   implicit none
 
@@ -60,7 +30,7 @@ contains
     type(unit_test_type) :: test_report
 
     !> Number of assertions
-    integer(i32), parameter :: n_assertions = 128
+    integer(i32), parameter :: n_assertions = 135
 
     ! Initialize test object
     call test_report%init(n_assertions, mpiglobal)
@@ -106,6 +76,10 @@ contains
     call test_get_degeneracies(test_report)
 
     call test_is_positive_definite(test_report)
+
+    call test_contains_duplicates(test_report)
+
+    call test_unique(test_report)
 
     ! report results
     if (present(kill_on_failure)) then
@@ -918,4 +892,51 @@ contains
     call test_report%assert( .not. is_positive_definite(real_orthogonal_matrix_5x5), &
       'Wrong result: real matrix tested must not be positive definite' )
   end subroutine
+
+  !> Test [[contains_duplicates]]
+  subroutine test_contains_duplicates(test_report)
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
+
+    integer(i32), allocatable :: list(:)
+
+    ! Test with a list that contains duplicates
+    call test_report%assert(contains_duplicates([1, 2, 4, 5, 2]), &
+        'contains_duplicates([1, 2, 3, 4, 5, 2]) does not return .true.')
+
+    ! Test with a list that does not contain duplicates
+    call test_report%assert(.not. contains_duplicates([1, 2, 4, 5, 6]), &
+            'contains_duplicates([1, 2, 3, 4, 5, 6]) does not return .false.')
+  end subroutine test_contains_duplicates
+
+  !> Test [[unique]]
+  subroutine test_unique(test_report)
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
+
+    ! Test with a list that contains duplicates
+    call test_report%assert(all(unique([1, 2, 3, 2, 4]) == [1, 2, 3, 4]), &
+            'unique([1, 2, 3, 2, 4]) does not return [1, 2, 3, 4]')
+
+    ! Test with a list that does not contain duplicates
+    call test_report%assert(all(unique([1, 2, 3, 4]) == [1, 2, 3, 4]), &
+            'unique([1, 2, 3, 4]) does not return [1, 2, 3, 4]')
+  end subroutine test_unique
+
+  !> Test [[is_increasing_by_increment]]
+  subroutine test_is_increasing_by_increment(test_report)
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
+
+    call test_report%assert(is_increasing_by_increment([1, 2, 3, 4], 1), &
+            'is_increasing_by_increment([1, 2, 3, 4], 1) does not return true.')
+
+    call test_report%assert(.not. is_increasing_by_increment([1, 2, 2, 4], 1), &
+            'is_increasing_by_increment([1, 2, 2, 4], 1) does not return false.')
+
+    call test_report%assert(.not. is_increasing_by_increment([1, 2, 3, 4], 2), &
+            'is_increasing_by_increment([1, 2, 3, 4], 2) does not return false.')
+
+  end subroutine
+
 end module math_utils_test

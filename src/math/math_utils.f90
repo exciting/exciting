@@ -51,7 +51,10 @@ module math_utils
             get_integer_indexes, &
             fill_random, &
             transpose_reshape, &
-            interp1d
+            interp1d, &
+            contains_duplicates, &
+            unique, &
+            is_increasing_by_increment
 
 
   !> Default tolerance
@@ -2149,6 +2152,58 @@ end subroutine fill_random_rank2_complex_dp
 
     deallocate( srt, ivl )
   end subroutine interp1d
+
+
+  !> Returns `.true.` if [[list]] contains duplicate elements, else `.false.`.
+  pure logical function contains_duplicates(list)
+    !> List to check for duplicates
+    integer(i32), intent(in) :: list(:)
+
+    integer(i32) :: idx
+
+    contains_duplicates = .false.
+    do idx=1, size(list)
+      contains_duplicates = count(list(idx) == list) > 1
+      if (contains_duplicates) return
+    end do
+  end function
+
+  !> Given [[list]] this function returns a list that contains all elements of list only once.
+  function unique(list) result(unique_list)
+    !> List to process
+    integer(i32), intent(in) :: list(:)
+    !> List containing all elements of [[list]] only once
+    integer(i32), allocatable :: unique_list(:)
+
+    integer(i32) :: i, n
+
+    n = size(list)
+    allocate(unique_list(0))
+
+    do i = 1, n
+      if (.not. any(unique_list == list(i))) then
+        unique_list = [unique_list, list(i)]   ! append
+      end if
+    end do
+  end function unique
+
+  !> Returns true if the elements in [[list]] are increasing by [[increment]]. [[increment]] is allowed to be negative
+  !> thus this function can also check if [[decreasing]].
+  logical function is_increasing_by_increment(list, increment)
+    !> List to check
+    integer(i32), intent(in) :: list(:)
+    !> Increment to check for
+    integer(i32), intent(in) :: increment
+
+    integer(i32) :: idx
+
+    is_increasing_by_increment = .true.
+    if(size(list) == 1) return
+
+    do idx=2, size(list)
+      is_increasing_by_increment = is_increasing_by_increment .and. (list(idx) == list(idx-1) + increment)
+    end do
+  end function is_increasing_by_increment
 
 end module math_utils
 

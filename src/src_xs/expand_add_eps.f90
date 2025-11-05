@@ -355,7 +355,7 @@ contains
 ! telling the compiler not to optimize this procedure.
 !DIR$ OPTIMIZE(-O0)
 #endif
-        use grid_utils, only: index_column_vector_in_array
+        use grid_utils, only: column_index
         use constants, only: zzero
         use math_utils, only: identity_complex_dp
         use modmpi, only: mpiglobal, distribute_loop, terminate_if_false
@@ -427,7 +427,7 @@ contains
             
             ! Super-cell wings can only have contributions from unit-cell wings
             do igq_uc = 1, gq_set_uc%ngk(ispin, id_gamma_uc)
-                igq_sc = index_column_vector_in_array( &
+                igq_sc = column_index( &
                          gq_set_uc%vgkc(:, igq_uc, ispin, id_gamma_uc), &
                          gq_set_sc%vgkc(:, :, ispin, 1), tol=1e-6_dp)
                 call terminate_if_false(igq_sc > 0, &
@@ -457,14 +457,14 @@ contains
 
                         ! Find index of super-cell (G+q)-vector
                         ! corresponding to (G+q)-vector from the unit cell
-                        igq_sc = index_column_vector_in_array( &
+                        igq_sc = column_index( &
                                  gq_set_uc%vgkc(:, igq_uc, ispin, iq_uc), &
                                  gq_set_sc%vgkc(:, :, ispin, iq_sc), &
                                  tol=1e-6_dp)
 
                         ! Find index of super-cell (G'+q)-vector
                         ! corresponding to (G'+q)-vector from the unit cell
-                        jgq_sc = index_column_vector_in_array( &
+                        jgq_sc = column_index( &
                                 &   gq_set_uc%vgkc(:, jgq_uc, ispin, iq_uc), &
                                     gq_set_sc%vgkc(:, :, ispin, iq_sc), &
                                     tol=1e-6_dp)

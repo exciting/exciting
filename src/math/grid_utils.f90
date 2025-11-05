@@ -5,6 +5,7 @@ module grid_utils
   use asserts, only: assert
   use math_utils, only: kronecker_product, mod1, all_close
   use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
+  use asserts, only: assert
 
   implicit none
   
@@ -16,7 +17,7 @@ module grid_utils
             phase, &
             fft_frequencies, &
             n_grid_diff, &
-            index_column_vector_in_array, &
+            column_index, &
             indices_zero_vectors, indices_finite_vectors,&
             partial_grid, &
             flattened_map, point_in_triangle, &
@@ -50,6 +51,11 @@ module grid_utils
     module procedure :: phase_single_point, phase_array
   end interface phase
   
+
+  interface column_index
+    module procedure :: column_index_real_dp, column_index_integer
+  end interface 
+
 contains
 
     !> Checks if a given 2d vector \( \vec{p} = (p_x,p_y) \) is in a triangle
@@ -503,11 +509,7 @@ contains
   !> a regular array in regular order - in this case looping over the array
   !> is not necessary, the index should be determined by a
   !> multi-index conversion (lattice coordinates -> 1d index).
-  function index_column_vector_in_array(vector, array, tol) result(idx_vec)
-
-      use modmpi, only: terminate_if_false, mpiglobal
-      use asserts, only: assert
-
+  function column_index_real_dp(vector, array, tol) result(idx_vec)
       !> Reference vector
       real(dp), intent(in) :: vector(:)
       !> Grid of vectors
@@ -523,7 +525,7 @@ contains
       real(dp) :: tol_
 
       call assert(size(array, dim=1) == size(vector), message= &
-                  'index_in_grid: First dimension of array should be dimension of vector.')
+                  'column_index: First dimension of array should be dimension of vector.')
 
       tol_ = tol_default
       if (present(tol)) tol_ = tol
@@ -539,12 +541,37 @@ contains
 
     end function
 
+    function column_index_integer(vector, array) result(idx_vec)
+      !> Reference vector
+      integer, intent(in) :: vector(:)
+      !> Grid of vectors
+      integer, intent(in) :: array(:, :)
+      !> q-vector index of the reference vector in array
+      integer :: idx_vec
+
+      !> Running index vectors
+      integer :: i
+
+      call assert(size(array, dim=1) == size(vector), message= &
+                  'column_index: First dimension of array should be dimension of vector.')
+
+      idx_vec = 0
+
+      do i = 1, size(array, dim=2)
+          if (all(vector == array(:, i))) then
+              idx_vec = i
+              exit
+          end if
+      end do
+
+    end function
+
+
+
+
     !> Returns the indices of vectors in a grid with a norm smaller than
     !> a given tolerance. The grid is assumed to be of shape (3, n_vecs).
     function indices_zero_vectors(grid,  tol) result(index_list)
-
-      use precision, only: dp
-      use modmpi, only: terminate_if_false
       integer :: n_vecs
       real(dp) :: grid(:, :)
       integer, allocatable :: index_list(:)

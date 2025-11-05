@@ -163,7 +163,7 @@ contains
     !> unit-cell vectors fold back to one supercell q-vector.
     function fold_uc_to_sc_qgrid(supercell_dims, reciprocal_lattice, qvecs_uc, qvec_sc) result(map)
         use math_utils, only: all_close
-        use grid_utils, only: index_column_vector_in_array
+        use grid_utils, only: column_index
 
         !> All unit-cell q-vectors
         real(dp), intent(in) :: qvecs_uc(:, :)
@@ -207,7 +207,7 @@ contains
                 q_vec = qvec_sc + g_vec_sc
 
                 ! Find index in set of unit-cell q-vectors
-                iq_uc = index_column_vector_in_array(q_vec, qvecs_uc, tol=1e-6_dp)
+                iq_uc = column_index(q_vec, qvecs_uc, tol=1e-6_dp)
 
                 i_fold = i_fold + 1
                 map(i_fold) = iq_uc
