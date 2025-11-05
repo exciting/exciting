@@ -7,7 +7,7 @@ module grid_utils_test
    use math_utils, only: all_close, all_zero, mod1
    use grid_utils, only: mesh_1d, linspace, concatenate, grid_3d, phase, fft_frequencies, &
                          partial_grid, n_grid_diff, flattened_map, point_in_triangle, &
-                         index_column_vector_in_array,  indices_zero_vectors, indices_finite_vectors, &
+                         column_index,  indices_zero_vectors, indices_finite_vectors, &
                          first_element, last_element
     use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
    implicit none
@@ -44,7 +44,7 @@ contains
 
       call test_fft_frequencies(test_report)
 
-      call test_index_in_grid(test_report)
+      call test_column_index(test_report)
 
       call test_n_grid_diff(test_report)
 
@@ -435,7 +435,7 @@ contains
   end subroutine test_n_grid_diff
 
    !> Test index_in_gid
-    subroutine test_index_in_grid(test_report)
+    subroutine test_column_index(test_report)
       use mock_arrays, only: fill_array
       !> Unit test object
       type(unit_test_type), intent(inout) :: test_report
@@ -461,13 +461,13 @@ contains
 
       vector = (/4._dp, 8._dp, 12._dp/)
 
-      id_vec = index_column_vector_in_array(vector, grid)
+      id_vec = column_index(vector, grid)
 
       call test_report%assert(id_vec == 4, &
-                             'Test index_in_grid. &
+                             'Test column_index. &
                               Expected: Reference vector at index 4 of grid.')
 
-   end subroutine test_index_in_grid
+   end subroutine test_column_index
 
 
    !> Test routines 'find_zero_vector' and 'indices_finite_vectors'
