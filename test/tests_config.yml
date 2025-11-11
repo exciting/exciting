@@ -306,7 +306,7 @@ BSE/PBE-PbI2-emat_with_BSE:
      - !Build gcc_mpiandsmp
      - !Build intelLLVM_mpiandsmp
      - !Build flang_mpiandsmp
-      
+
 GW/ZnO-PBESOL:
    files_under_test:
       - "GW_INFO.OUT"

@@ -22,6 +22,7 @@ module unit_test_drivers
    use groundstate_test_drivers, only: groundstate_test_driver
    use rttddft_test_drivers, only: rttddft_test_driver
    use mod_lattice_harmonics_test, only: lattice_harmonics_test_driver
+   use herm_eigensolver_test, only: herm_eigensolver_test_driver
 
    implicit none
    private
@@ -125,6 +126,10 @@ contains
 
       if (run%lattice_harmonics .or. run%all) then
          call lattice_harmonics_test_driver(mpiglobal, kill_on_failure)
+      end if
+
+      if (run%herm_eigensolver .or. run%all) then
+         call herm_eigensolver_test_driver(mpiglobal, kill_on_failure)
       end if
    end subroutine unit_test_driver
 

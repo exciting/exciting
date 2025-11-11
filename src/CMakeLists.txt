@@ -104,18 +104,18 @@ foreach(folder ${EXCITINGLIB_SRC_FOLDERS})
     list(APPEND EXCITINGLIB_SRC_FILES_FIXED ${F90_FILES_IN_FOLDER})
 endforeach()
 
+# IntelLLVM (version 2025.0.0) compiler fails for some reason to automatically set
+# fixed form for *.f files.
 if (CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
-	# IntelLLVM (version 2025.0.0) compiler fails for some reason to automatically set
-        # fixed form for *.f files.
         foreach(source_file ${EXCITINGLIB_SRC_FILES_FIXED})
                 set_source_files_properties(${source_file} PROPERTIES
                         COMPILE_OPTIONS "-fixed"
                 )
         endforeach()
-        
+
 	# IntelLLVM version 2025.1.0 or higher have a bug for vectorization + OpenMP in
         # a test of HDF5 that for some reason affects the whole code
-	# producing code that provides garbage. 
+	# producing code that provides garbage.
 	# TODO(mrm): Check for version higher than 2025.2.x when available
         string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)"
            _ver "${CMAKE_Fortran_COMPILER_VERSION}")
@@ -185,8 +185,8 @@ target_link_libraries(FoX INTERFACE FoX_dom FoX_sax FoX_wxml FoX_common FoX_util
 #Link exciting library with other libs
 target_link_libraries(excitingLib PUBLIC leblaik lbfgsb XC GXCommon LibGXMiniMax bzint
 	                                 FoX libIDieL ${SCALAPACK_LIB} ${SIRIUS_LIB}
-                                         ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBS}
-                                         ${FFTW3_LIBRARIES} ${MPI_LIBS} ${LINKS_DEVICEACC})
+                                  ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBS}
+				  ${FFTW3_LIBRARIES} ${MPI_LIBS} ${LINKS_DEVICEACC} ${ELPA_LIBS})
 
 # Set the linker to Fortran, otherwise C++ might be used in some cases
 set_property(TARGET excitingLib PROPERTY LINKER_LANGUAGE Fortran)
