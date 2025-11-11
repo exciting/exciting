@@ -191,6 +191,8 @@ CMake installation can be customized using the following options (**Notice that 
 - **_UNIT_TESTS_**: Enables unit tests via make test command (default: ON).
 - **_REGRESSION_TESTS_**: Enables regression tests via make test. This requires Python 3 (default: OFF).
 - **_BUILD_EXCITING_**: Builds EXCITING (default: ON).
+- **_ELPA_=OFF: Build exciting with ELPA support
+- **_ELPA_ROOT_: Root path to the ELPA library
 
 On top of the specific options for _exciting_, the following CMake default options can be modified to tune your installation:
 - **_CMAKE_INSTALL_PREFIX_**: controls the installation directory (default: **install** in the excitng root directory).

@@ -67,6 +67,9 @@ include(cmake/exciting_name.cmake)
 # HDF5 support
 include(cmake/hdf5.cmake)
 
+# ELPA support
+include(cmake/elpa.cmake)
+
 # Intel MKL checks
 include(cmake/mkl.cmake)
 

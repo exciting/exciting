@@ -2,6 +2,7 @@ module m_sqrtzmat
 
   use modmpi
   use modscl
+  use m_hesolver
   use m_dhesolver
   use m_dzmatmult
 
