@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Dict
 
+import numpy as np
 from pymatgen.core import Structure
 
 from excitingtools import ExcitingStructure
@@ -32,7 +33,7 @@ def exciting_structure_to_pymatgen(
 
     lattice = structure.get_lattice(convert_to_angstrom=True)
     cartesian = structure.structure_attributes.get("cartesian", False)
-    positions = structure.positions * bohr_to_angstrom if cartesian else structure.positions
+    positions = np.asarray(structure.positions) * bohr_to_angstrom if cartesian else structure.positions
 
     return Structure(lattice=lattice, species=species, coords=positions, coords_are_cartesian=cartesian)
 
