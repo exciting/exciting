@@ -15,9 +15,9 @@ inputs and the post-processing of <span style="font-family:american typewriter; 
 
 
 * High-level class API for interacting with results:
-  - Currently implemented for eigenvalues, band structure and DOS (without SO coupling)
+  - Currently implemented for eigenvalues, band structure, and DOS (without SO coupling)
 
-making it is possible to define a calculation, run it, and parse the relevant outputs all from within Python. 
+Thus making it possible to define a calculation, run it, and parse the relevant outputs all from within Python. 
 
 <span style="font-family:american typewriter; font-size:1em;">**excitingtools**</span> is used by, or in conjunction with:
 * <span style="font-family:american typewriter; font-size:1em;">**exciting's**</span> regression-testing framework

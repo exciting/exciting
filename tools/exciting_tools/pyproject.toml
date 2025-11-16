@@ -1,7 +1,7 @@
 [project]
 name = "excitingtools"
 description = "Utilities for aiding in the construction of exciting inputs and the postprocessing exciting outputs."
-version = "1.8.3"
+version = "1.8.5"
 authors = [
     {name = "Alexander Buccheri", email = "alexander.buccheri@mpsd.mpg.de"},
     {name = "Fabian Peschel", email = "peschelf@physik.hu-berlin.de"}

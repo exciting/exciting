@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Dict
 
+import numpy as np
 from ase import Atoms
 
 from excitingtools import ExcitingStructure
@@ -32,6 +33,6 @@ def exciting_structure_to_ase(
 
     lattice = structure.get_lattice(convert_to_angstrom=True)
     if structure.structure_attributes.get("cartesian"):
-        positions = structure.positions * bohr_to_angstrom
+        positions = np.asarray(structure.positions) * bohr_to_angstrom
         return Atoms(symbols=species, positions=positions, cell=lattice, pbc=True)
     return Atoms(symbols=species, scaled_positions=structure.positions, cell=lattice, pbc=True)
