@@ -13,10 +13,11 @@ authors:
     equal-contrib: true
     affiliation: 1
   - name: Claudia Draxl
+    orchid: 0000-0003-3523-6657
     equal-contrib: true
     affiliation: 1
 affiliations:
-  - name: Department of Physics and CSMB Adlershof, Humboldt-Universit\"at zu Berlin, Zum Gro\ss en Windkanal 2, D-12489 Berlin, Germany
+  - name: Department of Physics and CSMB Adlershof, Humboldt-Universität zu Berlin, Zum Gro\ss en Windkanal 2, D-12489 Berlin, Germany
     index: 1
 date: 27.01.2025
 bibliography: paper.bib
