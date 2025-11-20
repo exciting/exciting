@@ -58,7 +58,7 @@ test-fedora-buster-gnu-smp-jupyter:
  # - time python3 03_excited_states/02_BSE/assertions/q_dependent_bse_calculations.py
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/excited_states_from_tddft.ipynb --to markdown
   - time python3 03_excited_states/03_TDDFT/assertions/excited_states_from_tddft.py
-  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft.ipynb --to markdown
+  - export OPENBLAS_NUM_THREADS=1; time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft.ipynb --to markdown; unset OPENBLAS_NUM_THREADS 
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/q_dependent_tddft.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/many_body_kernels_for_tddft_calculations.ipynb --to markdown
   - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/simulating_pump_probe_spectroscopy_with_rt_tddft.ipynb --to markdown

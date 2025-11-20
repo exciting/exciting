@@ -7,7 +7,7 @@ build:fedora-buster-gnu-smp:
      - docker
    script:
      - mkdir build-cmake && cd build-cmake
-     - ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_FLAGS="-O3" -DMPI=OFF -DOPENBLAS=ON ..
+     - ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=OFF -DOPENBLAS=ON ..
      - make -j 4 -l 4
      - make install
    artifacts:
