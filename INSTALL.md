@@ -384,14 +384,14 @@ Then, to compile `exciting`
 ```bash
   mkdir build
   cd build
-  FC=gfortran CC=gcc CXX=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DHDF5=ON ..
+  FC=gfortran CC=gcc CXX=g++ ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DHDF5=ON ..
   make -j N -l N exciting_mpismp
   make install
 ```
 
 **INTEL**
 
-If you intend to use Intel, you must manually compile HDF5. We recommend using HDF5 1.12.0. The source code can be found on the [HDF5 website](https://www.hdfgroup.org/solutions/hdf5/). 
+If you intend to use Intel, you might have to manually compile HDF5. We recommend using HDF5 1.14.0. The source code can be found on the [HDF5 website](https://www.hdfgroup.org/solutions/hdf5/). 
 We recommend configuring the build as follows:
 
 ```shell
