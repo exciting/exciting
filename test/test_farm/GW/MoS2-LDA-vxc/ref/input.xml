@@ -10,10 +10,16 @@
     </crystal>
     <species speciesfile="Mo.xml" rmt="2.3000">
       <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+      <dfthalfparam cut="2.5" ampl="1.00" exponent="8">
+        <shell number="-1" ionization="0.5" />
+      </dfthalfparam>
     </species>
     <species speciesfile="S.xml" rmt="2.0500">
       <atom coord="3.4758155100      6.0202890600      2.9529984232"/>
       <atom coord="3.4758155100      6.0202890600     -2.9529984232"/>
+      <dfthalfparam cut="3.7" ampl="1.00" exponent="8">
+        <shell number="0" ionization="0.5" />
+      </dfthalfparam>
     </species>
   </structure>
  
@@ -31,6 +37,7 @@
       nempty="10"
       radialgridtype="cubic-2"
       outputlevel="high">
+      <dfthalf />
   </groundstate>
 
   <gw

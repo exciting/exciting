@@ -234,6 +234,7 @@ contains
   !> the exchange correlation potential (only for valence states).
   subroutine calcvxcnn( first_band, last_band, kpt_indexes, kpt_lattice_coord, mpi_env )
     use exciting_mpi, only: mpiinfo, xmpi_allgatherv
+    use genvxcig, only: generate_vxcig
     use modinput, only: input
     use mod_APW_LO, only: apwordmax, nlomax, nlotot
     use mod_LDA_LU, only: ldapu, llu
@@ -245,10 +246,12 @@ contains
     use mod_hybrids, only: hybridhf, vxnl
     use mod_misc, only: filext
     use mod_muffin_tin, only: lmmaxapw, lmmaxvr
-    use modgw, only: Gkqset, Gkset, kset, kqset, time_vxc
+    use mod_potential_and_density, only: vhalfir, vhalfmt, vxcir, vxcmt
+    use modgw, only: Gkqset, Gkset, Gset, kset, kqset, time_vxc
     use modmpi, only: distribute_loop, mpiglobal
     use modxs, only: isreadstate0
     use vector_multiplication, only: dot_multiply
+    use vxcrad, only: obtain_vxc_radial
     
     !> Index of the first KS band to calculate the matrix elements of vxc
     integer(i32), intent(in) :: first_band
@@ -262,21 +265,17 @@ contains
     !> summation over MPI-distributed arrays
     type(mpiinfo), intent(in) :: mpi_env
     
-
     integer(i32) :: ikp, i, i_first, i_last, n_kpt, ik
-    integer(i32) :: ib, dim
-    integer(i32) :: ia, is
-    integer(i32) :: ngp
-    real(dp) :: tstart, tend
-    complex(dp), allocatable :: apwalm(:,:,:,:)
-    complex(dp), allocatable :: evecfv(:,:)
-    complex(dp), allocatable :: h(:)
-    character(80) :: filext_save
-    logical :: isreadstate0_save
+    integer(i32) :: ib, dim, ia, is, ngp
     ! For the averaging over degenerate states
     integer(i32) :: ispace_init, ispace_final, ispace, lowband, upband, size_deg
+    real(dp) :: tstart, tend
+    real(dp), allocatable :: vxc_eff(:, :, :)
+    complex(dp), allocatable :: apwalm(:,:,:,:), evecfv(:,:), h(:)
+    character(80) :: filext_save
+    logical :: isreadstate0_save, is_dft_half
     
-
+    
     call timesec(tstart)
     
     if (hybridhf) then
@@ -305,11 +304,22 @@ contains
     if ( allocated( vxcrlolo ) ) deallocate( vxcrlolo )
     allocate( vxcrlolo(nlomax, nlomax, 0:lmmaxvr, natmtot) )
     
-    ! Calculate radial integrals
-    call vxcrad
+    is_dft_half = associated( input%groundstate%dfthalf )
 
+    ! Here an auxiliary array is introduced to keep vxcmt unchanged in the case of DFT-1/2
+    vxc_eff = vxcmt
+    if( is_dft_half ) vxc_eff = vxc_eff + vhalfmt
+    ! Calculate radial integrals
+    call obtain_vxc_radial( vxc_eff, vxcraa, vxcrloa, vxcrlolo )
+
+    allocate(vxcig(Gset%ngvec))
+    ! Here, avoid creating a new array, as done for the MT part: typically, vxcir is very large.
+    ! Instead, adopt the in-place–modify-and-restore strategy
+    if( is_dft_half ) vxcir = vxcir + vhalfir
     ! Fourier transform the interstitial part of Vxc
-    call genvxcig
+    call generate_vxcig( vxcir, vxcig )
+    ! Restore vxcir
+    if( is_dft_half ) vxcir = vxcir - vhalfir
     
     allocate( apwalm(Gkset%ngkmax,apwordmax,lmmaxapw,natmtot) )
     allocate( evecfv(nmatmax,nstfv) )
