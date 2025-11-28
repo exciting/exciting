@@ -6,7 +6,6 @@ subroutine gw_main()
     use modgw
     use modmpi
     use mod_mpi_gw
-    use mod_vxc, only: calcvxcnn, write_vxcnn
     use m_getunit
     use mod_hdf5
     use mod_aaa_approximant
