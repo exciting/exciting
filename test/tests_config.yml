@@ -1049,7 +1049,7 @@ RT-TDDFT/LDA_PW-Ehrenfest-BN-restart:
       - "TRAJECTORY_RTTDDFT.OUT"
       - "VECTOR_POTENTIAL.OUT.SAVE"
 
-RT-TDDFT/LDA_PW-Si-sinSq-CFM4-berry-phase:
+RT-TDDFT/LDA_PW-Si-sinSq-CFM4-berry-phase-scissor:
    files_under_test:
       - "atoms.xml"
       - "CURRENT.OUT"
