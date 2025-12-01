@@ -1,6 +1,6 @@
 !> This module is the kernel of a RT-TDDFT calculation.
 !> It contains the subroutine `coordinate_rttddft_calculation`, which manages
-!> a RT-TDDFT calculation. 
+!> a RT-TDDFT calculation.
 module rttddft_main
   use asserts, only: assert
   use constants, only: zi, real_zero, zzero
@@ -13,7 +13,7 @@ module rttddft_main
   use mod_lattice, only: avec, omega
   use mod_mpi_env, only: mpiinfo
   use mod_potential_and_density, only: rhomt, rhoir
-  use modinput, only: input, input_type
+  use modinput, only: input
   use modmpi, only: mpiglobal, mpi_env_k, distribute_loop, barrier, terminate_if_false
   use physical_constants, only: c
   use precision, only: dp, i32, sp
@@ -114,7 +114,7 @@ contains
     type(G_set) :: Gset
     complex(dp), allocatable :: td_overlap_det(:, :)
 
-    real(dp) :: time, timei, timef, time_aux, timeiter, dt, tol, energy_gap
+    real(dp) :: time, timei, timef, time_aux, timeiter, dt, tol
     real(dp), allocatable :: n_exc(:), n_gs(:), prev_phases(:, :)
     real(dp), parameter :: tol_default = 1e-10_dp
     type(MD_out) :: MD_outputs
@@ -175,9 +175,9 @@ contains
     call initialize_rttddft( rt, propagator, vec_pot, a_tot_save, molecular_dynamics, &
       psi, overlap, H, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, &
       Gkset, Gset, ks_lapwlo_transition_matrix, pws_for_berry_phase, k_ptrs, &
-      td_overlap_det, berry_coupling_term, prev_phases, e_field, e_field_save, j_para_spurious, p_vec_init, energy_gap )
-    call check_rttddft_setup( propagator%time_step(), H%initial_eigenvalues, rt%use_berry_phase(), &
-      vec_pot, time, rt%t_end, avec, psi%kset%ngridk, energy_gap )
+      td_overlap_det, berry_coupling_term, prev_phases, e_field, e_field_save, j_para_spurious, p_vec_init )
+    call check_rttddft_setup( mpi_env_k, propagator%time_step(), H%initial_eigenvalues, rt%use_berry_phase(), &
+      vec_pot, time, rt%t_end, avec, psi, rt%scissor_shift )
     
     call distribute_loop( mpi_env_k, psi%kset%nkpt, first_kpt, last_kpt )
     dt = propagator%time_step()

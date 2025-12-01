@@ -25,6 +25,7 @@ module rttddft_Hamiltonian
   private
   
   integer(i32), parameter :: n_cartesian = 3
+  real(dp), parameter :: eps_scissor = 1.e-10_dp
 
   !> Type to encapsulate the set of hamiltonian matrices (which can be not hermitian)
   type, public :: hamiltonian_set
@@ -65,6 +66,7 @@ module rttddft_Hamiltonian
     procedure, private :: calculate_ik => hamiltonian_set_calculate_lapw_basis_ik
     procedure, public  :: calculate => hamiltonian_set_calculate
     procedure, public  :: copy_H_t => hamiltonian_set_copy_H_t
+    procedure, public  :: adjust_eigenvalues_with_scissor_shift => hamiltonian_set_adjust_eigenvalues_with_scissor_shift
     final              :: destructor
   end type
 
@@ -518,6 +520,18 @@ contains
         call scaled_add( a_scaled(i), pmat(:, :, i, :), this%H_t%array )
       end do
     end associate
+  end subroutine
+
+  !> Adjust the initial_eigenvalues arrays, shifting the conduction band energies upwards by \( \Delta E \).
+  subroutine hamiltonian_set_adjust_eigenvalues_with_scissor_shift( this, scissor_shift, first_unoccupied )
+    class(hamiltonian_set), intent(inout) :: this
+    !> Energy shift  \( \Delta E \) for scissor operator
+    real(dp), intent(in) :: scissor_shift
+    !> Position of the first unoccupied state
+    integer, intent(in) :: first_unoccupied
+
+    if ( scissor_shift > eps_scissor ) &
+      this%initial_eigenvalues(first_unoccupied:, :) = this%initial_eigenvalues(first_unoccupied:, :) + scissor_shift
   end subroutine
 
 end module rttddft_Hamiltonian

@@ -1,12 +1,3 @@
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-! Copyright (C) Exciting Code, SOL group. 2020
-
-! HISTORY
-! Created May 2019 (Ronaldo)
-! Improved documentation: July 2021 (Ronaldo)
-! Reference: https://doi.org/10.1088/2516-1075/ac0c26
-
 !> Module that contains the subroutines envolved in the update of KS WFs
 module rttddft_Wavefunction
   use asserts, only: assert

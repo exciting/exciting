@@ -66,8 +66,7 @@ contains
 subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, molecular_dynamics, &
     psi, overlap, H, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, &
     Gkset, Gset, psi_gnd_lapwlo, pws_for_berry_phase, k_ptrs, &
-    td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init, &
-    energy_gap )
+    td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
   !> Argument that encapsulates the input options of rttddft
   type(rttddft_input_keys), intent(in) :: rt_inp
   !> Argument that encapsulates the propagator
@@ -118,8 +117,6 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   type(Current_Density_Field), intent(out) :: j_para_spurious
   !> GS polarization obtained at \( t = 0 \). Only used with Berry-phase field coupling.
   type(Polarization), intent(out) :: p_vec_init
-  !> Energy gap
-  real(dp), intent(out) :: energy_gap
 
   integer(i32) :: ik, first_kpt, last_kpt, l_max_pot, ham_dimension, kgrid_neighbours
   logical :: evolve_H0, my_rank_writes_to_output, success
@@ -227,14 +224,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   call initialize_wavefunction_set( psi, rt_inp%use_lapwlo_basis(), first_kpt, kset_rttddft, &
     propagator%extrapolation_needed(), rt_inp%n_frozen, psi_gnd_lapwlo, occupations, occs_tol )
   if ( rt_inp%use_lapwlo_basis() ) deallocate( psi_gnd_lapwlo )
-
-  ! In general, non-physical parameters (such as the k-grid) can differ between the GS
-  ! and RT modules, which can result in e.g. different XC potential calculated from 
-  ! the same electron density. For consistency, we generate the initial density and potential
-  ! at step 0 the same way as during the time propagation. 
-  call update_density( psi, -1, rt_inp%normalize_WF, &
-    rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo, dens_case = ground_state )
-  call update_potential()
+  if ( rt_inp%use_berry_phase() ) call H%adjust_eigenvalues_with_scissor_shift( rt_inp%scissor_shift, psi%n_occupied() + 1 )
 
   ! A special case of an input parameter for the EH and EHM propagators:
   ! first, n_eigvecs_houston can be < 0 and should be redefined as soon as nstfv is known
@@ -243,8 +233,6 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   call propagator%update_and_check( psi%n_occupied(), minval( nmat(1, first_kpt : last_kpt) ), nstfv, success )
   call terminate_if_false( success, &
     'Error: Provided value of nEigenvectorsEH is either smaller than the number of occupied states or larger than basis size.' )
-
-  call get_energy_gap( first_kpt, H%initial_eigenvalues, occupations, kset_rttddft%nkpt, energy_gap )
 
   if( molecular_dynamics%on ) call allocate_MD_globals( first_kpt, last_kpt, &
     allocate_B=molecular_dynamics%basis_derivative, &
@@ -287,6 +275,14 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     end if
   end if
 
+  ! In general, non-physical parameters (such as the k-grid) can differ between the GS
+  ! and RT modules, which can result in e.g. different XC potential calculated from 
+  ! the same electron density. For consistency, we generate the initial density and potential
+  ! at step 0 the same way as during the time propagation. 
+  call update_density( psi, -1, rt_inp%normalize_WF, &
+    rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo, dens_case = ground_state )
+  call update_potential()
+
   call H%calculate( l_max_pot, apwalm, Gkset, psi_gnd_lapwlo )
   if ( rt_inp%use_ks_basis() ) then
     ! at t = 0, obtain the effective potential: since H%V_KS_0 was not initialized
@@ -299,7 +295,6 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     if ( .not. evolve_H0 ) call H%H_0%copy_from( H%H_t )
   end if
 
-  a_aux%components = 0._dp
   call overlap%initialize( apwalm, Gkset, pmatmt, a_aux, mathcalH=H%mathcalH, mathcalB=mathcalB )
 
   if ( rt_inp%use_velocity_gauge() ) then
@@ -978,45 +973,6 @@ subroutine adjust_input_and_init_exciting_globals( global_input )
   call init1()
   call init2()
   if ( hybrids_used() ) call init_hybrids()
-
-end subroutine
-
-!> Get the energy gap using the KS energies and occupations array
-subroutine get_energy_gap( first_kpt, ks_energies, occupations, n_kpt, energy_gap )
-  !> Index of the first \( \mathbf{k} \) point treated by the current (MPI) rank
-  integer(i32), intent(in) :: first_kpt
-  !> Initial KS energies array (n_ks_states, n_kpt_this_proc)
-  real(dp), contiguous, intent(in) :: ks_energies(:, first_kpt:)
-  !> State occupations array (n_ks_states, n_kpt_this_proc)
-  real(dp), contiguous, intent(in) :: occupations(:, first_kpt:)
-  !> Total number of \( \mathbf{k} \) points
-  integer(i32), intent(in) :: n_kpt
-  !> Energy gap value 
-  real(dp), intent(out) :: energy_gap
-
-  real(dp), allocatable :: ks_energies_all_procs(:, :), occupations_all_procs(:, :)
-  integer(i32) :: vbm_band_ind, cbm_band_ind, vbm_kpt_ind, cbm_kpt_ind, &
-    gap_min_kpt_ind, last_kpt
-
-  
-  call assert( all( shape( ks_energies ) == shape( occupations ) ), "Incompatible energies &
-    and occupations arrays provided to get_energy_gap." )
-  last_kpt = ubound( ks_energies, 2 )
-
-  allocate( ks_energies_all_procs( size( ks_energies, 1 ), n_kpt ), source = real_zero )
-  ks_energies_all_procs(:, first_kpt : last_kpt) = ks_energies
-  call xmpi_allgatherv( mpi_env_k, ks_energies_all_procs, size( ks_energies ) )
-
-  allocate( occupations_all_procs, source = ks_energies_all_procs )
-  occupations_all_procs(:, first_kpt : last_kpt) = occupations
-  call xmpi_allgatherv( mpi_env_k, occupations_all_procs, size( occupations ) )
-
-  call find_vbm_cbm( 1, size( ks_energies_all_procs, 1 ), size( ks_energies_all_procs, 2 ), &
-    occupations_all_procs, ks_energies_all_procs, vbm_band_ind, cbm_band_ind, vbm_kpt_ind, &
-    cbm_kpt_ind, gap_min_kpt_ind )
-
-  energy_gap = ks_energies_all_procs( cbm_band_ind, cbm_kpt_ind ) - ks_energies_all_procs( vbm_band_ind, vbm_kpt_ind )
-  if ( cbm_band_ind < vbm_band_ind ) energy_gap = 0._dp
 
 end subroutine
 
