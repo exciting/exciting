@@ -24,12 +24,10 @@ module xhdf5_test
     logical, optional :: kill_on_failure  
     !> test object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer, parameter :: n_assertions = 47
 
 #ifdef _HDF5_
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init(mpiglobal)
 
     ! Run and assert tests
     
@@ -104,7 +102,7 @@ module xhdf5_test
     call barrier(mpiglobal)
 #else 
       print*, 'Built without HDF5. Nothing to do here.'
-      call test_report%init(0, mpiglobal)
+      call test_report%init(mpiglobal)
 #endif
 
     ! report results

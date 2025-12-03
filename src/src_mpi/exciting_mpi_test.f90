@@ -26,10 +26,8 @@ contains
 
     !> Test report object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer(i32), parameter :: n_assertions = 13
 
-    call test_report%init( n_assertions, mpiglobal )
+    call test_report%init( mpiglobal )
 
     ! Run unit tests
     call test_xmpi_allgather( test_report, mpiglobal)

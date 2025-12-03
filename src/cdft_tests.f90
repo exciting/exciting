@@ -34,17 +34,9 @@ subroutine run_cdft_test_driver( mpiglobal, kill_on_failure )
   logical, optional :: kill_on_failure
   
   type(unit_test_type) :: test_report
-  integer(i32), parameter :: n_assertions_test_get_ExcitonCoefficients_from_file = 5
-  integer(i32), parameter :: n_assertions_test_Occupations_get_from_file = 4
-  integer(i32), parameter :: n_assertions_test_determine_cdft_occupations = 3
-  integer(i32), parameter :: n_assertions_test_occupy_update_occupations_max_overl_meth = 1
-  integer(i32), parameter :: n_assertions = n_assertions_test_get_ExcitonCoefficients_from_file + &
-                                            n_assertions_test_Occupations_get_from_file + &
-                                            n_assertions_test_determine_cdft_occupations + &
-                                            n_assertions_test_occupy_update_occupations_max_overl_meth
   character(len=*), parameter :: test_driver_name = "cdft"
 
-  call test_report%init( n_assertions, mpiglobal )
+  call test_report%init( mpiglobal )
 
   ! Run and assert tests
   call test_ExcitonCoefficients_get_from_file( test_report, mpiglobal )

@@ -29,11 +29,9 @@ module block_data_file_test
       logical, optional :: kill_on_failure
       !> Test report object
       type(unit_test_type) :: test_report
-      !> Number of assertions
-      integer, parameter :: n_assertions = 14 + 3*num_data_block
 
       ! Initialize test object
-      call test_report%init(n_assertions, mpiglobal)
+      call test_report%init( mpiglobal)
 
       ! create test directory (test covered by `os_utils_test`)
       call test_report%assert( make_directory(TEST_DIR, mpiglobal) == 0, &

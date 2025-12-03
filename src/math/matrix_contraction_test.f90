@@ -19,9 +19,8 @@ contains
     logical, intent(in), optional :: kill_on_failure
 
     type(unit_test_type) :: test_report
-    integer, parameter   :: n_assertions = 3
 
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     call test_small_case(test_report)
     call test_random_case(test_report)

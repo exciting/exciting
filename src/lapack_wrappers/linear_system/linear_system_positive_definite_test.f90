@@ -23,11 +23,9 @@ subroutine linear_system_positive_definite_test_driver(mpiglobal, kill_on_failur
   logical, intent(in), optional :: kill_on_failure
 
   type(unit_test_type) :: test_report
-  integer(i32), parameter :: n_assertions_test_positive_definite_solve_complex_dp = 6
-  integer(i32), parameter :: n_assertions = n_assertions_test_positive_definite_solve_complex_dp
   character(len=*), parameter :: module_tested = "linear_system_positive_definite_test"
 
-  call test_report%init( n_assertions, mpiglobal )
+  call test_report%init( mpiglobal )
   call test_positive_definite_solve_complex_dp( test_report )
   call test_report%report( module_tested, kill_on_failure )
   call test_report%finalise()

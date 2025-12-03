@@ -25,17 +25,11 @@ contains
     logical, optional, intent(in) :: kill_on_failure
     
     type(unit_test_type) :: test_report
-    integer(i32), parameter :: n_assertions_test_scaled_add_rank1_arrays = 3
-    integer(i32), parameter :: n_assertions_test_scaled_add_rank2_arrays = 3
-    integer(i32), parameter :: n_assertions_test_scaled_add_rank3_arrays = 6
-    integer(i32), parameter :: n_assertions = n_assertions_test_scaled_add_rank1_arrays + &
-                                              n_assertions_test_scaled_add_rank2_arrays + &
-                                              n_assertions_test_scaled_add_rank3_arrays
 
     character(len=*), parameter :: module_tested = "add_scaled_array"
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run and assert tests
     call test_scaled_add_rank1_arrays( test_report )

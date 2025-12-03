@@ -31,15 +31,11 @@ contains
     logical, optional, intent(in) :: kill_on_failure
     
     type(unit_test_type) :: test_report
-    integer(i32), parameter :: n_assertions_test_obtain_occupations = 2
-    integer(i32), parameter :: n_assertions_test_obtain_number_excitations = 10
-    integer(i32), parameter :: n_assertions = n_assertions_test_obtain_occupations + &
-                                              n_assertions_test_obtain_number_excitations
 
     character(len=*), parameter :: module_tested = 'rttddft_Wavefunction'
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run and assert tests
     call test_obtain_occupations( test_report )

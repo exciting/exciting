@@ -56,11 +56,9 @@ module sh_product_test
 
       !> test object
       type(unit_test_type) :: test_report
-      !> Number of assertions
-      integer, parameter :: n_assertions = 14
 
       ! Initialize test object
-      call test_report%init( n_assertions, mpiglobal)
+      call test_report%init(mpiglobal)
 
       ! Run the test with expansion cutoff for test function
       ! of LMAX

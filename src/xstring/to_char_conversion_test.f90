@@ -24,15 +24,8 @@ module to_char_conversion_test
 
     !> test object
     type(unit_test_type) :: test_report
-    integer(i32), parameter :: n_assertions_test_to_char_conversion = 18
-    integer(i32), parameter :: n_assertions_test_vector_conversion = 17
-    integer(i32), parameter :: n_assertions_test_matrix_conversion = 4
-    !> Number of assertions
-    integer(i32), parameter :: n_assertions = n_assertions_test_to_char_conversion + &
-                                              n_assertions_test_vector_conversion + &
-                                              n_assertions_test_matrix_conversion
 
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     call test_to_char_conversion(test_report)
     call test_vector_conversion(test_report)

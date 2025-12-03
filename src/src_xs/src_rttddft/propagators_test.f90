@@ -56,24 +56,11 @@ contains
     logical, optional, intent(in) :: kill_on_failure
     
     type(unit_test_type) :: test_report
-    integer(i32), parameter :: n_assertions_test_SE_propagator = 3
-    integer(i32), parameter :: n_assertions_test_EMR_propagator = 3
-    integer(i32), parameter :: n_assertions_test_AETRS_propagator = 3
-    integer(i32), parameter :: n_assertions_test_CFM4_propagator = 3
-    integer(i32), parameter :: n_assertions_test_RK4_propagator = 2
-    integer(i32), parameter :: n_assertions_test_EH_propagator = 2
-    integer(i32), parameter :: n_assertions_test_EHM_propagator = 2
-    integer(i32), parameter :: n_assertions = n_assertions_test_SE_propagator + &
-                                              n_assertions_test_EMR_propagator + &
-                                              n_assertions_test_AETRS_propagator + &
-                                              n_assertions_test_CFM4_propagator + &
-                                              n_assertions_test_RK4_propagator + &
-                                              n_assertions_test_EH_propagator + &
-                                              n_assertions_test_EHM_propagator
+
     character(len=*), parameter :: module_tested = 'propagators'
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run and assert tests
     call test_propagator( 'SE', test_report )

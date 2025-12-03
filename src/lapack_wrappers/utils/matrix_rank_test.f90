@@ -26,10 +26,8 @@ contains
 
     !> Test report object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer, parameter :: n_assertions = 8
 
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     call test_matrix_rank_SVD(test_report)
 

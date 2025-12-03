@@ -22,11 +22,9 @@ module integration_test
     logical, optional :: kill_on_failure
     !> test object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer, parameter :: n_assertions = 2
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run and assert tests
     call test_ODESolver_RungeKutta4thOrder( test_report )
