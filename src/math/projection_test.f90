@@ -24,11 +24,9 @@ module projection_test
 
     character(len=*), parameter :: module_tested = 'projection'
     type(unit_test_type) :: test_report
-    integer(i32), parameter :: n_assertions_test_project_vectors = 2
-    integer(i32), parameter :: n_assertions = n_assertions_test_project_vectors
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run and assert tests
     call test_project_vectors( test_report )

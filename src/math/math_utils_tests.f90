@@ -33,7 +33,7 @@ contains
     integer(i32), parameter :: n_assertions = 135
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run and assert tests
 

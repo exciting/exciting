@@ -24,10 +24,8 @@ contains
 
     !> Test report object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer(i32), parameter :: n_assertions = 3
 
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     call test_remove_zero_rows(test_report)
     call test_generate_matrix_complex_to_real_spherical_harmonics(test_report)

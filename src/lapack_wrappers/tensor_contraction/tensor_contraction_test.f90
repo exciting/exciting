@@ -31,10 +31,8 @@ contains
 
         !> Test report object
         type(unit_test_type) :: test_report
-        !> Number of assertions
-        integer, parameter :: n_assertions = 10
 
-        call test_report%init(n_assertions, mpiglobal)
+        call test_report%init( mpiglobal)
 
         ! Run unit tests
         call test_complex_tensor_contraction_rank3_rank2_to_rank3(test_report)

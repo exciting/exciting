@@ -23,11 +23,8 @@ contains
   
         !> Test object
         type(unit_test_type) :: test_report
-        
-        !> Number of assertions
-        integer, parameter :: n_assertions = 6
-  
-        call test_report%init(n_assertions, mpiglobal)
+
+        call test_report%init( mpiglobal)
   
         ! Run unit tests
         call test_initrmt(test_report)

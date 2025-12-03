@@ -27,9 +27,8 @@ subroutine run_gw_io_test_driver( mpiglobal, kill_on_failure )
   logical, optional :: kill_on_failure
   
   type(unit_test_type) :: test_report
-  integer, parameter :: n_assertions = 2+13+8
 
-  call test_report%init( n_assertions, mpiglobal )
+  call test_report%init( mpiglobal )
 
   ! Run and assert tests
   call test_build_file_name( test_report )

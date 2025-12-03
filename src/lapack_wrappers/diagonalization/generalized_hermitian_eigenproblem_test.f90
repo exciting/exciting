@@ -25,13 +25,8 @@ module generalized_hermitian_eigenproblem_test
 
     !> Test object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer(i32), parameter :: n_assertions_test_solve_gen_sym_eigenproblem_real_dp = 2
-    integer(i32), parameter :: n_assertions_test_solve_gen_sym_eigenproblem_complex_dp = 3
-    integer(i32), parameter :: n_assertions = n_assertions_test_solve_gen_sym_eigenproblem_complex_dp + &
-                                              n_assertions_test_solve_gen_sym_eigenproblem_real_dp
 
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run unit tests
     call test_solve_gen_hermitian_eigenproblem_complex_dp(test_report)

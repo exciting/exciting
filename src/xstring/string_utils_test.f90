@@ -22,10 +22,8 @@ module string_utils_test
 
     !> test object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer, parameter :: n_assertions = 12
 
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     call test_split(test_report)
 

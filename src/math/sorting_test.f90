@@ -19,13 +19,12 @@ contains
 
     type(unit_test_type) :: test_report
     logical :: kill
-    integer, parameter :: n_assertions = 12
 
     if (present(kill_on_failure)) then
         kill = merge(.true., .false., kill_on_failure)
     end if
 
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     call test_sort_index_1d_integer(test_report)
     call test_sort_index_1d_realdp(test_report) 
@@ -126,7 +125,8 @@ contains
 
     index_map = sort_index_2d(size(a, 1), size(a, 2), a, size(a, 1))
 
-    call test_report%assert(all(index_map ==[1, 2, 4, 3]))
+    call test_report%assert(all(index_map ==[1, 2, 4, 3]), &
+            message = 'expected  [1, 2, 4, 3] as output from sort_index_2d([1, 1, 1, 1], [0, 1, 3, 2], [4, 3, 2, 1]]')
 
     ! [104, 113, 132, 121] --> [104, 113, 121, 132]
     expected_a_sorted = transpose(reshape([1, 1, 1, 1, &

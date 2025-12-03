@@ -28,13 +28,9 @@ module normalize_test
     type(unit_test_type) :: test_report
 
     character(len=*), parameter :: module_tested = 'normalize'
-    integer(i32), parameter :: n_assertions_test_normalize_vectors = 1
-    integer(i32), parameter :: n_assertions_test_norm_squared_with_positive_matrix = 2
-    integer(i32), parameter :: n_assertions = n_assertions_test_normalize_vectors + &
-                                              n_assertions_test_norm_squared_with_positive_matrix
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run and assert tests
     call test_normalize_vectors( test_report )

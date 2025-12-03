@@ -33,10 +33,8 @@ contains
 
     !> Test report object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer, parameter :: n_assertions = 36
 
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     call test_singular_value_decomposition_real(test_report)
     

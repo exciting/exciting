@@ -38,19 +38,11 @@ contains
     logical, optional, intent(in) :: kill_on_failure
     
     type(unit_test_type) :: test_report
-    integer(i32), parameter :: n_assertions_test_read_write_vector_field = 18
-    integer(i32), parameter :: n_assertions_test_read_write_wavefunction = 4
-    integer(i32), parameter :: n_assertions_test_read_write_pmat = 4
-    integer(i32), parameter :: n_assertions_test_read_write_pmat_mt = 4
-    integer(i32), parameter :: n_assertions = n_assertions_test_read_write_vector_field + &
-                                              n_assertions_test_read_write_wavefunction + &
-                                              n_assertions_test_read_write_pmat + &
-                                              n_assertions_test_read_write_pmat_mt
 
     character(len=*), parameter :: module_tested = 'rttddft_io'
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run and assert tests
     call test_read_write_vector_field( mpiglobal, test_report )
