@@ -13,7 +13,7 @@ authors:
     equal-contrib: true
     affiliation: 1
   - name: Claudia Draxl
-    orchid: 0000-0003-3523-6657
+    orcid: 0000-0003-3523-6657
     equal-contrib: true
     affiliation: 1
 affiliations:
