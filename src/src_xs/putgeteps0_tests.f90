@@ -36,11 +36,9 @@ contains
 
         !> Our test object that looks like the Zofu object
         type(unit_test_type) :: test_report
-        !> Number of tests
-        integer, parameter :: n_assertions = 4
 
         ! Initialise tests
-        call test_report%init(n_assertions, mpiglobal)
+        call test_report%init( mpiglobal)
 
         ! TODO (Alex, Max) see #127: Add tmpdir object
         ! Create temporary directory for I/O

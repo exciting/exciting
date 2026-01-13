@@ -155,6 +155,8 @@ module rttddft_input
     logical :: calculate_n_exc
     !> If `.true.`, subtract the current density of \(t=0\)
     logical :: subtract_J0
+    !> Energy shift  \( \Delta E \) for the scissor operator
+    real(dp) :: scissor_shift
     !> If `.true.`, write a restart file every `n_print` steps
     logical, private :: save_state
     !> Identify which basis set will be used for the propagation (see [[basis_set]])
@@ -230,6 +232,7 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
   this%restart_file_handler%file_name = trim( inp%xs%h5fname )
   this%restart_file_handler%path = trim( inp%xs%h5gname )
   this%l_rad_step = inp%groundstate%lradstep
+  this%scissor_shift = inp%xs%scissor
 end subroutine
 
 !> Check whether the velocity gauge will be used for the coupling with external field

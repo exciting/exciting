@@ -34,11 +34,9 @@ module unit_cell_utils_test
     logical, optional :: kill_on_failure
     !> test object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer, parameter :: n_assertions = 34
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Run and assert tests
 

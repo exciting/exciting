@@ -29,10 +29,7 @@ module matrix_elements_test_drivers
       !> Test object
       type(unit_test_type) :: test_report
       
-      !> Number of assertions
-      integer, parameter :: n_assertions = 1+1+3+3*(3+3)+1+3*3*2+2*ng+3*ng
-
-      call test_report%init( n_assertions, mpiglobal)
+      call test_report%init(mpiglobal)
 
       ! initialize tests
       call me_test_init

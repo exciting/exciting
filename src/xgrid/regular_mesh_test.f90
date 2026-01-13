@@ -25,11 +25,9 @@ contains
     logical, optional :: kill_on_failure
     !> test object
     type(unit_test_type) :: test_report
-    !> Number of assertions
-    integer, parameter :: n_assertions = 16
 
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init( mpiglobal)
 
     ! Static test for 3 x 2 x 4 mesh
     call test_regular_grid_static(test_report)

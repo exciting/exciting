@@ -9,11 +9,13 @@
     - [CMake Options](#cmake-options)
     - [Mac OS](#mac-os)
   - [Documentation](#documentation)
-  - [Using apptainer containers](#using-apptainer-containers)
-    - [Containers based on Intel oneapi](#containers-based-on-intel-oneapi)
-      - [Building the container image](#building-the-container-image)
-      - [Compiling exciting after the image has been built](#compiling-exciting-after-the-image-has-been-built)
-      - [Running the test suite](#running-the-test-suite)
+  - [Using Apptainer containers](#using-apptainer-containers)
+    - [Definition file](#definition-file)
+      - [Intel oneAPI based containers](#intel-oneapi-based-containers)
+      - [Containers based on GCC, OpenMPI, OpenBLAS](#containers-based-on-gcc-openmpi-and-openblas)
+    - [Building the container image](#building-the-container-image)
+    - [Compiling exciting after the image has been built](#compiling-exciting-after-the-image-has-been-built)
+    - [Running the test suite](#running-the-test-suite)
   - [Compiling exciting with SIRIUS](#compiling-exciting-with-sirius)
   - [SIRIUS Gotchas](#sirius-gotchas)
   - [fastBSE](#fastbse)
@@ -26,38 +28,36 @@
 Requirements
 ------------------
 exciting requires `xsltproc` to preprocess its XML schema into code.
-Additionally, the code requires the installation of FFTW3 (such as oneMKL, AOCL-FFTW, FFTW3, Cray-FFTW, etc.) and a BLAS/LAPACK implementation (such as oneMKL, BLIS+libFLAME, OpenBLAS, LibSci, etc.) to compile. Be aware, of using a multithreading-aware version of BLAS/LAPACK libraries.
+Additionally, the code requires the installation of FFTW3 (such as oneMKL, AOCL-FFTW, FFTW3, Cray-FFTW, etc.) and a BLAS/LAPACK implementation (such as oneMKL, BLIS+libFLAME, OpenBLAS, LibSci, etc.) to compile. Make sure that you are using a multithreading-aware (thread-safe) BLAS/LAPACK library when enabling OpenMP.
 **PLEASE** ensure you have these libraries and binaries installed before proceeding.
 
 exciting comes with the following external libraries required to compile the code:
 
 * [FoX XML](https://github.com/andreww/fox) library for parsing the input (2012 version).
 		
-* [LIBXC V7](https://libxc.gitlab.io/) library of DFT exchange and correlation functionals. We also allow to use external libXC, given that they are version 5.0.0 or higher.
+* [LIBXC V7](https://libxc.gitlab.io/) library of DFT exchange and correlation functionals. It is also possible to link against an external Libxc installation, provided it is version 5.0.0 or newer.
 	
 * [BSPLINE-FORTRAN](https://github.com/jacobwilliams/bspline-fortran) Multidimensional B-Spline interpolation of data on a regular grid.
 
 Compilation for fully parallel execution requires an MPI library, such as Open MPI, MPICH or Intel MPI library, and optionally a version of ScaLAPACK. These can be installed with package managers such as 
-APT, Conda, Spack or EasyBuild, via a containerized environment, or built manually from source. A limited set of Spack recipes for 
-installing external libraries, compiled with GCC and Intel compilers, is provided in the [repository](build/utilities/spack). 
+APT, Conda, Spack or EasyBuild, via a containerized environment, or built manually from source. 
 
 Test suite dependencies are specified in [test/README](test/README).  
 
-exciting can be built using CMake. 
 
 Compiling (CMake)
 ------------------
 
-The `exciting` code can be compiled using CMake. The following compilers are supported:
+The `exciting` code is built with CMake. The following compilers are supported:
 - Intel Classic (ifort): 2021.0.3, 2021.13.1
 - Intel LLVM (ifx): 2025.0.0 
 - GNU: 11, 12, 14, 15
 - Cray: 18.0.1, 19.0.1
-- LLVM-Flang-based compilers (must support Fortran2018 standard)
+- LLVM-Flang-based compilers (must support Fortran 2018 standard)
 
 ### Compilation Steps
 
-To compile `exciting` using CMake, run the following commands from the `exciting` root directory (**Note that the following is not a working example, for these go to the next section**):
+To compile `exciting`, run the following commands from the `exciting` root directory (**Note that the following is not a working example, for these refer to the next section**):
 ```shell
   mkdir build
   cd build
@@ -70,7 +70,7 @@ To compile `exciting` using CMake, run the following commands from the `exciting
   - `exciting_serial` (`-DOMP=OFF -DMPI=OFF`)
   - `exciting_smp` (`-DOMP=ON -DMPI=OFF`)
   - `exciting_mpismp` (`-DOMP=ON -DMPI=ON`)
-- We provide a bundled version of CMake located at `external/external/cmake-3.31.3-linux-x86_64/bin/cmake`.
+- We provide a bundled version of CMake located at `external/cmake-3.31.3-linux-x86_64/bin/cmake`.
   **Note:** This version is only valid for `x86_64` systems.
 - The `[SERIAL_FORTRAN_COMPILER]`, `[SERIAL_C_COMPILER]`, and `[SERIAL_C++_COMPILER]` must be adjusted to the compilers to use.
 - The `[OPTIONS]` section must be adjusted based on your processor, compilers, and/or required features.
@@ -78,15 +78,22 @@ To compile `exciting` using CMake, run the following commands from the `exciting
 ### Example Configurations
 
 #### Intel Machines:
-- **Classic Intel Compilers:**
+- **Classic Intel Compilers:**   
+**N.B.:** The classic Intel compilers are deprecated. For instance, `icc` and `icpc`
+were removed from all Intel `oneAPI` packages starting with the `2024.0` release, 
+and `ifort` was removed starting with the `2025.0` release.   
+Unless BSE calculations are planned, it is recommended to use the Intel 
+LLVM-based compilers instead.
 ```shell
 mkdir build
 cd build
-../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=mpiifx -DCMAKE_C_COMPILER=mpiicx -DCMAKE_CXX_COMPILER=mpiicpx -DMKL=ON ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=mpiifort -DCMAKE_C_COMPILER=mpiicx -DCMAKE_CXX_COMPILER=mpiicpx -DMKL=ON ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
-- **Intel LLVM Compilers with a processor supported by `-ax` (e.g., Intel(R) Xeon(R) Platinum 8480L, code name SAPPHIRERAPIDS):**
+- **Intel LLVM Compilers with a processor supported by `-ax` (e.g., Intel(R) Xeon(R) Platinum 8480L, code name SAPPHIRERAPIDS):**   
+**N.B.:** Please keep in mind that BSE results are not fully reproducible when 
+using Intel LLVM compilers.
 ```shell
 mkdir build
 cd build
@@ -128,11 +135,11 @@ make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
 - **GPU accelerated: AMD GPU MI250**
-AMD GPU acceleration requires of MAGMA library. Assuming it is installed in _MAGMA\_INSTALL\_DIR_
+AMD GPU acceleration requires the MAGMA library, assuming it is installed in _MAGMA\_INSTALL\_DIR_
 ```shell
 mkdir build
 cd build
-../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DAMD=ON -DAMDTARGET=gfx90a -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DAMD=ON -DAMDTARGET=gfx90a -DMAGMA_ROOT=MAGMA_INSTALL_DIR ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -142,7 +149,7 @@ AMD GPU acceleration requires of MAGMA library. Assuming it is installed in _MAG
 ```shell
 mkdir build
 cd build
-../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DUSM=ON -DAMD=ON -DAMDTARGET=gfx942 -DMAGMA_DIR=MAGMA_INSTALL_DIR ..
+../external/cmake-3.31.3-linux-x86_64/bin/cmake -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC -DOPENBLAS=ON -DUSM=ON -DAMD=ON -DAMDTARGET=gfx942 -DMAGMA_ROOT=MAGMA_INSTALL_DIR ..
 make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
@@ -155,11 +162,9 @@ make -j`nproc` -l`nproc` exciting_mpismp
 make install
 ```
 
-A full list of options is provided in the following subsection.
-
 ### CMake Options
 
-CMake installation can be customized using the following options (**Notice that in CMake options are writen as -DOPTION=OPTION_VALUE**):
+CMake installation can be customized using the following options (**Notice that in CMake options are written as -DOPTION=OPTION_VALUE**):
 
 - **_MPI_**: Controls MPI support (default: ON).
 - **_OMP_**: Controls OpenMP support (default: ON).
@@ -183,7 +188,7 @@ CMake installation can be customized using the following options (**Notice that 
 - **_AMDTARGET_**: Specifies the AMD GPU target (e.g., gfx90a) (default: None).
 - **_AMD_HIPSETVALIDDEVICE_SUPPORTED_**: Set to ON if `hipSetValidDevices` is supported (after ROCm 6.2.0) (default: OFF).
 - **_INTEL_**: Enables GPU support for Intel GPUs (default: OFF).
-- **_USM_**: Enables a optimized compilation for CPU-GPU systems with USM; i.e. physically shared RAM (default: OFF).
+- **_USM_**: Enables an optimized compilation for CPU-GPU systems with USM; i.e. physically shared RAM (default: OFF).
 - **_CPUBACKEND_**: Enables a CPU-only build (default: ON).
 - **_MAGMA_ROOT_**: If `AMD` or `NVIDIA` are ON, and MAGMA is not in a default path this provides the path to its install directory (default: None).
 - **_INTEL_CODE_NAME_**: For Intel processors, this can be modified to match the processor name, allowing `ifx` to generate optimized code paths. If not set, defaults to the host machine Intel architecture. **Do not modify for non-Intel machines.** (default: Host).
@@ -191,11 +196,11 @@ CMake installation can be customized using the following options (**Notice that 
 - **_UNIT_TESTS_**: Enables unit tests via make test command (default: ON).
 - **_REGRESSION_TESTS_**: Enables regression tests via make test. This requires Python 3 (default: OFF).
 - **_BUILD_EXCITING_**: Builds EXCITING (default: ON).
-- **_ELPA_=OFF: Build exciting with ELPA support
-- **_ELPA_ROOT_: Root path to the ELPA library
+- **_ELPA_**: Enables ELPA support (default: OFF).
+- **_ELPA_ROOT_**: Root path to the ELPA installation when `ELPA` is ON (default: None).
 
 On top of the specific options for _exciting_, the following CMake default options can be modified to tune your installation:
-- **_CMAKE_INSTALL_PREFIX_**: controls the installation directory (default: **install** in the excitng root directory).
+- **_CMAKE_INSTALL_PREFIX_**: controls the installation directory (default: **install** in the exciting root directory).
 - **_CMAKE_BUILD_TYPE_**: controls the installation type, it can be: Debug or Release (default: Release).
 - **_CMAKE_Fortran_FLAGS_**: string to add extra compiler options for the Fortran compiler. Note that this affects the whole compilation, and that the default flags are generating high performant executable for the _Release_ build.
 ### Mac OS
@@ -229,34 +234,70 @@ FORD is available as a python package and can be installed with pip. To install 
 
 FORD generates html-based documentation, including graphical dependency analysis, which can be 
 viewed by opening docs/exciting_ford/index.html in a web browser. More details of FORD can be found 
-on its [Github page](https://github.com/Fortran-FOSS-Programmers/ford), and additional details regarding
+on its [GitHub page](https://github.com/Fortran-FOSS-Programmers/ford), and additional details regarding
 installation of dependencies can be found under 'Known Issues', below. 
 
 
-## Using apptainer containers
+## Using Apptainer containers
+This section illustrates how to install `exciting` using an [Apptainer](https://apptainer.org/) container.
 
-### Containers based on Intel oneapi
+**Prerequisite:** 
+Ensure that `Apptainer` is installed on your system.
 
-#### Building the container image
-This section illustrates how to install `exciting` using an `apptainer` container 
-based on the Intel `oneapi-hpckit:2025.1.0-0-devel-ubuntu24.04` Docker image.
+### Definition file
 
-First, ensure that [`apptainer`](https://apptainer.org/) is installed on your system.
-Then, create the definition file `my-container.def` with the following contents:
-```bash
+#### Intel oneAPI-Based Containers
+
+For Intel compilers, use the `oneapi-hpckit` Docker image.  
+Example definition file (`my-container.def`) for the Intel LLVM compiler (`ifx`):
+
+```shell
 Bootstrap: docker
 From: intel/oneapi-hpckit:2025.1.0-0-devel-ubuntu24.04
 
 %post
+    # Update package manager and install xsltproc
     apt-get update && apt-get install -y xsltproc python3-dev python3-pytest python3-numpy
 ```
 
+For the classic Intel compiler (`ifort`):
+```shell
+Bootstrap: docker
+From: intel/oneapi-hpckit:2024.0.1-devel-ubuntu22.04
+
+%post
+    wget -qO - https://repositories.intel.com/gpu/intel-graphics.key | \
+      gpg --yes --dearmor --output /usr/share/keyrings/intel-graphics-archive-keyring.gpg && \
+    apt-get update && apt-get install -y xsltproc python3-dev python3-pytest python3-numpy cmake
+```
+
+#### Containers Based on GCC, OpenMPI, and OpenBLAS
+To build a container using GCC, OpenMPI, and OpenBLAS, use the following definition file (`my-container.def`) based on the `xinzhewu/hpc-gcc12-openmpi5-openblas-scalapack:latest` Docker image:
+
+```shell
+Bootstrap: docker
+From: xinzhewu/hpc-gcc12-openmpi5-openblas-scalapack:latest
+
+%post
+    # Update package manager and install xsltproc
+    apt-get update && apt-get install -y xsltproc python3-dev python3-pytest python3-numpy
+    # Install FFTW
+    wget http://www.fftw.org/fftw-3.3.10.tar.gz
+    tar -xzf fftw-3.3.10.tar.gz && cd fftw-3.3.10 && mkdir build && cd build 
+    cmake .. -DENABLE_THREADS=ON -DENABLE_OPENMP=ON -DENABLE_AVX2=ON && make && make install
+    cd ../ && mkdir build_float && cd build_float
+    cmake .. -DENABLE_THREADS=ON -DENABLE_OPENMP=ON -DENABLE_AVX2=ON -DENABLE_FLOAT=ON && make && make install
+    cd ../.. && rm -rf fftw-3.3.10 fftw-3.3.10.tar.gz
+```
+**N.B.:** If the target system does not support `AVX2`, remove `-DENABLE_AVX2=ON` from CMake commands above.
+
+### Building the container image
 To build the container, run:
 ```bash
-apptainer build my-container.sif my-container.def --tmpdir $HOME/temp/
+apptainer build my-container.sif my-container.def
 ```
 Sometimes, the default temporary working space (typically `/tmp`) may not have
-enough space to accomodate the full uncompressed container image with other 
+enough space to accommodate the full uncompressed container image with other 
 temporary files generated during the build process. This can cause the build to fail 
 with an error indicating insufficient disk space. 
 
@@ -272,49 +313,61 @@ longer needed:
 rm -rf $HOME/temp/
 ```
 
-#### Compiling exciting after the image has been built
+### Compiling exciting after the image has been built
 To compile `exciting`, follow the steps below. These instructions assume: 
   1. The container file `my-container.sif` is located in your `home` directory.
   2. The `exciting` source code is located in `$HOME/exciting`, and
   3. The build and install directories are `$HOME/build-farm/build-$branch` and 
   `$HOME/build-farm/install-$branch`, respectively, where `$branch` can be used 
   to represent the `git` branch being compiled.
+If your setup differs, please adjust the paths accordingly. In addition, use the following table to set environment variables for the chosen compiler and container:
 
-If your setup differs, please adjust the paths accordingly.
+| Variable | `ifx` | `ifort` | `gfortran`|
+|--|--|--|--|
+| `export FC=`| `ifx`| `ifort`| `gfortran`|
+| `export MKL=`| `ON`| `ON`| `OFF`|
+| `export fftw3=`| `""`| `""`| `"-DFFTW3_ROOT=/usr/local/"`|
+| `export env=`| `""`| `""`| `"--env LD_LIBRARY_PATH=$install_dir/lib/"`|
+
+
 ```bash
 export container="$HOME/my-container.sif"
 export exciting_dir="$HOME/exciting"
 export branch="mybranch"
 export build_dir="$HOME/build-farm/build-$branch"
 export install_dir="$HOME/build-farm/install-$branch"
+export cmake_custom=$exciting_dir/external/cmake-3.31.3-linux-x86_64/bin/cmake 
+export FC="(adjust accordingly)"
+export MKL="(adjust accordingly)"
+export fftw3="(adjust accordingly)"
 cd $exciting_dir
-apptainer exec $container cmake \
-  -DCMAKE_Fortran_COMPILER=ifx \
-  -DMPI_Fortran_COMPILER=mpiifx \
-  -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
-  -DMKL=ON -DMPI=ON -DOMP=ON \
+apptainer exec $container $cmake_custom \
+  -DMKL=$MKL -DMPI=ON -DOMP=ON \
   -S $exciting_dir \
   -B $build_dir \
   -DCMAKE_INSTALL_PREFIX=$install_dir \
-  --trace --fresh
-apptainer exec $container cmake --build $build_dir -j 4
-apptainer exec $container cmake --install $build_dir
+  $fftw3 --trace --fresh
+apptainer exec $container $cmake_custom --build $build_dir -j 4
+apptainer exec $container $cmake_custom --install $build_dir
 ```
 
 Finally, if the installation completes successfully, you can execute `exciting` using:
 ```bash
-apptainer exec $container mpirun -np 4 $install_dir/bin/exciting_mpismp
+export env="(adjust accordingly)"
+apptainer exec $env $container mpirun -np 4 $install_dir/bin/exciting_mpismp
 ```
-where the `-np` argument specifies the number of MPI processes to launch.
+where the `-np` argument specifies the number of MPI processes to launch.   
+**N.B.:** This approach launches `mpirun` from within the container. This is acceptable for single-node runs, but not suitable for multi-node executions.
 
-#### Running the test suite
+### Running the test suite
 ```bash
+export env="(adjust accordingly)"
 python3 -m venv $HOME/.excitingvenv
 source $HOME/.excitingvenv/bin/activate
 pip install pyyaml
 pip install -e $exciting_dir/tools/exciting_tools/
 cd $exciting_dir/test
-python runtest.py -np 2 -omp 2 -mpirun "apptainer exec $container mpirun" -bp $install_dir/bin -e exciting_mpismp
+python runtest.py -np 2 -omp 2 -mpirun "apptainer exec $env $container mpirun" -bp $install_dir/bin -e exciting_mpismp
 ```
 
 Compiling exciting with SIRIUS
@@ -325,7 +378,7 @@ structure calculations. It implements pseudopotential plane wave (PP-PW) and ful
 augmented plane wave (FP-LAPW) methods, and is designed for GPU acceleration of popular community codes 
 such as Exciting, Elk and Quantum ESPRESSO.
 
-Compiling exciting with SIRIUS is complex. To simplify the procecss of building dependencies, SIRIUS can be
+Compiling exciting with SIRIUS is complex. To simplify the process of building dependencies, SIRIUS can be
 completely installed with the python package manager [spack](https://spack.readthedocs.io/en/latest/getting_started.html).
 
 As of exciting Neon, only a CPU build chain using GCC on Ubuntu Focal is regularly tested in exciting's 
@@ -337,7 +390,7 @@ CI. This is provided in [build/utilities/docker/Dockerfile_ci_sirius](build/util
 # Install spack: https://spack.readthedocs.io/en/latest/index.html
 
 # Find any preinstalled compilers or dependencies
-# Note, it's preferable to use a preinstalled compiler were possible, to minimise total build time
+# Note, it's preferable to use a preinstalled compiler where possible, to minimise total build time
 spack compiler find
 spack external find
 
@@ -364,16 +417,16 @@ SIRIUS Gotchas
 * sirius is under active development, and its dependencies change regularly. Please use `spack info sirius`
   for the current status
 
-* spack does not query  a server when `spack info` is called. To ensure the info is up-to-date, run
+* spack does not query a server when `spack info` is called. To ensure the info is up-to-date, run
   `git pull` in the root of the spack directory.
-
-* On some architectures, sirius will install to `$SIRIUS_ROOT/lib64`, not `$SIRIUS_ROOT/lib`. This will be
-  clear at the linking step, where exciting fails to find sirius, and requires one to manually edit the
-  `make.inc` file to point to the correct directory.
 
 fastBSE
 ------------------
-To use fastBSE, you need to link it with HDF5 and FFTW3.
+To use fastBSE, you need to build exciting with HDF5 and FFTW3. While FFTW3 is 
+used by default, HDF5 support must be activated during the cmake step by 
+setting the build option `-DHDF5=ON`. Do not forget to install the HDF5 
+library or to load the appropriate module.
+
 
 **GCC**
 
@@ -386,7 +439,7 @@ Then, to compile `exciting`
 ```bash
   mkdir build
   cd build
-  FC=gfortran CC=gcc CXX=gcc ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DHDF5=ON ..
+  FC=gfortran CC=gcc CXX=g++ ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DHDF5=ON ..
   make -j N -l N exciting_mpismp
   make install
 ```

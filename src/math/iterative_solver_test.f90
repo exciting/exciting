@@ -25,11 +25,8 @@ module iterative_solver_test
 
     character(*), parameter :: test_name = 'iterative_solver'
 
-     !> Number of assertions
-    integer(i32), parameter :: n_assertions = 10
-
     ! Initialize test object
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init(mpiglobal)
 
     ! Run and assert tests
     call test_lanczos(test_report)

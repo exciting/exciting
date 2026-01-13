@@ -21,11 +21,9 @@ module general_find_vbm_cbm_test
       logical, optional :: kill_on_failure
       !> Test report object
       type(unit_test_type) :: test_report
-      !> Number of assertions
-      integer, parameter :: n_assertions = 10
 
       ! Initialize test object
-      call test_report%init(n_assertions, mpiglobal)
+      call test_report%init( mpiglobal)
 
       ! Run and assert tests
       call test_find_vbm_cbm_efermi(test_report)

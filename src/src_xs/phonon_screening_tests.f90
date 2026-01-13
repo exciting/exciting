@@ -27,11 +27,9 @@ contains
 
         !> Our test object that looks like the Zofu object
         type(unit_test_type) :: test_report
-        !> Number of tests
-        integer, parameter :: n_assertions = 9
 
         ! Initialise tests
-        call test_report%init(n_assertions, mpiglobal)
+        call test_report%init( mpiglobal)
 
         ! Call tests
         call test_real_diagonal(test_report)

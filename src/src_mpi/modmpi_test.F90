@@ -19,10 +19,10 @@ contains
     !> Kill the program upon failure of an assertion
     logical, intent(in), optional :: kill_on_failure
 
-    type(unit_test_type) :: test_report
-    integer(i32), parameter :: n_assertions = 100
+      !> Test report object
+      type(unit_test_type) :: test_report
 
-    call test_report%init( n_assertions, mpiglobal )
+    call test_report%init(  mpiglobal )
 
     ! Run unit tests
     call test_find_2d_grid( test_report )
@@ -81,7 +81,7 @@ contains
     call test_report%assert( rows_per_group == 3, &
       & 'Test MPI Grid sqrt(ranks_per_group) is integer. Expected number of rows: 3' )
     call test_report%assert( cols_per_group == 3, &
-      & 'Test MPI Grid sqrt(ranks_per_group) is integer. Expected number of cols: 3' )                 
+      & 'Test MPI Grid sqrt(ranks_per_group) is integer. Expected number of cols: 3' )
 
     n_groups = 0
     n_processes = 27
@@ -89,15 +89,15 @@ contains
     call test_report%assert( rows_per_group == 1, &
       & 'Test MPI Grid n_groups < 1. Expected number of rows: 1' )
     call test_report%assert( cols_per_group == 1, &
-      & 'Test MPI Grid n_groups < 1. Expected number of cols: 1' )                        
-    
+      & 'Test MPI Grid n_groups < 1. Expected number of cols: 1' )
+
   end subroutine test_find_2d_grid
 
 
   subroutine test_distribute_loop( test_report )
     !> Test report object
     type(unit_test_type), intent(inout) :: test_report
-    
+
     type(mpiinfo) :: mpi_mock_env
     integer(i32) :: n_elements, first, last, i
 
@@ -137,7 +137,7 @@ contains
     call test_report%assert( first == 8, message = "Expect first = 8 for rank 2" )
     call test_report%assert(last == 10, message = "Expect last = 10 for rank 2" )
 
-    !rank receiving ( first, last ) = [101, 110] from 200 elements 
+    !rank receiving ( first, last ) = [101, 110] from 200 elements
     n_elements = 200
     mpi_mock_env%procs = 20
 
@@ -148,24 +148,24 @@ contains
     call test_report%assert(last == 110, &
       message = "n_elements divisible by nproc. Expect first = 110 for rank 10" )
 
-    ! Test for number of processes > n_elements.   
-    mpi_mock_env%procs = 10 
-    n_elements = 9 
+    ! Test for number of processes > n_elements.
+    mpi_mock_env%procs = 10
+    n_elements = 9
     call test_report%assert( mpi_mock_env%procs > n_elements, message = "Expect n_processes > n_elements" )
 
     ! Processes 0 to (last_rank - 1) get one element each i = [ 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9]
-    ! where last_rank = mpi_mock_env%procs -1 
+    ! where last_rank = mpi_mock_env%procs -1
     do i = 1, n_elements
       mpi_mock_env%rank = i - 1
       call distribute_loop( mpi_mock_env, n_elements, first, last )
-      call test_report%assert( first == i, message = "Processes 0-8 get one element" ) 
+      call test_report%assert( first == i, message = "Processes 0-8 get one element" )
       call test_report%assert( first == last, message = "first == last" )
     enddo
 
     ! Process 9 should be idle. Returned limits causes `do first, last` to not get evaluated
     mpi_mock_env%rank = 9
     call distribute_loop( mpi_mock_env, n_elements, first, last )
-    call test_report%assert( first == 0, message = "Process 9 should be idle. Expect first = 0" ) 
+    call test_report%assert( first == 0, message = "Process 9 should be idle. Expect first = 0" )
     call test_report%assert(last == -1, message = "Process 9 should be idle. Expect first = -1" )
 
     ! n_elements = 0
@@ -173,15 +173,15 @@ contains
     mpi_mock_env%procs = 4
     mpi_mock_env%rank = 0
     call distribute_loop( mpi_mock_env, n_elements, first, last )
-    call test_report%assert( first == 0, message = "If n_elements == 0, expect first = 0" ) 
+    call test_report%assert( first == 0, message = "If n_elements == 0, expect first = 0" )
     call test_report%assert(last == -1, message = "If n_elements == 0, expect first = -1" )
 
     ! Serial behaviour
-    mpi_mock_env%procs = 1 
+    mpi_mock_env%procs = 1
     mpi_mock_env%rank = 0
     n_elements = 9
     call distribute_loop( mpi_mock_env, n_elements, first, last )
-    call test_report%assert( first == 1, message = "No distribution. Expect first = 1" ) 
+    call test_report%assert( first == 1, message = "No distribution. Expect first = 1" )
     call test_report%assert(last ==  9, message = "no distribution. Expect first = 9" )
 
   end subroutine test_distribute_loop

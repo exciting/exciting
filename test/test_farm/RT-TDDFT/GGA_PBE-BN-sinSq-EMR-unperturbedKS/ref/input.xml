@@ -54,7 +54,6 @@
               <projectionCoefficients printAbsoluteValue="true" format="F10.5" />
               <occupations format="F15.8" textFormat="true" binaryFormat="false" />
             </screenshots>
-            <pmat />
             <laser fieldType="total">
 		          <sinSq t0="0.5d0" omega="1.d0" phase="0.d0" amplitude="1.0d0" pulseLength="5.d0"
 			          direction="y"/>

@@ -31,19 +31,8 @@ contains
     
     !> test_report:Test report object
     type(unit_test_type) :: test_report
-    !> n_assertions:Number of assertions (2 tests × 3 solvers = 6)
-    integer :: n_assertions
     
-    ! Count assertions based on available solvers
-    n_assertions = 2  ! LAPACK (always available)
-#ifdef SCAL
-    n_assertions = n_assertions + 2  ! ScaLAPACK
-#endif
-#ifdef _ELPA_
-    n_assertions = n_assertions + 2  ! ELPA
-#endif
-    
-    call test_report%init(n_assertions, mpiglobal)
+    call test_report%init(mpiglobal)
     
     ! Test LAPACK solver (always available)
     call test_lapack_solver(test_report, mpiglobal)

@@ -160,10 +160,8 @@ contains
 
       !> Test report object
       type(unit_test_type) :: test
-      !> Number of assertions
-      integer, parameter :: n_assertions = 19
 
-      call test_report%init(n_assertions, mpiglobal)
+      call test_report%init(mpiglobal)
       call test_vnlmat(test)
       
       call test_report%finalise()
