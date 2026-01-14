@@ -62,71 +62,7 @@ u_{i\mathbf{k}}^*(\mathbf{r})u_{j\mathbf{k}'}(\mathbf{r}) \approx \sum_{\mu=1}^{
 $$
 where $N_\mu$ is the number of interpolation points, and $\zeta_\mu(\mathbf r)$ are the expansion coefficients. Due to the tensor product structure of $u_{i\mathbf{k}}^*(\mathbf{r})u_{j\mathbf{k}'}(\mathbf{r})$, $\zeta_\mu(\mathbf r)$ can be computed efficiently, and the scaling is bounded by $\mathcal{O}(N_\mu^3)$ [@Hu:2017]. We observe that we can always choose $N_\mu \ll N_o N_u N_\mathbf{k}$, thus ISDF is never a bottleneck. The interpolation points are computed efficiently with centroidal Voronoi tessellation within $\mathcal{O}(N_\mu N_r)$ [@Dong:2018].
 
-Inserting ISDF in the equations for the interaction kernels yields
-$$
-V_{ou\mathbf{k}, o'u'\mathbf{k}'} \approx \frac{1}{N_k^2} \sum_{\mu=1}^{N_\mu^V} \sum_{\nu=1}^{N_\mu^V}
-u_{o\mathbf{k}}(\mathbf{r}_\mu^V) 
-u^*_{u\mathbf{k}} (\mathbf{r}_\mu^V)
-\tilde V_{\mu \nu}
-u^*_{o'\mathbf{k}'} (\mathbf{r}_\nu^V) 
-u_{u'\mathbf{k}'} (\mathbf{r}_\nu^V),
-$$
-$$
-W_{ou\mathbf{k}, o'u'\mathbf{k}'} \approx \frac{1}{N_k^2} \sum_{\mu=1}^{N_{\mu}^{W_u}} \sum_{\nu=1}^{N_{\mu}^{W_o}}
-u^*_{u\mathbf{k}} (\mathbf{r}_\mu^{W_u}) 
-u_{u'\mathbf{k}'} (\mathbf{r}_\mu^{W_u})
-\tilde W_{\mu\nu, \mathbf{k-k'}}
-u_{o\mathbf{k}}(\mathbf{r}_\nu^{W_o})
-u^*_{o'\mathbf{k}'} (\mathbf{r}_\nu^{W_o}) 
-\:,
-$$
-where we have shifted the integration from the wavefunction pairs to the interpolation coefficients such that
-$$
-\tilde V_{\mu \nu} = \int_{\Omega^l\times \Omega^l}drdr' \zeta_\mu^{*V}(\mathbf{r}) V(\mathbf{r},\mathbf{r'}) \zeta_\nu^{V}(\mathbf{r'}) \:,
-$$
-$$
-\tilde W_{\mu\nu, \mathbf{k-k'}} = \int_{\Omega^l\times \Omega^l}drdr' \zeta_\mu^{*W_u}(\mathbf{r}) W_{\mathbf{k}-\mathbf{k'}}(\mathbf{r},\mathbf{r'}) \zeta_\nu^{W_o}(\mathbf{r'}) \:.
-$$
-Note that there are three different wavefunction pairings, i.e. $u_{o\mathbf{k}}^*(\mathbf{r})u_{u\mathbf{k}}(\mathbf{r})$ for the exchange kernel ($V$) and $u_{o\mathbf{k}}^*(\mathbf{r})u_{o'\mathbf{k}'}(\mathbf{r})$, $u_{u\mathbf{k}}^*(\mathbf{r})u_{u'\mathbf{k}'}(\mathbf{r})$ for the screened kernel $W$. Each pairing requires a separate ISDF calculation, denoted by the superscripts $V$, $W_o$, and $W_u$. Since the number of combinations may vary, the number of interpolation points required may also vary. Reformulating the matrix elements in this way alone does not improve scaling with respect to the system size. To achieve this, we combine it with an iterative solver, here with the Lanczos algorithm. This class of algorithms constructs an approximation to the eigenvalues and eigenvectors by iteratively applying matrix-vector multiplications. Applying the interaction kernels in their interpolated forms to a vector $X$ of dimension $N_o N_u N_\mathbf{k}$ allows efficient computation by rearranging the summations to exploit a separable structure of the kernels. For the exchange kernel we get
-$$
-[V \cdot X]_{ou\mathbf k} = \frac{1} {N_\mathbf k} \sum_{\mu=1}^{N_\mu^V}
-u^*_{u\mathbf k}(\mathbf{r}_\mu^V)  
-u_{o\mathbf k}(\mathbf{r}_\mu^V) 
-\left\{\sum_{\nu=1}^{N_\mu^V} \tilde V_{\mu\nu} \left[ \sum_{\mathbf k'}
-\left(\sum_{u'} 
-u_{u'\mathbf k'}(\mathbf{r}_\nu^V) 
-\left[\sum_{o'} 
-u^*_{o'\mathbf k'}(\mathbf{r}_\nu^V) 
-\cdot X_{ o' u' \mathbf k'}
-\right]\right)\right]\right\} \:,
-$$
-where we first compute the sums over $o'$, $u'$, and $\mathbf{k}'$ to get a term that depends only on $\mathbf{r}_\nu^V$ with a complexity of $\mathcal{O}(N_\mu^V(N_o N_u N_{\bf k} + N_uN_{\bf k})$. The remaining sums can be computed with $\mathcal{O}((N_\mu^V)^2 N_\mu^V N_o N_u N_{\bf k})$, so the complexity of computing $V\cdot X$ is bounded by $\mathbf{O}((N_\mu^V)^2 + N_\mu N_o N_u N_{\bf k})$.
-Applying the screened kernel to $X$, after reordering the sums, we get
-
-$$
-[W \cdot X]_{ou\mathbf k} = \frac{1} {N_k} \sum_{\nu=1}^{N_\mu^{W_o}}
-u_{o\mathbf k}(\mathbf r_\nu^{W_o})
-\Bigg\{ \sum_{\mu=1}^{N_\mu^{W_u}}
-u^*_{u\mathbf k}(\mathbf r_\mu^{W_u})
-\sum_{\mathbf{k'}} 
-\Bigg[\tilde{W}_{\mu\nu, \mathbf{k-k'}}
-$$
-$$
-\qquad\qquad\qquad \times 
-\bigg(\sum_{u'}
-u_{u'\mathbf k'}(\mathbf r_\mu^{W_u})
-\bigg[\sum_{o'} \\\\ % \right. \right.\right.\right. 
-u^*_{o'\mathbf{k'}}(\mathbf{r}_\nu^{W_o})
-X_{ o' u' \mathbf{k'}}
-%\left.\left.\left.\left.
-\bigg]\bigg)\Bigg]\Bigg\} \:.
-$$
-
-Here we exploit the separable structure of the decomposition so that the terms depending on ${\bf k}$ and ${\bf k'}$ are on the left and right of $\tilde{W}_{\mu\nu, \mathbf{k-k'}}$. The evaluation of the two innermost sums over $o'$ and $u'$ to $A^{\bf k'}_{\mu\nu}$ scales with $\mathcal{O}(N^{W_u}_\mu N_o N_u N_\mathbf{k} + N^{W_o}_\mu N_\mu^{W_u} N_u N_\mathbf{k})$. Then the sum over ${\bf k'}$ reads as a discrete convolution
-$$
-\sum_{\mathbf{k}'}W_{\mathbf{k}-\mathbf{k}'} A^{\bf k'}_{\mu\nu} \:,
-$$
-which can be efficiently evaluated with fast Fourier transforms simultaneously within the $\mathcal{O}(N{\bf k} \log N{\bf k})$ scaling for each $\mu\nu$ pair. The remaining summations scale with $\mathcal{O}(N^{W_o}_\mu N_\mu^{W_u} N_u N_\mathbf{k})$. So the complexity for the computation of $W\cdot X$ is bounded by $\mathcal{O}( N^{W_u}_\mu N_o N_u N_\mathbf{k} + N^{W_o}_\mu N_\mu^{W_u} N_u N_\mathbf{k} + N^{W_o}_\mu N_\mu^{W_u} N_\mathbf{k} \log N_\mathbf{k})$.
+Replacing the wavefunction products in the interaction kernel integrals with the ISDF representation yields a formulation that allows for efficient application to a vector without ever setting up the full matrix. Combined with a Lanczos algorithm, the BSE can be solved with a scaling of $\mathcal{O}(N_o N_u N_k \log N_k)$. [@Henneke:2020].
 
 # Statement of need
 
