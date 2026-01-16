@@ -1,7 +1,7 @@
 The exciting FP-LAPW Code
 =========================
 
-Release: exciting neon.  
+Release: exciting sodium.  
 Copyright (C) 2002-2023 The exciting team.
 
 Description
@@ -37,7 +37,7 @@ The documentation for developers can be found in the [exciting gitlab wiki](http
 Obtaining the Source
 --------------------
 
-exciting neon can be downloaded from the [exciting
+exciting sodium can be downloaded from the [exciting
 webpage](http://exciting-code.org).
 
 exciting is updated regularly with new features and bug fixes. This

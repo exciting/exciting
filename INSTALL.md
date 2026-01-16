@@ -381,7 +381,7 @@ such as Exciting, Elk and Quantum ESPRESSO.
 Compiling exciting with SIRIUS is complex. To simplify the process of building dependencies, SIRIUS can be
 completely installed with the python package manager [spack](https://spack.readthedocs.io/en/latest/getting_started.html).
 
-As of exciting Neon, only a CPU build chain using GCC on Ubuntu Focal is regularly tested in exciting's 
+As of exciting Sodium, only a CPU build chain using GCC on Ubuntu Focal is regularly tested in exciting's 
 CI. This is provided in [build/utilities/docker/Dockerfile_ci_sirius](build/utilities/docker/Dockerfile_ci_sirius). 
 
 ```shell
