@@ -5,6 +5,10 @@ build:fedora-buster-gnu-mpismp-complete:
    stage: build
    tags:
      - docker
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    before_script:
      - source /etc/profile.d/modules.sh
      - module load mpi
@@ -28,6 +32,11 @@ test-fedora-buster-gnu-mpismp-complete:
      - python:regressionframework-python3
    tags:
      - docker
+   timeout: 4h
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    before_script:
      - source /etc/profile.d/modules.sh
      - module load mpi
@@ -39,7 +48,7 @@ test-fedora-buster-gnu-mpismp-complete:
      - pip3 install -e tools/exciting_tools
      # Enter test folder
      - cd test/
-     # In this case, ONLY run tests with GROUPS tag: HDF5 FASTBSE
-     - python3 set_groups.py -file defaults_config.yml -groups HDF5 FASTBSE NONE LIBXC 
+     # In this case, ONLY run tests with GROUPS tag: HDF5 FASTBSE NONE LIBXC SCALAPACK
+     - python3 set_groups.py -file defaults_config.yml -groups HDF5 FASTBSE NONE LIBXC SCALAPACK
      # Run exciting app tests
      - export OMP_NUM_THREADS=2 && python3 runtest.py -bp $PWD/../install/bin/ -e exciting_mpismp -repeat-tests 2

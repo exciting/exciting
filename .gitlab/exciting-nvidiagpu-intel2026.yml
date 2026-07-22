@@ -1,0 +1,162 @@
+# Compilation Intel using IFX compiler running on the
+# nvidia:gpu runner
+
+build:nvidiagpu-intel2026-serial:
+  stage: build
+  tags:
+    - cpu:intel
+    - gpu:nvidia
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
+  before_script:
+    - source /opt/intel/oneapi/setvars.sh
+    - source /home/soluser/progs/spack-1.2.0/share/spack/setup-env.sh
+    - spack load intel-oneapi-mpi@2021.17.2
+  script:
+    - mkdir build && cd build
+    - FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=OFF -DOMP=OFF -DMKL=ON ..
+    - make -j 8 -l 8
+    - make install
+  artifacts:
+    paths:
+      - install/lib
+      - install/bin/exciting_serial
+      - src/version.inc
+    expire_in: 24 hrs
+
+build:nvidiagpu-intel2026-smp:
+  stage: build
+  tags:
+    - cpu:intel
+    - gpu:nvidia
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
+  before_script:
+    - source /opt/intel/oneapi/setvars.sh
+    - source /home/soluser/progs/spack-1.2.0/share/spack/setup-env.sh
+    - spack load intel-oneapi-mpi@2021.17.2
+  script:
+    - mkdir build && cd build
+    - FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=OFF -DOMP=ON -DMKL=ON ..
+    - make -j 8 -l 8
+    - make install
+  artifacts:
+    paths:
+      - install/lib
+      - install/bin/exciting_smp
+      - src/version.inc
+    expire_in: 24 hrs
+
+build:nvidiagpu-intel2026-mpismp:
+  stage: build
+  tags:
+    - cpu:intel
+    - gpu:nvidia
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
+  before_script:
+    - source /opt/intel/oneapi/setvars.sh
+    - source /home/soluser/progs/spack-1.2.0/share/spack/setup-env.sh
+    - spack load intel-oneapi-mpi@2021.17.2
+  script:
+    - mkdir build && cd build
+    - FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=ON -DOMP=ON -DMKL=ON ..
+    - make -j 8 -l 8
+    - make install
+  artifacts:
+    paths:
+      - install/lib
+      - install/bin/exciting_mpismp
+      - src/version.inc
+    expire_in: 24 hrs
+
+
+build:nvidiagpu-intel2026-mpismp-gpu:
+  stage: build
+  tags:
+    - cpu:intel
+    - gpu:nvidia
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
+  before_script:
+    - source /opt/intel/oneapi/setvars.sh
+    - source /home/soluser/progs/spack-1.2.0/share/spack/setup-env.sh
+    - spack load intel-oneapi-mpi@2021.17.2
+  script:
+    - mkdir build && cd build
+    - FC=ifx CC=icx CXX=icpx ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=ON -DOMP=ON -DMKL=ON -DINTEL=ON ..
+    - make -j 8 -l 8
+    - make install
+  artifacts:
+    paths:
+      - install/lib
+      - install/bin/exciting_mpismp
+      - src/version.inc
+    expire_in: 2 hrs
+
+
+test:nvidiagpu-intel2026-smp:
+  stage: test
+  tags:
+    - cpu:intel
+    - gpu:nvidia
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
+  dependencies:
+    - build:nvidiagpu-intel2026-smp
+  before_script:
+    - python3 -m venv excitngenv
+    - source excitngenv/bin/activate
+    - python3 -m pip install -U pip setuptools
+    - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib pytest pyyaml termcolor
+    - cd tools/exciting_tools
+    # Install test framework parsers
+    - python3 -m pip install -e .[dev,schemaparsing,h5_parsing,serialisation]
+    - cd ../..
+    - source /opt/intel/oneapi/setvars.sh
+    - source /home/soluser/progs/spack-1.2.0/share/spack/setup-env.sh
+    - spack load intel-oneapi-mpi@2021.17.2
+  script:
+    # Run exciting unit tests
+    - export OMP_NUM_THREADS=8 && install/bin/exciting_smp -run-unit-tests -kill-on-failure
+    # Run exciting app tests
+    - cd test/ && export OMP_NUM_THREADS=8 && python3 runtest.py -np 1 -omp 8 -bp $PWD/../install/bin/ -e exciting_smp -repeat-tests 2
+
+test:nvidiagpu-intel2026-mpismp:
+  stage: test
+  tags:
+    - cpu:intel
+    - gpu:nvidia
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
+  dependencies:
+    - build:nvidiagpu-intel2026-mpismp
+  before_script:
+    - python3 -m venv excitngenv
+    - source excitngenv/bin/activate
+    - python3 -m pip install -U pip setuptools
+    - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib pytest pyyaml termcolor
+    - cd tools/exciting_tools
+    # Install test framework parsers
+    - python3 -m pip install -e .[dev,schemaparsing,h5_parsing,serialisation]
+    - cd ../..
+    - source /opt/intel/oneapi/setvars.sh
+    - source /home/soluser/progs/spack-1.2.0/share/spack/setup-env.sh
+    - spack load intel-oneapi-mpi@2021.17.2
+  script:
+    # Run exciting unit tests
+    - export OMP_NUM_THREADS=8 && install/bin/exciting_mpismp -run-unit-tests -kill-on-failure
+    # Run exciting app tests
+    - cd test/ && export OMP_NUM_THREADS=2 && python3 runtest.py -np 4 -omp 2 -bp $PWD/../install/bin/ -e exciting_mpismp -repeat-tests 2

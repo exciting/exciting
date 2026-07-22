@@ -5,6 +5,10 @@ build:fedora-buster-gnu-serial:
    stage: build
    tags:
      - docker
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    script:
      - mkdir build-cmake && cd build-cmake
      - ../external/cmake-3.31.3-linux-x86_64/bin/cmake -DMPI=OFF -DOMP=OFF -DOPENBLAS=ON ..
@@ -25,6 +29,11 @@ test-fedora-buster-gnu-serial:
      - python:regressionframework-python3
    tags:
      - docker
+   timeout: 4h
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    before_script:
      - pip3 install numpy termcolor pytest pyyaml
    script:

@@ -17,6 +17,10 @@ build:debian-buster-Intel2021-serial:
    stage: build
    tags:
      - docker
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    before_script:
      # Module file, with paths consistent with the nfs drive
      - cp -r utilities/build/modules/intel /etc/environment-modules/modules
@@ -37,6 +41,10 @@ build:debian-buster-Intel2021-serial:
 test-debian-buster-Intel2021-serial:
    image: gitdocker.physik.hu-berlin.de/sol/exciting:debian-base-with-nfs
    stage: test
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    dependencies:
      - build:debian-buster-Intel2021-serial
      - python:regressionframework-python3

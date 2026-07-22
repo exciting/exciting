@@ -1,5 +1,5 @@
 # Python frameworks on which exciting depends
-# * excitingtools 
+# * excitingtools
 # * Regression testing framework
 
 python:excitingtools-python3:
@@ -7,6 +7,10 @@ python:excitingtools-python3:
   stage: python
   tags:
     - docker
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   before_script:
     - python3 -m pip install -U pip setuptools
     - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib
@@ -32,11 +36,15 @@ python:excitingtools-python3:
         path: tools/exciting_tools/excitingtools_testcov.xml
 
 # test pure excitingtools without extensions and for lowest supported python version
-python:excitingtools-python3.7:
-  image: python:3.7
+python:excitingtools-python3.10.pytest:
+  image: python:3.10
   stage: python
   tags:
     - docker
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   before_script:
     - python3 -m pip install --upgrade pip setuptools pytest
   script:
@@ -49,6 +57,10 @@ python:regressionframework-python3:
   stage: python
   tags:
     - docker
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   before_script:
    # - apt-get --allow-releaseinfo-change update && apt-get install -y libpython3.7 libpython3.7-dev python3-pip
    # - python3.7 -m pip install --upgrade --force coverage
@@ -91,29 +103,15 @@ deploy:excitingtools-pypi:
     # Only deploy when a feature is merged, not each time the pipeline passes
     - if: '$CI_COMMIT_REF_NAME == "development"'
 
-python:venv-build-python3.7:
-  image: python:3.7
-  stage: python
-  tags: 
-    - docker
-  script:
-    - cd tools/excitingjupyter
-    - source create_env.sh
-
-python:venv-build-python3.9:
-  image: python:3.9
-  stage: python
-  tags: 
-    - docker
-  script:
-    - cd tools/excitingjupyter
-    - source create_env.sh
-
 python:venv-build-python3.10:
   image: python:3.10
   stage: python
-  tags: 
+  tags:
     - docker
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   script:
     - cd tools/excitingjupyter
     - source create_env.sh
@@ -121,8 +119,12 @@ python:venv-build-python3.10:
 python:venv-build-python3.11:
   image: python:3.11
   stage: python
-  tags: 
+  tags:
     - docker
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   script:
     - cd tools/excitingjupyter
     - source create_env.sh
@@ -130,8 +132,12 @@ python:venv-build-python3.11:
 python:venv-build-python3.12:
   image: python:3.12
   stage: python
-  tags: 
+  tags:
     - docker
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   script:
     - cd tools/excitingjupyter
     - source create_env.sh
@@ -139,8 +145,12 @@ python:venv-build-python3.12:
 python:venv-build-python3.13:
   image: python:3.13
   stage: python
-  tags: 
+  tags:
     - docker
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   script:
     - cd tools/excitingjupyter
     - source create_env.sh

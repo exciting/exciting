@@ -3,7 +3,11 @@
 build:llvm-amdgpu-cpu:
   stage: build
   tags:
-    - amd:gpu
+    - cpu:amd
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   script:
     - module load amd-8248-drop-7.0.5
     - module load aocl-tools-amd-8248-drop-7.0.5
@@ -22,12 +26,38 @@ build:llvm-amdgpu-cpu:
       - src/version.inc
     expire_in: 24 hrs
 
+build:llvm-amdgpu-cpu-nompi:
+  stage: build
+  tags:
+    - gpu:amd
+  script:
+    - module load amd-8248-drop-7.0.5
+    - module load aocl-tools-amd-8248-drop-7.0.5
+    - module load blis-amd-8248-drop-7.0.5
+    - module load libflame-amd-8248-drop-7.0.5
+    - module load fftw-amd-8248-drop-7.0.5
+    - module load mpich-4.3.1-amd-8248-drop-7.0.5
+    - mkdir build && cd build
+    - cmake -DCMAKE_C_COMPILER=amdclang -DCMAKE_CXX_COMPILER=amdclang++ -DCMAKE_Fortran_COMPILER=amdflang -DAMDLINALG=ON -DMPI=OFF ..
+    - make -j 8 -l 8
+    - make install
+  artifacts:
+    paths:
+      - install/lib
+      - install/bin/exciting_smp
+      - src/version.inc
+    expire_in: 24 hrs
+
 test:llvm-amdgpu-cpu:
   stage: test
   tags:
-   - amd:gpu
+   - cpu:amd
   dependencies:
     - build:llvm-amdgpu-cpu
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   before_script:
     - source /etc/profile.d/modules.sh
     - python3 -m venv excitngenv
@@ -35,6 +65,7 @@ test:llvm-amdgpu-cpu:
     - python3 -m pip install -U pip setuptools
     - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib pytest pyyaml termcolor
     - cd tools/exciting_tools
+    # Install test framework parsers
     - python3 -m pip install -e .[dev,schemaparsing,h5_parsing,serialisation]
     - cd ../..
     - module load amd-8248-drop-7.0.5
@@ -46,15 +77,18 @@ test:llvm-amdgpu-cpu:
   script:
    # Run exciting unit tests
     - export OMP_NUM_THREADS=8 && install/bin/exciting_mpismp -run-unit-tests -kill-on-failure
-   # Install test framework parsers
-    - pip3 install -e tools/exciting_tools
    # Run exciting app tests
     - cd test/ && export OMP_NUM_THREADS=2 && python3 runtest.py -np 4 -omp 2 -bp $PWD/../install/bin/ -e exciting_mpismp -repeat-tests 2
 
 build:llvm-amdgpu-gpu:
   stage: build
   tags:
-    - amd:gpu
+    - gpu:amd
+    - cpu:amd
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   script:
     - module load rocm-6.4.1
     - module load amd-8248-drop-7.0.5
@@ -79,7 +113,12 @@ build:llvm-amdgpu-gpu:
 test:llvm-amdgpu-gpu:
   stage: test
   tags:
-   - amd:gpu
+   - gpu:amd
+   - cpu:amd
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   resource_group: llvm-amdgpu-gpu-tests   # Ensures only ONE instance runs at a time per resource group (We are using both GPUs)
   dependencies:
     - build:llvm-amdgpu-gpu

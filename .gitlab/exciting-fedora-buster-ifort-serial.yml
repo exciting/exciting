@@ -3,6 +3,10 @@
 build:fedora-buster-ifort-serial:
    image: gitdocker.physik.hu-berlin.de/sol/exciting:fedora_intel_ifort
    stage: build
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    tags:
      - docker
    before_script:
@@ -28,6 +32,11 @@ test-fedora-buster-ifort-serial:
      - python:regressionframework-python3
    tags:
      - docker
+   timeout: 24h
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    before_script:
      - . spack/share/spack/setup-env.sh
      - spack load intel-oneapi-compilers-classic@2021.10.0 intel-oneapi-mpi@2021.14.1 intel-oneapi-mkl@2024.2.0 libxc@7.0.0

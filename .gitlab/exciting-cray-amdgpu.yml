@@ -1,10 +1,13 @@
 # This job builds exciting using Cray compiler on the solPC06 runner
 # It also does the unit tests
-
 build:cray-amdgpu:
   stage: build
   tags:
     - amd:gpu
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   script:
     - >
       /home/soluser/progs/Cray/HPE_CPE_Container_24.11.5/execute_cray_container.sh bash -lc "
@@ -36,6 +39,10 @@ test-cray-amdgpu:
     - build:cray-amdgpu
   tags:
     - amd:gpu
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+      when: never
+    - when: on_success
   script:
     - >
       /home/soluser/progs/Cray/HPE_CPE_Container_24.11.5/execute_cray_container.sh bash -lc "

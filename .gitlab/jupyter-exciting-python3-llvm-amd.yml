@@ -1,0 +1,168 @@
+# Test the Jupyter tutorials
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "development"'
+    - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+
+# Test the Jupyter tutorials
+
+test-amd-cpu-jupyter-setup-groundstate:
+ stage: test
+ tags:
+  - amd:gpu
+ dependencies:
+  - build:llvm-amdgpu-cpu-nompi
+ before_script:
+  - source /etc/profile.d/modules.sh
+  - python3 -m venv excitngenv
+  - source excitngenv/bin/activate
+  - python3 -m pip install -U pip setuptools
+  - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib pytest pyyaml termcolor
+  - cd tools/exciting_tools
+  # Install test framework parsers
+  - python3 -m pip install -e .[dev,schemaparsing,h5_parsing,serialisation]
+  - cd ../..
+  - module load amd-8248-drop-7.0.5
+  - module load aocl-tools-amd-8248-drop-7.0.5
+  - module load blis-amd-8248-drop-7.0.5
+  - module load libflame-amd-8248-drop-7.0.5
+  - module load fftw-amd-8248-drop-7.0.5
+  - module load mpich-4.3.1-amd-8248-drop-7.0.5
+ timeout: 24h
+ script:
+  - cd tools/excitingjupyter
+  - source set_env_vars.sh
+  - source create_env.sh
+  - pip3 install pytest
+  - python3 -m pip install -U pip setuptools
+  - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib scipy
+  - python3 -m pytest -vv ../excitingscripts/tests
+  - cd excitingjupyter
+  - time jupyter nbconvert --execute 01_getting_started/how_to_start_an_exciting_calculation.ipynb --to markdown
+  - time python3 01_getting_started/assertions/how_to_start_an_exciting_calculation.py
+  - time jupyter nbconvert --execute 01_getting_started/simple_convergence_tests.ipynb --to markdown
+  - time python3 01_getting_started/assertions/simple_convergence_tests.py
+  - time jupyter nbconvert --execute 01_getting_started/electronic_band_structure_and_density_of_states.ipynb --to markdown
+  - time python3 01_getting_started/assertions/electronic_band_structure_and_density_of_states.py
+  - time jupyter nbconvert --execute 01_getting_started/understanding_the_exciting_species_files.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/exchange_correlation_functionals.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/exchange_correlation_functionals.py
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/how_to_visualize_kohn_sham_states.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/how_to_visualize_kohn_sham_states.py
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/hybrid_functional_calculations.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/hybrid_functional_calculations.py
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_orbit_coupling.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/spin_orbit_coupling.py
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/spin_polarized_calculations_for_bcc_Fe.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/spin_polarized_calculations_for_bcc_Fe.py
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/dft_0.5.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/dft_0.5.py
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/dipole_correction_for_surface_calculations.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/dipole_correction_for_surface_calculations.py
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/exact_exchange_calculations.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/exact_exchange_calculations.py
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/low_dimensional_systems.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/low_dimensional_systems.py
+  - time jupyter nbconvert --execute 02_ground_state/01_Methods/van_der_waals_corrections.ipynb --to markdown
+  - time python3 02_ground_state/01_Methods/assertions/van_der_waals_corrections.py
+  - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/fermi_surface_visualization.ipynb --to markdown
+  - time python3 02_ground_state/02_Electronic_Properties/assertions/fermi_surface_visualization.py
+  - time jupyter nbconvert --execute 02_ground_state/02_Electronic_Properties/spin_texture_calculation.ipynb --to markdown
+  - time python3 02_ground_state/02_Electronic_Properties/assertions/spin_texture_calculation.py
+  - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/simple_examples_of_structure_optimization.ipynb --to markdown
+  - time python3 02_ground_state/03_Lattice_Optimization/assertions/simple_examples_of_structure_optimization.py
+  - time jupyter nbconvert --execute 02_ground_state/03_Lattice_Optimization/volume_optimization_for_cubic_systems.ipynb --to markdown
+  - time python3 02_ground_state/03_Lattice_Optimization/assertions/volume_optimization_for_cubic_systems.py
+  - time jupyter nbconvert --execute 02_ground_state/04_Molecules/how_to_run_calculations_for_simple_molecules.ipynb --to markdown
+  - time python3 02_ground_state/04_Molecules/assertions/how_to_run_calculations_for_simple_molecules.py
+  - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/born_effective_charges_of_zincblende_structure_crystals.ipynb --to markdown
+  - time python3 02_ground_state/05_Lattice_Dynamics/assertions/born_effective_charges_of_zincblende_structure_crystals.py
+  - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/how_to_visualize_phonons.ipynb --to markdown
+  - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/lattice_dynamics_of_diamond_and_zincblende_structure_crystals.ipynb --to markdown
+  - time python3 02_ground_state/05_Lattice_Dynamics/assertions/lattice_dynamics_of_diamond_and_zincblende_structure_crystals.py
+  - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/phonons_at_gamma_in_diamond_structure_crystals.ipynb --to markdown
+  - time python3 02_ground_state/05_Lattice_Dynamics/assertions/phonons_at_gamma_in_diamond_structure_crystals.py
+  - time jupyter nbconvert --execute 02_ground_state/05_Lattice_Dynamics/phonons_at_X_in_diamond_structure_crystals.ipynb --to markdown
+  - time python3 02_ground_state/05_Lattice_Dynamics/assertions/phonons_at_X_in_diamond_structure_crystals.py
+  - time jupyter nbconvert --execute 02_ground_state/06_Elastic_Properties/energy_vs_strain_calculations.ipynb --to markdown
+  - time python3 02_ground_state/06_Elastic_Properties/assertions/energy_vs_strain_calculations.py
+ rules:
+  - if: '$CI_COMMIT_BRANCH == "development" || $CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+
+test-amd-cpu-jupyter-setup-excitedstates:
+ stage: test
+ tags:
+  - amd:gpu
+ dependencies:
+  - build:llvm-amdgpu-cpu-nompi
+ before_script:
+  - source /etc/profile.d/modules.sh
+  - python3 -m venv excitngenv
+  - source excitngenv/bin/activate
+  - python3 -m pip install -U pip setuptools
+  - python3 -m pip install --upgrade --force pylint coverage numpy contourpy matplotlib pytest pyyaml termcolor
+  - cd tools/exciting_tools
+  # Install test framework parsers
+  - python3 -m pip install -e .[dev,schemaparsing,h5_parsing,serialisation]
+  - cd ../..
+  - module load amd-8248-drop-7.0.5
+  - module load aocl-tools-amd-8248-drop-7.0.5
+  - module load blis-amd-8248-drop-7.0.5
+  - module load libflame-amd-8248-drop-7.0.5
+  - module load fftw-amd-8248-drop-7.0.5
+  - module load mpich-4.3.1-amd-8248-drop-7.0.5
+ timeout: 24h
+ # One might consider moving construction of venv to the build state and make it an artifact
+ # Several tutorials are commented out, as they take a very long time to be executed in the CI (~10h each).
+ # One should investigate if the execution can be sped up.
+ script:
+  - cd tools/excitingjupyter
+  - source set_env_vars.sh
+  - source create_env.sh
+  - cd excitingjupyter
+  - time jupyter nbconvert --execute 03_excited_states/01_GW/electronic_band_structure_from_gw.ipynb --to markdown
+  - time python3 03_excited_states/01_GW/assertions/electronic_band_structure_from_gw.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/excited_states_from_bse.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/excited_states_from_bse.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/exciton_analysis_and_visualization.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/exciton_analysis_and_visualization.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/xray_absorption_spectra_using_bse.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/xray_absorption_spectra_using_bse.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/xray_emission_spectra.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/xray_emission_spectra.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/q_dependent_bse_calculations.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/q_dependent_bse_calculations.py
+  - time jupyter nbconvert --execute 03_excited_states/02_BSE/optical_spectra_from_fastBSE.ipynb --to markdown
+  - time python3 03_excited_states/02_BSE/assertions/optical_spectra_from_fastBSE.py
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/excited_states_from_tddft.ipynb --to markdown
+  - time python3 03_excited_states/03_TDDFT/assertions/excited_states_from_tddft.py
+  - export OPENBLAS_NUM_THREADS=1; time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft.ipynb --to markdown; unset OPENBLAS_NUM_THREADS
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/q_dependent_tddft.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/many_body_kernels_for_tddft_calculations.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/simulating_pump_probe_spectroscopy_with_rt_tddft.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/studying_higher_harmonics_generation_using_rt_tddft.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/03_TDDFT/real_time_tddft_combined_with_molecular_dynamics.ipynb --to markdown
+  - time python3 03_excited_states/03_TDDFT/assertions/real_time_tddft_combined_with_molecular_dynamics.py
+  - time jupyter nbconvert --execute 03_excited_states/04_EPH/temperature_dependent_band_gap.ipynb --to markdown
+  - time jupyter nbconvert --execute 03_excited_states/05_Others/species_files_for_excited_states.ipynb --to markdown
+  - time python3 03_excited_states/05_Others/assertions/species_files_for_excited_states.py
+  - time jupyter nbconvert --execute 03_excited_states/05_Others/graphene_from_ground_state_to_excitations.ipynb --to markdown
+  - time python3 03_excited_states/05_Others/assertions/graphene_from_ground_state_to_excitations.py
+  - time jupyter nbconvert --execute 04_additional_features/magneto_optical_kerr_effect.ipynb --to markdown
+  - time python3 04_additional_features/assertions/magneto_optical_kerr_effect.py
+  - time jupyter nbconvert --execute 04_additional_features/second_harmonic_generation.ipynb --to markdown
+  - time python3 04_additional_features/assertions/second_harmonic_generation.py
+  - time jupyter nbconvert --execute 04_additional_features/transport_properties_using_the_boltzmann_equation.ipynb --to markdown
+  - time python3 04_additional_features/assertions/transport_properties_using_the_boltzmann_equation.py
+  - time jupyter nbconvert --execute 05_tools_and_packages/tutorial_excitingtools.ipynb --to markdown
+ rules:
+  - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    changes:
+      - tools/excitingjupyter/excitingjupyter/03_excited_states/04_Others/species_files_for_excited_states.ipynb
+      - tools/excitingjupyter/excitingjupyter/03_excited_states/04_Others/assertions/species_files_for_excited_states.py
+      - tools/excitingscripts/excitingscripts/setup/excited_state_species_files.py
+      - tools/excitingscripts/tests/setup/test_setup_excited_state_species_files.py
+  - if: '$CI_COMMIT_BRANCH == "development" || $CI_COMMIT_MESSAGE =~ /\[tutorial\]/'

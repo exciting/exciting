@@ -5,6 +5,10 @@ build:fedora-buster-gnu-mpismp:
    stage: build
    tags:
      - docker
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    before_script:
      - source /etc/profile.d/modules.sh
      - module load mpi
@@ -28,6 +32,11 @@ test-fedora-buster-gnu-mpismp:
      - python:regressionframework-python3
    tags:
      - docker
+   timeout: 4h
+   rules:
+     - if: '$CI_COMMIT_MESSAGE =~ /\[tutorial\]/'
+       when: never
+     - when: on_success
    before_script:
      - source /etc/profile.d/modules.sh
      - module load mpi

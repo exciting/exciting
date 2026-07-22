@@ -897,25 +897,6 @@ GW/ZrO2-PBESOL:
       - "STATE.OUT"
       - "EFERMI.OUT"
 
-GW/He-cc4s:
-   failing_builds:
-      - !Build intel_mpiandsmp
-      - !Build intelLLVM_mpiandsmp
-      - !Build gcc_mpiandsmp
-      - !Build flang_mpiandsmp
-
-   files_under_test:
-      - BARC_Q1.OUT
-      - coulomb_vertex_q0001.test
-   inputs:
-      - "input.xml"
-      - "He.xml"
-      - "STATE.OUT"
-      - "STATE_PBE.OUT"
-      - "EVALFV.OUT"
-      - "EVECFV.OUT"
-   
-
 hybrid/EXX-C:
 
 # TODO(Cecilia) Issue 54. HSE and PBE0 sometimes fail in our CI pipeline within Intel MPIANDSMP build

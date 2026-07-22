@@ -18,8 +18,9 @@
 # Found in the respective build folder
 # Kept paths as 'exciting' is quite a general name 
 /build*/
-# Bin directory, covering all executables
+# Bin directories, covering all executables
 /install/
+/bin/
 
 # Binaries from standalone builds 
 # Kept paths as 'species' and 'spacegroup' are very general names 
