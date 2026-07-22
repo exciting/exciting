@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atomlist>
+  <Hamiltonian RelativityModel="dirac" xctype="3"/>
+  <atom chemicalSymbol="B" species="B.xml">
+    <NumericalSetup TotalNumberOfGridPoints="662" NumberOfMTGridPoints="250" GridType="cubic" rmin="1.000000000000e-5" rmt="1.300000000000e0" rmax="2.431904561422e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-6.56578993989"/>
+      <state n="2" l="0" kappa="1" energy="-0.344799664588"/>
+      <state n="2" l="1" kappa="1" energy="-0.136574918912"/>
+    </spectrum>
+  </atom>
+  <atom chemicalSymbol="N" species="N.xml">
+    <NumericalSetup TotalNumberOfGridPoints="597" NumberOfMTGridPoints="250" GridType="cubic" rmin="1.000000000000e-5" rmt="1.385222436171e0" rmax="1.899578950538e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-14.0199080067"/>
+      <state n="2" l="0" kappa="1" energy="-0.676948646816"/>
+      <state n="2" l="1" kappa="1" energy="-0.266499352541"/>
+      <state n="2" l="1" kappa="2" energy="-0.265789217475"/>
+    </spectrum>
+  </atom>
+</atomlist>

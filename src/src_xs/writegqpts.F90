@@ -19,7 +19,6 @@ Contains
          Use modmain
          Use modxs, only: unit1, ngq, vgqc, vgql, gqc
          Use mod_qpoint, only: vqc
-         Use m_getunit
 ! !DESCRIPTION:
 !   Writes the ${\bf G+q}$-points in lattice coordinates, Cartesian
 !   coordinates, and lengths of ${\bf G+q}$-vectors to the file
@@ -40,12 +39,11 @@ Contains
          Integer :: igq
          real(8) :: v(3)
 
-         Call getunit(unit1)
-         
+        
          if(present(dirname)) then 
-           Open(unit1, File=trim(adjustl(dirname))//'/'//'GQPOINTS'//trim(filex), Action='WRITE', Form='FORMATTED')
+           Open(newunit=unit1, File=trim(adjustl(dirname))//'/'//'GQPOINTS'//trim(filex), Action='WRITE', Form='FORMATTED')
          else
-           Open(unit1, File='GQPOINTS'//trim(filex), Action='WRITE', Form='FORMATTED')
+           Open(newunit=unit1, File='GQPOINTS'//trim(filex), Action='WRITE', Form='FORMATTED')
          end if
          Write(unit1, '(I6, " : ngq; G+q-point, vgql, vgqc, gqc, |G| below")') ngq(iq)
 

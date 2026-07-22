@@ -1,3 +1,14 @@
+"""Fit energy-vs-volume curves using the Birch-Murnaghan equation of state (**BM-EoS**) in polynomial form.
+
+Located at `excitingscripts/plot/newbirch.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.newbirch
+```
+"""
+
 import os
 import pathlib
 from argparse import ArgumentParser

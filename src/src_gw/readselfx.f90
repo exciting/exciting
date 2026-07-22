@@ -12,7 +12,6 @@ subroutine readselfx
 !
 !!USES:
     use modgw,   only : kset, ibgw, nbgw, selfex
-    use m_getunit
        
 !!LOCAL VARIABLES:
     integer(4) :: ib, nb, nk
@@ -24,9 +23,8 @@ subroutine readselfx
 !
 !EOP
 !BOC
-    call getunit(fid)
 
-    open(fid,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
+    open(newunit=fid,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
     read(fid) ib, nb, nk
     close(fid)
 
@@ -43,7 +41,7 @@ subroutine readselfx
       stop
     end if
     
-    open(fid,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
+    open(newunit=fid,file='SELFX.OUT',form='UNFORMATTED',status='UNKNOWN')
     read(fid) ib, nb, nk, selfex
     close(fid)
       

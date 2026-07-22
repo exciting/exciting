@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <title>CO2</title>
+  <structure speciespath="./">
+    <crystal>
+      <basevect>   23.19952237       0.000000000       0.000000000</basevect>
+      <basevect>   0.000000000       18.89726125       0.000000000</basevect>
+      <basevect>   0.000000000       0.000000000       18.89726125</basevect>
+    </crystal>
+    <species speciesfile="C.xml" rmt="0.9767">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    </species>
+    <species speciesfile="O.xml" rmt="1.0667">
+      <atom coord="0.0927230538      0.0000000000      0.0000000000"/>
+      <atom coord="0.9072769462      0.0000000000      0.0000000000"/>
+    </species>
+  </structure>
+</input>

@@ -4,7 +4,6 @@ module efield_variables
 
   use precision, only: dp
   use modmpi
-  use asserts, only: assert
 
   implicit none
   private

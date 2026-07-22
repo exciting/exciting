@@ -234,14 +234,14 @@ Subroutine hybrids
       call timesec(ts1)
       if ((input%groundstate%outputlevelnumber>1) .and.rank==0) then
         write(60,*)
-        write(60,'(" CPU time for vxnl (seconds)",T45 ": ", F12.2)') ts1-ts0
+        write(60,'(" CPU time for vxnl (seconds)",T45, ": ", F12.2)') ts1-ts0
       end if
       !------------------------------------------
       call timesec(ts0)
       call calc_vnlmat()
       call timesec(ts1)
       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
-        write(60,'(" CPU time for vnlmat (seconds)",T45 ": ", F12.2)') ts1-ts0
+        write(60,'(" CPU time for vnlmat (seconds)",T45, ": ", F12.2)') ts1-ts0
       end if
       time_hyb = time_hyb+ts1-ts0
 
@@ -252,13 +252,13 @@ Subroutine hybrids
       call scf_cycle(-1)
       call timesec(ts1)
       If ((input%groundstate%outputlevelnumber>1) .and.rank==0) Then
-        write(60, '(" CPU time for scf_cycle (seconds)",T45 ": ", F12.2)') ts1-ts0
+        write(60, '(" CPU time for scf_cycle (seconds)",T45, ": ", F12.2)') ts1-ts0
         write(60,*)
       end if
       if (rank == 0) then
           call writeengy(60)
           write(60,*)
-          write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45 ": ", F18.8)') fermidos
+          write(60,'(" DOS at Fermi energy (states/Ha/cell)",T45, ": ", F18.8)') fermidos
           call writechg(60,input%groundstate%outputlevelnumber)
           if (fermidos<1.0d-4) call printbandgap(60)
           call flushifc(60)

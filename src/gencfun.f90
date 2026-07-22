@@ -113,6 +113,7 @@ subroutine gencfunig( ng, gc, vgc, cfunig)
   complex(dp), intent(out) :: cfunig(*)
 
   integer :: is, ia, i, ig
+  integer :: nfinite_g, nzero_g
   real(dp) :: t1, t2
 
   integer, allocatable :: finite_g_indices(:), zero_g_indices(:)
@@ -121,8 +122,27 @@ subroutine gencfunig( ng, gc, vgc, cfunig)
   t1 = fourpi/omega
 
   allocate( ffacg(ng))
-  finite_g_indices = pack( [(ig,ig=1,ng)], [(gc(ig) > input%structure%epslat, ig=1, ng)])
-  zero_g_indices = pack( [(ig,ig=1,ng)], [(gc(ig) <= input%structure%epslat, ig=1, ng)])
+
+  nfinite_g = 0
+  do ig = 1, ng
+    if (gc(ig) > input%structure%epslat) nfinite_g = nfinite_g + 1
+  end do
+  nzero_g = ng - nfinite_g
+
+  allocate(finite_g_indices(nfinite_g))
+  allocate(zero_g_indices(nzero_g))
+
+  nfinite_g = 0
+  nzero_g = 0
+  do ig = 1, ng
+    if (gc(ig) > input%structure%epslat) then
+      nfinite_g = nfinite_g + 1
+      finite_g_indices(nfinite_g) = ig
+    else
+      nzero_g = nzero_g + 1
+      zero_g_indices(nzero_g) = ig
+    end if
+  end do
   
   cfunig(finite_g_indices) = zzero
   cfunig(zero_g_indices) = zone

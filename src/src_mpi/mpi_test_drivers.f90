@@ -9,7 +9,7 @@ module mpi_test_drivers
 contains
   subroutine mpi_test_driver( mpiglobal, kill_on_failure )
     !> MPI environment
-    type(mpiinfo), intent(inout) :: mpiglobal
+    type(mpiinfo), intent(in) :: mpiglobal
     !> Kill the program before the test driver finishes if an assertion fails
     logical, optional :: kill_on_failure 
 

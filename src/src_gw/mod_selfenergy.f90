@@ -1,6 +1,6 @@
 
 module mod_selfenergy
-    use asserts, only: assert
+#include "asserts.fpp"
     use constants, only: zzero
     use gw_io, only: build_file_name, read_from_file, write_to_file, read_bounds_from_file
     use mod_frequency, only: frequency, generate_freqgrid
@@ -44,7 +44,7 @@ module mod_selfenergy
     ! QP energies
     real(dp), public :: eferqp
     real(dp), allocatable, public :: evalqp(:,:)
-
+    
     ! Chemical potential alignment
     real(dp), public :: deltaE
 
@@ -61,8 +61,8 @@ module mod_selfenergy
     !----------------------------------------------------------------------
     ! files to store the self-energy
     !----------------------------------------------------------------------
-    character(len=*), parameter, private :: file_name_sigmax = 'SIGMAX_K'
-    character(len=*), parameter, private :: file_name_sigmac = 'SIGMAC_K'
+    character(len=*), parameter, public :: file_name_sigmac = 'SIGMAC_K'
+    character(len=*), parameter, public :: file_name_sigmax = 'SIGMAX_K'
 
     public :: init_selfenergy, plot_selfc, plot_selfc_iw, &
               generate_frequency_grid_for_correlation_self_energy, &
@@ -72,10 +72,14 @@ module mod_selfenergy
 
 contains
 
-    !---------------------------------------------------------------------------
+    !> Allocate and initialize self-energy arrays.
     subroutine init_selfenergy(ibgw,nbgw,nkpt)
         use modinput, only: input
-        integer(i32), intent(in) :: ibgw, nbgw
+        !> First band index for GW corrections.
+        integer(i32), intent(in) :: ibgw
+        !> Last band index for GW corrections.
+        integer(i32), intent(in) :: nbgw
+        !> Number of k-points.
         integer(i32), intent(in) :: nkpt
         ! local
         integer(i32) :: nw
@@ -147,7 +151,7 @@ contains
       end if
     end subroutine
 
-    !---------------------------------------------------------------------------
+    !> Deallocate module-level self-energy arrays.
     subroutine delete_selfenergy
       if (allocated(evalks)) deallocate(evalks)
       if (allocated(evalqp)) deallocate(evalqp)
@@ -162,11 +166,16 @@ contains
       if (allocated(freq_selfc%womeg)) deallocate(freq_selfc%womeg)
     end subroutine
 
-    !---------------------------------------------------------------------------
+    !> Write self-energy arrays in the legacy unformatted binary files.
     subroutine write_selfenergy_binary(ibgw,nbgw,nkpt,nw)
       use modinput, only: input
-      integer(i32), intent(in) :: ibgw, nbgw
+      !> First band index for GW corrections.
+      integer(i32), intent(in) :: ibgw
+      !> Last band index for GW corrections.
+      integer(i32), intent(in) :: nbgw
+      !> Number of k-points.
       integer(i32), intent(in) :: nkpt
+      !> Number of correlation-frequency points.
       integer(i32), intent(in) :: nw
       ! local variables
       integer(i32) :: fid, ie, ik, iom
@@ -188,16 +197,18 @@ contains
       end if
     end subroutine
 
-    !> Write exchange self-energy in real text format
     ! TODO(Alex) Would be nicer to print the actual k-point, too
     ! NOTE. Not tested - how does it behave when running with MPI w.r.t. ik?
+    !> Write exchange self-energy in real text format.
     subroutine write_exchange_selfenergy(ibgw, nbgw, nkpt)
-      !> Band limits for which GW correction is applied
-      integer(i32), intent(in) :: ibgw, nbgw
-      !>  Number of k-points 
+      !> First band index for GW corrections.
+      integer(i32), intent(in) :: ibgw
+      !> Last band index for GW corrections.
+      integer(i32), intent(in) :: nbgw
+      !> Number of k-points.
       integer(i32), intent(in) :: nkpt
-      !> ile ID unit
-      integer(i32) :: fid                      
+      !> File ID unit.
+      integer(i32) :: fid
       integer(i32) :: ik, ie
 
       open(newunit=fid, file='SELFX.DAT', form='FORMATTED', status='UNKNOWN')
@@ -214,18 +225,20 @@ contains
       close(fid)
     end subroutine
 
-    !> Write correlation self-energy in real text format
     ! TODO(Alex) Would be nicer to print the actual k-point, too
     ! NOTE. Not tested - how does it behave when running with MPI w.r.t. ik?
+    !> Write correlation self-energy in real text format.
     subroutine write_correlation_selfenergy(ibgw, nbgw, nw, nkpt)
-      !> Band limits for which GW correction is applied
-      integer(i32), intent(in) :: ibgw, nbgw
-      !>  Number of frequency points 
+      !> First band index for GW corrections.
+      integer(i32), intent(in) :: ibgw
+      !> Last band index for GW corrections.
+      integer(i32), intent(in) :: nbgw
+      !> Number of frequency points.
       integer(i32), intent(in) :: nw
-      !>  Number of k-points 
+      !> Number of k-points.
       integer(i32), intent(in) :: nkpt
-      
-      integer(i32) :: fid                      
+
+      integer(i32) :: fid
       integer(i32) :: ik, ie, iom
 
       open(newunit=fid, file='SELFC.DAT', form='FORMATTED', status='UNKNOWN')
@@ -322,7 +335,7 @@ contains
     end subroutine
 
 
-    !---------------------------------------------------------------------------
+    !> Write the correlation self-energy along the imaginary axis.
     subroutine plot_selfc_iw()
       integer(i32) :: ik, iw, nk, nb
       character(22) :: frmt
@@ -353,7 +366,7 @@ contains
       close(72)
     end subroutine
 
-    !---------------------------------------------------------------------------
+    !> Write the correlation self-energy for selected k-points.
     subroutine plot_selfc(frequencies, list_kpt_idx, sigmac, first_band)
       !> Array with the frequencies (in most cases, assumed to be along the real axis)
       real(dp), contiguous, intent(in) :: frequencies(:)
@@ -363,13 +376,13 @@ contains
       integer(i32), intent(in) :: first_band
       !> Correlation part of the self-energy \(\Sigma_C\)
       complex(dp), contiguous, intent(in) :: sigmac(first_band:, :, :)
-      
+
       character(len=*), parameter :: file_name_selfc = 'SELFENERGY_C_K'
       character(len=*), parameter :: default_extension ='.OUT'
       integer(i32) :: i, ik, i_band, i_freq, i_unit
 
-      call assert( size(frequencies) == size(sigmac, 2), "frequencies and sigmac have incompatible sizes")
-      call assert( size(list_kpt_idx) == size(sigmac, 3), "list_kpt_idx and sigmac have incompatible sizes")
+      CALL_ASSERT( size(frequencies) == size(sigmac, 2), "frequencies and sigmac have incompatible sizes")
+      CALL_ASSERT( size(list_kpt_idx) == size(sigmac, 3), "list_kpt_idx and sigmac have incompatible sizes")
       do i = 1, size(sigmac, 3)
         ik = list_kpt_idx(i)
         open( newunit=i_unit, file=file_name_selfc//to_char(ik)//default_extension, action="write" )

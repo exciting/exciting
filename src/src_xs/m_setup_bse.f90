@@ -250,7 +250,6 @@ module m_setup_bse
                       & scclicfbasename,&
                       & infofbasename,&
                       & vwdiffrr, vwdiffar
-      use m_getunit
       use m_genfilname
       use m_putgetbsemat
       use m_writecmplxparts
@@ -726,7 +725,7 @@ module m_setup_bse
         & Taking square root of RR-RA matrix")') trim(thisname)
       call timesec(t0)
       ! rrmat -> (A-B)^1/2
-      call sqrtdzmat_hepd(rrmat, binfo, eecs=input%xs%bse%eecs)
+      call sqrtdzmat_hepd(rrmat, binfo)
       call timesec(t1)
       write(unitout, '("  RR-RA is positive definite")')
       write(unitout, '("  Time needed",f12.3,"s")') t1-t0
@@ -815,7 +814,6 @@ module m_setup_bse
                       & scclicfbasename,&
                       & infofbasename, &
                       & vwdiffrr, vwdiffar, hamsize
-      use m_getunit
       use m_genfilname
       use m_putgetbsemat
       use m_writecmplxparts
@@ -1150,7 +1148,7 @@ module m_setup_bse
 
             !! We have a sub block of the 
             !! global sub-matrix at col j of colsize jb
-            !! that needs to be sent do one process only.
+            !! that needs to be sent to one process only.
             ! Get process grid column coordinate of responsible process.
             pc = indxg2p( jg, jblck, binfo%mypcol, 0, binfo%npcols)
             ! Get column position of ib*jb block in local matrix
@@ -1185,7 +1183,7 @@ module m_setup_bse
 
               !! We have a sub block of the 
               !! global sub-matrix at coordinates i,j of size ib*jb
-              !! that needs to be sent do one process only.
+              !! that needs to be sent to one process only.
               ! Get process grid row coordinate of responsible process.
               pr = indxg2p( ig, iblck, binfo%myprow, 0, binfo%nprows)
               ! Get row position of ib*jb block in local matrix

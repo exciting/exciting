@@ -3,6 +3,8 @@
 ! See the file COPYING for license details.
 !
 module m_getapwcmt
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
+  use precision, only: i32, long_int, dp, str_256 
 
   implicit none
 
@@ -13,24 +15,23 @@ module m_getapwcmt
       use modmain
       use modinput
       use modxs
-      use m_getunit
 
       implicit none
 
       ! arguments
-      integer, intent(in) :: iq, ik, isti, istf, lmax
-      complex(8), intent(out) :: apwlm(:, :, :, :)
+      integer(i32), intent(in) :: iq, ik, isti, istf, lmax
+      complex(dp), intent(out) :: apwlm(:, :, :, :)
       character(*), intent(in), optional :: fname
-      real(8), intent(in), optional :: vpl(3)
+      real(dp), intent(in), optional :: vpl(3)
 
       ! local variables
       character(*), parameter :: thisnam = 'getapwcmt'
-      character(256) :: filextt
-      character(256) :: filename
-      integer :: un, reclen, nerr, nstfv_, apwordmax_, lmaxapw_
-      real(8) :: vql_(3), vkl_(3), vklt(3), vqlt(3)
-      complex(8), allocatable :: apwlmt(:, :, :, :)
-      real(8), external :: r3dist
+      character(str_256) :: filextt, filename
+      integer(i32) :: un,  nerr, nstfv_, apwordmax_, lmaxapw_
+      integer(long_int) :: reclen
+      real(dp) :: vql_(3), vkl_(3), vklt(3), vqlt(3)
+      complex(dp), allocatable :: apwlmt(:, :, :, :)
+      real(dp), external :: r3dist
 
       nerr = 0
 
@@ -90,14 +91,10 @@ module m_getapwcmt
       !     get parameters     !
       !------------------------!
 
-      inquire(iolength=reclen) vql_, vkl_, nstfv_, apwordmax_, lmaxapw_
+      call inquire_large( reclen, vql_, vkl_, [nstfv_, apwordmax_, lmaxapw_] )
+      call open_direct_unformatted_large( un, trim( adjustl( filename ) ), "read", reclen, "old" )
 
-      call getunit(un)
-
-      open(un, file=trim(adjustl(filename)), action='read',&
-        & form='unformatted', status='old', access='direct', recl=reclen)
       read(un, rec=1) vql_, vkl_, nstfv_, apwordmax_, lmaxapw_
-
       close(un)
 
       nerr = 0
@@ -159,11 +156,8 @@ module m_getapwcmt
       allocate(apwlmt(nstfv_, apwordmax, (lmaxapw_+1)**2, natmtot))
 
       ! Read data from file
-      inquire(iolength=reclen) vql_, vkl_, nstfv_, apwordmax_, lmaxapw_, apwlmt
-
-      call getunit(un)
-      open(un, file=trim(adjustl(filename)), action='read',&
-        & form='unformatted', status='old', access='direct', recl=reclen)
+      call inquire_large( reclen, vql_, vkl_, [nstfv_, apwordmax_, lmaxapw_], apwlmt )
+      call open_direct_unformatted_large( un, trim( adjustl( filename ) ), "read", reclen, "old" )
       read(un, rec=ik) vql_, vkl_, nstfv_, apwordmax_, lmaxapw_, apwlmt
       close(un)
 

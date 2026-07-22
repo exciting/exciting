@@ -4,7 +4,6 @@
 !==================================================================
 subroutine calcspeceph(eval2, evalpath, ik)
     use modinput
-    use m_getunit
     use modmain, only : evalsv, idxas, evalcr, efermi, nstfv
     use constants, only : zzero, pi
     use modgw 
@@ -80,8 +79,7 @@ subroutine calcspeceph(eval2, evalpath, ik)
     !
 
     if(ik .eq. 1) then
-      call getunit(fid)
-      open(fid,file='wgkq'//ik//'.OUT',action='Write',status='Unknown')
+      open(newunit=fid,file='wgkq'//ik//'.OUT',action='Write',status='Unknown')
       do iq = 1, ngridkqtot ! loop over dense mesh for BZ integral
         do ie1 = ibeph, nbeph ! loop over states
            ekq = eval2(ie1,iq)-efnew

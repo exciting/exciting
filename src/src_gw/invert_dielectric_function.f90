@@ -1,5 +1,5 @@
 module invert_dielectric_function
-   use asserts, only: assert
+#include "asserts.fpp"
    use precision, only: dp, i32
    use constants, only: zone
    use exciting_idiel_interface, only: set_head_wings_idiel, get_head_wings_idiel, invert_body, &
@@ -51,9 +51,7 @@ contains
 
       call timesec(tstart)
       if( gamma ) then
-        call assert( present(scrcoul) .and. present(symt2) .and. present(epsw1) .and. &
-          present(epsw2) .and. present(epsh) .and. present(eps00), &
-          'Optional arguments must be present when gamma is true' )
+        CALL_ASSERT( present(scrcoul) .and. present(symt2) .and. present(epsw1) .and.  present(epsw2) .and. present(epsh) .and. present(eps00),  'Optional arguments must be present when gamma is true' )
       end if
       mbsiz = size(epsilon, 1)
 
@@ -244,7 +242,7 @@ contains
 
    !>In this routine one specific direction for \( \hat{\mathbf{q}} \) is passed as the input parameter `q0eps`.
    subroutine isotropic_averaging(iom, symt2, q0eps, eps, epsw1, epsw2, epsh, eps00)
-      use asserts, only: assert
+#include "asserts.fpp"
       use math_utils, only: all_zero
       !>Frequency index
       integer(i32), intent(in) :: iom
@@ -273,7 +271,7 @@ contains
       !> Tolerance for zero
       real(dp), parameter :: tol = 1.e-8_dp
 
-      call assert(.not. all_zero(q0eps), "q0eps should not be zero")
+      CALL_ASSERT(.not. all_zero(q0eps), "q0eps should not be zero")
 
       mbsiz = size(eps, 1)
       call symmetrised_dielectric_tensor(iom, eps, epsw1, epsw2, epsh, symt2, L, s, t)
@@ -285,7 +283,7 @@ contains
 
       L_diag = [(L(i, i), i = 1, 3)]
 
-      call assert(maxval(abs(L_diag))>tol, "Diagonal elements of dielectric tensor should not be zero")
+      CALL_ASSERT(maxval(abs(L_diag))>tol, "Diagonal elements of dielectric tensor should not be zero")
       
       !====================================================
       ! calculate the averaged inverse dielectric function

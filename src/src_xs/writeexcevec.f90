@@ -7,10 +7,10 @@ subroutine writeexcevec()
   use modinput
   use modmpi
   use unit_conversion, only: hartree_to_ev
-  use m_getunit
   use m_genfilname
   use m_putgetexcitons
   use sorting, only: sortidx
+  use os_utils, only: make_directory
 ! !DESCRIPTION:
 !   Reads the binary file \texttt{EXCCOEFF} containing the eigenvector coefficients
 !   of the BSE calculation and prints selected coefficients to human readable files.
@@ -48,16 +48,12 @@ subroutine writeexcevec()
   ! Only rank=0 does the work
   if(mpiglobal%rank == 0) then 
 
-    ! Use Unix system calls to create folders
     bevecdir='BEVEC'
-    syscommand = 'test ! -e '//trim(adjustl(bevecdir))//' && mkdir '//trim(adjustl(bevecdir))
-    call system(trim(adjustl(syscommand)))
+    call make_directory(bevecdir, mpiglobal)
     bevecksumdir='BEVEC_KSUM'
-    syscommand = 'test ! -e '//trim(adjustl(bevecksumdir))//' && mkdir '//trim(adjustl(bevecksumdir))
-    call system(trim(adjustl(syscommand)))
+    call make_directory(bevecksumdir, mpiglobal)
     excitonevecdir='EXCITON_EVEC'
-    syscommand = 'test ! -e '//trim(adjustl(excitonevecdir))//' && mkdir '//trim(adjustl(excitonevecdir))
-    call system(trim(adjustl(syscommand)))
+    call make_directory(excitonevecdir, mpiglobal)
 
     ! Set defaults if writeexcitons is not specified
     if( .not. associated(input%xs%writeexcitons)) then
@@ -174,9 +170,7 @@ subroutine writeexcevec()
           & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
           & nar= .not. input%xs%bse%aresbse, filnam=fname)
 
-        call getunit(un)
-
-        open(unit=un, file=trim(fname), form='formatted', action='write')
+        open(newunit=un, file=trim(fname), form='formatted', action='write')
 
         ! Write header
         write(un,'("#",1x,"BSE eigenvector")')
@@ -322,13 +316,11 @@ subroutine writeexcevec()
         write(unitout,'("Info(",a,"): Writing BEVEC for lambda =",i8)')&
           & trim(thisname), lambda
 
-        call getunit(un)
-
         write(lambdastring, '("_LAMBDA",i8.8)') lambda
         fname=trim('BEVEC'//trim(lambdastring)//'.OUT')
         fname=trim(bevecdir)//'/'//trim(fname)
 
-        open(unit=un, file=trim(fname), form='formatted', action='write')
+        open(newunit=un, file=trim(fname), form='formatted', action='write')
 
         ! Loop over transitions
         do alpha = 1, hamsize_
@@ -417,13 +409,11 @@ subroutine writeexcevec()
           end if
         end do
 
-        call getunit(un)
-
         write(lambdastring, '("_LAMBDA",i8.8)') lambda
         fname=trim('BEVEC_KSUM'//trim(lambdastring)//'.OUT')
         fname=trim(bevecksumdir)//'/'//trim(fname)
 
-        open(unit=un, file=trim(fname), form='formatted', action='write')
+        open(newunit=un, file=trim(fname), form='formatted', action='write')
 
         do iv=ivmin, ivmax
           do ic=icmin, icmax

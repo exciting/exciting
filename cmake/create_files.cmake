@@ -32,17 +32,8 @@ function(GetCompilerVersion outVar)
 endfunction()
 
 # Get Git information
-#find_package(Git)
-#if(GIT_FOUND)
-#    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD OUTPUT_VARIABLE GITHASH_FULL OUTPUT_STRIP_TRAILING_WHITESPACE)
-#    string(SUBSTRING ${GITHASH_FULL} 0 20 GITHASH)
-#    string(SUBSTRING ${GITHASH_FULL} 20 19 GITHASH2)
-#else()
-#    set(GITHASH  "terra incognita")
-#    set(GITHASH2 "terra australis")
-#endif()
-set(GITHASH  "sodium-23")
-set(GITHASH2 "0")
+set(GITHASH  "MAGNESIUM")
+set(GITHASH2 "ALPHA")
 
 # Get compiler version
 GetCompilerVersion(COMPILERVERSION)
@@ -70,6 +61,10 @@ if (CMAKE_VERSION VERSION_LESS_EQUAL "3.31.3" AND CMAKE_Fortran_COMPILER_ID MATC
 	execute_process(
 		COMMAND ln -s ${CMAKE_BINARY_DIR}/modules/m_memory_device.SM_MEMORY_DEVICE.smod
 	                      ${CMAKE_BINARY_DIR}/modules/sm_memory_device.mod
+        )
+	execute_process(
+		COMMAND ln -s ${CMAKE_BINARY_DIR}/modules/mod_apw_lo.SMOD_APW_LO.smod
+                              ${CMAKE_BINARY_DIR}/modules/smod_apw_lo.mod
         )
     endif()
 endif()

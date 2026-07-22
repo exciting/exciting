@@ -8,7 +8,6 @@
 !
 Subroutine putlocmt (fname, ik, vk, vq, locmt)
       Use modmain
-      Use m_getunit
       Implicit None
   ! arguments
       Character (*), Intent (In) :: fname
@@ -18,9 +17,8 @@ Subroutine putlocmt (fname, ik, vk, vq, locmt)
      & natmtot)
   ! local variables
       Integer :: recl, un
-      Call getunit (un)
       Inquire (IoLength=Recl) vq, vk, nstfv, nlomax, lolmax, locmt
-      Open (un, File=trim(fname), Action='write', Form='unformatted', &
+      Open (newunit=un, File=trim(fname), Action='write', Form='unformatted', &
      & Access='direct', Recl=Recl)
       Write (un, Rec=ik) vq, vk, nstfv, nlomax, lolmax, locmt
       Close (un)

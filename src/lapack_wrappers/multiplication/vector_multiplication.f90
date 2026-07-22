@@ -4,7 +4,7 @@
 module vector_multiplication
   use precision, only: dp
   use constants, only: zone, zzero
-  use asserts, only: assert
+#include "asserts.fpp"
   use lapack_f95_interfaces, only: dnrm2, dznrm2, ddot, zdotc, zdotu, dger,  zgerc, zgeru
 
   implicit none
@@ -93,8 +93,7 @@ contains
     !> Input vectors
     real(dp), intent(in) :: a(:), b(:)
 
-    call assert(size(a) == size(b), &
-              'a and b must have the same size.')
+    CALL_ASSERT(size(a) == size(b),  'a and b must have the same size.')
 
     dot_multiplication_real_dp = ddot(size(a), a, storage_spacing, b, storage_spacing)
   end function dot_multiplication_real_dp
@@ -115,8 +114,7 @@ contains
     conjg_a_ = .true.
     if (present(conjg_a)) conjg_a_ = conjg_a
 
-    call assert(size(a) == size(b), &
-              'a and b must have the same size.')
+    CALL_ASSERT(size(a) == size(b),  'a and b must have the same size.')
 
     if (conjg_a_) then
       dot_multiplication_complex_dp = zdotc(size(a), a, storage_spacing, b, storage_spacing)
@@ -136,8 +134,7 @@ contains
     !> Complex input vector
     complex(dp), intent(in) :: b(:)
 
-    call assert(size(a) == size(b), &
-              'a and b must have the same size.')
+    CALL_ASSERT(size(a) == size(b),  'a and b must have the same size.')
 
     dot_multiplication_real_complex_dp = zdotu(size(a), cmplx(a, 0.0_dp, kind=dp), storage_spacing, b, storage_spacing)
   end function dot_multiplication_real_complex_dp
@@ -160,8 +157,7 @@ contains
     conjg_a_ = .true.
     if (present(conjg_a)) conjg_a_ = conjg_a
 
-    call assert(size(a) == size(b), &
-              'a and b must have the same size.')
+    CALL_ASSERT(size(a) == size(b),  'a and b must have the same size.')
 
     if (conjg_a_) then
       dot_multiplication_complex_real_dp = zdotc(size(a), a, storage_spacing, cmplx(b, 0.0_dp, kind=dp), storage_spacing)
@@ -183,8 +179,8 @@ contains
     !> Output matrix
     real(dp), intent(inout), contiguous :: C(:, :)
 
-    call assert(size(C, dim=1) == size(a), 'The number of rows of C must be the same as the number of elements of a.')
-    call assert(size(C, dim=2) == size(b), 'The number of rows of B must be the same as the number of elements of b.')
+    CALL_ASSERT(size(C, dim=1) == size(a), 'The number of rows of C must be the same as the number of elements of a.')
+    CALL_ASSERT(size(C, dim=2) == size(b), 'The number of rows of B must be the same as the number of elements of b.')
 
     call dger(size(a), size(b), prefactor_real_dp, a, storage_spacing, b, storage_spacing, C, size(a))
   end subroutine outer_product_real_dp
@@ -209,8 +205,8 @@ contains
     conjg_b_ = .false.
     if (present(conjg_b)) conjg_b_ = conjg_b
 
-    call assert(size(C, dim=1) == size(a), 'The number of rows of C must be the same as the number of elements of a.')
-    call assert(size(C, dim=2) == size(b), 'The number of rows of B must be the same as the number of elements of b.')
+    CALL_ASSERT(size(C, dim=1) == size(a), 'The number of rows of C must be the same as the number of elements of a.')
+    CALL_ASSERT(size(C, dim=2) == size(b), 'The number of rows of B must be the same as the number of elements of b.')
 
     if (conjg_b_) then
       call zgerc(size(a), size(b), prefactor_complex_dp, a, storage_spacing, b, storage_spacing, C, size(a))
@@ -240,8 +236,8 @@ contains
     conjg_b_ = .false.
     if (present(conjg_b)) conjg_b_ = conjg_b
     
-    call assert(size(C, dim=1) == size(a), 'The number of rows of C must be the same as the number of elements of a.')
-    call assert(size(C, dim=2) == size(b), 'The number of rows of B must be the same as the number of elements of b.')
+    CALL_ASSERT(size(C, dim=1) == size(a), 'The number of rows of C must be the same as the number of elements of a.')
+    CALL_ASSERT(size(C, dim=2) == size(b), 'The number of rows of B must be the same as the number of elements of b.')
 
     if (conjg_b_) then
       call zgerc(size(a), size(b), prefactor_complex_dp, cmplx(a, 0.0_dp, kind=dp), storage_spacing, b, storage_spacing, C, size(a))
@@ -263,8 +259,8 @@ contains
     !> Output matrix
     complex(dp), intent(inout), contiguous :: C(:, :)
 
-    call assert(size(C, dim=1) == size(a), 'The number of rows of C must be the same as the number of elements of a.')
-    call assert(size(C, dim=2) == size(b), 'The number of rows of B must be the same as the number of elements of b.')
+    CALL_ASSERT(size(C, dim=1) == size(a), 'The number of rows of C must be the same as the number of elements of a.')
+    CALL_ASSERT(size(C, dim=2) == size(b), 'The number of rows of B must be the same as the number of elements of b.')
 
     call zgeru(size(a), size(b), prefactor_complex_dp, a, storage_spacing, cmplx(b, 0.0_dp, kind=dp), storage_spacing, C, size(a))
   end subroutine outer_product_complex_real_dp

@@ -54,7 +54,7 @@ contains
             do io = 1, lorbord(ilo, is) ! Looping over all local orbitals.
                ! If the number of nodes of a local orbital is given, the trial energy is computed automatically.
                if (lorbn(io, ilo, is) /= default_lorbn) then
-                  v = veffmt(1:nrmt(is), idxas(1, is))*y00
+                  v(1:nrmt(is)) = veffmt(1:nrmt(is), idxas(1, is))*y00
                   ! Computing trial energy with Wigner-Seitz algorithm.
                   lorbe0(io, ilo, is) = generate_wigner_seitz_trial_energies(lorbl(ilo, is), lorbn(io, ilo, is), &
                                                                              spr(:, is), nrmt(is), v, wf_slope_tolerance, energy_tolerance)
@@ -106,7 +106,7 @@ contains
             do io = 1, maxapword
                ! If the number of nodes of a basis function is given, the trial energy is computed automatically.
                if (apwn(io, l, is) /= default_apwn) then
-                  v = veffmt(1:nrmt(is), idxas(1, is))*y00
+                  v(1:nrmt(is)) = veffmt(1:nrmt(is), idxas(1, is))*y00
                   ! Computing trial energy with Wigner-Seitz algorithm.
                   apwe0(io, l, is) = generate_wigner_seitz_trial_energies(l, apwn(io, l, is), spr(:, is), nrmt(is), &
                                                                            v, wf_slope_tolerance, energy_tolerance)

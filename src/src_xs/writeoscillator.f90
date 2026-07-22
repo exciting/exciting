@@ -1,10 +1,10 @@
 module m_writeoscillator
   use modmpi
   use modinput, only: input
-  use modxs, only: bsed, escale, ivgmt, vqlmt, vgcmt, vqcmt
+  use modxs, only: escale, ivgmt
   use m_genfilname
-  use m_getunit
   use m_write_hdf5
+  use os_utils, only: make_directory
 
   implicit none
 
@@ -14,6 +14,7 @@ module m_writeoscillator
       use modxs, only: symt2, ivgigq, sptclg
       use constants, only: zzero, pi
       use mod_lattice, only: omega
+      use m_write_bse_header, only: generate_bse_header
 
       ! I/O
       !> Number of transitions & number of excitons
@@ -31,19 +32,20 @@ module m_writeoscillator
       character(128) :: gname
       complex (8) :: buf(3,3,nexc), oscstrr_(3,3,nexc)
       real(8) :: pref
+      logical :: usechibar
 #ifdef DGRID
       character(256) :: dgrid_dotext
 #endif
+      usechibar = input%xs%bse%chibarq
      
       excitondir='EXCITON'
-      syscommand = 'test ! -e '//trim(adjustl(excitondir))//' && mkdir '//trim(adjustl(excitondir))
-      call system(trim(adjustl(syscommand)))
+      call make_directory(excitondir, mpiglobal)
 
       ! Generate file name
       if(input%xs%bse%coupling) then
         tdastring=''
       else
-        if(input%xs%bse%chibarq) then 
+        if(usechibar) then
           tdastring="-TDA-BAR"
         else
           tdastring="-TDA"
@@ -63,27 +65,16 @@ module m_writeoscillator
       end if
       
       if(iqmt==1) then
-        if (.not. input%groundstate%tevecsv) then 
-          ! -1 * 2 * 4 pi * 1/V * 1/nk
-          pref = -2.d0*4.d0*pi/omega/nk
-        else
-          ! -1 * 4 pi * 1/V * 1/nk
-          pref = -4.d0*pi/omega/nk
-        end if
+        ! -1 * 2 * 4 pi * 1/V * 1/nk
+        pref = -4.d0*pi/omega/nk
       else
-        if (.not. input%groundstate%tevecsv) then
-          ! 2 * ( (4 pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
-          igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
-          pref = 2.0d0*sptclg(igqmt,iqmt)**2/omega/nk
-        else
-          ! ( (4 pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
-          igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
-          pref = sptclg(igqmt,iqmt)**2/omega/nk
-        end if
+        igqmt = ivgigq(ivgmt(1,iqmt),ivgmt(2,iqmt),ivgmt(3,iqmt),iqmt)
+        ! ( (4 pi/|Gmt+qmt|^2)^1/2 )^2 * 1/V * 1/nk
+        pref = sptclg(igqmt,iqmt)**2/omega/nk
       end if
-      if (input%xs%bse%chibarq) then
-        pref=-pref
-      end if
+      if (usechibar) pref=-pref
+      if (.not. input%groundstate%tevecsv) pref=2.d0*pref
+
       ! Symmetrize the oscillator strength for qmt=0
       buf(:,:,:)=zzero
       if (iq .eq. 1) then
@@ -106,7 +97,7 @@ module m_writeoscillator
         ! symmetrize the oscillator strength
         do o1=io1,io2
           do o2=io1,io2
-            if (.NOT. input%xs%BSE%chibar0) then 
+            if (.NOT. input%xs%BSE%chibar0 .or. input%xs%BSE%nosymspec) then
               oscstrr_(o1,o2,:)=buf(o1,o2,:)
             else
               call symt2app(o1, o2, nexc, symt2, buf, oscstrr_(o1,o2,:))
@@ -114,8 +105,9 @@ module m_writeoscillator
           end do !o2
         end do !o1
       else ! qmt != 0
-        oscstrr_(1,1,:)=pref*abs(oscstrr(:,1))**2
-      end if 
+        oscstrr_(1,1,:) = pref*abs(oscstrr(:,1))**2
+      end if
+
       !write hdf5 output
       gname="excitons"//trim(bsetypestring)//trim(scrtypestring)
       call write_excitons_hdf5(hamsize, nexc, eshift, evalre, oscstrr_, gname, iq)
@@ -166,23 +158,14 @@ module m_writeoscillator
 #endif
         fnexc=trim(excitondir)//'/'//trim(fnexc)
 
+        ! Note: If you change the number of lines here, adjust also in `readoscillator` ncommentlines
+
         ! Write out exciton energies and oscillator strengths
-        call getunit(unexc)
-        open(unexc, file=fnexc, form='formatted', action='write', status='replace')
+        open(newunit=unexc, file=fnexc, form='formatted', action='write', status='replace')
         write(unexc, '("#",1x,"Excitonic eigen energies and oscillator strengths")')
-        write(unexc, '("#")')
-        write(unexc, '("# Momentum transfer Q=G+q in lattice cooridnates")')
-        write(unexc, '("# G:",3i4)') ivgmt(1:3,iq) 
-        write(unexc, '("# q:",3f12.7)') vqlmt(1:3,iq) 
-        write(unexc, '("# Momentum transfer Q=G+q in Cartesian cooridnates")')
-        write(unexc, '("# G:",3f12.7)') vgcmt(1:3,iq) 
-        write(unexc, '("# q:",3f12.7)') vqcmt(1:3,iq) 
-        write(unexc, '("# Norm2(G+q)",f12.7)') norm2(vgcmt(:,iq)+vqcmt(:,iq))
-        write(unexc, '("#")')
-        write(unexc, '("# Energy scale",f12.7)') escale
+        write(unexc, '(a)') generate_bse_header(input, iq, o1, o2)
         write(unexc, '("# E_shift : ", SP, E23.16)') eshift * escale
         write(unexc, '("#")')
-
 
         frmt='(a1,a7,5(1x,a23))'
         write(unexc, frmt) "#", "Nr.",&
@@ -191,7 +174,6 @@ module m_writeoscillator
           & "|Osc. Str.|",&
           & "Re(Osc. Str. Res.)",&
           & "Im(Osc. Str. Res.)"
-        !frmt='(I8,5(1x,E23.16))'
         frmt='(I8,2(1x,F23.16),3(1x,E23.16))'
         do lambda = 1, nexc
           write(unexc, frmt) lambda,&

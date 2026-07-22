@@ -43,7 +43,7 @@ subroutine run_gw_io_test_driver( mpiglobal, kill_on_failure )
 
   call test_report%finalise()
 
-end subroutine
+end subroutine run_gw_io_test_driver
 
 !> Unit tests for [[build_file_name]]
 subroutine test_build_file_name( test_report )

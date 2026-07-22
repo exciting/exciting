@@ -149,10 +149,10 @@ module mod_manopt_solvers
       logical :: finish, ultimatum, change
       class( matrix), allocatable :: nGX, nSX
 
-      if( S%stdout .gt. 0) write( S%stdout, '("# CG minimization run statistics")')
-      if( S%stdout .gt. 0) write( S%stdout, '("# maximum matrix dimensions: ",4x,2i5)') M%DXI
-      if( S%stdout .gt. 0) write( S%stdout, '("# number of matrices:        ",4x,i5)') M%KX
-      if( S%stdout .gt. 0) then
+      if( S%stdout /= 0) write( S%stdout, '("# CG minimization run statistics")')
+      if( S%stdout /= 0) write( S%stdout, '("# maximum matrix dimensions: ",4x,2i5)') M%DXI
+      if( S%stdout /= 0) write( S%stdout, '("# number of matrices:        ",4x,i5)') M%KX
+      if( S%stdout /= 0) then
         select type( X)
           type is( real_matrix)
             write( S%stdout, '("# dimension of optimization: ",i9)') M%dimX()
@@ -160,9 +160,9 @@ module mod_manopt_solvers
             write( S%stdout, '("# dimension of optimization: ",i9)') 2*M%dimX()
         end select
       end if
-      if( S%stdout .gt. 0) write( S%stdout, '("# CG update type:            ",x,8a)') adjustr( S%beta)
-      if( S%stdout .gt. 0) write( S%stdout, '("#")')
-      if( S%stdout .gt. 0) write( S%stdout, '("# iteration",13x,"time",17x,"cost",11x,"|gradient|",17x,"step",17x,"beta",4x,"directional slope")')
+      if( S%stdout /= 0) write( S%stdout, '("# CG update type:            ",x,8a)') adjustr( S%beta)
+      if( S%stdout /= 0) write( S%stdout, '("#")')
+      if( S%stdout /= 0) write( S%stdout, '("# iteration",13x,"time",17x,"cost",11x,"|gradient|",17x,"step",17x,"beta",4x,"directional slope")')
 
       ! initialization
       allocate( nGX, source=X)
@@ -188,7 +188,7 @@ module mod_manopt_solvers
       S%cSX = S%cGX*(-1.d0)
       call timesec( t1)
       ! write 0th interation
-      if( S%stdout > 0) write( S%stdout, '(2x,i9,3(x,g20.10),21x)', advance='no') it, t1-t0, S%cCost, gradNorm
+      if( S%stdout /= 0) write( S%stdout, '(2x,i9,3(x,g20.10),21x)', advance='no') it, t1-t0, S%cCost, gradNorm
 
       ! start minimization loop
       MINI: do while( .true.)
@@ -219,7 +219,7 @@ module mod_manopt_solvers
         ! get directional derivative
         df0 = M%inner( S%cGX, S%cSX)
         snorm = M%norm( S%cSX)
-        if( S%stdout > 0) write( S%stdout, '(2(x,g20.10))') beta, df0
+        if( S%stdout /= 0) write( S%stdout, '(2(x,g20.10))') beta, df0
         ! perform line search
         stepSize = snorm
         call linesearch( M, S, X, df0, stepSize)
@@ -260,12 +260,12 @@ module mod_manopt_solvers
         it = it + 1
         call timesec( t1)
         ! write i-th iteration
-        if( S%stdout > 0) write( S%stdout, '(2x,i9,4(x,g20.10))', advance='no') it, t1-t0, S%cCost, gradNorm, alpha
+        if( S%stdout /= 0) write( S%stdout, '(2x,i9,4(x,g20.10))', advance='no') it, t1-t0, S%cCost, gradNorm, alpha
       end do MINI
       ! write summary
-      if( S%stdout > 0) write( S%stdout, *)
-      if( S%stdout > 0) write( S%stdout, '("# evaluations of cost fun. : ",i9)') S%nCostEval
-      if( S%stdout > 0) write( S%stdout, '("# evaluations of gradient  : ",i9)') S%nGradEval
+      if( S%stdout /= 0) write( S%stdout, *)
+      if( S%stdout /= 0) write( S%stdout, '("# evaluations of cost fun. : ",i9)') S%nCostEval
+      if( S%stdout /= 0) write( S%stdout, '("# evaluations of gradient  : ",i9)') S%nGradEval
       deallocate( nGX, nSX)
 
       ! copy further statistics to solver parameters
@@ -350,10 +350,10 @@ module mod_manopt_solvers
       logical :: finish, accepted, ultimatum, change
       class( matrix), allocatable :: gx, sx
 
-      if( S%stdout .gt. 0) write( S%stdout, '("# L-BFGS minimization run statistics")')
-      if( S%stdout .gt. 0) write( S%stdout, '("# maximum matrix dimensions: ",4x,2i5)') M%DXI
-      if( S%stdout .gt. 0) write( S%stdout, '("# number of matrices:        ",4x,i5)') M%KX
-      if( S%stdout .gt. 0) then
+      if( S%stdout /= 0) write( S%stdout, '("# L-BFGS minimization run statistics")')
+      if( S%stdout /= 0) write( S%stdout, '("# maximum matrix dimensions: ",4x,2i5)') M%DXI
+      if( S%stdout /= 0) write( S%stdout, '("# number of matrices:        ",4x,i5)') M%KX
+      if( S%stdout /= 0) then
         select type( X)
           type is( real_matrix)
             write( S%stdout, '("# dimension of optimization: ",i9)') M%dimX()
@@ -361,9 +361,9 @@ module mod_manopt_solvers
             write( S%stdout, '("# dimension of optimization: ",i9)') 2*M%dimX()
         end select
       end if
-      if( S%stdout .gt. 0) write( S%stdout, '("# L-BFGS memory depth:       ",4x,i5)') S%memlen
-      if( S%stdout .gt. 0) write( S%stdout, '("#")')
-      if( S%stdout .gt. 0) write( S%stdout, '("# iteration",13x,"time",17x,"cost",11x,"|gradient|",17x,"step",4x,"directional slope")')
+      if( S%stdout /= 0) write( S%stdout, '("# L-BFGS memory depth:       ",4x,i5)') S%memlen
+      if( S%stdout /= 0) write( S%stdout, '("#")')
+      if( S%stdout /= 0) write( S%stdout, '("# iteration",13x,"time",17x,"cost",11x,"|gradient|",17x,"step",4x,"directional slope")')
 
       ! initialization
       allocate( gx, source=X)
@@ -389,7 +389,7 @@ module mod_manopt_solvers
       S%cSX = S%cGX*(-1.d0)
       call timesec( t1)
       ! write 0th interation
-      if( S%stdout > 0) write( S%stdout, '(2x,i9,3(x,g20.10),21x)', advance='no') it, t1-t0, S%cCost, gradNorm
+      if( S%stdout /= 0) write( S%stdout, '(2x,i9,3(x,g20.10),21x)', advance='no') it, t1-t0, S%cCost, gradNorm
 
       ! start minimization loop
       MINI: do while( .true.)
@@ -423,7 +423,7 @@ module mod_manopt_solvers
         snorm = M%norm( S%cSX)
         ! get directional derivative
         df0 = M%inner( S%cGX, S%cSX)!/snorm
-        if( S%stdout > 0) write( S%stdout, '(x,g20.10)') df0
+        if( S%stdout /= 0) write( S%stdout, '(x,g20.10)') df0
         ! perform line search
         stepSize = snorm
         call linesearch( M, S, X, df0, stepSize)
@@ -494,12 +494,12 @@ module mod_manopt_solvers
         it = it + 1
         call timesec( t1)
         ! write i-th iteration
-        if( S%stdout > 0) write( S%stdout, '(2x,i9,4(x,g20.10))', advance='no') it, t1-t0, S%cCost, gradNorm, alpha
+        if( S%stdout /= 0) write( S%stdout, '(2x,i9,4(x,g20.10))', advance='no') it, t1-t0, S%cCost, gradNorm, alpha
       end do MINI
       ! write summary
-      if( S%stdout > 0) write( S%stdout, *)
-      if( S%stdout > 0) write( S%stdout, '("# evaluations of cost fun. : ",i9)') S%nCostEval
-      if( S%stdout > 0) write( S%stdout, '("# evaluations of gradient  : ",i9)') S%nGradEval
+      if( S%stdout /= 0) write( S%stdout, *)
+      if( S%stdout /= 0) write( S%stdout, '("# evaluations of cost fun. : ",i9)') S%nCostEval
+      if( S%stdout /= 0) write( S%stdout, '("# evaluations of gradient  : ",i9)') S%nGradEval
       deallocate( sx, gx)
 
       ! copy further statistics to solver parameters
@@ -612,7 +612,7 @@ module mod_manopt_solvers
         call S%costgrad( M, S%nX, S%nCost, S%cGX, funonly=.true.)
       end if
       decr = min( 0.5d0*S%cCost, -SUFFDECR*alpha*df0)
-      if( present( verbose) .and. S%stdout > 0) write(S%stdout,'(i5,2g16.6,3g20.10)') it, alpha, df0, S%cCost, S%nCost
+      if( present( verbose) .and. S%stdout /= 0) write(S%stdout,'(i5,2g16.6,3g20.10)') it, alpha, df0, S%cCost, S%nCost
 
       do while( BACKTRACK .and. ( S%nCost > S%cCost - decr))
         alpha = max( S%minstep, alpha*FCONTR)
@@ -624,7 +624,7 @@ module mod_manopt_solvers
         end if
         it = it + 1
         decr = min( 0.5d0*S%cCost, -SUFFDECR*alpha*df0)
-        if( present( verbose) .and. S%stdout > 0) write(S%stdout,'(i5,2g16.6,3g20.10)') it, alpha, df0, S%cCost, S%nCost
+        if( present( verbose) .and. S%stdout /= 0) write(S%stdout,'(i5,2g16.6,3g20.10)') it, alpha, df0, S%cCost, S%nCost
         if( (it > MAXSTEPS) .or. (alpha < S%minstep+S%eps0)) exit
       end do
 
@@ -634,7 +634,7 @@ module mod_manopt_solvers
         S%nCost = S%cCost
       end if
 
-      if( present( verbose) .and. S%stdout > 0) write(S%stdout,'(i5,2g16.6,3g20.10)') 0, 0.d0, df0, S%cCost, S%cCost
+      if( present( verbose) .and. S%stdout /= 0) write(S%stdout,'(i5,2g16.6,3g20.10)') 0, 0.d0, df0, S%cCost, S%cCost
 
       step = alpha*pnorm
       return

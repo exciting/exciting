@@ -27,7 +27,7 @@
             useExternalFile="true"
             fileName="EXC" 
             startDensityAndPotentialFromFile="false"
-            skipgnd="false" />
+            groundstateRun="scf" />
     </groundstate>
 
 </input>

@@ -198,11 +198,27 @@ CMake installation can be customized using the following options (**Notice that 
 - **_BUILD_EXCITING_**: Builds EXCITING (default: ON).
 - **_ELPA_**: Enables ELPA support (default: OFF).
 - **_ELPA_ROOT_**: Root path to the ELPA installation when `ELPA` is ON (default: None).
+- **_RUN_MPI_CHECKS_**: Compile and run a minimal MPI program. Set to OFF if the system does not allow to launch MPI programs on login nodes (default: ON).
 
 On top of the specific options for _exciting_, the following CMake default options can be modified to tune your installation:
 - **_CMAKE_INSTALL_PREFIX_**: controls the installation directory (default: **install** in the exciting root directory).
 - **_CMAKE_BUILD_TYPE_**: controls the installation type, it can be: Debug or Release (default: Release).
 - **_CMAKE_Fortran_FLAGS_**: string to add extra compiler options for the Fortran compiler. Note that this affects the whole compilation, and that the default flags are generating high performant executable for the _Release_ build.
+
+#### Developer Debug Cherry-Pick Options
+
+For developer purposes, certain Fortran source files can be compiled with debug flags even in Release builds. This feature is controlled by the following CMake options:
+
+- **_CHERRY_PICK_FILES_FOR_DEBUG_**: Semicolon-separated list of Fortran filenames (with path relative to the src directory) that should be compiled with debug flags.
+- **_CHERRY_PICK_FILES_DEBUG_FLAGS_**: The extra compiler flags to apply to the cherry-picked files. If this is left empty, no special per-file flags are applied.
+
+##### Usage Example (GNU compiler options)
+
+```bash
+cmake -DCHERRY_PICK_FILES_FOR_DEBUG="src_gw/calcminm2.f90;wavefcr.f90" \
+      -DCHERRY_PICK_FILES_DEBUG_FLAGS="-fcheck=all" ..
+```
+
 ### Mac OS
 
 exciting can be compiled on mac OS, but it is complicated by nonstandard installation
@@ -381,7 +397,7 @@ such as Exciting, Elk and Quantum ESPRESSO.
 Compiling exciting with SIRIUS is complex. To simplify the process of building dependencies, SIRIUS can be
 completely installed with the python package manager [spack](https://spack.readthedocs.io/en/latest/getting_started.html).
 
-As of exciting Sodium, only a CPU build chain using GCC on Ubuntu Focal is regularly tested in exciting's 
+As of exciting Neon, only a CPU build chain using GCC on Ubuntu Focal is regularly tested in exciting's 
 CI. This is provided in [build/utilities/docker/Dockerfile_ci_sirius](build/utilities/docker/Dockerfile_ci_sirius). 
 
 ```shell
@@ -486,4 +502,3 @@ one can also install python-dev and LXML, which facilitate faster generation of 
   sudo apt install python3-all-dev graphviz
   pip3 install lxml
 ```
-

@@ -1,6 +1,6 @@
 module species_file_update
 
-  use mod_atoms, only: nspecies, spsymb, spname, spzn, spmass, sprmin, sprmax, spnst, spn, spl, spk, spocc, spcore
+  use mod_atoms, only: nspecies, spsymb, spname, spzn, spmass, sprmin, sprmax, spnst, spn, spl, spk, spocc, spcore, idxas
   use mod_muffin_tin, only: rmt, nrmt
   use mod_APW_LO, only: maxlapw, apword, apwe, apwve, nlorb, lorbl, lorbord, lorbdm, lorbe, lorbve, apwdm
   use modinput, only: input
@@ -24,12 +24,13 @@ contains
     ! local variables
     type(xmlf_t), save :: xf
     character(100) :: buffer
-    integer(i32) :: is, io, ist, lx, ilo, iapw
+    integer(i32) :: is, io, ist, lx, ilo, iapw, ias
 
     !---------------------------------------------------------
     ! Write down new (updated) xml species file
     !---------------------------------------------------------
     do is = 1, nspecies
+       ias = idxas(1, is)
 
        call xml_OpenFile (trim(spsymb(is))//'_scf.xml', xf, replace=.true.,pretty_print=.true.)
        write(buffer,*) trim(input%groundstate%findlinentype)
@@ -111,7 +112,7 @@ contains
              end if
              write(buffer,*) lx
              call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
-             write(buffer,'(F8.4)') apwe(1, lx, is)
+             write(buffer,'(F8.4)') apwe(1, lx, ias)
              call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
              call xml_AddAttribute(xf, "searchE", "false")
              call xml_endElement (xf, "custom")
@@ -127,7 +128,7 @@ contains
              call xml_NewElement (xf, "wf")
              write(buffer,*) lorbdm(io, ilo, is)
              call xml_AddAttribute(xf, "matchingOrder", trim(adjustl(buffer)))
-             write(buffer,'(F8.4)') lorbe(io, ilo, is)
+             write(buffer,'(F8.4)') lorbe(io, ilo, ias)
              call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
              call xml_AddAttribute(xf, "searchE", "false")
              call xml_endElement (xf, "wf")

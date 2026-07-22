@@ -6,7 +6,7 @@ module matrix_fourier_interpolation
   private
 
   !> effective zero for real/reciprocal space
-  real(dp), parameter :: epslat = 1e-12_dp
+  real(dp), parameter :: epslat = 1e-9_dp
 
   !> object to set up and perform a matrix Fourier interpolation (MFI)
   type mfi_type
@@ -252,7 +252,7 @@ contains
     integer, intent(in) :: matsize(2)
     !> number of matrices \(\mathrm{\bf M}\), \(N_M\)
     integer, intent(in) :: nummat
-    !> matrices \(\mathrm{\bf M}({\bf p})\) on coarse recirpocal space grid
+    !> matrices \(\mathrm{\bf M}({\bf p})\) on coarse reciprocal space grid
     complex(dp), intent(in) :: Mp(ldp1, ldp2, *)
     !> leading dimensions of array `Mp`
     integer, intent(in) :: ldp1, ldp2
@@ -314,7 +314,7 @@ contains
     complex(dp), intent(in) :: MR(ldr1, ldr2, *)
     !> leading dimensions of array `MR`
     integer, intent(in) :: ldr1, ldr2
-    !> matrices \(\mathrm{\bf M}({\bf p})\) on recirpocal space interpolation points
+    !> matrices \(\mathrm{\bf M}({\bf p})\) on reciprocal space interpolation points
     complex(dp), intent(out) :: Mp(ldp1, ldp2, *)
     !> leading dimensions of array `Mp`
     integer, intent(in) :: ldp1, ldp2
@@ -490,7 +490,7 @@ contains
 
     ! sort R-vectors with increasing length
     allocate( idx(nr) )
-    idx = sort_index_1d( nr, rlen, 1 )
+    idx = sort_index_1d( nr, rlen, inc=1, eps=epslat )
     vrl = vrl(:, idx)
     vrc = vrc(:, idx)
     rlen = rlen(idx)
@@ -581,7 +581,7 @@ contains
           call r3mv( lvec, wl+[i,j,k], wc )
           if( abs( norm2( wc ) - d ) < eps ) then
             n = n + 1
-          else if( norm2( wc ) < d ) then
+          else if( norm2( wc ) < d - eps ) then
             n = 1
             d = norm2( wc )
           end if
@@ -590,6 +590,7 @@ contains
     end do
 
     ! find all wrapping vectors
+    if (allocated( wrappers )) deallocate( wrappers )
     allocate( wrappers(3, n) )
     n = 0
     do k = -sc_size, sc_size

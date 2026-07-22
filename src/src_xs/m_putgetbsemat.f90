@@ -3,20 +3,21 @@ module m_putgetbsemat
   use modmpi, only: mpiglobal, terminate_mpi_env
   use modbse
   use modxs, only: vqlmt
-  use m_getunit
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
   use m_genfilname
   use xhdf5, only: xhdf5_type
   use os_utils, only: join_paths
+  use precision, only: i32, long_int, dp
 
   implicit none
 
   private
 
   ! Meta data for saved W and V arrays
-  integer(4) :: nk_bse_, nou_bse_max_
-  integer(4), allocatable :: kousize_(:), smap_(:,:), kmap_bse_gr_(:)
+  integer(i32) :: nk_bse_, nou_bse_max_
+  integer(i32), allocatable :: kousize_(:), smap_(:,:), kmap_bse_gr_(:)
 
-  logical :: writemeta=.true., readmeta=.true.
+  logical(i32) :: writemeta=.true., readmeta=.true.
 
   public :: putbseinfo, getbseinfo, putbsemat, getbsemat, putbsereset
 
@@ -44,14 +45,13 @@ module m_putgetbsemat
 
       ! Arguments
       character(*), intent(in) :: fname
-      integer(4), intent(in) :: iqmt
+      integer(i32), intent(in) :: iqmt
 
       ! Local variables
-      integer(4) :: reclen, un
-      logical :: reducek
-      integer(4) :: ngridk(3), ngridq(3)
-      real(8) :: vkloff(3)
-      integer(4) :: nstlbse(4)
+      integer(i32) :: un, ngridk(3), ngridq(3), nstlbse(4)
+      integer(long_int) :: reclen
+      logical(i32) :: reducek
+      real(dp) :: vkloff(3)
 
       reducek = input%xs%reducek
       ngridk = input%xs%ngridk
@@ -59,21 +59,13 @@ module m_putgetbsemat
       vkloff = input%xs%vkloff
       nstlbse = input%xs%bse%nstlbse
 
-      call getunit(un)
-
-      ! Get large enough record length 
-      inquire(iolength=reclen)&
-        & reducek, ngridk, ngridq, vkloff,&
-        & fensel, wl, wu, econv, nstlbse,&
-        & iqmt, vqlmt(1:3,iqmt),&
-        & nk_max, nk_bse, nou_bse_max, hamsize,&
-        & kmap_bse_rg, kmap_bse_gr,&
-        & koulims, kousize, smap
+      ! Get large enough record length
+      call inquire_large( reclen, [reducek], ngridk, ngridq, vkloff, [fensel], [wl, wu], &
+        econv, [nstlbse, iqmt], vqlmt(1:3,iqmt), [nk_max, nk_bse, nou_bse_max, hamsize], &
+        kmap_bse_rg, kmap_bse_gr, koulims, kousize, smap )
+      call open_direct_unformatted_large( un, trim( adjustl( fname ) ), "write", reclen, "replace" )
 
       ! Only the master is performing file i/o
-      open(unit=un, file=trim(fname), form='unformatted', action='write',&
-        & access='direct', status='replace', recl=reclen)
-
       write(un, rec=1)& 
         & reducek, ngridk, ngridq, vkloff,&
         & fensel, wl, wu, econv, nstlbse,&
@@ -109,27 +101,28 @@ module m_putgetbsemat
 
       ! Arguments
       character(*), intent(in) :: fname
-      integer(4), intent(in) :: iqmt
-      logical, intent(out), optional :: fcmpt, fid
+      integer(i32), intent(in) :: iqmt
+      logical(i32), intent(out), optional :: fcmpt, fid
 
       ! Local variables
-      integer(4) :: reclen, un
-      logical :: ishere
-      logical :: ftmp
+      integer(long_int) :: reclen
+      integer(i32) :: un
+      logical(i32) :: ishere
+      logical(i32) :: ftmp
 
-      logical :: reducek, reducek_
-      integer(4) :: ngridk(3), ngridq(3), nstlbse(4)
-      integer(4) :: ngridk_(3), ngridq_(3)
-      real(8) :: vkloff(3), vkloff_(3)
+      logical(i32) :: reducek, reducek_
+      integer(i32) :: ngridk(3), ngridq(3), nstlbse(4)
+      integer(i32) :: ngridk_(3), ngridq_(3)
+      real(dp) :: vkloff(3), vkloff_(3)
 
-      logical :: iscompatible, isidentical
-      logical :: fensel_
-      real(8) :: wl_, wu_, econv_(2), vql_(3)
-      integer(4) :: iqmt_, nk_max_, hamsize_, nstlbse_(4)
-      integer(4), allocatable :: kmap_bse_rg_(:)
-      integer(4), allocatable :: koulims_(:,:)
+      logical(i32) :: iscompatible, isidentical
+      logical(i32) :: fensel_
+      real(dp) :: wl_, wu_, econv_(2), vql_(3)
+      integer(i32) :: iqmt_, nk_max_, hamsize_, nstlbse_(4)
+      integer(i32), allocatable :: kmap_bse_rg_(:)
+      integer(i32), allocatable :: koulims_(:,:)
 
-      real(8), parameter :: eps = 1.0d-8
+      real(dp), parameter :: eps = 1.0e-8_dp
 
       reducek = input%xs%reducek
       ngridk = input%xs%ngridk
@@ -144,15 +137,11 @@ module m_putgetbsemat
         call terminate
       end if
 
-      call getunit(un)
-      ! Get large enough record length 
-      inquire(iolength=reclen)&
-        & reducek_, ngridk_, ngridq_, vkloff_,&
-        & fensel_, wl_, wu_, econv_, nstlbse_,&
-        & iqmt_, vql_,&
-        & nk_max_, nk_bse_, nou_bse_max_, hamsize_
-      open(unit=un, file=trim(fname), form='unformatted', action='read',&
-        & access='direct', recl=reclen)
+      ! Get large enough record length
+      call inquire_large( reclen, [reducek_], ngridk_, ngridq_, vkloff_, [fensel_], [wl_, wu_], &
+        econv_, [nstlbse_, iqmt_], vql_, [nk_max_, nk_bse_, nou_bse_max_, hamsize_] )
+      call open_direct_unformatted_large( un, trim( adjustl( fname ) ), "read", reclen, "old" )
+
       read(un, rec=1)& 
         & reducek_, ngridk_, ngridq_, vkloff_,&
         & fensel_, wl_, wu_, econv_, nstlbse_,&
@@ -311,16 +300,11 @@ module m_putgetbsemat
         allocate(smap_(3,hamsize_))
 
         ! Get all support info
-        call getunit(un)
-        inquire(iolength=reclen)&
-          & reducek_, ngridk_, ngridq_, vkloff_,&
-          & fensel_, wl_, wu_, econv_, nstlbse_,&
-          & iqmt_, vql_,&
-          & nk_max_, nk_bse_, nou_bse_max_, hamsize_,&
-          & kmap_bse_rg_, kmap_bse_gr_,&
-          & koulims_, kousize_, smap_
-        open(unit=un, file=trim(fname), form='unformatted', action='read',&
-          & access='direct', recl=reclen)
+        call inquire_large( reclen, [reducek_], ngridk_, ngridq_, vkloff_, [fensel_], [wl_, wu_], &
+          econv_, [nstlbse_, iqmt_], vql_, [nk_max_, nk_bse_, nou_bse_max_, hamsize_], &
+          kmap_bse_rg_, kmap_bse_gr_, koulims_, kousize_, smap_ )
+        call open_direct_unformatted_large( un, trim( fname ), "read", reclen, "old" )
+
         read(un, rec=1)& 
           & reducek_, ngridk_, ngridq_, vkloff_,&
           & fensel_, wl_, wu_, econv_, nstlbse_,&
@@ -367,18 +351,18 @@ module m_putgetbsemat
     !BOP
     ! !ROUTINE: putbsemat
     ! !INTERFACE:
-    subroutine putbsemat(fname, tag, ikkp, iqmt, zmat)
+    subroutine putbsemat(file_unit, tag, ikkp, iqmt, zmat)
     ! !USES:
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
-    ! character(*) :: fname    ! Output file name 
-    ! integer(4) :: tag        ! MPI communication tag
-    ! integer(4) :: ikkp       ! Index of ik jk combination
-    ! integer(4) :: iqmt       ! Index of momentum transfer q
-    ! complex(8) :: zmat(:,:)  ! Complex 2d-array
+    ! character(*) :: file_unit ! Output file unit
+    ! integer(4) :: tag         ! MPI communication tag
+    ! integer(4) :: ikkp        ! Index of ik jk combination
+    ! integer(4) :: iqmt        ! Index of momentum transfer q
+    ! complex(8) :: zmat(:,:)   ! Complex 2d-array
     !
     ! !DESCRIPTION:
-    !   The routine writes complex 2d-array to a direct access file and
+    !   The routine writes complex 2d-array to a direct access file-unit and
     !   is intended for the use in be BSE part of the code. It is used
     !   to write the screened coulomb interaction {\tt SCCLI.OUT} and 
     !   the exchange interaction {\tt EXCLI.OUT} to file.
@@ -391,24 +375,23 @@ module m_putgetbsemat
       implicit none
 
       ! Arguments
-      character(*), intent(in) :: fname
-      integer(4), intent(in) :: tag
-      integer(4), intent(in) :: ikkp, iqmt
-      complex(8), intent(in) :: zmat(nou_bse_max,nou_bse_max)
+      integer(i32), intent(in) :: file_unit
+      integer(i32), intent(in) :: tag
+      integer(i32), intent(in) :: ikkp, iqmt
+      complex(dp), intent(in) :: zmat(nou_bse_max,nou_bse_max)
 
       ! Local variables
-      integer(4) :: reclen, un
-      integer(4) :: ik, jk, iknr, jknr
-      integer(4) :: inou, jnou
-      integer(4) :: buffer(5)
+      integer(i32) :: ik, jk, iknr, jknr
+      integer(i32) :: inou, jnou
+      integer(i32) :: buffer(5)
       character(:), allocatable :: group, dataset
-      complex(8) :: zmat_buffer(nou_bse_max,nou_bse_max)
+      complex(dp) :: zmat_buffer(nou_bse_max,nou_bse_max)
 
       type(xhdf5_type) :: h5
 
 
 #ifdef MPI
-      integer(4) :: iproc, stat(mpi_status_size)
+      integer(i32) :: iproc, stat(mpi_status_size)
 #endif
 
       ! Get individual ik jk index form compined ikkp index
@@ -424,11 +407,6 @@ module m_putgetbsemat
 
       ! Send/Receive buffer
       buffer = [ikkp, iknr, jknr, inou, jnou]
-
-      call getunit(un)
-
-      ! Get large enough record length (size of zmat can depend on ikkp)
-      inquire(iolength=reclen) iqmt, buffer, zmat
 
 #ifdef MPI
       ! Send result to rank 0
@@ -458,11 +436,10 @@ module m_putgetbsemat
             zmat_buffer = zmat
 #endif
           ! Only the master is performing file i/o
-          open(unit=un, file=trim(fname), form='unformatted', action='write',&
-            & access='direct', recl=reclen)
           ! Use ikkp as record index
-          write(un, rec=buffer(1)) iqmt, buffer, zmat_buffer(1:buffer(4),1:buffer(5))
-          close(un)
+          write(file_unit, rec=buffer(1)) iqmt, buffer, zmat_buffer(1:buffer(4),1:buffer(5))
+          ! flush directly so that all computed parts are available in case of a crash
+          flush(file_unit)
 #ifdef MPI
         end do
 #endif
@@ -490,25 +467,26 @@ module m_putgetbsemat
 
       ! Arguments
       character(*), intent(in) :: fname
-      integer(4), intent(in) :: iqmt
-      integer(4), intent(in) :: ikkp
-      complex(8), intent(out) :: zmat(:,:)
-      logical, intent(in), optional :: check
-      logical, intent(in), optional :: fcmpt
-      logical, intent(in), optional :: fid
+      integer(i32), intent(in) :: iqmt
+      integer(i32), intent(in) :: ikkp
+      complex(dp), intent(out) :: zmat(:,:)
+      logical(i32), intent(in), optional :: check
+      logical(i32), intent(in), optional :: fcmpt
+      logical(i32), intent(in), optional :: fid
 
       ! Local variables
-      integer(4) :: un, reclen, zreclen
-      integer(4) :: inou_, jnou_, inou, jnou
-      integer(4) :: iknr, jknr, ik, jk
-      integer(4) :: ik_, jk_, ikkp_, iknr_, jknr_, iqmt_
-      integer(4) :: iaoff, jaoff, ia, ja
-      integer(4) :: iaoff_, jaoff_, ia_, ja_
-      logical, allocatable :: imap(:), jmap(:), ijmap(:,:)
-      logical :: ishere, chk
-      logical :: iscompatible, isidentical
-      complex(8), allocatable :: zm(:,:)
-      complex(8) :: dummy
+      integer(i32) :: un
+      integer(long_int) :: reclen, zreclen
+      integer(i32) :: inou_, jnou_, inou, jnou
+      integer(i32) :: iknr, jknr, ik, jk
+      integer(i32) :: ik_, jk_, ikkp_, iknr_, jknr_, iqmt_
+      integer(i32) :: iaoff, jaoff, ia, ja
+      integer(i32) :: iaoff_, jaoff_, ia_, ja_
+      logical(i32), allocatable :: imap(:), jmap(:), ijmap(:,:)
+      logical(i32) :: ishere, chk
+      logical(i32) :: iscompatible, isidentical
+      complex(dp), allocatable :: zm(:,:)
+      complex(dp) :: dummy
 
       ! Check if file exists
       inquire(file=trim(fname), exist=ishere)
@@ -547,16 +525,12 @@ write(*,*) "(getbsemat) reading meta info from",infofbasename//'_'//trim(fname)
       if(isidentical) then
 
         ! Get full record length
-        inquire(iolength=zreclen) dummy
-        inquire(iolength=reclen) iqmt_, ikkp_, iknr_, jknr_, inou_, jnou_
-        reclen = reclen+nou_bse_max_**2*zreclen
-        
-!write(*,*) "(getbsemat) data is identical, reclen", reclen 
+        call inquire_large( zreclen, [dummy] )
+        call inquire_large( reclen, [iqmt_, ikkp_, iknr_, jknr_, inou_, jnou_] )
 
-        call getunit(un)
-        open(unit=un, file=trim(fname), form='unformatted',&
-          & action='read', access='direct', recl=reclen)
-        
+        reclen = reclen+nou_bse_max_**2*zreclen
+
+        call open_direct_unformatted_large( un, trim( fname ), "read", reclen, "old" )      
         read(un, rec=ikkp) iqmt_, ikkp_, iknr_, jknr_, inou_, jnou_, zmat 
         close(un)
 
@@ -593,13 +567,13 @@ write(*,*) "(getbsemat) reading meta info from",infofbasename//'_'//trim(fname)
         ! Get full saved matrix
         allocate(zm(inou_, jnou_))
         ! Get full record length
-        inquire(iolength=zreclen) dummy
-        inquire(iolength=reclen) iqmt_, ikkp_, iknr_, jknr_, inou_, jnou_
+        call inquire_large( zreclen, [dummy] )
+        call inquire_large( reclen, [iqmt_, ikkp_, iknr_, jknr_, inou_, jnou_] )
+
         reclen = reclen+nou_bse_max_**2*zreclen
 
-        call getunit(un)
-        open(unit=un, file=trim(fname), form='unformatted',&
-          & action='read', access='direct', recl=reclen)
+        call open_direct_unformatted_large( un, trim( fname ), "read", reclen, "old" )     
+
         read(un, rec=ikkp_) iqmt_, ikkp_, iknr_, jknr_, inou_, jnou_, zm
         close(un)
         if(iknr_ /= iknr .or. jknr_ /= jknr) then

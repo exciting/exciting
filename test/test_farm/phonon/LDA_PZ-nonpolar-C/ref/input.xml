@@ -1,0 +1,40 @@
+<input>
+ 
+  <title>Diamond LDA</title>
+ 
+  <structure speciespath='./' autormt='true'>
+    <crystal scale='6.7035'>
+      <basevect> 0.0     0.5     0.5 </basevect>
+      <basevect> 0.5     0.0     0.5 </basevect>
+      <basevect> 0.5     0.5     0.0 </basevect>
+    </crystal>
+    <species speciesfile='C.xml'>
+      <atom coord='0.00 0.00 0.00' />
+      <atom coord='0.25 0.25 0.25' />
+    </species>
+  </structure>
+ 
+  <groundstate
+    do='fromscratch'
+    rgkmax='7.0' gmaxvr='14.0'
+    ngridk='4 4 4'
+    nempty='50'
+    >
+    <libxc exchange='XC_LDA_X' correlation='XC_LDA_C_PZ'/>
+  </groundstate>
+
+  <phonons
+    do='fromscratch'
+    method='dfpt'
+    ngridq='2 2 2'
+    polar='false'
+    >
+    <qpointset>
+      <qpoint>0.0 0.0 0.0</qpoint>
+      <qpoint>0.5 0.0 0.0</qpoint>
+      <qpoint>0.5 0.5 0.0</qpoint>
+    </qpointset>
+  </phonons>
+
+</input>
+

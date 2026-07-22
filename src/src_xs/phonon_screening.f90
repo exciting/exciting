@@ -25,6 +25,7 @@ contains
         use phonon_screening_file_interface, only: check_file_existence
         use modmpi, only: mpiglobal
         use modinput, only: input
+        use os_utils, only: make_directory
 
         character(256) :: syscommand, wphdirname, zstarfname, phononfname
         logical :: file_exists
@@ -40,10 +41,7 @@ contains
 
         ! Generate output directory
         wphdirname = 'WPH'
-        if (mpiglobal%rank == mpiglobal%root) then
-            syscommand = 'test ! -e '//trim(adjustl(wphdirname))//' && mkdir '//trim(adjustl(wphdirname))
-            call system(trim(adjustl(syscommand)))
-        end if
+        call make_directory(wphdirname, mpiglobal)
 
         ! Initialise universal variables
         call init0
@@ -288,7 +286,7 @@ contains
         use math_utils, only: all_zero
         use mod_Gvector, only: vgc, ivg
         use xs_file_interface, only: write_gq_vectors, write_q_vectors
-        use os_utils, only: make_directory_command
+        use os_utils, only: make_directory
         use putgeteps0, only: puteps0_finite_q
         use mod_kpointset, only: Gk_set, k_set, generate_k_vectors, generate_Gk_vectors, G_set, generate_G_vectors
         use mod_lattice, only: bvec
@@ -336,8 +334,7 @@ contains
                     [0._dp, 0._dp, 0._dp],.false., .false.)
         call generate_Gk_vectors(gq_set,q_set, gset,input%xs%gqmax)
 
-        os_command = make_directory_command('GQPOINTS_PH_SCR')
-        call system(trim(adjustl(os_command)))
+        call make_directory('GQPOINTS_PH_SCR', mpiglobal)
         
         if(mpiglobal%is_root) then
             call write_q_vectors('QPOINTS_PH_SCR.OUT',q_set%vklnr, q_set%vkcnr, gq_set%ngknr(1,:))
@@ -432,7 +429,7 @@ contains
         use constants, only: zzero, fourpi, twopi, pi, zi, zone
         use math_utils, only: all_zero
         use xlapack, only: matrix_multiply, outer_product
-        use asserts, only: assert
+#include "asserts.fpp"
         use modmpi, only: mpiglobal, terminate_mpi_env
 
         !> High frequency dielectric tensor \varepsilon_\infty
@@ -483,9 +480,7 @@ contains
         ! Get number of (G+q)-vectors for current q-point
         n_gqvecs = size(W_ph, dim=2)
 
-        call assert(n_gqvecs == size(gqvecs, dim=2), &
-                    "Error gen_phonon_screening: Number of (G+q)-vectors not &
-                    matching the dimension screened Coulomb interaction")
+        CALL_ASSERT(n_gqvecs == size(gqvecs, dim=2),  "Error gen_phonon_screening: Number of (G+q)-vectors not  matching the dimension screened Coulomb interaction")
 
         ! Find indices of zero and finite (G+q)-vectors, respectively
         indices_finite_gq = pack([(i, i=1, n_gqvecs)], norm2(gqvecs, dim=1) > 1.e-9_dp)

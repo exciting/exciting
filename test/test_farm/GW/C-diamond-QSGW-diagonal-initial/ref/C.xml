@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <sp chemicalSymbol="C" name="carbon" z="-6.00000" mass="21894.16673">
+    <muffinTin rmin="0.100000E-05" radius="1.400" rinf="20.0" radialmeshPoints="700"/>
+    <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
+    <atomicState n="2" l="0" kappa="1" occ="2.00000" core="false"/>
+    <atomicState n="2" l="1" kappa="1" occ="1.00000" core="false"/>
+    <atomicState n="2" l="1" kappa="2" occ="1.00000" core="false"/>
+    <basis>
+      <default type="lapw" trialEnergy="0.00" searchE="true"/>
+
+      <custom l="0" type="lapw" trialEnergy="-0.20" searchE="true"/>
+      <lo l="0">
+        <wf matchingOrder="0" trialEnergy="-0.92" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="-0.92" searchE="true"/>
+      </lo>
+      <lo l="0">
+        <wf matchingOrder="0" trialEnergy="1.178" searchE="false"/>
+        <wf matchingOrder="1" trialEnergy="1.178" searchE="false"/>
+      </lo>
+
+      <custom l="1" type="lapw" trialEnergy="0.20" searchE="true"/>
+      <lo l="1">
+        <wf matchingOrder="0" trialEnergy="1.2071" searchE="false"/>
+        <wf matchingOrder="1" trialEnergy="1.2071" searchE="false"/>
+      </lo>
+      <lo l="1">
+        <wf matchingOrder="1" trialEnergy="8.1031" searchE="false"/>
+        <wf matchingOrder="2" trialEnergy="1.2071" searchE="false"/>
+      </lo>
+
+      <lo l='0'><wf matchingOrder='0' trialEnergy='1.17746' searchE='false'/><wf matchingOrder='0' trialEnergy='10.21978' searchE='false'/></lo>
+      <lo l='0'><wf matchingOrder='0' trialEnergy='10.21978' searchE='false'/><wf matchingOrder='0' trialEnergy='25.33325' searchE='false'/></lo>
+      <lo l='1'><wf matchingOrder='0' trialEnergy='8.1031' searchE='false'/><wf matchingOrder='0' trialEnergy='20.7089' searchE='false'/></lo>
+      <lo l='1'><wf matchingOrder='0' trialEnergy='20.7089' searchE='false'/><wf matchingOrder='1' trialEnergy='20.70896' searchE='false'/></lo>
+      <lo l='2'><wf matchingOrder='0' trialEnergy='4.55800' searchE='false'/><wf matchingOrder='1' trialEnergy='4.55800' searchE='false'/></lo>
+      <lo l='2'><wf matchingOrder='0' trialEnergy='14.60439' searchE='false'/><wf matchingOrder='1' trialEnergy='14.60439' searchE='false'/></lo>
+      <lo l='3'><wf matchingOrder='0' trialEnergy='8.071' searchE='false'/><wf matchingOrder='1' trialEnergy='8.071' searchE='false'/></lo>
+      <lo l='3'><wf matchingOrder='0' trialEnergy='21.123' searchE='false'/><wf matchingOrder='1' trialEnergy='21.123' searchE='false'/></lo>
+      <lo l='4'><wf matchingOrder='0' trialEnergy='12.0665' searchE='false'/><wf matchingOrder='1' trialEnergy='12.0665' searchE='false'/></lo>
+      <lo l='5'><wf matchingOrder='0' trialEnergy='16.605' searchE='false'/><wf matchingOrder='1' trialEnergy='16.605' searchE='false'/></lo>
+      <lo l='6'><wf matchingOrder='0' trialEnergy='21.703' searchE='false'/><wf matchingOrder='1' trialEnergy='21.703' searchE='false'/></lo>
+
+    </basis>
+  <!-- Tailored by Nora 2018 for diamond-->
+ </sp>
+</spdb>
+
+

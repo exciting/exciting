@@ -1,5 +1,5 @@
 module mgga_init 
-   use asserts, only: assert
+#include "asserts.fpp"
    use precision, only: dp
 
     implicit none 
@@ -35,8 +35,7 @@ module mgga_init
         subroutine set_mgga_potential()
             use modinput
 
-            call assert(associated(input%groundstate%mgga), &
-                message="Meta-GGA potential setup requires meta-GGA parameters in the input file.")
+            CALL_ASSERT(associated(input%groundstate%mgga),  message="Meta-GGA potential setup requires meta-GGA parameters in the input file.")
 
             xctype_mgga(1) = 100 
             input%groundstate%xctype = "LibXC"  

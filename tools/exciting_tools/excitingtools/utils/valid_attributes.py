@@ -1,118 +1,122 @@
-""" Automatically generated file with the valid attributes from the schema. 
-Do not manually change. Instead, run "utils/schema_parsing.py" to regenerate. """ 
+""" Automatically generated file with the valid attributes from the schema.
+Do not manually change. Instead, run "utils/schema_parsing.py" to regenerate. """
 
-# input information 
-input_attribute_types = {"sharedfs": (bool, 1), "xsltpath": (str, 1)} 
+# input information
+input_attribute_types = {"sharedfs": (bool, 1), "xsltpath": (str, 1)}
 input_valid_subtrees = ["title", "structure", "groundstate", "relax", "properties", "phonons", "xs", "gw", "MD", "eph",
-                        "keywords"] 
-input_mandatory_attributes = ["groundstate", "structure", "title"] 
+                        "keywords"]
+input_mandatory_attributes = ["groundstate", "structure", "title"]
 
 
-# common information 
-origin_attribute_types = {"coord": (float, 3)} 
+# common information
+origin_attribute_types = {"coord": (float, 3)}
 
-point_attribute_types = {"breakafter": (bool, 1), "coord": (float, 3), "label": (str, 1)} 
-point_mandatory_attributes = ["coord"] 
+point_attribute_types = {"breakafter": (bool, 1), "coord": (float, 3), "label": (str, 1)}
+point_mandatory_attributes = ["coord"]
 
-plot1d_valid_subtrees = ["path"] 
-plot1d_mandatory_attributes = ["path"] 
+plot1d_valid_subtrees = ["path"]
+plot1d_mandatory_attributes = ["path"]
 
-path_attribute_types = {"outfileprefix": (str, 1), "steps": (int, 1)} 
-path_valid_subtrees = ["point"] 
-path_mandatory_attributes = ["point", "steps"] 
-path_multiple_children = ["point"] 
+path_attribute_types = {"outfileprefix": (str, 1), "steps": (int, 1)}
+path_valid_subtrees = ["point"]
+path_mandatory_attributes = ["point", "steps"]
+path_multiple_children = ["point"]
 
-plot2d_valid_subtrees = ["parallelogram"] 
-plot2d_mandatory_attributes = ["parallelogram"] 
+plot2d_valid_subtrees = ["parallelogram"]
+plot2d_mandatory_attributes = ["parallelogram"]
 
-parallelogram_attribute_types = {"grid": (int, 2), "outfileprefix": (str, 1)} 
-parallelogram_valid_subtrees = ["origin", "point"] 
-parallelogram_mandatory_attributes = ["grid", "origin", "point"] 
-parallelogram_multiple_children = ["point"] 
+parallelogram_attribute_types = {"grid": (int, 2), "outfileprefix": (str, 1)}
+parallelogram_valid_subtrees = ["origin", "point"]
+parallelogram_mandatory_attributes = ["grid", "origin", "point"]
+parallelogram_multiple_children = ["point"]
 
-plot3d_attribute_types = {"usesym": (bool, 1)} 
-plot3d_valid_subtrees = ["box"] 
-plot3d_mandatory_attributes = ["box"] 
+plot3d_attribute_types = {"usesym": (bool, 1)}
+plot3d_valid_subtrees = ["box"]
+plot3d_mandatory_attributes = ["box"]
 
-box_attribute_types = {"grid": (int, 3), "outfileprefix": (str, 1)} 
-box_valid_subtrees = ["origin", "point"] 
-box_mandatory_attributes = ["grid", "origin", "point"] 
-box_multiple_children = ["point"] 
+box_attribute_types = {"grid": (int, 3), "outfileprefix": (str, 1)}
+box_valid_subtrees = ["origin", "point"]
+box_mandatory_attributes = ["grid", "origin", "point"]
+box_multiple_children = ["point"]
 
-kstlist_valid_subtrees = ["pointstatepair"] 
-kstlist_mandatory_attributes = ["pointstatepair"] 
-kstlist_multiple_children = ["pointstatepair"] 
+kstlist_valid_subtrees = ["pointstatepair"]
+kstlist_mandatory_attributes = ["pointstatepair"]
+kstlist_multiple_children = ["pointstatepair"]
 
-energywindow_attribute_types = {"intv": (float, 2), "points": (int, 1)} 
+energywindow_attribute_types = {"intv": (float, 2), "points": (int, 1)}
 
-qpointset_valid_subtrees = ["qpoint"] 
-qpointset_mandatory_attributes = ["qpoint"] 
-qpointset_multiple_children = ["qpoint"] 
+qpointset_valid_subtrees = ["qpoint"]
+qpointset_mandatory_attributes = ["qpoint"]
+qpointset_multiple_children = ["qpoint"]
 
-parts_valid_subtrees = ["dopart"] 
-parts_multiple_children = ["dopart"] 
+parts_valid_subtrees = ["dopart"]
+parts_multiple_children = ["dopart"]
 
-dopart_attribute_types = {"id": (str, 1)} 
-dopart_mandatory_attributes = ["id"] 
+dopart_attribute_types = {"id": (str, 1)}
+dopart_mandatory_attributes = ["id"]
 
-qpoints_attribute_types = {"qf": (int, 1), "qi": (int, 1)} 
+qpoints_attribute_types = {"qf": (int, 1), "qi": (int, 1)}
 
-kpoints_attribute_types = {"kf": (int, 1), "ki": (int, 1)} 
+kpoints_attribute_types = {"kf": (int, 1), "ki": (int, 1)}
 
 freq_grid_attribute_types = {"lorentzwidth": (float, 1),
                              "numpoints": (int, 1),
                              "padding": (float, 1),
                              "range": (float, 2),
-                             "type": (str, ["density", "uniform"])} 
+                             "type": (str, ["density", "uniform"])}
 
 
-# structure information 
+# structure information
 structure_attribute_types = {"autormt": (bool, 1),
                              "autormtscaling": (float, 1),
                              "cartesian": (bool, 1),
                              "epslat": (float, 1),
                              "primcell": (bool, 1),
                              "speciespath": (str, 1),
-                             "tshift": (bool, 1)} 
-structure_valid_subtrees = ["crystal", "species", "symmetries"] 
-structure_mandatory_attributes = ["speciespath"] 
-structure_multiple_children = ["species"] 
+                             "tshift": (bool, 1)}
+structure_valid_subtrees = ["crystal", "species", "symmetries"]
+structure_mandatory_attributes = ["speciespath"]
+structure_multiple_children = ["species"]
 
-crystal_attribute_types = {"scale": (float, 1), "stretch": (float, 3)} 
-crystal_valid_subtrees = ["basevect"] 
-crystal_multiple_children = ["basevect"] 
+crystal_attribute_types = {"scale": (float, 1), "stretch": (float, 3)}
+crystal_valid_subtrees = ["basevect"]
+crystal_multiple_children = ["basevect"]
 
 species_attribute_types = {"atomicNumber": (int, 1),
                            "chemicalSymbol": (str, 1),
                            "fixrmt": (bool, 1),
                            "rmt": (float, 1),
-                           "speciesfile": (str, 1)} 
-species_valid_subtrees = ["atom", "LDAplusU", "dfthalfparam"] 
-species_mandatory_attributes = ["speciesfile"] 
-species_multiple_children = ["atom"] 
+                           "speciesfile": (str, 1)}
+species_valid_subtrees = ["atom", "LDAplusU", "dfthalfparam"]
+species_mandatory_attributes = ["speciesfile"]
+species_multiple_children = ["atom"]
 
 atom_attribute_types = {"bfcmt": (float, 3),
                         "coord": (float, 3),
                         "lockxyz": (bool, 3),
                         "mommtfix": (float, 3),
-                        "velocity": (float, 3)} 
-atom_mandatory_attributes = ["coord"] 
+                        "velocity": (float, 3)}
+atom_mandatory_attributes = ["coord"]
 
-LDAplusU_attribute_types = {"J": (float, 1), "U": (float, 1), "l": (int, 1)} 
+LDAplusU_attribute_types = {"J": (float, 1), "U": (float, 1), "l": (int, 1)}
 
-dfthalfparam_attribute_types = {"ampl": (float, 1), "cut": (float, 1), "exponent": (int, 1)} 
-dfthalfparam_valid_subtrees = ["shell"] 
-dfthalfparam_mandatory_attributes = ["shell"] 
-dfthalfparam_multiple_children = ["shell"] 
+dfthalfparam_valid_subtrees = ["shell"]
+dfthalfparam_mandatory_attributes = ["shell"]
+dfthalfparam_multiple_children = ["shell"]
 
-shell_attribute_types = {"ionization": (float, 1), "number": (int, 1)} 
+shell_attribute_types = {"ampl": (float, 1),
+                         "cut": (float, 1),
+                         "exponent": (int, 1),
+                         "ionization": (float, 1),
+                         "number": (int, 1)}
 
 
-# groundstate information 
+# groundstate information
 groundstate_attribute_types = {"APWprecision": (float, 1),
                                "CoreRelativity": (str, ["dirac", "none"]),
                                "ExplicitKineticEnergy": (bool, 1),
                                "LatticeHarmonics": (bool, 1),
+                               "PrePKSteps": (int, 1),
                                "PrelimLinSteps": (int, 1),
                                "ValenceRelativity": (str, ["iora", "iora*", "kh", "kh*", "none", "zora"]),
                                "autokpt": (bool, 1),
@@ -121,6 +125,7 @@ groundstate_attribute_types = {"APWprecision": (float, 1),
                                "betainc": (float, 1),
                                "cfdamp": (float, 1),
                                "chgexs": (float, 1),
+                               "cutofftype": (str, ["0d", "none"]),
                                "deband": (float, 1),
                                "dipolecorrection": (bool, 1),
                                "dipoleposition": (float, 1),
@@ -139,16 +144,18 @@ groundstate_attribute_types = {"APWprecision": (float, 1),
                                "frozencore": (bool, 1),
                                "gmaxvr": (float, 1),
                                "isgkmax": (int, 1),
+                               "lambda": (float, 1),
                                "ldapu": (str,
                                          ["AroundMeanField", "FFL-AMF-interpolation", "FullyLocalisedLimit", "none"]),
+                               "lmaxGwIbc": (int, 1),
                                "lmaxapw": (int, 1),
                                "lmaxinr": (int, 1),
                                "lmaxmat": (int, 1),
                                "lmaxvr": (int, 1),
                                "lradstep": (int, 1),
                                "maxscl": (int, 1),
-                               "mixer": (str, ["lin", "msec", "pulay"]),
-                               "mixerswitch": (int, 1),
+                               "mixer": (str, ["kerker", "lin", "msec", "pulay", "simplelinear"]),
+                               "mixerswitch": (int, [1, 2]),
                                "modifiedsv": (bool, 1),
                                "msecStoredSteps": (int, 1),
                                "nempty": (int, 1),
@@ -162,6 +169,8 @@ groundstate_attribute_types = {"APWprecision": (float, 1),
                                "nwrite": (int, 1),
                                "outputlevel": (str, ["high", "low", "none", "normal"]),
                                "ptnucl": (bool, 1),
+                               "pulayStoredSteps": (int, 1),
+                               "rCutCoulomb": (float, 1),
                                "radialgridtype": (str, ["cubic", "cubic-2", "expocubic", "exponential"]),
                                "radkpt": (float, 1),
                                "reducek": (bool, 1),
@@ -178,24 +187,27 @@ groundstate_attribute_types = {"APWprecision": (float, 1),
                                "tpartcharges": (bool, 1),
                                "useAPWprecision": (bool, 1),
                                "useDensityMatrix": (bool, 1),
-                               "vdWcorrection": (str, ["DFTD2", "TSvdW", "none"]),
+                               "vdWcorrection": (str, ["DFTD2", "MBD", "TSvdW", "none"]),
+                               "vha": (str, ["exciting", "exciting0d", "none"]),
                                "vkloff": (float, 3),
                                "xctype": (str,
                                           ["EXX", "GGA_AC_PBE", "GGA_AM05", "GGA_PBE", "GGA_PBE_R", "GGA_PBE_SOL",
                                            "GGA_PBE_SR", "GGA_WC", "HYB_HSE", "HYB_LDA0", "HYB_PBE0", "LDA_PW",
-                                           "LDA_PZ", "LDA_XALPHA", "LDA_vBH", "none"])} 
-groundstate_valid_subtrees = ["DFTD2parameters", "TSvdWparameters", "spin", "HartreeFock", "constrainedDFT", "dfthalf",
-                              "Hybrid", "mgga", "sirius", "solver", "OEP", "RDMFT", "output", "libxc", "xsLO",
-                              "lorecommendation"] 
+                                           "LDA_PZ", "LDA_XALPHA", "LDA_vBH", "none"])}
+groundstate_valid_subtrees = ["DFTD2parameters", "TSvdWparameters", "MBDparameters", "spin", "HartreeFock",
+                              "constrainedDFT", "dfthalf", "Hybrid", "mgga", "sirius", "solver", "OEP", "RDMFT",
+                              "output", "libxc", "xsLO", "lorecommendation", "GhostBands"]
 
-DFTD2parameters_attribute_types = {"cutoff": (float, 1), "d": (float, 1), "s6": (float, 1), "sr6": (float, 1)} 
+DFTD2parameters_attribute_types = {"cutoff": (float, 1), "d": (float, 1), "s6": (float, 1), "sr6": (float, 1)}
 
 TSvdWparameters_attribute_types = {"cutoff": (float, 1),
                                    "d": (float, 1),
                                    "nr": (int, 1),
                                    "nsph": (int, 1),
                                    "s6": (float, 1),
-                                   "sr6": (float, 1)} 
+                                   "sr6": (float, 1)}
+
+MBDparameters_attribute_types = {"beta": (float, 1), "cutoff": (float, 1), "d": (float, 1), "evalremap": (bool, 1)}
 
 spin_attribute_types = {"bfieldc": (float, 3),
                         "fixspin": (str, ["both", "localmt FSM", "none", "total FSM"]),
@@ -207,23 +219,26 @@ spin_attribute_types = {"bfieldc": (float, 3),
                         "spinsprl": (bool, 1),
                         "svlo": (bool, 1),
                         "taufsm": (float, 1),
-                        "vqlss": (float, 3)} 
+                        "vqlss": (float, 3)}
 
 constrainedDFT_attribute_types = {"MaximumOverlapMethod": (bool, 1),
                                   "fileName": (str, 1),
-                                  "skipgnd": (bool, 1),
+                                  "groundstateRun": (str, ["scf", "singleShot", "skip"]),
                                   "startDensityAndPotentialFromFile": (bool, 1),
                                   "useExcitonCoefficients": (bool, 1),
-                                  "useExternalFile": (bool, 1)} 
-constrainedDFT_valid_subtrees = ["occupationChanges"] 
+                                  "useExternalFile": (bool, 1)}
+constrainedDFT_valid_subtrees = ["occupationChanges"]
 
-occupationChanges_valid_subtrees = ["newOccupation"] 
-occupationChanges_mandatory_attributes = ["newOccupation"] 
-occupationChanges_multiple_children = ["newOccupation"] 
+occupationChanges_valid_subtrees = ["newOccupation"]
+occupationChanges_mandatory_attributes = ["newOccupation"]
+occupationChanges_multiple_children = ["newOccupation"]
 
-newOccupation_attribute_types = {"kPointIndex": (int, 1), "occupation": (float, 1), "stateIndex": (int, 1)} 
+newOccupation_attribute_types = {"kPointIndex": (int, 1), "occupation": (float, 1), "stateIndex": (int, 1)}
 
-dfthalf_attribute_types = {"printVSfile": (bool, 1)} 
+dfthalf_attribute_types = {"NSCF": (bool, 1),
+                           "lmaxBandCharacter": (int, 1),
+                           "printBandCharacter": (bool, 1),
+                           "printVSfile": (bool, 1)}
 
 Hybrid_attribute_types = {"BasisBareCoulomb": (str, 1),
                           "GBatchCount": (int, 1),
@@ -237,11 +252,11 @@ Hybrid_attribute_types = {"BasisBareCoulomb": (str, 1),
                           "maxscl": (int, 1),
                           "mblksiz": (int, 1),
                           "omega": (float, 1),
-                          "updateRadial": (bool, 1)} 
+                          "updateRadial": (bool, 1)}
 
 mgga_attribute_types = {"correlation": (str, ["XC_LDA_C_PW", "XC_MGGA_C_R2SCAN", "XC_MGGA_C_SCAN", "XC_MGGA_C_TPSS"]),
                         "exchange": (str, ["XC_MGGA_X_R2SCAN", "XC_MGGA_X_SCAN", "XC_MGGA_X_TASK", "XC_MGGA_X_TPSS"]),
-                        "xc": (str, ["XC_MGGA_XC_HLE17", "none"])} 
+                        "xc": (str, ["XC_MGGA_XC_HLE17", "none"])}
 
 sirius_attribute_types = {"cfun": (bool, 1),
                           "density": (bool, 1),
@@ -249,15 +264,15 @@ sirius_attribute_types = {"cfun": (bool, 1),
                           "eigenstates": (bool, 1),
                           "sfacg": (bool, 1),
                           "vha": (bool, 1),
-                          "xc": (bool, 1)} 
+                          "xc": (bool, 1)}
 
 solver_attribute_types = {"constructHS": (bool, 1),
                           "evaltol": (float, 1),
                           "minenergy": (float, 1),
                           "packedmatrixstorage": (bool, 1),
-                          "type": (str, ["Davidson", "Lapack", "inversionsymmetry"])} 
+                          "type": (str, ["Davidson", "Lapack", "inversionsymmetry"])}
 
-OEP_attribute_types = {"convoep": (float, 1), "maxitoep": (int, 1), "tauoep": (float, 3)} 
+OEP_attribute_types = {"convoep": (float, 1), "maxitoep": (int, 1), "tauoep": (float, 3)}
 
 RDMFT_attribute_types = {"maxitc": (int, 1),
                          "maxitn": (int, 1),
@@ -266,9 +281,9 @@ RDMFT_attribute_types = {"maxitc": (int, 1),
                          "rdmtemp": (float, 1),
                          "rdmxctype": (int, 1),
                          "taurdmc": (float, 1),
-                         "taurdmn": (float, 1)} 
+                         "taurdmn": (float, 1)}
 
-output_attribute_types = {"state": (str, ["XML", "binary"])} 
+output_attribute_types = {"state": (str, ["XML", "binary"])}
 
 libxc_attribute_types = {"correlation": (str,
                                          ["XC_GGA_C_AM05", "XC_GGA_C_APBE", "XC_GGA_C_FT97", "XC_GGA_C_LM",
@@ -318,14 +333,16 @@ libxc_attribute_types = {"correlation": (str,
                                  "XC_HYB_GGA_XC_PBEH", "XC_HYB_GGA_XC_SB98_1a", "XC_HYB_GGA_XC_SB98_1b",
                                  "XC_HYB_GGA_XC_SB98_1c", "XC_HYB_GGA_XC_SB98_2a", "XC_HYB_GGA_XC_SB98_2b",
                                  "XC_HYB_GGA_XC_SB98_2c", "XC_HYB_GGA_XC_X3LYP", "XC_HYB_GGA_XC_mPW1K",
-                                 "XC_HYB_GGA_XC_mPW1PW", "XC_LDA_XC_TETER93", "none"])} 
+                                 "XC_HYB_GGA_XC_mPW1PW", "XC_LDA_XC_TETER93", "none"])}
 
-xsLO_attribute_types = {"emax": (float, 1), "lmax": (int, 1), "maxnodes": (int, 1)} 
+xsLO_attribute_types = {"emax": (float, 1), "lmax": (int, 1), "maxnodes": (int, 1)}
 
-lorecommendation_attribute_types = {"lmaxlo": (int, 1), "nodesmaxlo": (int, 1)} 
+lorecommendation_attribute_types = {"lmaxlo": (int, 1), "nodesmaxlo": (int, 1)}
+
+GhostBands_attribute_types = {"filterGhostBands": (bool, 1), "toleranceSmallestAllowedEval": (float, 1)}
 
 
-# relax information 
+# relax information
 relax_attribute_types = {"addtohistory": (bool, 1),
                          "endbfgs": (str, 1),
                          "epsforce": (float, 1),
@@ -337,10 +354,10 @@ relax_attribute_types = {"addtohistory": (bool, 1),
                          "outputlevel": (str, ["high", "low", "normal"]),
                          "printtorque": (bool, 1),
                          "taubfgs": (float, 1),
-                         "taunewton": (float, 1)} 
+                         "taunewton": (float, 1)}
 
 
-# phonons information 
+# phonons information
 phonons_attribute_types = {"canonical": (bool, 1),
                            "delete_eigensystem_response": (bool, 1),
                            "deltaph": (float, 1),
@@ -355,57 +372,58 @@ phonons_attribute_types = {"canonical": (bool, 1),
                            "polar": (bool, 1),
                            "reduceq": (bool, 1),
                            "sumrule": (bool, 1),
-                           "write_schedule": (bool, 1)} 
-phonons_valid_subtrees = ["qpointset", "phonondos", "phonondispplot", "reformatdynmat", "interpolate", "parts"] 
+                           "write_schedule": (bool, 1)}
+phonons_valid_subtrees = ["qpointset", "phonondos", "phonondispplot", "reformatdynmat", "interpolate", "parts"]
 
 phonondos_attribute_types = {"inttype": (str, ["sum", "tetra"]),
                              "ngrdos": (int, 1),
                              "ngridqint": (int, 3),
                              "nsmdos": (int, 1),
                              "ntemp": (int, 1),
-                             "nwdos": (int, 1)} 
+                             "nwdos": (int, 1)}
 
-phonondispplot_attribute_types = {"json": (bool, 1)} 
-phonondispplot_valid_subtrees = ["plot1d"] 
-phonondispplot_mandatory_attributes = ["plot1d"] 
+phonondispplot_attribute_types = {"json": (bool, 1)}
+phonondispplot_valid_subtrees = ["plot1d"]
+phonondispplot_mandatory_attributes = ["plot1d"]
 
 interpolate_attribute_types = {"ngridq": (int, 3),
                                "reduceq": (bool, 1),
                                "vqloff": (float, 3),
-                               "writeeigenvectors": (bool, 1)} 
-interpolate_mandatory_attributes = ["ngridq"] 
+                               "writeeigenvectors": (bool, 1)}
+interpolate_mandatory_attributes = ["ngridq"]
 
 
-# properties information 
+# properties information
 properties_valid_subtrees = ["spintext", "coreoverlap", "bandstructure", "stm", "wfplot", "dos", "LSJ", "masstensor",
-                             "chargedensityplot", "TSvdW", "DFTD2", "exccplot", "elfplot", "mvecfield", "xcmvecfield",
-                             "electricfield", "gradmvecfield", "fermisurfaceplot", "EFG", "mossbauer", "expiqr",
-                             "elnes", "eliashberg", "momentummatrix", "dielmat", "boltzequ", "raman", "moke", "shg",
-                             "wannier", "wannierplot", "wanniergap", "ldos", "polarization"] 
+                             "chargedensityplot", "TSvdW", "DFTD2", "MBD", "exccplot", "elfplot", "mvecfield",
+                             "xcmvecfield", "electricfield", "gradmvecfield", "fermisurfaceplot", "EFG", "mossbauer",
+                             "expiqr", "elnes", "eliashberg", "momentummatrix", "dielmat", "boltzequ", "raman", "moke",
+                             "shg", "wannier", "wannierplot", "wanniergap", "ldos", "polarization"]
 
-spintext_attribute_types = {"bands": (int, 2)} 
-spintext_valid_subtrees = ["plot2d"] 
-spintext_mandatory_attributes = ["plot2d"] 
+spintext_attribute_types = {"bands": (int, 2)}
+spintext_valid_subtrees = ["plot2d"]
+spintext_mandatory_attributes = ["plot2d"]
 
-coreoverlap_attribute_types = {"coreatom": (int, 1), "corespecies": (int, 1)} 
+coreoverlap_attribute_types = {"coreatom": (int, 1), "corespecies": (int, 1)}
 
 bandstructure_attribute_types = {"character": (bool, 1),
                                  "deriv": (bool, 1),
+                                 "fourier": (bool, 1),
                                  "scissor": (float, 1),
-                                 "wannier": (bool, 1)} 
-bandstructure_valid_subtrees = ["plot1d"] 
-bandstructure_mandatory_attributes = ["plot1d"] 
+                                 "wannier": (bool, 1)}
+bandstructure_valid_subtrees = ["plot1d"]
+bandstructure_mandatory_attributes = ["plot1d"]
 
 stm_attribute_types = {"bias": (float, 1),
                        "stmmode": (str, ["constantHeight", "topographic"]),
-                       "stmtype": (str, ["differentialConductance", "integratedLDOS"])} 
-stm_valid_subtrees = ["plot2d", "region"] 
+                       "stmtype": (str, ["differentialConductance", "integratedLDOS"])}
+stm_valid_subtrees = ["plot2d", "region"]
 
-region_attribute_types = {"grid2d": (int, 2), "grid3d": (int, 3), "height": (float, 1), "zrange": (float, 2)} 
+region_attribute_types = {"grid2d": (int, 2), "grid3d": (int, 3), "height": (float, 1), "zrange": (float, 2)}
 
-wfplot_attribute_types = {"version": (str, 1)} 
-wfplot_valid_subtrees = ["kstlist", "plot1d", "plot2d", "plot3d"] 
-wfplot_mandatory_attributes = ["kstlist"] 
+wfplot_attribute_types = {"version": (str, 1)}
+wfplot_valid_subtrees = ["kstlist", "plot1d", "plot2d", "plot3d"]
+wfplot_mandatory_attributes = ["kstlist"]
 
 dos_attribute_types = {"inttype": (str, ["tetra", "trilin", "trilin+"]),
                        "jdos": (bool, 1),
@@ -419,41 +437,41 @@ dos_attribute_types = {"inttype": (str, ["tetra", "trilin", "trilin+"]),
                        "scissor": (float, 1),
                        "sqados": (float, 3),
                        "wannier": (bool, 1),
-                       "winddos": (float, 2)} 
+                       "winddos": (float, 2)}
 
-LSJ_valid_subtrees = ["kstlist"] 
+LSJ_valid_subtrees = ["kstlist"]
 
-masstensor_attribute_types = {"deltaem": (float, 1), "ndspem": (int, 1), "vklem": (float, 3)} 
+masstensor_attribute_types = {"deltaem": (float, 1), "ndspem": (int, 1), "vklem": (float, 3)}
 
-chargedensityplot_attribute_types = {"nocore": (bool, 1)} 
-chargedensityplot_valid_subtrees = ["plot1d", "plot2d", "plot3d"] 
+chargedensityplot_attribute_types = {"nocore": (bool, 1)}
+chargedensityplot_valid_subtrees = ["plot1d", "plot2d", "plot3d"]
 
-exccplot_valid_subtrees = ["plot1d", "plot2d", "plot3d"] 
+exccplot_valid_subtrees = ["plot1d", "plot2d", "plot3d"]
 
-elfplot_valid_subtrees = ["plot1d", "plot2d", "plot3d"] 
+elfplot_valid_subtrees = ["plot1d", "plot2d", "plot3d"]
 
-mvecfield_valid_subtrees = ["plot2d", "plot3d"] 
+mvecfield_valid_subtrees = ["plot2d", "plot3d"]
 
-xcmvecfield_valid_subtrees = ["plot2d", "plot3d"] 
+xcmvecfield_valid_subtrees = ["plot2d", "plot3d"]
 
-electricfield_valid_subtrees = ["plot2d", "plot3d"] 
+electricfield_valid_subtrees = ["plot2d", "plot3d"]
 
-gradmvecfield_valid_subtrees = ["plot1d", "plot2d", "plot3d"] 
+gradmvecfield_valid_subtrees = ["plot1d", "plot2d", "plot3d"]
 
-fermisurfaceplot_attribute_types = {"nstfsp": (int, 1)} 
-fermisurfaceplot_valid_subtrees = ["plot2d", "plot3d"] 
+fermisurfaceplot_attribute_types = {"nstfsp": (int, 1)}
+fermisurfaceplot_valid_subtrees = ["plot2d", "plot3d"]
 
-expiqr_valid_subtrees = ["kstlist"] 
+expiqr_valid_subtrees = ["kstlist"]
 
 elnes_attribute_types = {"ngrid": (int, 1),
                          "vecql": (float, 3),
                          "wgrid": (int, 1),
                          "wmax": (float, 1),
-                         "wmin": (float, 1)} 
+                         "wmin": (float, 1)}
 
-eliashberg_attribute_types = {"mustar": (float, 1)} 
+eliashberg_attribute_types = {"mustar": (float, 1)}
 
-momentummatrix_attribute_types = {"fastpmat": (bool, 1)} 
+momentummatrix_attribute_types = {"fastpmat": (bool, 1)}
 
 dielmat_attribute_types = {"drude": (float, 2),
                            "intraband": (bool, 1),
@@ -461,9 +479,9 @@ dielmat_attribute_types = {"drude": (float, 2),
                            "swidth": (float, 1),
                            "tevout": (bool, 1),
                            "wgrid": (int, 1),
-                           "wmax": (float, 1)} 
-dielmat_valid_subtrees = ["epscomp"] 
-dielmat_multiple_children = ["epscomp"] 
+                           "wmax": (float, 1)}
+dielmat_valid_subtrees = ["epscomp"]
+dielmat_multiple_children = ["epscomp"]
 
 boltzequ_attribute_types = {"chemicalPotentialRange": (float, 2),
                             "chemicalPotentialSpacing": (float, 1),
@@ -477,9 +495,9 @@ boltzequ_attribute_types = {"chemicalPotentialRange": (float, 2),
                             "transportDfRange": (float, 2),
                             "transportDfSpacing": (float, 1),
                             "useDopingConcentration": (bool, 1),
-                            "useTransportDf": (bool, 1)} 
-boltzequ_valid_subtrees = ["etCoeffComponents"] 
-boltzequ_multiple_children = ["etCoeffComponents"] 
+                            "useTransportDf": (bool, 1)}
+boltzequ_valid_subtrees = ["etCoeffComponents"]
+boltzequ_multiple_children = ["etCoeffComponents"]
 
 raman_attribute_types = {"broad": (float, 1),
                          "degree": (int, 1),
@@ -498,13 +516,13 @@ raman_attribute_types = {"broad": (float, 1),
                          "usesym": (bool, 1),
                          "writefunc": (bool, 1),
                          "xmax": (float, 1),
-                         "xmin": (float, 1)} 
-raman_valid_subtrees = ["eigvec", "energywindow"] 
-raman_mandatory_attributes = ["energywindow"] 
-raman_multiple_children = ["eigvec"] 
+                         "xmin": (float, 1)}
+raman_valid_subtrees = ["eigvec", "energywindow"]
+raman_mandatory_attributes = ["energywindow"]
+raman_multiple_children = ["eigvec"]
 
-eigvec_attribute_types = {"comp": (float, 2)} 
-eigvec_mandatory_attributes = ["comp"] 
+eigvec_attribute_types = {"comp": (float, 2)}
+eigvec_mandatory_attributes = ["comp"]
 
 moke_attribute_types = {"drude": (float, 2),
                         "intraband": (bool, 1),
@@ -512,17 +530,17 @@ moke_attribute_types = {"drude": (float, 2),
                         "swidth": (float, 1),
                         "tevout": (bool, 1),
                         "wgrid": (int, 1),
-                        "wmax": (float, 1)} 
+                        "wmax": (float, 1)}
 
 shg_attribute_types = {"etol": (float, 1),
                        "scissor": (float, 1),
                        "swidth": (float, 1),
                        "tevout": (bool, 1),
                        "wgrid": (int, 1),
-                       "wmax": (float, 1)} 
-shg_valid_subtrees = ["chicomp"] 
-shg_mandatory_attributes = ["chicomp"] 
-shg_multiple_children = ["chicomp"] 
+                       "wmax": (float, 1)}
+shg_valid_subtrees = ["chicomp"]
+shg_mandatory_attributes = ["chicomp"]
+shg_multiple_children = ["chicomp"]
 
 wannier_attribute_types = {"cutshell": (bool, 1),
                            "do": (str, ["fromfile", "fromscratch", "maxfromfile", "skip"]),
@@ -531,11 +549,12 @@ wannier_attribute_types = {"cutshell": (bool, 1),
                            "mindist": (bool, 1),
                            "minshell": (int, 1),
                            "nbzshell": (int, 3),
-                           "printproj": (bool, 1)} 
-wannier_valid_subtrees = ["projection", "group"] 
-wannier_multiple_children = ["group"] 
+                           "printproj": (bool, 1),
+                           "spindis": (bool, 1)}
+wannier_valid_subtrees = ["projection", "group"]
+wannier_multiple_children = ["group"]
 
-projection_attribute_types = {"dordmax": (int, 1), "epsld": (float, 1), "nprojtot": (int, 1), "nunocc": (int, 1)} 
+projection_attribute_types = {"dordmax": (int, 1), "epsld": (float, 1), "nprojtot": (int, 1), "nunocc": (int, 1)}
 
 group_attribute_types = {"epsdis": (float, 1),
                          "epsmax": (float, 1),
@@ -563,22 +582,22 @@ group_attribute_types = {"epsdis": (float, 1),
                          "nwrite": (int, 1),
                          "optim": (str, ["cg", "lbfgs"]),
                          "outerwindow": (float, 2),
-                         "writeconv": (bool, 1)} 
-group_valid_subtrees = ["projector"] 
-group_multiple_children = ["projector"] 
+                         "writeconv": (bool, 1)}
+group_valid_subtrees = ["projector"]
+group_multiple_children = ["projector"]
 
-projector_attribute_types = {"nr": (int, 1)} 
-projector_mandatory_attributes = ["nr"] 
+projector_attribute_types = {"nr": (int, 1)}
+projector_mandatory_attributes = ["nr"]
 
-wannierplot_attribute_types = {"cell": (int, 3), "fst": (int, 1), "lst": (int, 1)} 
-wannierplot_valid_subtrees = ["plot1d", "plot2d", "plot3d"] 
+wannierplot_attribute_types = {"cell": (int, 3), "fst": (int, 1), "lst": (int, 1)}
+wannierplot_valid_subtrees = ["plot1d", "plot2d", "plot3d"]
 
-wanniergap_attribute_types = {"auto": (bool, 1), "ngridkint": (int, 3)} 
-wanniergap_valid_subtrees = ["pointband"] 
-wanniergap_multiple_children = ["pointband"] 
+wanniergap_attribute_types = {"auto": (bool, 1), "ngridkint": (int, 3)}
+wanniergap_valid_subtrees = ["pointband"]
+wanniergap_multiple_children = ["pointband"]
 
-pointband_attribute_types = {"band": (int, 1), "extremal": (bool, 1), "vkl": (float, 3)} 
-pointband_mandatory_attributes = ["band", "vkl"] 
+pointband_attribute_types = {"band": (int, 1), "extremal": (bool, 1), "vkl": (float, 3)}
+pointband_mandatory_attributes = ["band", "vkl"]
 
 ldos_attribute_types = {"delta": (float, 1),
                         "grid": (int, 3),
@@ -588,10 +607,10 @@ ldos_attribute_types = {"delta": (float, 1),
                         "nwdos": (int, 1),
                         "scissor": (float, 1),
                         "tol": (float, 1),
-                        "winddos": (float, 2)} 
+                        "winddos": (float, 2)}
 
 
-# xs information 
+# xs information
 xs_attribute_types = {"bfieldc": (float, 3),
                       "broad": (float, 1),
                       "dbglev": (int, 1),
@@ -623,21 +642,21 @@ xs_attribute_types = {"bfieldc": (float, 3),
                       "tevout": (bool, 1),
                       "vkloff": (float, 3),
                       "writexsgrids": (bool, 1),
-                      "xstype": (str, ["BSE", "RT-TDDFT", "TDDFT", "fastBSE"])} 
+                      "xstype": (str, ["BSE", "RT-TDDFT", "TDDFT", "fastBSE"])}
 xs_valid_subtrees = ["storeexcitons", "pwelements", "writeexcitons", "writekpathweights", "excitonPlot",
                      "realTimeTDDFT", "tddft", "screening", "phonon_screening", "expand_eps", "BSE", "fastBSE",
-                     "transitions", "qpointset", "tetra", "energywindow", "BseTypeSet", "plan"] 
-xs_mandatory_attributes = ["xstype"] 
+                     "transitions", "qpointset", "tetra", "energywindow", "BseTypeSet", "plan"]
+xs_mandatory_attributes = ["xstype"]
 
 storeexcitons_attribute_types = {"MaxEnergyExcitons": (float, 1),
                                  "MaxNumberExcitons": (int, 1),
                                  "MinEnergyExcitons": (float, 1),
                                  "MinNumberExcitons": (int, 1),
                                  "selectenergy": (bool, 1),
-                                 "useev": (bool, 1)} 
+                                 "useev": (bool, 1)}
 
-pwelements_attribute_types = {"band_combinations": (str, ["all", "occ_occ", "occ_unocc", "unocc_occ", "unocc_unocc"])} 
-pwelements_mandatory_attributes = ["band_combinations"] 
+pwelements_attribute_types = {"band_combinations": (str, ["all", "occ_occ", "occ_unocc", "unocc_occ", "unocc_unocc"])}
+pwelements_mandatory_attributes = ["band_combinations"]
 
 writeexcitons_attribute_types = {"MaxEnergyExcitons": (float, 1),
                                  "MaxNumberExcitons": (int, 1),
@@ -646,7 +665,7 @@ writeexcitons_attribute_types = {"MaxEnergyExcitons": (float, 1),
                                  "abscutares": (float, 2),
                                  "abscutres": (float, 2),
                                  "selectenergy": (bool, 1),
-                                 "useev": (bool, 1)} 
+                                 "useev": (bool, 1)}
 
 writekpathweights_attribute_types = {"MaxEnergyExcitons": (float, 1),
                                      "MaxNumberExcitons": (int, 1),
@@ -655,18 +674,18 @@ writekpathweights_attribute_types = {"MaxEnergyExcitons": (float, 1),
                                      "intorder": (int, 1),
                                      "printgridweights": (bool, 1),
                                      "selectenergy": (bool, 1),
-                                     "useev": (bool, 1)} 
+                                     "useev": (bool, 1)}
 
-excitonPlot_attribute_types = {"epstol": (float, 1)} 
-excitonPlot_valid_subtrees = ["exciton", "hole", "electron"] 
-excitonPlot_mandatory_attributes = ["electron", "hole"] 
-excitonPlot_multiple_children = ["exciton"] 
+excitonPlot_attribute_types = {"epstol": (float, 1)}
+excitonPlot_valid_subtrees = ["exciton", "hole", "electron"]
+excitonPlot_mandatory_attributes = ["electron", "hole"]
+excitonPlot_multiple_children = ["exciton"]
 
-exciton_attribute_types = {"fix": (str, 1), "lambda": (int, 1)} 
+exciton_attribute_types = {"fix": (str, 1), "lambda": (int, 1)}
 
-hole_valid_subtrees = ["plot1d", "plot2d", "plot3d"] 
+hole_valid_subtrees = ["plot1d", "plot2d", "plot3d"]
 
-electron_valid_subtrees = ["plot1d", "plot2d", "plot3d"] 
+electron_valid_subtrees = ["plot1d", "plot2d", "plot3d"]
 
 realTimeTDDFT_attribute_types = {"TaylorOrder": (int, 1),
                                  "basis": (str, ["LAPWlo", "unperturbedKS"]),
@@ -680,6 +699,7 @@ realTimeTDDFT_attribute_types = {"TaylorOrder": (int, 1),
                                  "nEigenvectorsEH": (int, 1),
                                  "normalizeWF": (bool, 1),
                                  "numberOfFrozenStates": (int, 1),
+                                 "orthogonalizeAgainstFrozen": (bool, 1),
                                  "printAfterIterations": (int, 1),
                                  "printTimingDetailed": (bool, 1),
                                  "printTimingGeneral": (bool, 1),
@@ -689,30 +709,30 @@ realTimeTDDFT_attribute_types = {"TaylorOrder": (int, 1),
                                  "saveState": (bool, 1),
                                  "subtractJ0": (bool, 1),
                                  "timeStep": (float, 1),
-                                 "vectorPotentialSolver": (str, ["euler", "improvedeuler", "midpoint", "rk4"])} 
-realTimeTDDFT_valid_subtrees = ["predictorCorrector", "screenshots", "laser", "pmat"] 
+                                 "vectorPotentialSolver": (str, ["euler", "improvedeuler", "midpoint", "rk4"])}
+realTimeTDDFT_valid_subtrees = ["predictorCorrector", "screenshots", "laser", "pmat", "spinPropagation"]
 
-predictorCorrector_attribute_types = {"maxIterations": (int, 1), "tol": (float, 1)} 
+predictorCorrector_attribute_types = {"maxIterations": (int, 1), "tol": (float, 1)}
 
-screenshots_attribute_types = {"niter": (int, 1)} 
-screenshots_valid_subtrees = ["eigenvalues", "projectionCoefficients", "occupations", "deltadensityplot"] 
+screenshots_attribute_types = {"niter": (int, 1)}
+screenshots_valid_subtrees = ["eigenvalues", "projectionCoefficients", "occupations", "deltadensityplot"]
 
-eigenvalues_attribute_types = {"nEigenvalues": (int, 1), "tolerance": (float, 1)} 
+eigenvalues_attribute_types = {"nEigenvalues": (int, 1), "tolerance": (float, 1)}
 
-projectionCoefficients_attribute_types = {"format": (str, 1), "printAbsoluteValue": (bool, 1)} 
+projectionCoefficients_attribute_types = {"format": (str, 1), "printAbsoluteValue": (bool, 1)}
 
-occupations_attribute_types = {"binaryFormat": (bool, 1), "format": (str, 1), "textFormat": (bool, 1)} 
+occupations_attribute_types = {"binaryFormat": (bool, 1), "format": (str, 1), "textFormat": (bool, 1)}
 
-deltadensityplot_valid_subtrees = ["plot3d"] 
+deltadensityplot_valid_subtrees = ["plot3d"]
 
-laser_attribute_types = {"fieldType": (str, ["external", "total"])} 
-laser_valid_subtrees = ["kick", "trapCos", "sinSq"] 
-laser_multiple_children = ["kick", "sinSq", "trapCos"] 
+laser_attribute_types = {"fieldType": (str, ["external", "total"])}
+laser_valid_subtrees = ["kick", "trapCos", "sinSq"]
+laser_multiple_children = ["kick", "sinSq", "trapCos"]
 
 kick_attribute_types = {"amplitude": (float, 1),
                         "direction": (str, ["x", "y", "z"]),
                         "t0": (float, 1),
-                        "width": (float, 1)} 
+                        "width": (float, 1)}
 
 trapCos_attribute_types = {"amplitude": (float, 1),
                            "direction": (str, ["x", "y", "z"]),
@@ -720,16 +740,18 @@ trapCos_attribute_types = {"amplitude": (float, 1),
                            "phase": (float, 1),
                            "riseTime": (float, 1),
                            "t0": (float, 1),
-                           "width": (float, 1)} 
+                           "width": (float, 1)}
 
 sinSq_attribute_types = {"amplitude": (float, 1),
                          "direction": (str, ["x", "y", "z"]),
                          "omega": (float, 1),
                          "phase": (float, 1),
                          "pulseLength": (float, 1),
-                         "t0": (float, 1)} 
+                         "t0": (float, 1)}
 
-pmat_attribute_types = {"forceHermitian": (bool, 1), "readFromFile": (bool, 1), "writeToFile": (bool, 1)} 
+pmat_attribute_types = {"forceHermitian": (bool, 1), "readFromFile": (bool, 1), "writeToFile": (bool, 1)}
+
+spinPropagation_attribute_types = {"SOCGaugeCorrections": (bool, 1), "updateSOC": (bool, 1)}
 
 tddft_attribute_types = {"acont": (bool, 1),
                          "ahc": (bool, 1),
@@ -751,7 +773,7 @@ tddft_attribute_types = {"acont": (bool, 1),
                          "mdfqtype": (int, 1),
                          "nwacont": (int, 1),
                          "torddf": (bool, 1),
-                         "tordfxc": (bool, 1)} 
+                         "tordfxc": (bool, 1)}
 
 screening_attribute_types = {"do": (str, ["fromscratch", "skip"]),
                              "dryrun": (bool, 1),
@@ -769,21 +791,26 @@ screening_attribute_types = {"do": (str, ["fromscratch", "skip"]),
                              "skipdoneq": (bool, 1),
                              "terminate_if_size_is_wrong": (bool, 1),
                              "tr": (bool, 1),
-                             "vkloff": (float, 3)} 
+                             "vkloff": (float, 3)}
 
 phonon_screening_attribute_types = {"alat_qe": (float, 1),
                                     "excitation_energy": (float, 1),
                                     "file_type": (str, ["exciting", "quantum_espresso"]),
                                     "phonon_file": (str, 1),
-                                    "zstar_file": (str, 1)} 
-phonon_screening_mandatory_attributes = ["alat_qe", "excitation_energy", "phonon_file", "zstar_file"] 
+                                    "zstar_file": (str, 1)}
+phonon_screening_mandatory_attributes = ["alat_qe", "excitation_energy", "phonon_file", "zstar_file"]
 
-expand_eps_attribute_types = {"supercell_1": (int, 3), "supercell_2": (int, 3)} 
+expand_eps_attribute_types = {"supercell_1": (int, 3), "supercell_2": (int, 3)}
 
-BSE_attribute_types = {"aresbse": (bool, 1),
+BSE_attribute_types = {"BSEKernelFineStatusReports": (int, 1),
+                       "BSEKernelStatusReports": (int, 1),
+                       "aresbse": (bool, 1),
                        "blocks": (str, ["both", "ra", "rr"]),
                        "brixshdf5": (bool, 1),
                        "bsedirsing": (bool, 1),
+                       "bsesolver": (str,
+                                     ["auto", "elpa1StageSolver", "elpa2StageSolver", "lapack", "scalapackPzheevd",
+                                      "scalapackPzheevx"]),
                        "bsetype": (str, ["IP", "RPA", "singlet", "triplet"]),
                        "checkposdef": (bool, 1),
                        "chibar0": (bool, 1),
@@ -828,7 +855,7 @@ BSE_attribute_types = {"aresbse": (bool, 1),
                                    ["K", "L1", "L2", "L23", "L3", "M1", "M2", "M23", "M3", "M4", "M45", "M5", "N1",
                                     "N2", "N23", "N3", "N4", "N45", "N5"]),
                        "xasspecies": (int, 1),
-                       "xes": (bool, 1)} 
+                       "xes": (bool, 1)}
 
 fastBSE_attribute_types = {"cvtsteplim": (int, 1),
                            "cvttol": (float, 1),
@@ -836,52 +863,53 @@ fastBSE_attribute_types = {"cvtsteplim": (int, 1),
                            "nisdf": (int, 3),
                            "nlanczos": (int, 1),
                            "saveQ": (bool, 1),
-                           "seed": (str, ["clock", "fixed"])} 
+                           "seed": (str, ["clock", "fixed"])}
 
-transitions_valid_subtrees = ["individual", "ranges", "lists"] 
+transitions_valid_subtrees = ["individual", "ranges", "lists"]
 
-individual_valid_subtrees = ["trans"] 
-individual_multiple_children = ["trans"] 
+individual_valid_subtrees = ["trans"]
+individual_multiple_children = ["trans"]
 
 trans_attribute_types = {"action": (str, ["exclude", "include"]),
                          "final": (int, 1),
                          "initial": (int, 1),
-                         "kpointnumber": (int, 1)} 
+                         "kpointnumber": (int, 1)}
 
-ranges_valid_subtrees = ["range"] 
-ranges_multiple_children = ["range"] 
+ranges_valid_subtrees = ["range"]
+ranges_multiple_children = ["range"]
 
 range_attribute_types = {"action": (str, ["exclude", "include"]),
                          "kpointnumber": (int, 1),
                          "start": (int, 1),
                          "statestype": (str, ["finalstates", "initialstates"]),
-                         "stop": (int, 1)} 
-range_mandatory_attributes = ["statestype"] 
+                         "stop": (int, 1)}
+range_mandatory_attributes = ["statestype"]
 
-lists_valid_subtrees = ["istate"] 
-lists_multiple_children = ["istate"] 
+lists_valid_subtrees = ["istate"]
+lists_multiple_children = ["istate"]
 
 istate_attribute_types = {"action": (str, ["exclude", "include"]),
                           "kpointnumber": (int, 1),
                           "state": (int, 1),
-                          "statestype": (str, ["finalstates", "initialstates"])} 
-istate_mandatory_attributes = ["statestype"] 
+                          "statestype": (str, ["finalstates", "initialstates"])}
+istate_mandatory_attributes = ["statestype"]
 
 tetra_attribute_types = {"cw1k": (bool, 1),
                          "kordexc": (bool, 1),
                          "qweights": (int, 1),
                          "tetradf": (bool, 1),
-                         "tetraocc": (bool, 1)} 
+                         "tetraocc": (bool, 1)}
 
-BseTypeSet_valid_subtrees = ["type"] 
-BseTypeSet_mandatory_attributes = ["type"] 
-BseTypeSet_multiple_children = ["type"] 
+BseTypeSet_attribute_types = {"skipDoneBSEType": (bool, 1)}
+BseTypeSet_valid_subtrees = ["type"]
+BseTypeSet_mandatory_attributes = ["type"]
+BseTypeSet_multiple_children = ["type"]
 
-type_attribute_types = {"name": (str, ["IP", "RPA", "singlet", "triplet"])} 
-type_mandatory_attributes = ["name"] 
+type_attribute_types = {"name": (str, ["IP", "RPA", "singlet", "triplet"])}
+type_mandatory_attributes = ["name"]
 
-plan_valid_subtrees = ["doonly"] 
-plan_multiple_children = ["doonly"] 
+plan_valid_subtrees = ["doonly"]
+plan_multiple_children = ["doonly"]
 
 doonly_attribute_types = {"task": (str,
                                    ["bse", "bsegenspec", "bsesurvey", "df", "df2", "dielectric", "emattest",
@@ -894,11 +922,11 @@ doonly_attribute_types = {"task": (str,
                                     "tetcalccw", "write_dielectric_matrix", "write_pmat_hdf5_xs", "write_screen",
                                     "write_screened_coulomb", "writebandgapgrid", "writebevec", "writeemat",
                                     "writeematasc", "writekpathweights", "writeoverlapxs", "writepmat", "writepmatasc",
-                                    "writepmatxs", "writepwmat", "x0toasc", "x0tobin", "xsestimate", "xsgeneigvec"])} 
-doonly_mandatory_attributes = ["task"] 
+                                    "writepmatxs", "writepwmat", "x0toasc", "x0tobin", "xsestimate", "xsgeneigvec"])}
+doonly_mandatory_attributes = ["task"]
 
 
-# gw information 
+# gw information
 gw_attribute_types = {"GBatchCount": (int, 1),
                       "at1": (int, 1),
                       "at2": (int, 1),
@@ -935,15 +963,16 @@ gw_attribute_types = {"GBatchCount": (int, 1),
                       "taskname": (str, 1),
                       "vqloff": (float, 3),
                       "wlo": (float, 1),
-                      "wto": (float, 1)} 
-gw_valid_subtrees = ["plot1d", "freqgrid", "selfenergy", "mixbasis", "barecoul", "scrcoul", "taskGroup"] 
+                      "wto": (float, 1)}
+gw_valid_subtrees = ["plot1d", "freqgrid", "selfenergy", "mixbasis", "selfconsistency", "barecoul", "scrcoul", "evGW0",
+                     "taskGroup"]
 
 freqgrid_attribute_types = {"eta": (float, 1),
                             "fconv": (str, 1),
                             "fgrid": (str, 1),
                             "freqmax": (float, 1),
                             "freqmin": (float, 1),
-                            "nomeg": (int, 1)} 
+                            "nomeg": (int, 1)}
 
 selfenergy_attribute_types = {"actype": (str, 1),
                               "eqpsolver": (int, 1),
@@ -952,78 +981,96 @@ selfenergy_attribute_types = {"actype": (str, 1),
                               "nempty": (int, 1),
                               "singularity": (str, ["crg", "low_dim", "mpb", "none"]),
                               "swidth": (float, 1),
-                              "tol": (float, 1)} 
-selfenergy_valid_subtrees = ["wgrid"] 
+                              "tol": (float, 1)}
+selfenergy_valid_subtrees = ["wgrid"]
 
-wgrid_attribute_types = {"size": (int, 1), "type": (str, 1), "wmax": (float, 1), "wmin": (float, 1)} 
+wgrid_attribute_types = {"size": (int, 1), "type": (str, 1), "wmax": (float, 1), "wmin": (float, 1)}
 
-mixbasis_attribute_types = {"epsmb": (float, 1), "gmb": (float, 1), "lmaxmb": (int, 1)} 
+mixbasis_attribute_types = {"epsmb": (float, 1), "gmb": (float, 1), "lmaxmb": (int, 1)}
+
+selfconsistency_attribute_types = {"eps": (float, 1), "type": (str, 1)}
 
 barecoul_attribute_types = {"barcevtol": (float, 1),
                             "basis": (str, 1),
                             "cutofftype": (str, 1),
                             "pwm": (float, 1),
-                            "stctol": (float, 1)} 
+                            "stctol": (float, 1)}
 
 scrcoul_attribute_types = {"averaging": (str, ["2d", "anisotropic", "anisotropic-2d", "isotropic"]),
                            "omegap": (float, 1),
                            "q0eps": (float, 3),
                            "scrtype": (str, 1),
-                           "subgrid_q0": (int, 3)} 
+                           "subgrid_q0": (int, 3)}
 
-taskGroup_attribute_types = {"dryRun": (bool, 1), "outputFormat": (str, ["binary", "text"])} 
+evGW0_attribute_types = {"do": (str, ["auto", "fromfile", "fromscratch"]),
+                         "maxIterations": (int, 1),
+                         "tolerance": (float, 1)}
+evGW0_mandatory_attributes = ["do"]
+
+taskGroup_attribute_types = {"dryRun": (bool, 1), "outputFormat": (str, ["binary", "text"])}
 taskGroup_valid_subtrees = ["Coulomb", "polarizability", "epsilon", "invertEpsilon", "irreducibleMapping", "sigmac",
-                            "sigmax", "vxc", "QPEigenvalues"] 
+                            "sigmax", "vxc", "QPEigenvalues", "cc4sInterface", "optimizedVxc",
+                            "prepareNextSelfconsistentIteration"]
 
-Coulomb_attribute_types = {"eigenvalueThreshold": (float, 1)} 
-Coulomb_valid_subtrees = ["qpoints"] 
-Coulomb_mandatory_attributes = ["qpoints"] 
-Coulomb_multiple_children = ["qpoints"] 
+Coulomb_attribute_types = {"eigenvalueThreshold": (float, 1)}
+Coulomb_valid_subtrees = ["qpoints"]
+Coulomb_mandatory_attributes = ["qpoints"]
+Coulomb_multiple_children = ["qpoints"]
 
-polarizability_attribute_types = {"usingIrreducibleWedge": (bool, 1)} 
-polarizability_valid_subtrees = ["qpoints"] 
-polarizability_mandatory_attributes = ["qpoints"] 
-polarizability_multiple_children = ["qpoints"] 
+polarizability_attribute_types = {"usingIrreducibleWedge": (bool, 1)}
+polarizability_valid_subtrees = ["qpoints"]
+polarizability_mandatory_attributes = ["qpoints"]
+polarizability_multiple_children = ["qpoints"]
 
 epsilon_attribute_types = {"MPIDomainsKpoints": (int, 1),
                            "MPIDomainsQpoints": (int, 1),
                            "buildFromPolarizability": (bool, 1),
                            "printPolarizabilityFactor": (bool, 1),
-                           "usingIrreducibleWedge": (bool, 1)} 
-epsilon_valid_subtrees = ["qpoints"] 
-epsilon_mandatory_attributes = ["qpoints"] 
-epsilon_multiple_children = ["qpoints"] 
+                           "usingIrreducibleWedge": (bool, 1)}
+epsilon_valid_subtrees = ["qpoints"]
+epsilon_mandatory_attributes = ["qpoints"]
+epsilon_multiple_children = ["qpoints"]
 
-invertEpsilon_attribute_types = {"usingIrreducibleWedge": (bool, 1)} 
-invertEpsilon_valid_subtrees = ["qpoints"] 
-invertEpsilon_mandatory_attributes = ["qpoints"] 
-invertEpsilon_multiple_children = ["qpoints"] 
+invertEpsilon_attribute_types = {"usingIrreducibleWedge": (bool, 1)}
+invertEpsilon_valid_subtrees = ["qpoints"]
+invertEpsilon_mandatory_attributes = ["qpoints"]
+invertEpsilon_multiple_children = ["qpoints"]
 
-irreducibleMapping_valid_subtrees = ["qpoints"] 
-irreducibleMapping_mandatory_attributes = ["qpoints"] 
-irreducibleMapping_multiple_children = ["qpoints"] 
+irreducibleMapping_valid_subtrees = ["qpoints"]
+irreducibleMapping_mandatory_attributes = ["qpoints"]
+irreducibleMapping_multiple_children = ["qpoints"]
 
-sigmac_attribute_types = {"MPIDomainsKpoints": (int, 1), "MPIDomainsQpoints": (int, 1)} 
-sigmac_valid_subtrees = ["kpoints"] 
-sigmac_mandatory_attributes = ["kpoints"] 
-sigmac_multiple_children = ["kpoints"] 
+sigmac_attribute_types = {"MPIDomainsKpoints": (int, 1), "MPIDomainsQpoints": (int, 1), "offdiagonal": (bool, 1)}
+sigmac_valid_subtrees = ["kpoints"]
+sigmac_mandatory_attributes = ["kpoints"]
+sigmac_multiple_children = ["kpoints"]
 
-sigmax_attribute_types = {"MPIDomainsKpoints": (int, 1)} 
-sigmax_valid_subtrees = ["kpoints"] 
-sigmax_mandatory_attributes = ["kpoints"] 
-sigmax_multiple_children = ["kpoints"] 
+sigmax_attribute_types = {"MPIDomainsKpoints": (int, 1), "offdiagonal": (bool, 1)}
+sigmax_valid_subtrees = ["kpoints"]
+sigmax_mandatory_attributes = ["kpoints"]
+sigmax_multiple_children = ["kpoints"]
 
-vxc_valid_subtrees = ["kpoints"] 
-vxc_mandatory_attributes = ["kpoints"] 
-vxc_multiple_children = ["kpoints"] 
+vxc_valid_subtrees = ["kpoints"]
+vxc_mandatory_attributes = ["kpoints"]
+vxc_multiple_children = ["kpoints"]
 
-QPEigenvalues_attribute_types = {"FermiLevel": (str, ["from_DFT_VBM_CBM_indexes", "from_QP_Eigenvalues"])} 
-QPEigenvalues_valid_subtrees = ["kpoints"] 
-QPEigenvalues_mandatory_attributes = ["kpoints"] 
-QPEigenvalues_multiple_children = ["kpoints"] 
+QPEigenvalues_attribute_types = {"FermiLevel": (str, ["from_DFT_VBM_CBM_indexes", "from_QP_Eigenvalues"])}
+QPEigenvalues_valid_subtrees = ["kpoints"]
+QPEigenvalues_mandatory_attributes = ["kpoints"]
+QPEigenvalues_multiple_children = ["kpoints"]
+
+cc4sInterface_attribute_types = {"nLastFrozen": (int, 1), "testRun": (bool, 1)}
+cc4sInterface_valid_subtrees = ["qpoints", "kpoints"]
+cc4sInterface_mandatory_attributes = ["kpoints", "qpoints"]
+cc4sInterface_multiple_children = ["kpoints", "qpoints"]
+
+optimizedVxc_attribute_types = {"offdiagonal": (bool, 1)}
+optimizedVxc_valid_subtrees = ["kpoints"]
+optimizedVxc_mandatory_attributes = ["kpoints"]
+optimizedVxc_multiple_children = ["kpoints"]
 
 
-# MD information 
+# MD information
 MD_attribute_types = {"basisDerivative": (bool, 1),
                       "coreCorrections": (bool, 1),
                       "integrationAlgorithm": (str, ["HeunSimplified"]),
@@ -1032,40 +1079,68 @@ MD_attribute_types = {"basisDerivative": (bool, 1),
                       "type": (str, ["Ehrenfest"]),
                       "updateOverlap": (bool, 1),
                       "updatePmat": (bool, 1),
-                      "valenceCorrections": (bool, 1)} 
+                      "valenceCorrections": (bool, 1)}
 
 
-# eph information 
+# eph information
 eph_attribute_types = {"efermi": (float, 1),
                        "elphbolt": (bool, 1),
+                       "epsdegel": (float, 1),
+                       "epsdegph": (float, 1),
+                       "mindistel": (bool, 1),
+                       "mindistph": (bool, 1),
                        "scissor": (float, 1),
                        "scissor_direction": (str, ["occupied", "symmetric", "unoccupied"]),
-                       "wfrange": (int, 2)} 
-eph_valid_subtrees = ["ephmat", "el_interpolation", "ph_interpolation", "eph_interpolation", "el_self_energy", "target"] 
+                       "wfrange": (int, 2)}
+eph_valid_subtrees = ["ephmat", "el_interpolation", "ph_interpolation", "eph_interpolation", "el_self_energy",
+                      "coupling_strength", "target"]
 
-ephmat_attribute_types = {"do": (str, ["fromscratch", "skip"]), "standard": (bool, 1)} 
+ephmat_attribute_types = {"debye_waller": (bool, 1),
+                          "do": (str, ["fromscratch", "skip"]),
+                          "hilo": (bool, 1),
+                          "standard": (bool, 1)}
 
-el_interpolation_attribute_types = {"format": (str, ["json", "text"])} 
+el_interpolation_attribute_types = {"format": (str, ["json", "text"])}
 
-ph_interpolation_attribute_types = {"format": (str, ["json", "text"])} 
+ph_interpolation_attribute_types = {"format": (str, ["json", "text"])}
 
-eph_interpolation_attribute_types = {"epsdegel": (float, 1),
-                                     "epsdegph": (float, 1),
-                                     "fix": (str, ["k", "q"]),
+eph_interpolation_attribute_types = {"fix": (str, ["k", "q"]),
                                      "format": (str, ["json", "text"]),
                                      "include_polar": (bool, 1),
-                                     "vplfix": (float, 3)} 
+                                     "vplfix": (float, 3)}
 
 el_self_energy_attribute_types = {"do": (str, ["fromfile", "fromscratch", "skip"]),
+                                  "eqpsolver": (int, 1),
                                   "integration": (str, ["kramers-kronig", "smearing"]),
+                                  "nfreqperband": (int, 1),
                                   "ngridbz": (int, 3),
                                   "swidth": (float, 1),
                                   "tempset": (float, 3),
-                                  "vbzoff": (float, 3)} 
-el_self_energy_valid_subtrees = ["freq_grid", "output_settings"] 
+                                  "vbzoff": (float, 3)}
+el_self_energy_valid_subtrees = ["freq_grid", "output_settings"]
 
-output_settings_attribute_types = {"directory": (str, 1), "interpolation_method": (str, ["linear", "spline"])} 
-output_settings_valid_subtrees = ["freq_grid"] 
+output_settings_attribute_types = {"directory": (str, 1),
+                                   "format": (str, ["json", "text"]),
+                                   "interpolation_method": (str, ["linear", "spline"])}
+output_settings_valid_subtrees = ["freq_grid"]
 
-target_attribute_types = {"ngridp": (int, 3), "reducep": (bool, 1), "vploff": (float, 3)} 
-target_valid_subtrees = ["plot1d"] 
+coupling_strength_attribute_types = {"do": (str, ["fromscratch", "skip"]),
+                                     "doping": (float, 1),
+                                     "energy": (float, 1),
+                                     "format": (str, ["json", "text"]),
+                                     "integrated": (bool, 1),
+                                     "nfreqa2F": (int, 1),
+                                     "nfreqint": (int, 1),
+                                     "ngridk": (int, 3),
+                                     "ngridq": (int, 3),
+                                     "parmode": (str, ["bands", "points"]),
+                                     "particle": (str, ["electron", "phonon"]),
+                                     "quasielastic": (bool, 1),
+                                     "reducek": (bool, 1),
+                                     "reduceq": (bool, 1),
+                                     "vkloff": (float, 3),
+                                     "vqloff": (float, 3)}
+coupling_strength_valid_subtrees = ["freq_grid"]
+
+target_attribute_types = {"ngridp": (int, 3), "reducep": (bool, 1), "vploff": (float, 3)}
+target_valid_subtrees = ["plot1d"]

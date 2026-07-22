@@ -5,7 +5,7 @@
   </species>
   <species is="2" chemicalSymbol="F">
     <atom ia="1">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-2.415557961293e1"/>
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-2.415557956113e1"/>
     </atom>
   </species>
 </evalcore>

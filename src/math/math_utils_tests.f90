@@ -1,13 +1,14 @@
 !> Module for unit tests for the functions in math_utils.
 
 module math_utils_test
-  use precision, only: dp, i32
+  use precision, only: dp, i32, sp, long_int
   use constants, only: zone, zzero
   use modmpi, only: mpiinfo
   use unit_test_framework, only : unit_test_type
   use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
   use math_utils
   use mock_arrays
+  use to_char_conversion, only: to_char
 
   implicit none
 
@@ -30,7 +31,7 @@ contains
     type(unit_test_type) :: test_report
 
     !> Number of assertions
-    integer(i32), parameter :: n_assertions = 135
+    integer(i32), parameter :: n_assertions = 148
 
     ! Initialize test object
     call test_report%init( mpiglobal)
@@ -80,6 +81,10 @@ contains
     call test_contains_duplicates(test_report)
 
     call test_unique(test_report)
+
+    call test_triangular_indexing_procedures(test_report)
+    
+    call test_integer_sqrt( test_report )
 
     ! report results
     if (present(kill_on_failure)) then
@@ -937,6 +942,78 @@ contains
     call test_report%assert(.not. is_increasing_by_increment([1, 2, 3, 4], 2), &
             'is_increasing_by_increment([1, 2, 3, 4], 2) does not return false.')
 
+  end subroutine
+
+  !> Test [[flattened_upper_triangle_index_to_element_indexes]], [[number_of_upper_triangle_elements]],
+  !> [[flatten_idx_for_elements_upper_triangle]]
+  subroutine test_triangular_indexing_procedures(test_report)
+        !> Unit test report
+        type(unit_test_type), intent(inout) :: test_report
+
+        integer(i32), parameter :: n = 4
+        integer(i32) :: i, j, i_offset, j_offset, unflattened_i, unflattened_j
+        integer(long_int) :: total_elements, itri
+    
+        total_elements = number_of_upper_triangle_elements(n)
+        call test_report%assert( total_elements == 6, 'Total upper triangle elements is wrong')
+
+        i_offset = 1
+        j_offset = 1
+        itri = 1_long_int
+        do i= i_offset, n + i_offset - 1
+                do j = i+1, n + j_offset - 1
+                    call test_report%assert( flatten_idx_for_elements_upper_triangle(n, i, j, i_offset, j_offset) == itri, &
+                                             'Error flattening the upper triangular index')
+                    call flattened_upper_triangle_index_to_element_indexes(itri, n, i_offset, j_offset, unflattened_i, unflattened_j)
+                    call test_report%assert( i == unflattened_i, 'Error unflattening the upper triangular index (row)' )
+                    call test_report%assert( j == unflattened_j, 'Error unflattening the upper triangular index (column)' )
+                    itri = itri + 1
+                end do 
+        end do
+
+        i_offset = 2
+        j_offset = 2
+        itri = 1_long_int
+        do i= i_offset, n + i_offset - 1
+                do j = i+1, n + j_offset - 1
+                    call test_report%assert( flatten_idx_for_elements_upper_triangle(n, i, j, i_offset, j_offset) == itri, &
+                                             'Error flattening the upper triangular index with offsets')
+                    call flattened_upper_triangle_index_to_element_indexes(itri, n, i_offset, j_offset, unflattened_i, unflattened_j)
+                    call test_report%assert( i == unflattened_i, 'Error unflattening the upper triangular index (row) with offsets' )
+                    call test_report%assert( j == unflattened_j, 'Error unflattening the upper triangular index (column) with offsets' )
+                    itri = itri + 1
+                end do 
+        end do
+
+  end subroutine test_triangular_indexing_procedures
+  
+  !> Test [[integer_sqrt]]
+  subroutine test_integer_sqrt( test_report )
+    !> Unit test report
+    type(unit_test_type), intent(inout) :: test_report
+
+    integer(i32), parameter :: min_int = 0, max_int = 10000, &
+        tested_ints(*) = [1, 4, 5, 100, 1000, 10000, 100000, 1000000, 1000000000]
+    real(sp) :: random_real
+    integer(i32) :: random_int, i
+    character(len=*), parameter :: error_msg = 'integer_sqrt does not return a correct square root. '
+
+    call random_init( repeatable=.false., image_distinct=.false. )
+    call random_number( random_real )
+    random_int = min_int + floor( (max_int - min_int + 1) * random_real )
+    call test_report_assert( random_int**2, random_int )
+    do i = 1, size( tested_ints )
+      call test_report_assert( tested_ints(i), int( sqrt( real( tested_ints(i), kind = sp ) ) ) )
+    end do
+
+    contains 
+      subroutine test_report_assert( x, expected )
+        integer(i32), intent(in) :: x, expected
+        integer(i32) :: y
+        y = integer_sqrt( x )
+        call test_report%assert( y == expected, error_msg // 'Expected: ' // &
+          to_char( expected ) // '. Returned: ' // to_char(y) )
+      end subroutine
   end subroutine
 
 end module math_utils_test

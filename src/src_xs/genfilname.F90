@@ -22,6 +22,7 @@ Contains
          use modmpi, only: terminate
          Use modmain, Only: filext
          Use modxs, Only: filextrevert,skipgnd
+         use precision, only: i32
 ! !DESCRIPTION:
 !   Generates file name and extension according to optional input parameters (
 !   see routine).
@@ -34,18 +35,18 @@ Contains
 !BOC
          Implicit None
     ! arguments
-         Integer, Optional, Intent (In) :: bzsampl, fxctype, oc1, oc2, &
+         integer(i32), Optional, Intent (In) :: bzsampl, fxctype, oc1, oc2, &
         & iq, iqmt, lambda, procs, rank
-         Integer, Optional, Intent (In) :: etype
-         Logical, Optional, Intent (In) :: nodotpar, asc, acont, nar, &
+         integer(i32), Optional, Intent (In) :: etype
+         logical(i32), Optional, Intent (In) :: nodotpar, asc, acont, nar, &
         & tord, nlf, tq0, markfxcbse
-         Logical, Optional, Intent (In) :: revertfilext, setfilext, &
+         logical(i32), Optional, Intent (In) :: revertfilext, setfilext, &
         & appfilext
          Character (*), Optional, Intent (In) :: basename, dirname, dotext, fxctypestr, &
         & scrtype, bsetype, auxtype
          Character (256), Optional, Intent (Out) :: filnam, fileext
     ! local variables
-         Logical :: nodot0, revert, setfxt, appfxt, dotxt, oct, lnar
+         logical(i32) :: nodot0, revert, setfxt, appfxt, dotxt, oct, lnar
          Character (*), Parameter :: thisnam = 'genfilname'
          Character (256) :: s, s1
     ! if file extension in "modmain" is to be reset to last value: reset
@@ -195,7 +196,7 @@ Contains
             If ((procs > 1) .And. ((nodot0 .And. (rank > 0)) .Or. ( &
            & .Not. nodot0))) Then
           ! tag for rank
-               Write (s1, '("_par",i3.3)') rank + 1
+               Write (s1, '("_par",i0)') rank + 1
                s = trim (s) // trim (s1)
             End If
          End If

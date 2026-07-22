@@ -1,5 +1,5 @@
 module task_sigmac
-  use asserts, only: assert
+#include "asserts.fpp"
   use calculate_correlation_self_energy, only: calcselfc, sigmac_indexes
   use constants, only: zzero, real_zero
   use exciting_mpi, only: mpiinfo, xmpi_gather
@@ -22,6 +22,8 @@ module task_sigmac
     generate_frequency_grid_for_correlation_self_energy
   use precision, only: i32, dp
   use to_char_conversion, only: to_char
+  use mod_offdiagonal_selfenergy, only: init_offdiagonal_selfenergy_correlation, mpi_reduce_offdiagonal_selfenergy_correlation, &
+                                        write_offdiagonal_selfenergy_correlation, delete_offdiagonal_selfenergy                                   
 #include "offload.fpp"
 
   implicit none
@@ -45,6 +47,9 @@ module task_sigmac
     integer(i32) :: n_MPI_Domains_qpoints
     !> Number of MPI Domains to split over k-points
     integer(i32) :: n_MPI_Domains_kpoints
+    !> Flag determining if the offdiagonal terms of the correlation
+    !> self-energy are computed
+    logical :: offdiagonal
   contains
     procedure :: parse_input, sanity_checks
   end type
@@ -65,6 +70,7 @@ subroutine parse_input( this, gw_inp, n_kpt )
   this%n_MPI_Domains_kpoints = gw_inp%taskGroup%sigmac%MPIDomainsKpoints
   this%n_MPI_Domains_qpoints = gw_inp%taskGroup%sigmac%MPIDomainsQpoints
   this%eigenvalue_cutoff_Coulomb_matrix = gw_inp%barecoul%barcevtol
+  this%offdiagonal = gw_inp%taskGroup%sigmac%offdiagonal 
 end subroutine
 
 subroutine sanity_checks( this, gw_inp )
@@ -82,6 +88,10 @@ subroutine sanity_checks( this, gw_inp )
     'Element selfenergy must be present when executing '//'"'//task_name//'"' )
   call terminate_if_false( gw_inp%selfenergy%method == 'ac', &
     'Task "' // task_name // '" only implemented for ac as selfenergy method' )
+  call terminate_if_false(gw_inp%taskGroup%sigmac%MPIDomainsKpoints > 0, &
+    'MPIDomainsKpoints must be positive when executing "' // task_name // '"')
+  call terminate_if_false(gw_inp%taskGroup%sigmac%MPIDomainsQpoints > 0, &
+    'MPIDomainsQpoints must be positive when executing "' // task_name // '"')
 end subroutine
 
 
@@ -116,7 +126,7 @@ subroutine execute_task_sigmac( n_kpoints_max, qpoints, first_state, last_state,
   type(mpi_domain) :: mpi_qpoints, mpi_kpoints
   type(indexes_parallelization) :: bands
   
-  call assert( size( qpoints, 1 ) == 3, 'qpoints must have size 3 along 1st dimension' )
+  CALL_ASSERT( size( qpoints, 1 ) == 3, 'qpoints must have size 3 along 1st dimension' )
 
   rank_to_write = mpiglobal%root
   myrank_writes_GWINFO = ( mpiglobal%rank == rank_to_write )
@@ -157,6 +167,7 @@ subroutine execute_task_sigmac( n_kpoints_max, qpoints, first_state, last_state,
     end if
     if( allocated( selfec )) deallocate( selfec )
     allocate( selfec(ibgw:nbgw, omega_i:omega_f, ik:ik), source=zzero )
+    if (input_parameters%offdiagonal) call init_offdiagonal_selfenergy_correlation(ik, ik, omega_i, omega_f)
     call timesec(tf)
     t_acc = 0._dp
     do iq = iq_start, iq_end
@@ -170,7 +181,7 @@ subroutine execute_task_sigmac( n_kpoints_max, qpoints, first_state, last_state,
       call sanity_check_frequencies_of_epsilon()
       call sanity_check_epsilon_and_barc()
       OMP_OFFLOAD target data map(alloc: epsilon)
-      call calcselfc(iq, sigmac_indexes( indexes_parallelization(ik, ik, ik, ik), bands ) )
+      call calcselfc(iq, sigmac_indexes( indexes_parallelization(ik, ik, ik, ik), bands ), input_parameters%offdiagonal)
       OMP_OFFLOAD end target data
       call timesec(tf)
       if( myrank_writes_GWINFO ) then
@@ -180,7 +191,10 @@ subroutine execute_task_sigmac( n_kpoints_max, qpoints, first_state, last_state,
       end if
     end do
     call mpi_sum_array( selfec, mpi_kpoints%mpi_environment, all_reduce=.false.)
+    if (input_parameters%offdiagonal) call mpi_reduce_offdiagonal_selfenergy_correlation(mpi_kpoints%mpi_environment)
     if( myrank_writes_SIGMAC ) call write_selfec_single_kpoint( ik, file_format )
+    if( myrank_writes_SIGMAC .and. input_parameters%offdiagonal) call write_offdiagonal_selfenergy_correlation( ik, file_format )
+    if (input_parameters%offdiagonal) call delete_offdiagonal_selfenergy()
   end do
 
   ! Delete global arrays

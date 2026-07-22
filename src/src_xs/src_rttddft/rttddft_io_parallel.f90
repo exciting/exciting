@@ -1,14 +1,21 @@
 #ifdef MPI
 !> Module for reading/writing binary files in parallel mode (using MPI subroutines)
 module rttddft_io_parallel
-  use asserts, only: assert
+#include "asserts.fpp"
   use math_utils, only: all_close
   use mod_mpi_env, only: mpiinfo
   ! Remark(Ronaldo): using mpi instead of mpi_f08 leads to a seg. fault with openmpi
+#ifndef MPI_F_SYNC_REG_DEPRECATED
   use mpi_f08, only: mpi_file_open, mpi_file_iread_at, mpi_file_iwrite_at, mpi_wait, mpi_f_sync_reg, &
     MPI_ASYNC_PROTECTS_NONBLOCKING, MPI_COMM, MPI_DATATYPE, MPI_DOUBLE_COMPLEX, MPI_DOUBLE_PRECISION, &
     MPI_FILE, MPI_INFO_NULL, MPI_INTEGER, MPI_MODE_CREATE, MPI_MODE_RDONLY, MPI_MODE_WRONLY, &
     MPI_OFFSET_KIND, MPI_REQUEST, MPI_REQUEST_NULL, MPI_STATUS, MPI_SUCCESS
+#else
+  use mpi_f08, only: mpi_file_open, mpi_file_iread_at, mpi_file_iwrite_at, mpi_wait, &
+    MPI_ASYNC_PROTECTS_NONBLOCKING, MPI_COMM, MPI_DATATYPE, MPI_DOUBLE_COMPLEX, MPI_DOUBLE_PRECISION, &
+    MPI_FILE, MPI_INFO_NULL, MPI_INTEGER, MPI_MODE_CREATE, MPI_MODE_RDONLY, MPI_MODE_WRONLY, &
+    MPI_OFFSET_KIND, MPI_REQUEST, MPI_REQUEST_NULL, MPI_STATUS, MPI_SUCCESS
+#endif
   use modmpi, only: terminate_if_false
   use precision, only: i32, dp
   use rttddft_arrays_utils, only: map_array_to_pointer
@@ -21,7 +28,9 @@ module rttddft_io_parallel
   integer(i32), parameter :: bytes_real_dp = sizeof( real(0_dp, dp) )
   integer(i32), parameter :: bytes_int_i32 = sizeof( int(0, i32) )
 
-  public :: read_array, write_array
+  real(dp), parameter :: descriptors_tol = 1.0e-7_dp
+
+  public :: read_array, read_three_arrays, write_array, write_three_arrays
 
   enum, bind(C)
     enumerator :: io_mode
@@ -30,14 +39,23 @@ module rttddft_io_parallel
 
   ! This can be expanded to more ranks when needed
   interface read_array
+    module procedure :: read_array_rank3
     module procedure :: read_array_rank4
     module procedure :: read_array_rank5
+  end interface
+
+  interface read_three_arrays
+    module procedure :: read_three_arrays_rank3
   end interface
 
   ! This can be expanded to more ranks when needed
   interface write_array
     module procedure :: write_array_rank4
     module procedure :: write_array_rank5
+  end interface
+
+  interface write_three_arrays
+    module procedure :: write_three_arrays_rank3
   end interface
 
   interface n_bytes
@@ -102,6 +120,50 @@ contains
     allocate( offset(first:last), source=[((i-1)*bytes_block_, i = first, last)] )
   end subroutine
 
+  !> Read an array of rank=3 by chuncks
+  subroutine read_array_rank3( file_name, first, array, descriptors, mpi_env )
+    !> name of the file where the array is stored
+    character(len=*), intent(in) :: file_name
+    !> first index along 4th dim (needed to determine offsets)
+    integer(i32), intent(in) :: first
+    !> array to read from binary file
+    complex(dp), contiguous, intent(out) :: array(:, :, first:)
+    !> If present, these descriptors must match those stored in the file
+    real(dp), contiguous, optional, intent(in) :: descriptors(:, first:)
+    !> MPI environment. The corresponding MPI processes will read from file
+    type(mpiinfo), intent(in):: mpi_env    
+    
+    integer(i32) :: i, ierr, bytes
+    integer(i32), allocatable :: dims(:)
+    integer(MPI_OFFSET_KIND), allocatable :: offset(:)
+    real(dp), allocatable :: descriptors_in_file(:, :)
+    type(MPI_FILE) :: unit
+
+    bytes = n_bytes( array(:, :, first) )
+    associate( a => size( array, 1 ), b => size( array, 2 ), last => ubound( array, 3 ) )
+      if( present( descriptors ) ) then
+        CALL_ASSERT( ubound( descriptors, 2 ) == last, "descriptors has incompatible dim. with array")
+        CALL_ASSERT( a == b, "When descriptors is present, a and b must be equal" )
+        allocate( descriptors_in_file(size( descriptors, 1 ), first:last), dims(first:last) )
+        bytes = bytes + n_bytes( descriptors(:, first) ) + bytes_int_i32
+      end if
+      call file_offset( first, last, bytes, offset )
+      call mpi_open_file( file_name, mpi_env, unit, read_mode )
+      do i = first, last
+        if( present( descriptors ) ) then                  
+          call mpi_read_data( unit, offset(i), descriptors_in_file(:, i), dims(i), array(:, :, i) )
+        else
+          call mpi_read_data( unit, offset(i), array(:, :, i) )
+        end if
+      end do
+      call mpi_file_close( unit, ierr )
+      if( present( descriptors ) ) then
+        call terminate_if_false( all_close( descriptors_in_file, descriptors, descriptors_tol ), "Descriptors is incongruent with what is stored in file " // file_name )
+        call terminate_if_false( all( dims == spread( a, dim=1, ncopies=size( array, 3 ) ) ), "Dims is incongruent with what is stored in file " // file_name )
+      end if
+    end associate
+  end subroutine
+
   !> Read an array of rank=4 by chuncks
   subroutine read_array_rank4( file_name, first, array, descriptors, mpi_env )
     !> name of the file where the array is stored
@@ -120,12 +182,11 @@ contains
     integer(MPI_OFFSET_KIND), allocatable :: offset(:)
     real(dp), allocatable :: descriptors_in_file(:, :)
     type(MPI_FILE) :: unit
-    real(dp), parameter :: tol = 1.0e-7_dp
 
     bytes = n_bytes( array(:, :, :, first) )
     associate( a => size( array, 1 ), b => size( array, 2 ), c => size( array, 3 ), last => ubound( array, 4 ) )
       if( present( descriptors ) ) then
-        call assert( ubound( descriptors, 2 ) == last, "descriptors has incompatible dim. with array")
+        CALL_ASSERT( ubound( descriptors, 2 ) == last, "descriptors has incompatible dim. with array")
         allocate( descriptors_in_file(size( descriptors, 1 ), first:last), dims(3, first:last) )
         bytes = bytes + n_bytes( descriptors(:, first) ) + 3*bytes_int_i32
       end if
@@ -140,7 +201,7 @@ contains
       end do
       call mpi_file_close( unit, ierr )
       if( present( descriptors ) ) then
-        call terminate_if_false( all_close( descriptors_in_file, descriptors, tol ), "Descriptors is incongruent with what is stored in file " // file_name )
+        call terminate_if_false( all_close( descriptors_in_file, descriptors, descriptors_tol ), "Descriptors is incongruent with what is stored in file " // file_name )
         call terminate_if_false( all( dims == spread( [a, b, c], dim=2, ncopies=size( array, 4 ) ) ), "Dims is incongruent with what is stored in file " // file_name )
       end if
     end associate
@@ -163,6 +224,41 @@ contains
     call read_array_rank4( file_name, lbound( ptr_rank4, 4 ), ptr_rank4, mpi_env=mpi_env )
   end subroutine
 
+  !> Read three arrays of rank=3 by chuncks
+  subroutine read_three_arrays_rank3( file_name, first, array_1, array_2, array_3, mpi_env )
+    !> name of the file where the array is stored
+    character(len=*), intent(in) :: file_name
+    !> first index along 3rd dim (needed to determine offsets)
+    integer(i32), intent(in) :: first
+    !> 1st array to be read from the binary file
+    complex(dp), contiguous, intent(out) :: array_1(:, :, first:)
+    !> 2nd array to be read from the binary file
+    complex(dp), contiguous, intent(out) :: array_2(:, :, first:)
+    !> 3rd array to be read from the binary file
+    complex(dp), contiguous, intent(out) :: array_3(:, :, first:)
+    !> MPI environment. The corresponding MPI processes will read from file
+    type(mpiinfo), intent(in):: mpi_env 
+
+    integer(i32), parameter :: n_arrays = 3
+    integer(i32) :: i, bytes_each_array, bytes_all_arrays, ierr, last
+    integer(MPI_OFFSET_KIND), allocatable :: offset(:)
+    type(MPI_FILE) :: unit
+
+    last = ubound( array_1, 3 )
+    CALL_ASSERT( all( shape(array_1) == shape(array_2) ), "shape mismatch - array 1 and 2" )
+    CALL_ASSERT( all( shape(array_1) == shape(array_3) ), "shape mismatch - array 1 and 3" )
+    bytes_each_array = n_bytes( array_1(:, :, first) )
+    bytes_all_arrays = n_arrays*bytes_each_array
+    call file_offset( first, last, bytes_all_arrays, offset )
+    call mpi_open_file( file_name, mpi_env, unit, read_mode )
+    do i = first, last
+      call mpi_read_data( unit, offset(i), array_1(:, :, i) )
+      call mpi_read_data( unit, offset(i) + bytes_each_array, array_2(:, :, i) )
+      call mpi_read_data( unit, offset(i) + 2*bytes_each_array, array_3(:, :, i) )
+    end do
+    call mpi_file_close( unit, ierr )
+  end subroutine
+
   !> Write an array of rank=4 by chuncks, including headers if `descriptors` is present
   subroutine write_array_rank4( file_name, first, array, descriptors, mpi_env )
     !> name of the file where the array is stored
@@ -183,7 +279,7 @@ contains
     bytes = n_bytes( array(:, :, :, first) )
     associate( last => ubound( array, 4 ) )
       if( present( descriptors ) ) then
-        call assert( ubound( descriptors, 2 ) == last, "descriptors has incompatible dim. with array")
+        CALL_ASSERT( ubound( descriptors, 2 ) == last, "descriptors has incompatible dim. with array")
         bytes = bytes + n_bytes( descriptors(:, first) ) + 3*bytes_int_i32
         dims = [size(array, 1), size(array, 2), size(array, 3)]
       end if
@@ -217,6 +313,41 @@ contains
     call write_array_rank4( file_name, lbound( ptr_rank4, 4 ), ptr_rank4, mpi_env=mpi_env )
   end subroutine
 
+  !> Write three arrays of rank=3 by chuncks
+  subroutine write_three_arrays_rank3( file_name, first, array_1, array_2, array_3, mpi_env )
+    !> name of the file where the array is stored
+    character(len=*), intent(in) :: file_name
+    !> first index along 3rd dim (needed to determine offsets)
+    integer(i32), intent(in) :: first
+    !> 1st array to be written to binary file
+    complex(dp), contiguous, intent(inout) :: array_1(:, :, first:)
+    !> 2nd array to be written to binary file
+    complex(dp), contiguous, intent(inout) :: array_2(:, :, first:)
+    !> 3rd array to be written to binary file
+    complex(dp), contiguous, intent(inout) :: array_3(:, :, first:)
+    !> MPI environment. The corresponding MPI processes will read from file
+    type(mpiinfo), intent(in):: mpi_env 
+
+    integer(i32), parameter :: n_arrays = 3
+    integer(i32) :: i, bytes_each_array, bytes_all_arrays, ierr, last
+    integer(MPI_OFFSET_KIND), allocatable :: offset(:)
+    type(MPI_FILE) :: unit
+
+    last = ubound( array_1, 3 )
+    CALL_ASSERT( all( shape(array_1) == shape(array_2) ), "shape mismatch - array 1 and 2" )
+    CALL_ASSERT( all( shape(array_1) == shape(array_3) ), "shape mismatch - array 1 and 3" )
+    bytes_each_array = n_bytes( array_1(:, :, first) )
+    bytes_all_arrays = n_arrays*bytes_each_array
+    call file_offset( first, last, bytes_all_arrays, offset )
+    call mpi_open_file( file_name, mpi_env, unit, write_mode )
+    do i = first, last
+      call mpi_write_data( unit, offset(i), array_1(:, :, i) )
+      call mpi_write_data( unit, offset(i) + bytes_each_array, array_2(:, :, i) )
+      call mpi_write_data( unit, offset(i) + 2*bytes_each_array, array_3(:, :, i) )
+    end do
+    call mpi_file_close( unit, ierr )
+  end subroutine
+
   ! MPI-IO wrappers (private)
   subroutine mpi_read_data_complex_dp( unit, offset, data_block )
     type(MPI_FILE), intent(in) :: unit
@@ -231,7 +362,9 @@ contains
     call mpi_file_iread_at( unit, offset, data_block, size(data_block), MPI_DOUBLE_COMPLEX, request, ierr )
     call mpi_wait( request, status, ierr )
     ! Ensure the correct treatment of buffers passed to nonblocking MPI-routines
+#ifndef MPI_F_SYNC_REG_DEPRECATED
     if( .not. MPI_ASYNC_PROTECTS_NONBLOCKING ) call mpi_f_sync_reg( data_block )
+#endif
   end subroutine
 
   subroutine mpi_read_data_real_dp( unit, offset, data_block )
@@ -246,7 +379,9 @@ contains
     request = MPI_REQUEST_NULL
     call mpi_file_iread_at( unit, offset, data_block, size(data_block), MPI_DOUBLE_PRECISION, request, ierr )
     call mpi_wait( request, status, ierr )
+#ifndef MPI_F_SYNC_REG_DEPRECATED
     if( .not. MPI_ASYNC_PROTECTS_NONBLOCKING ) call mpi_f_sync_reg( data_block )
+#endif
   end subroutine
 
   subroutine mpi_read_data_integer_i32( unit, offset, data_block )
@@ -261,7 +396,9 @@ contains
     request = MPI_REQUEST_NULL
     call mpi_file_iread_at( unit, offset, data_block, size(data_block), MPI_INTEGER, request, ierr )
     call mpi_wait( request, status, ierr )
+#ifndef MPI_F_SYNC_REG_DEPRECATED
     if( .not. MPI_ASYNC_PROTECTS_NONBLOCKING ) call mpi_f_sync_reg( data_block )
+#endif
   end subroutine
 
   !> Read a series of data: descriptor_block, dims_block, data_block
@@ -291,7 +428,9 @@ contains
     call mpi_file_iwrite_at( unit, offset, data_block, size(data_block), MPI_DOUBLE_COMPLEX, request, ierr )
     call mpi_wait( request, status, ierr )
     ! Ensure the correct treatment of buffers passed to nonblocking MPI-routines
+#ifndef MPI_F_SYNC_REG_DEPRECATED
     if( .not. MPI_ASYNC_PROTECTS_NONBLOCKING ) call mpi_f_sync_reg( data_block )
+#endif
   end subroutine
 
   subroutine mpi_write_data_real_dp( unit, offset, data_block )
@@ -307,7 +446,9 @@ contains
     call mpi_file_iwrite_at( unit, offset, data_block, size(data_block), MPI_DOUBLE_PRECISION, request, ierr )
     call mpi_wait( request, status, ierr )
     ! Ensure the correct treatment of buffers passed to nonblocking MPI-routines
+#ifndef MPI_F_SYNC_REG_DEPRECATED
     if( .not. MPI_ASYNC_PROTECTS_NONBLOCKING ) call mpi_f_sync_reg( data_block )
+#endif
   end subroutine
 
   subroutine mpi_write_data_integer_i32( unit, offset, data_block )
@@ -323,7 +464,9 @@ contains
     call mpi_file_iwrite_at( unit, offset, data_block, size(data_block), MPI_INTEGER, request, ierr )
     call mpi_wait( request, status, ierr )
     ! Ensure the correct treatment of buffers passed to nonblocking MPI-routines
+#ifndef MPI_F_SYNC_REG_DEPRECATED
     if( .not. MPI_ASYNC_PROTECTS_NONBLOCKING ) call mpi_f_sync_reg( data_block )
+#endif
   end subroutine
 
   !> Write a series of data: descriptor_block, dims_block, data_block
@@ -348,7 +491,7 @@ contains
     integer(i32) :: ierr
     type(MPI_COMM) :: handle
 
-    call assert( mode==read_mode .or. mode==write_mode, 'mode must be read or write' )
+    CALL_ASSERT( mode==read_mode .or. mode==write_mode, 'mode must be read or write' )
 
     handle%mpi_val = mpi_env%comm
     select case( mode ) 

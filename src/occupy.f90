@@ -303,7 +303,7 @@ end module mod_occupy
 ! !INTERFACE:
 !
 !
-Subroutine occupy
+Subroutine occupy(epsfermi)
 ! !USES:
       Use modinput
       Use modmain
@@ -325,6 +325,7 @@ Subroutine occupy
 !EOP
 !BOC
       implicit none
+      Real(8), Intent(In) :: epsfermi
 ! local variables
       integer, parameter :: maxit = 1000
       real(8), parameter :: de0=1.d0
@@ -406,7 +407,7 @@ Subroutine occupy
             Else
                e1 = efermi
             End If
-            If ((e1-e0) .Lt. input%groundstate%epsocc) Go To 10
+            If ((e1-e0) .Lt. epsfermi) Go To 10
          End Do
          Write (*,*)
          Write (*, '("Error(occupy): could not find Fermi energy")')

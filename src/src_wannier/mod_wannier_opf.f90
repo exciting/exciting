@@ -27,13 +27,12 @@ module mod_wannier_opf
     
   contains
     subroutine wfopf_gen( subspace)
-      use m_getunit
       use mod_manopt, only: manopt_stiefel_cg, manopt_stiefel_lbfgs
 
       logical, optional, intent( in) :: subspace
       
       ! local variables
-      integer :: convun, minit, maxit, memlen
+      integer :: convun, minit, maxit, memlen, wf_group_
       real(8) :: gradnorm, minstep
 
       integer :: ik, i
@@ -44,13 +43,18 @@ module mod_wannier_opf
       real(8), allocatable :: sval(:)
       complex(8), allocatable :: auxmat(:,:), lvec(:,:), rvec(:,:)
 
+      ! new group index to adress wannier grouparray for spin dis
+      wf_group_ = wf_group
+      if ( wf_spin_dis ) wf_group_ = mod( wf_group - 1, size( input%properties%wannier%grouparray, dim=1 ) ) + 1
+      
+      minit    = input%properties%wannier%grouparray( wf_group_)%group%minitopf
+      maxit    = input%properties%wannier%grouparray( wf_group_)%group%maxitopf
+      gradnorm = input%properties%wannier%grouparray( wf_group_)%group%epsopf
+      minstep  = input%properties%wannier%grouparray( wf_group_)%group%minstepopf
+      memlen   = input%properties%wannier%grouparray( wf_group_)%group%memlenopf
+
       if( mpiglobal%rank .eq. 0) write( wf_info, '(" calculate improved optimized projection functions (iOPF)...")')
       call timesec( t0)
-      minit    = input%properties%wannier%grouparray( wf_group)%group%minitopf
-      maxit    = input%properties%wannier%grouparray( wf_group)%group%maxitopf
-      gradnorm = input%properties%wannier%grouparray( wf_group)%group%epsopf
-      minstep  = input%properties%wannier%grouparray( wf_group)%group%minstepopf
-      memlen   = input%properties%wannier%grouparray( wf_group)%group%memlenopf
 
       !****************************
       !* PREPARATION
@@ -78,17 +82,16 @@ module mod_wannier_opf
       !* MINIMIZATION
       !****************************
       convun = 0
-      if( input%properties%wannier%grouparray( wf_group)%group%writeconv) then
-        call getunit( convun)
+      if( input%properties%wannier%grouparray( wf_group_)%group%writeconv) then
         if( sub) then
           write( convfname, '("opf_sub_conv_",i3.3,".dat")') wf_group
         else
           write( convfname, '("opf_conv_",i3.3,".dat")') wf_group
         end if
-        open( convun, file=trim( convfname), action='write', form='formatted')
+        open( newunit=convun, file=trim( convfname), action='write', form='formatted')
       end if
 
-      if( input%properties%wannier%grouparray( wf_group)%group%optim .eq. 'cg') then
+      if( input%properties%wannier%grouparray( wf_group_)%group%optim .eq. 'cg') then
         call manopt_stiefel_cg( OPF, dxo, 1, dx, &
                cost=wfopf_omega, &
                grad=wfopf_gradient, &
@@ -96,12 +99,12 @@ module mod_wannier_opf
       else
         call manopt_stiefel_lbfgs( OPF, dxo, 1, dx, &
                cost=wfopf_omega, &
-               !grad=wfopf_gradient, &
+               ! grad=wfopf_gradient, &
                costgrad=wfopf_omegagradient, &
                epsgrad=gradnorm, minit=minit, maxit=maxit, stdout=convun, minstep=minstep, memlen=memlen)
       end if
 
-      if( input%properties%wannier%grouparray( wf_group)%group%writeconv) close( convun)
+      if( input%properties%wannier%grouparray( wf_group_)%group%writeconv) close( convun)
 
       if( allocated( wf_opf)) deallocate( wf_opf)
       allocate( wf_opf, source=OPF(:,:,1))
@@ -153,7 +156,7 @@ module mod_wannier_opf
       if( mpiglobal%rank .eq. 0) then
         write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
         write( wf_info, '(5x,"iterations: ",T40,7x,I6)') maxit
-        write( wf_info, '(5x,"gradient cutoff: ",T40,E13.6)') input%properties%wannier%grouparray( wf_group)%group%epsopf
+        write( wf_info, '(5x,"gradient cutoff: ",T40,E13.6)') input%properties%wannier%grouparray( wf_group_)%group%epsopf
         write( wf_info, '(5x,"norm of gradient: ",T40,E13.6)') gradnorm
         write( wf_info, '(5x,"Omega: ",T40,F13.6)') sum( wf_omega ( wf_groups( wf_group)%fwf:wf_groups( wf_group)%lwf))
         write( wf_info, *)
@@ -388,13 +391,13 @@ module mod_wannier_opf
         allocate( G(P,J))
         G = zzero
 #ifdef USEOMP
-!$omp parallel default( shared) private( ik, i, K, s, U, F, V, W, GU0, GU, AV, VGUW, CNN, CJJ1, CJJ2, CNJ1, CNJ2) reduction(+:G)
+!!$omp parallel default( shared) private( ik, i, K, s, U, F, V, W, GU0, GU, AV, VGUW, CNN, CJJ1, CJJ2, CNJ1, CNJ2) reduction(+:G) !found issues with this omp statement, commented out for now
 #endif
         allocate( s(J), U(N,J), V(N,J), W(J,J))
         allocate( F(J,J), GU0(N0,J), GU(N,J), AV(P,J), VGUW(J,J))
         allocate( CNN(N,N), CJJ1(J,J), CJJ2(J,J), CNJ1(N,J), CNJ2(N,J))
 #ifdef USEOMP
-!$omp do
+!!$omp do
 #endif
         do ik = 1, wf_kset%nkpt
           call wfopf_X2U( X, dxo, dx(:,1), &
@@ -435,13 +438,13 @@ module mod_wannier_opf
 
         end do
 #ifdef USEOMP
-!$omp end do
+!!$omp end do
 #endif
         deallocate( s, V, W, U)
         deallocate( F, GU, AV, VGUW)
         deallocate( CNN, CJJ1, CJJ2, CNJ1, CNJ2)
 #ifdef USEOMP
-!$omp end parallel
+!!$omp end parallel
 #endif
         GX(1:P,1:J,1) = G
         deallocate( G)
@@ -505,7 +508,6 @@ module mod_wannier_opf
     end subroutine wfopf_getF
 
     subroutine wfopf_write_opf
-      use m_getunit
 
       integer :: i, j, n, un
       logical :: exist
@@ -513,8 +515,7 @@ module mod_wannier_opf
       if( .not. input%properties%wannier%printproj .or. (mpiglobal%rank /= 0)) return
       inquire( file=trim( wf_filename)//"_PROJECTION"//trim(filext), exist=exist)
       if( .not. exist) return
-      call getunit( un)
-      open( un, file=trim( wf_filename)//"_PROJECTION"//trim(filext), status='old', position='append', action='write')
+      open( newunit=un, file=trim( wf_filename)//"_PROJECTION"//trim(filext), status='old', position='append', action='write')
 
       if( (wf_group .eq. 1) .and. .not. sub) then
         n = 0

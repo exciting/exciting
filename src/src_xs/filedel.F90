@@ -11,7 +11,6 @@ Contains
 !
 !
       Subroutine filedel (fnam)
-         Use m_getunit
          Implicit None
     ! arguments
          Character (*), Intent (In) :: fnam
@@ -36,8 +35,7 @@ Contains
             Close (un)
          End If
     ! open file for writing
-         Call getunit (un)
-         Open (un, File=trim(fnam), Action='write')
+         Open (newunit=un, File=trim(fnam), Action='write')
     ! delete file
          Close (un, Status='delete')
       End Subroutine filedel

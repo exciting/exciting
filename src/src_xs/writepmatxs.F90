@@ -17,6 +17,7 @@ subroutine writepmatxs
   use mod_atoms, only: natmtot
   use mod_eigensystem, only: nmatmax 
   use mod_eigenvalue_occupancy, only: nstfv, nstsv
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
   use modxas, only: ncg
   use modxs, only: tscreen, fnpmat, fnpmat_t, kpari,&
                   & kparf, ripaa, ripalo,&
@@ -26,6 +27,7 @@ subroutine writepmatxs
   use mod_gen_lo, only: genlofr
   use m_putpmat
   use m_genfilname
+  use precision, only: i32, long_int, dp, str_32, str_256
 
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
@@ -42,19 +44,20 @@ subroutine writepmatxs
   implicit none
 
   ! Local variables
-  integer :: ik, reclen
-  character(32) :: fnam
-  complex(8), allocatable :: apwalmt(:, :, :, :)
-  complex(8), allocatable :: evecfvt(:, :)
-  complex(8), allocatable :: evecsvt(:, :)
-  complex(8), allocatable :: pmat(:, :, :)
-  character(256) :: string
-  logical :: fast
+  integer(i32) :: ik , io_unit
+  integer(long_int) :: reclen
+  character(str_32) :: fnam
+  complex(dp), allocatable :: apwalmt(:, :, :, :)
+  complex(dp), allocatable :: evecfvt(:, :)
+  complex(dp), allocatable :: evecsvt(:, :)
+  complex(dp), allocatable :: pmat(:, :, :)
+  character(str_256) :: string
+  logical(i32) :: fast
 
   character(*), parameter :: thisname="writepmatxs"
 
   ! External functions
-  logical, external :: tqgamma
+  logical(i32), external :: tqgamma
 
 
   !write(*,*) "writepmatxs here at rank", rank
@@ -153,9 +156,8 @@ subroutine writepmatxs
     ! Update potential in case if hf hybrids
     if(hybridhf) call readstate
     ! Find the record length
-    inquire(iolength=reclen) pmat
-    open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT',&
-      & status='REPLACE',recl=reclen)
+    call inquire_large( reclen, pmat )
+    call open_direct_unformatted_large( io_unit, 'PMAT.OUT', "write", reclen, "replace" )
   end if
 
   ! Get eigenvectors for qmt=0, i.e. set file extension to _QMT001
@@ -244,7 +246,7 @@ subroutine writepmatxs
 
     if(task .eq. 120) then
       ! Write the matrix elements to direct-access file
-      write(50,rec=ik) pmat
+      write(io_unit,rec=ik) pmat
     else
       ! Parallel write
       ! Note: Destroys content of pmat on rank 0
@@ -271,7 +273,7 @@ subroutine writepmatxs
   if(.not. input%sharedfs) call cpfiletonodes(trim(fnpmat))
 
   if(task .eq. 120) then
-    close(50)
+    close(io_unit)
     if(rank==0) then
       write(*,*)
       write(*, '("Info(writepmatxs):")')

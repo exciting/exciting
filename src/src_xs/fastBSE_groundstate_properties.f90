@@ -5,7 +5,7 @@ module fastBSE_groundstate_properties
   use grid_utils, only: first_element, last_element, mesh_1d
   use modmpi, only: mpiinfo, terminate_if_false, distribute_loop
   use modinput, only: input_type
-  use asserts, only: assert
+
   use xhdf5, only: xhdf5_type, abort_if_not_hdf5
   use xs_hdf5, only: h5ds_wfplot
   use os_utils, only: join_paths
@@ -35,7 +35,7 @@ module fastBSE_groundstate_properties
   !> Read all relevant data according to the transitions from an HDF5 file.
   subroutine read_transitions_hdf5(mpi_env, h5file, h5path, transition_energies, matrix_elements, band_index, transition_mask)
     !> MPI environment
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Name of the HDF5 file
     type(xhdf5_type), intent(inout) :: h5file
     !> Name of the group in the HDF5 file
@@ -104,7 +104,7 @@ module fastBSE_groundstate_properties
   !> Load the periodic part of the wavefunction \(u\) from the hdf5 file.
   subroutine read_wavefunction_u_hdf5(mpi_env, input, h5file, h5group, u_u, u_o)
     !> MPI environment
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Input file container
     type(input_type), intent(in) :: input
     !> Name of the HDF5 file to read \(u\) from
@@ -167,7 +167,7 @@ module fastBSE_groundstate_properties
     use mod_lattice, only: avec
     use modxs, only: evalsv0
 
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     type(input_type), intent(in) :: input
     character(*), intent(in) :: h5file, h5group
     integer, intent(in) :: info_unit

@@ -1,6 +1,6 @@
 module inverse
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use math_utils, only: is_square
   use lu_factorization, only: xgetrf2, xgetri
   use determinant, only: determinant_LU
@@ -49,8 +49,8 @@ module inverse
 
     integer, allocatable :: row_pivot_map(:)
 
-    call assert(is_square(A), 'A is not a square matrix.')
-    call assert(abs(determinant_LU(A)) > default_det_tol, 'Determinant of A is zero.')
+    CALL_ASSERT(is_square(A), 'A is not a square matrix.')
+    CALL_ASSERT(abs(determinant_LU(A)) > default_det_tol, 'Determinant of A is zero.')
 
     allocate(row_pivot_map(size(A, dim=1)))
 
@@ -85,8 +85,8 @@ module inverse
 
     integer, allocatable :: row_pivot_map(:)
 
-    call assert(is_square(A), 'A is not a square matrix.')
-    !call assert(abs(determinant_LU(A)) > default_det_tol, 'The absolute value of the determinant of A is zero.')
+    CALL_ASSERT(is_square(A), 'A is not a square matrix.')
+    !CALL_ASSERT(abs(determinant_LU(A)) > default_det_tol, 'The absolute value of the determinant of A is zero.')
 
     allocate(row_pivot_map(size(A, dim=1)))
 

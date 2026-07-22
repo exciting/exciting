@@ -1,6 +1,6 @@
 module bse_post_processing
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
   use distributions, only: lorentzian
   
@@ -43,8 +43,8 @@ module bse_post_processing
 
     integer :: i_energy
 
-    call assert(size(energies) == size(weights), 'size(energies) /= size(weights).')
-    call assert(size(omega) == size(spectrum), 'size(omega) /= size(spectrum).')
+    CALL_ASSERT(size(energies) == size(weights), 'size(energies) /= size(weights).')
+    CALL_ASSERT(size(omega) == size(spectrum), 'size(omega) /= size(spectrum).')
 
     spectrum = 0._dp
 

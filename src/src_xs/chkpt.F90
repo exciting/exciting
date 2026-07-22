@@ -8,7 +8,6 @@
 !
 Subroutine chkpt(ncpt, cptv, mesg)
       Use modxs,only: fnresume
-      Use m_getunit,only: getunit
       Implicit None
   ! arguments
       Integer, Intent (In) :: ncpt, cptv (ncpt)
@@ -18,8 +17,7 @@ Subroutine chkpt(ncpt, cptv, mesg)
       Integer :: un
       Character (256) :: str
       Write (str,*) ncpt
-      Call getunit (un)
-      Open (un, File=trim(fnresume), Form='formatted', Action='write', Status='replace')
+      Open (newunit=un, File=trim(fnresume), Form='formatted', Action='write', Status='replace')
       Write (un, '(i8, " : length of checkpoint vector")') ncpt
       Write (un, '('//trim(adjustl(str))//'i8, " : checkpoint vector")') cptv (:)
       Write (un, '(" (", a, ")")') trim (mesg)

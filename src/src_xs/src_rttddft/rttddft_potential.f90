@@ -1,6 +1,6 @@
 !> Module that manages what concerns the KS potential in RT-TDDFT calculations
 module rttddft_potential
-  use asserts, only: assert
+#include "asserts.fpp"
   use precision, only: dp
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_potential, timesec_RTTDDFT
 
@@ -26,7 +26,7 @@ contains
     timings_general = .false.
     timings_detailed = .false.
     if( present( printTimings ) ) then 
-      call assert( present( t_pot ), 't_pot must be present if printTimings is')
+      CALL_ASSERT( present( t_pot ), 't_pot must be present if printTimings is')
       call printTimings%get( timings_general, timings_detailed )
     end if 
     if( timings_general ) then

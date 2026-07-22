@@ -10,8 +10,8 @@ module weinert
   implicit none
   private
 
-  public :: surface_ir, multipoles_ir, poisson_ir
-  public :: poisson_and_multipoles_mt, match_bound_mt
+  public :: surface_ir, multipoles_ir, poisson_ir, poisson_ir_plus
+  public :: poisson_and_multipoles_mt, match_bound_mt, pseudodensity_ir_single_mt
 
   contains
 
@@ -96,16 +96,8 @@ module weinert
       integer :: l, m, lm, igp, ifg, ig(3)
       complex(dp) :: z1, z2, zil
 
-      real(dp), allocatable :: rl3(:)
-    
       fsf = zzero
       
-      allocate( rl3(0:lmax))
-    
-      rl3(0) = rmt**3
-      do l = 1, lmax
-        rl3(l) = rl3(l-1)*rmt
-      end do
 !$omp parallel default(shared) private(igp,ig,ifg,z1,z2,zil,l,m,lm) reduction(+:fsf)
 !$omp do
       do igp = 1, ngp
@@ -125,7 +117,6 @@ module weinert
 !$omp end do
 !$omp end parallel
 
-      deallocate( rl3)
     end subroutine
 
     !> This subroutine calculates the multipole moments corresponding to the extension of
@@ -415,7 +406,7 @@ module weinert
                                            zrhoig, qlm(:,ias), epslat=input%structure%epslat)
         end do
       end do
-  
+
       ! solve Poisson's equation in reciprocal space
       zvclig = zzero
       igp_finite = pack( [(i, i=1, ngp)], [(gpc(i) > input%structure%epslat, i=1, ngp)])
@@ -431,6 +422,94 @@ module weinert
 !$omp end do
 !$omp end parallel
     end subroutine
+
+
+    !> This subroutine solves Poisson's equation for a complex charge pseudodensity given in the
+    !> interstitial region by 
+    !> \[ n({\bf r}) = \sum_{\bf G} \hat{n}({\bf G+p}) \, {\rm e}^{{\rm i} ({\bf G+p}) \cdot {\bf r}} \].
+    !>
+    !> From the pseudodensity the electrostatic potential in the interstitial region is obtained
+    !> by solving Poisson's equation in reciprocal space, i.e., 
+    !> \[ V({\bf r}) = \sum_{\bf G} \hat{V}({\bf G+p}) \, {\rm e}^{{\rm i} ({\bf G+p}) \cdot {\bf r}} \;, \]
+    !> with
+    !> \[ \hat{V}({\bf G+p}) = 4\pi \frac{\hat{n}^{\rm ps}({\bf G+p})}{|{\bf G+p}|^2} \]
+    !> or
+    !> \[ \hat{V}({\bf G+p}) = 4\pi \frac{\hat{n}^{\rm ps}({\bf G+p})}{|{\bf G+p}|^2}\left(1-\cos |\mathbf{G+p}|R_\mathrm{c} \right) \].
+    subroutine poisson_ir_plus(ngvec, gpc, igfft, zrhoir,zvclir,cutoff)
+      use mod_lattice, only: omega
+      use mod_kpoint, only: nkptnr
+      use modinput, only: input
+      use constants, only: zzero, fourpi
+
+   !> total number of \({\bf G+p}\) vectors
+      integer, intent(in) :: ngvec
+   !> lengths of \({\bf G+p}\) vectors
+      real(dp), intent(in) :: gpc(:)
+   !> map from \({\bf G}\) vector index to point in FFT grid
+      integer, intent(in) :: igfft(:)
+   !> Fourier components \(\hat{f}({\bf G+p})\) of the function on the FFT grid
+      complex(dp), intent(in) :: zrhoir(:)
+   !> Fourier components of the modified (truncated) Coulomb potential on the FFT grid
+      complex(dp), intent(out) :: zvclir(:)
+   !> Whether the cutoff is applied
+      logical, intent(in) :: cutoff
+   
+      real(dp), parameter :: r_c_eps = 1.e-5_dp
+      integer :: ig, firstnonzeroG
+      real(dp) :: r_c
+
+
+      zvclir=zzero
+
+! We assume that G=0 can occur only in the first G+q vector
+      if (gpc(1) .lt. input%structure%epslat) Then
+        firstnonzeroG=2
+      else
+        firstnonzeroG=1
+      endif
+
+      If (cutoff) Then
+! 0D cutoff
+      
+      ! Choose the cutoff radius
+      r_c = input%groundstate%rCutCoulomb
+      ! if not provided by the user, the choice is made as in Ismael-Beigi, Phys. Rev. B 73, 233103 (2006)
+      if ( r_c < r_c_eps ) r_c = (omega * nkptnr)**(1._dp / 3._dp) * 0.5_dp
+      ! This is what is preferred in Spencer and Alavi, 77, 193110 (2008)
+      ! It is probably a good idea to make both options accessible from the input,
+      ! but keeping it commented for now because this one is more relevant
+      ! for Fock-exchange calculations.
+      ! r_c = (3._dp*omega*nkptnr/fourpi)**(1._dp/3._dp)
+
+        if (firstnonzeroG.eq.2) then
+          zvclir (igfft(1)) = zrhoir(igfft(1))*(fourpi*0.5_dp)*r_c**2
+        endif
+! The OMP region is probably pointless with the memory access as it is.
+! A transition to sorted zvclir and zrhoir array is intended,
+! this is where OMP will make more sense.
+!$omp parallel default(shared) private(ig)
+!$omp do
+        Do ig = firstnonzeroG, ngvec
+          zvclir (igfft(ig)) = fourpi * zrhoir (igfft(ig))*(1._dp-cos(gpc(ig) * r_c )) / (gpc(ig)**2)
+        End Do
+!$omp end do
+!$omp end parallel
+
+      Else ! cutoff
+! No cutoff to be applied
+        if (firstnonzeroG.eq.2) then
+          zvclir (igfft(1)) = zzero
+        endif
+!$omp parallel default(shared) private(ig)
+!$omp do
+        Do ig = firstnonzeroG, ngvec
+          zvclir (igfft(ig)) = fourpi * zrhoir (igfft(ig)) / (gpc(ig)**2)
+        End Do
+!$omp end do
+!$omp end parallel
+      End If !if cutoff
+    end subroutine poisson_ir_plus
+
 
     !> This subroutine computes the Fourier components of a quickly converging pseudodensity with multipole moments \(q_{lm}\)
     !> in muffin-tin \(\alpha\) and adds them to the input argument `zrhoig`.

@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<input>
+	<title>CO2</title>
+	<structure speciespath="./" autormt="true">
+		<crystal>
+			<basevect>15.64061786795462 0.0 0.0</basevect>
+			<basevect>0.0 11.33835674775462 0.0</basevect>
+			<basevect>0.0 0.0 11.33835674775462</basevect>
+		</crystal>
+		<species speciesfile="C.xml">
+			<atom coord="0.4999999999999999 0.5 0.5"> </atom>
+		</species>
+		<species speciesfile="O.xml">
+			<atom coord="0.6375348837405815 0.5 0.5"> </atom>
+			<atom coord="0.3624651162594185 0.5 0.5"> </atom>
+		</species>
+	</structure>
+	<groundstate
+	   do="fromscratch"
+	   ngridk="1 1 1"
+	   nempty="5"
+	   rgkmax="2.5"
+	   epsengy="0.0001"
+	   epspot="0.0000100000000000001">
+		<solver type="Davidson" constructHS="false"> </solver>
+		<libxc correlation="XC_LDA_C_PW" exchange="XC_LDA_X"> </libxc>
+		<spin></spin>
+		<constrainedDFT
+		   startDensityAndPotentialFromFile="true"
+		   groundstateRun="scf"
+		   MaximumOverlapMethod="false">
+			<occupationChanges>
+				<newOccupation
+				   kPointIndex="1"
+				   stateIndex="9"
+				   occupation="1.0">
+				</newOccupation>
+				<newOccupation
+				   kPointIndex="1"
+				   stateIndex="22"
+				   occupation="0.0">
+				</newOccupation>
+			</occupationChanges>
+		</constrainedDFT>
+	</groundstate>
+</input>

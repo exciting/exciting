@@ -48,7 +48,8 @@
             printAfterIterations="25"
             vectorPotentialSolver="improvedeuler"
             numberOfFrozenStates="1"
-            eeInteraction="tdH">
+            eeInteraction="tdH"
+            orthogonalizeAgainstFrozen="true">
             <pmat readFromFile="false" forceHermitian="false" />
             <laser fieldType="total">
               <kick t0="1.d0" width="0d0" amplitude="0.01d0" direction="z"/>

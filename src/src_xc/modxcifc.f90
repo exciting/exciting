@@ -5,7 +5,7 @@
 
 module modxcifc
 use libxcifc
-use asserts, only: assert
+#include "asserts.fpp"
 use precision, only: dp, long_int
 !Use scl_xml_out_Module
 
@@ -356,9 +356,9 @@ case(100)
   ! libxc library functionals
   ! define exchange and correlation id
   exchange_id = xctype(2)
-  call assert(exchange_id >= 0, message="Id for exchange functional is below zero.")
+  CALL_ASSERT(exchange_id >= 0, message="Id for exchange functional is below zero.")
   correlation_id = xctype(3)
-  call assert(correlation_id >= 0, message="Id for exchange functional is below zero.")
+  CALL_ASSERT(correlation_id >= 0, message="Id for exchange functional is below zero.")
 
   ! libxc spin-polarised GGA potential
   if (present(rhoup).and.present(rhodn).and.present(gup2).and.present(gdn2) &

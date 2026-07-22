@@ -30,8 +30,8 @@ from ..tol_classes import DefaultTolerances, Tol, TolWithMessage
 # Default ground state tolerances
 # -------------------------------
 # Ground state tests present when determining default tolerances:
-# PBE-msec-Al, PBE-lin-Al, LDA_VWN-msec-iora-Ar, LDA_VWN-He, LDA_PW-PbTiO3, LDA_PW-collinear-Fe, LDA_PW-noncollinear-Fe,
-# LDA_VWN-Ar, LDA_VWN-nonrelativistic-Ar, LDA_VWN-zora-Ar, PBE-Al, PBE-arpack_npacked-Al, PBE-arpack_packed-Al, PBE-pulay-Al
+# PBE-msec-potential-Al, PBE-lin-potential-Al, LDA_VWN-msec-iora-Ar, LDA_VWN-He, LDA_PW-PbTiO3, LDA_PW-collinear-Fe, LDA_PW-noncollinear-Fe,
+# LDA_VWN-Ar, LDA_VWN-nonrelativistic-Ar, LDA_VWN-zora-Ar, PBE-Al, PBE-arpack_npacked-Al, PBE-arpack_packed-Al, PBE-pulay-potential-Al
 #
 # Total energy tolerance is set to 1.e-8 Ha.
 # Individual energy terms are more sensitive changes in the density than the total energy.

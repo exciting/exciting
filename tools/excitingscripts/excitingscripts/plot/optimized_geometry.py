@@ -139,29 +139,29 @@ def plot_optimized_geometry(
     ref_index = max_strains.index(0.0)
     ref_y1, ref_y2, ref_y3 = y1[ref_index], y2[ref_index], y3[ref_index]
 
-    plt.plot(max_strains, y1, "ro--", label="$\Delta 1$", zorder=3)
-    plt.plot(max_strains, y2, "bs--", label="$\Delta 2$", zorder=2)
-    plt.plot(max_strains, y3, "gd--", label="$\Delta 3$", zorder=1)
+    plt.plot(max_strains, y1, "ro--", label=r"$\Delta 1$", zorder=3)
+    plt.plot(max_strains, y2, "bs--", label=r"$\Delta 2$", zorder=2)
+    plt.plot(max_strains, y3, "gd--", label=r"$\Delta 3$", zorder=1)
 
     plt.plot(
         [min(max_strains), max(max_strains)],
         [ref_y1, ref_y1],
         "r-",
-        label="$\Delta$1$_{ref}$",
+        label=r"$\Delta$1$_{ref}$",
         zorder=3,
     )
     plt.plot(
         [min(max_strains), max(max_strains)],
         [ref_y2, ref_y2],
         "b-",
-        label="$\Delta$2$_{ref}$",
+        label=r"$\Delta$2$_{ref}$",
         zorder=2,
     )
     plt.plot(
         [min(max_strains), max(max_strains)],
         [ref_y3, ref_y3],
         "g-",
-        label="$\Delta$3$_{ref}$",
+        label=r"$\Delta$3$_{ref}$",
         zorder=1,
     )
 

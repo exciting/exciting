@@ -23,7 +23,7 @@ def numpy_gen_from_txt(name: path_type, skip_header: int = 0) -> np.ndarray:
     :return data: Parsed data.
     """
     try:
-        data = np.genfromtxt(name, skip_header=skip_header)
+        data = np.genfromtxt(name, skip_header=skip_header, comments="#")
     except ValueError as exc:
         raise ErroneousFileError(f"Failed to parse {name}.") from exc
     return data

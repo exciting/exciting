@@ -28,7 +28,7 @@ End Subroutine
 subroutine read_potential_response( path, nspecies, natoms, nrmt, lmax, ngrid, dveffmt, shapemt, dveffir, shapeir )
   use, intrinsic :: iso_fortran_env, only: output_unit
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
   use os_utils, only: path_exists
   use mod_misc, only: version
@@ -52,14 +52,10 @@ subroutine read_potential_response( path, nspecies, natoms, nrmt, lmax, ngrid, d
   lmmax = (lmax + 1)**2
   ngrtot = product( ngrid )
 
-  call assert( shapemt(1) == lmmax, &
-    'Inconsistent 1st dimension of argument `dveffmt`.' )
-  call assert( shapemt(2) == nrmtmax, &
-    'Inconsistent 2nd dimension of argument `dveffmt`.' )
-  call assert( shapemt(3) == natmtot, &
-    'Inconsistent 3rd dimension of argument `dveffmt`.' )
-  call assert( shapeir(1) == ngrtot, &
-    'Inconsistent size of argument `dveffir`.' )
+  CALL_ASSERT( shapemt(1) == lmmax,  'Inconsistent 1st dimension of argument `dveffmt`.' )
+  CALL_ASSERT( shapemt(2) == nrmtmax,  'Inconsistent 2nd dimension of argument `dveffmt`.' )
+  CALL_ASSERT( shapemt(3) == natmtot,  'Inconsistent 3rd dimension of argument `dveffmt`.' )
+  CALL_ASSERT( shapeir(1) == ngrtot,  'Inconsistent size of argument `dveffir`.' )
   
   call terminate_if_false( path_exists( path, ierr ), '(read_potential_response) &
     Requested file path does not exist.' )
@@ -68,10 +64,12 @@ subroutine read_potential_response( path, nspecies, natoms, nrmt, lmax, ngrid, d
 
   read( un ) version_f
   if( any( version_f /= version ) ) then
-    write( output_unit , * )
-    write( output_unit, '("Warning(read_potential_response): different version")' )
-    write( output_unit, '(" current	 : ", i3.3, ".", i3.3, ".", i3.3)' ) version
-    write( output_unit, '(" file   	 : ", i3.3, ".", i3.3, ".", i3.3)' ) version_f
+    call warning( 'Warning(read_potential_response):' )
+    call warning( ' Different versions' )
+    write( errmsg, '(" current	 : ", i3.3, ".", i3.3, ".", i3.3)' ) version
+    call warning( errmsg )
+    write( errmsg, '(" file   	 : ", i3.3, ".", i3.3, ".", i3.3)' ) version_f
+    call warning( errmsg )
   end if
 
   read( un ) nspecies_f

@@ -39,7 +39,12 @@ Contains
         End If
     ! call with the above parameters changed
         If (.not.(skipgnd)) Then 
-               Call gndstate
+          ! if the calculation is supposed to use the Davidson eigensolver,
+          ! we need to make a proper initialisation
+          call releasesingular
+          Call gndstate
+          call releasesingular
+
         End If  
          Call rewritesorted
     ! restore original parameters

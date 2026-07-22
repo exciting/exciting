@@ -10,7 +10,6 @@ subroutine task_emac_q()
     use invert_dielectric_function, only: calcinveps
     use modxs, only: symt2
     use mod_mpi_gw
-    use m_getunit
     use mod_bands, only: numin, nstdf
 
     implicit none
@@ -203,8 +202,7 @@ subroutine task_emac_q()
       write(fgw,*)
       write(fgw,*)'# frequency    <eps_{00}^{-1}>'
       write(fgw,*)
-      call getunit(fid)
-      open(fid, File='EPS_Q.OUT', Form='Formatted', Action='Write', Status='Replace')
+      open(newunit=fid, File='EPS_Q.OUT', Form='Formatted', Action='Write', Status='Replace')
       write(fid,*)'# q-point    <eps_{00}^{-1}>'
       do i = 1, nq
         write(fid,10) vq_path(i), emac_q(1:freq%nomeg,i)

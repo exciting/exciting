@@ -28,8 +28,8 @@
 !> the polarizabilities (which can be obtained through the DM)
 !> of the two systems.
 module expand_add_eps
-    use precision, only: sp, dp
-    use asserts, only: assert
+    use precision, only: sp, dp, long_int
+
     use expand_add_eps_helper, only: setup_gq_vecs_from_file, &
     setup_q_vecs_from_file, &
     setup_gq_vecs_from_data, &
@@ -55,7 +55,7 @@ contains
         use modxs, only: vgqc, ngq, vgql
         use modinput, only: input
         use modmpi, only: mpiglobal
-        use os_utils, only: make_directory_command 
+        use os_utils, only: make_directory
         use xs_file_interface, only: write_gq_vectors, write_q_vectors
         !> System command
         character(256) :: syscommand
@@ -80,14 +80,10 @@ contains
         call init2
 
         ! Making folder for heterostructure DMs and (G+q)-vectors
+        call make_directory(eps0_dirname, mpiglobal)
+        call make_directory(gqvecs_dirname, mpiglobal)
+
         if (mpiglobal%is_root) then
-
-            os_command = make_directory_command(eps0_dirname)
-            call system(trim(adjustl(os_command)))
-            os_command = make_directory_command(gqvecs_dirname)
-            call system(trim(adjustl(os_command)))
-
-
             ! Write grid of heterostructure to file
             call write_q_vectors(qvecs_fname, vql, vqc, ngq)
             do iq = 1, nqpt
@@ -411,6 +407,7 @@ contains
         integer :: iq_end
         !> Indices of all zero vectors
         integer, allocatable ::  indices_zero_q(:)
+        integer(long_int) :: large_gather_size
 
 
         ! All elements not present in the unit cell will not be touched
@@ -480,7 +477,8 @@ contains
             end do
         end do
         ! Gather body on all processes
-        call xmpi_allgatherv( mpiglobal, eps_sc%body, size( eps_sc%body, dim=1 )**2 * (iq_end - iq_start + 1) )
+        large_gather_size = int( size( eps_sc%body, dim=1 ), kind=long_int )**2 * (iq_end - iq_start + 1)
+        call xmpi_allgatherv( mpiglobal, eps_sc%body, large_gather_size )
     end subroutine
 
 end module

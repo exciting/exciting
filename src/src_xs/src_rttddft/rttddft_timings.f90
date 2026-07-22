@@ -1,8 +1,7 @@
 module rttddft_timings
   use MD, only: MD_timing
   use precision, only: dp
-  use asserts, only: assert
-
+#include "asserts.fpp"
   implicit none
 
   private
@@ -136,7 +135,9 @@ contains
     class(Print_Timings), intent(inout) :: this
     logical, intent(in) :: general__, detailed__
 
-    if ( detailed__ ) call assert( general__, "detailed timing requested with no general one" )
+    if ( detailed__ ) then
+      CALL_ASSERT( general__, "detailed timing requested with no general one" )
+    end if
     this%general_ = general__
     this%detailed_ = detailed__
   end subroutine

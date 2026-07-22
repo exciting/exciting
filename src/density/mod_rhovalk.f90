@@ -1,5 +1,5 @@
 module mod_rhovalk
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: real_zero, zone, zzero
   use mod_APW_LO, only: apwordmax, lofr, nlorb, lorbl
   use mod_atoms, only: natmtot, nspecies, natoms, idxas
@@ -24,15 +24,15 @@ module mod_rhovalk
   public :: rhovalk
 
   interface rhovalk
-    module procedure :: rhovalk_spin_polarized
-    module procedure :: rhovalk_non_spin_polarized
+    module procedure :: rhovalk_spin_spiral
+    module procedure :: rhovalk_non_spin_spiral
   end interface
 
 contains
 
-  !> Remaps non-spin-polarized wavefunctions to the spin polarized ones
-  !> to be used as input arguments for `rhovalk_spin_polarized`
-  subroutine rhovalk_non_spin_polarized ( ik, evecfv, occupations, rhomt, magmt, evecsv )
+  !> Remaps non-spin-spiral wavefunctions to the spin spiral ones
+  !> to be used as input arguments for `rhovalk_spin_spiral`
+  subroutine rhovalk_non_spin_spiral ( ik, evecfv, occupations, rhomt, magmt, evecsv )
     !> k-point number
     integer(i32), intent (in) :: ik
     !> First-variational eigenvectors (nmatmax, nstfv)
@@ -50,9 +50,9 @@ contains
     complex(dp), contiguous, pointer :: ptr(:, :, :)
 
     ptr(1 : size( evecfv, 1 ), 1 : size( evecfv, 2 ), 1 : n_spin) => evecfv
-    call rhovalk_spin_polarized( ik, ptr, occupations, rhomt, magmt, evecsv )
+    call rhovalk_spin_spiral( ik, ptr, occupations, rhomt, magmt, evecsv )
 
-  end subroutine rhovalk_non_spin_polarized
+  end subroutine rhovalk_non_spin_spiral
 
   !> Generates the partial valence charge density from the eigenvectors at
   !> $k$-point {\tt ik}. In the muffin-tin region, the wavefunction is obtained
@@ -61,7 +61,7 @@ contains
   !> wavefunction is converted to real-space and the density obtained from its
   !> modulus squared. This density is then transformed with a forward SHT and
   !> accumulated in the inout variable {\tt rhomt}.
-  subroutine rhovalk_spin_polarized ( ik, evecfv, occupations, rhomt, magmt, evecsv )
+  subroutine rhovalk_spin_spiral ( ik, evecfv, occupations, rhomt, magmt, evecsv )
     !> k-point number
     integer(i32), intent (in) :: ik
     !> First-variational eigenvectors (nmatmax, nstfv, n_spin)
@@ -90,14 +90,12 @@ contains
 
     num_of_basis_functions_sv = get_num_of_basis_functions_sv()
     if ( input%groundstate%tevecsv ) then
-      call assert( present( evecsv ), 'evecsv not present' )
-      num_of_states = size( evecsv, 2 )
-    else
-      num_of_states = size( evecfv, 2 )
+      CALL_ASSERT( present( evecsv ), 'evecsv not present' )
     end if
+    num_of_states = size( occupations )
 
     if ( associated( input%groundstate%spin ) ) then
-      call assert( present( magmt ), 'magmt not present' )
+      CALL_ASSERT( present( magmt ), 'magmt not present' )
       magmt_k = real_zero
       if ( ncmag ) then
         nsd = 4
@@ -262,6 +260,6 @@ contains
     
     call timesec (ts1)
     timerho = timerho + ts1 - ts0
-  end subroutine rhovalk_spin_polarized
+  end subroutine rhovalk_spin_spiral
 
 end module

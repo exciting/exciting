@@ -147,6 +147,7 @@ Subroutine writebandgapgrid
       Use modmain
       Use modxs
       Use m_genfilname
+      use mod_getoccsv, only: getoccsv
       Implicit None
   ! local variables
       Integer :: ik
@@ -160,7 +161,7 @@ Subroutine writebandgapgrid
       Do ik = 1, nkpt
      ! get the eigenvectors and values from EIGVEC.OUT
          Call getevalsv (vkl(1, ik), evalsv(1, ik))
-         Call getoccsv (vkl(1, ik), occsv(1, ik))
+         Call getoccsv (vkl(:, ik), occsv(:, ik))
       End Do
       Call writebandgap
       Call genfilname (revertfilext=.True.)

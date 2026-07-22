@@ -6,8 +6,8 @@ module m_readoscillator
 
     subroutine readoscillator(iqmt, io1, io2, evals, bindevals, oscir)
       use modinput
-      use m_getunit
       use m_genfilname
+      use modxs, only: unitout
 
       integer(4), intent(in) :: iqmt
       integer(4), intent(in) :: io1, io2
@@ -65,10 +65,11 @@ module m_readoscillator
          & trim(thisname), trim(fnexc)
         stop
       end if
-      write(*,'("Info(",a,"): Opening file ",a)') trim(thisname), trim(fnexc)
+      write(unitout,'("Info(",a,"): Opening file ",a)') trim(thisname), trim(fnexc)
 
       ! Get number of excitons
-      ncommentlines=14
+      ! there are 4 comment lines from `writeoscillator` and 25 lines from `write_bse_header`
+      ncommentlines=29
       call getlines(trim(fnexc), nlines)
       nexc = nlines - ncommentlines
 
@@ -83,9 +84,8 @@ module m_readoscillator
       if(allocated(imoscir)) deallocate(imoscir)
       allocate(imoscir(nexc))
 
-      call getunit(un) 
 
-      open(un, file=trim(fnexc), action="read", form="formatted", status="old")
+      open(newunit=un, file=trim(fnexc), action="read", form="formatted", status="old")
 
       do i=1, ncommentlines
         read(un,*)
@@ -124,9 +124,7 @@ module m_readoscillator
 
           integer(4) :: un, stat
 
-          call getunit(un) 
-
-          open(un, file=trim(fname), action="read", form="formatted", status="old")
+          open(newunit=un, file=trim(fname), action="read", form="formatted", status="old")
 
           nlines = 0
           do

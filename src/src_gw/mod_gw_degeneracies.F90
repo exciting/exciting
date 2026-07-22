@@ -14,6 +14,7 @@ module mod_gw_degeneracies
 
     use precision, only: i32, dp
     use modmpi, only: terminate
+#include "offload.fpp"
 
     implicit none 
 
@@ -21,9 +22,11 @@ module mod_gw_degeneracies
     public :: get_degenerate_limits_qp_interval_ikp, &
               enforce_degeneracy, &
               initialize_degeneracy_module, &
+              delete_degeneracy_module, &
               absolute_tolerance_gw_degeneracy, &
               relative_tolerance_gw_degeneracy, &
               degenerate_subspaces, &
+              band_degeneracy, &
               ibgw_including_degeneracy, &
               nbgw_including_degeneracy
 
@@ -42,32 +45,41 @@ module mod_gw_degeneracies
     !> Upper state id to which the QP corrections are computed taking into account upper degenerate states with nbgw 
     !> If not taken into account the result will be dependent on the window because of the averaging
     integer(i32), protected :: nbgw_including_degeneracy
+    !> List providing the degeneracy of a band
+    integer(i32), protected, allocatable :: band_degeneracy(:,:)
 
-!> Interface to function enforces the symmetry on the input vector
 interface enforce_degeneracy
     module procedure :: enforce_degeneracy_real_dp, &
                         enforce_degeneracy_complex_dp
 end interface
 
 contains
+
+    !> Release module state so a subsequent GW initialization can start cleanly.
+    subroutine delete_degeneracy_module()
+        if (allocated(degenerate_subspaces)) deallocate(degenerate_subspaces)
+        if (allocated(band_degeneracy)) then
+            OMP_OFFLOAD target exit data map(delete: band_degeneracy)
+            deallocate(band_degeneracy)
+        end if
+    end subroutine delete_degeneracy_module
     
     ! Let the compiler to automatically generate enforce_degeneracy(ikp, input_vector) for different types
     ! See enforce_degeneracy_template.inc: The function name is concatenated by _TYPE_PRECISION.
-    ! 
-    ! INPUT:
-    ! irreducible k-point index
-    ! integer(i32), intent(in) :: ikp
-    ! Data at ikp in which the degeneracy must be strictly enforced (real or complex of dp)
-    ! real(r64), intent(inout)  :: input_vector(:)
+    !
+    ! Template inputs:
+    ! ikp: irreducible k-point index.
+    ! input_vector: data at ikp where degeneracy must be strictly enforced.
     !
     ! Generating enforce_degeneracy_real_dp(ikp, input_vector)
 #define TYPE1 real
-#define PRECISION1 dp 
+#define PRECISION1 dp
 #include "enforce_degeneracy_template.inc"
     ! Generating enforce_degeneracy_complex_dp(ikp, input_vector)
 #define TYPE1 complex
-#define PRECISION1 dp 
+#define PRECISION1 dp
 #include "enforce_degeneracy_template.inc"
+
 
     !> Obtains the limits for degenerate subspaces for the giving 
     !> irreducible point. Notice that degenerate_subspaces = -1 is defined
@@ -75,7 +87,7 @@ contains
     !> Also, note that any subspace including the limit bands is explicitly treated
     !> with all their members.  
     pure subroutine get_degenerate_limits_qp_interval_ikp(ikp, init_space, final_space)
-        
+            
         ! Using the intervals for which the QP corrections are computed, i.e. [ibgw, nbgw].
         use modgw, only: ibgw, nbgw
 
@@ -89,9 +101,9 @@ contains
         integer(i32), intent(out) :: final_space 
 
         init_space  = minloc(degenerate_subspaces(2,:,ikp), dim=1, &
-                             mask = degenerate_subspaces(2,:,ikp) >= ibgw)
+                            mask = degenerate_subspaces(2,:,ikp) >= ibgw)
         final_space = maxloc(degenerate_subspaces(2,:,ikp), dim=1, &
-                             mask = degenerate_subspaces(1,:,ikp) <= nbgw)
+                        mask = degenerate_subspaces(1,:,ikp) <= nbgw)
 
     end subroutine get_degenerate_limits_qp_interval_ikp
 
@@ -100,6 +112,7 @@ contains
         use modinput, only: input
         use math_utils, only: get_degeneracies
         use mod_kpointset, only: k_set
+        use modgw, only: ibgw, nbgw
 
         implicit none
 
@@ -140,6 +153,7 @@ contains
         ibgw_including_degeneracy =  huge(1_i32)
         nbgw_including_degeneracy = -huge(1_i32)
 
+        allocate(band_degeneracy(nbands,kset%nkpt), source=0_i32)
         ! Notice that this is initialized to the maximum possible size for all the k-points,
         ! that is the number of bands in the NSCF calculation. The default value is -1; that 
         ! means that if in a given k-point there are degenerate states, there will be entries 
@@ -167,7 +181,14 @@ contains
             call enforce_degeneracy(ikp, evalfv(:nbands,ikp))
             call enforce_degeneracy(ikp, occfv(:nbands,ikp))
 
+            ! Check the degeneracy of each band
+            do ispace = 1, size(degenerate_subspaces_ikp,2)
+                band_degeneracy(degenerate_subspaces_ikp(1,ispace):degenerate_subspaces_ikp(2,ispace),ikp) = degenerate_subspaces_ikp(3,ispace)
+            end do
+
         end do
+
+        OMP_OFFLOAD target enter data map(always, to: band_degeneracy)
 
     end subroutine initialize_degeneracy_module
 

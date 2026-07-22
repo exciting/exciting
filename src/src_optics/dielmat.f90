@@ -4,6 +4,7 @@ subroutine dielmat
     use modinput
     use modmpi
     use modxs, only: symt2
+    use mod_getoccsv, only: getoccsv
     use unit_conversion, only: hartree_to_ev
     use constants, only: fourpi
     implicit none

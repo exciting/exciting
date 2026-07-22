@@ -1,8 +1,7 @@
 !> Objects to calculate and loop over non-zero Gaunt coefficients
 module gaunt
   use precision, only: dp
-  use asserts, only: assert
-
+#include "asserts.fpp"
   implicit none
   private
 
@@ -103,12 +102,12 @@ module gaunt
       eps = 1.d-20
       if( present( tolerance ) ) eps = tolerance
 
-      call assert( lmax1 >= 0,  'non_zero_gaunt_real_gen: lmax1 is negative.' )
-      call assert( lmax2 >= 0,  'non_zero_gaunt_real_gen: lmax2 is negative.' )
-      call assert( lmax3 >= 0,  'non_zero_gaunt_real_gen: lmax3 is negative.' )
-      call assert( lmax1 <= 50, 'non_zero_gaunt_real_gen: lmax1 is too large (>50).' )
-      call assert( lmax2 <= 50, 'non_zero_gaunt_real_gen: lmax2 is too large (>50).' )
-      call assert( lmax3 <= 50, 'non_zero_gaunt_real_gen: lmax3 is too large (>50).' )
+      CALL_ASSERT( lmax1 >= 0,  'non_zero_gaunt_real_gen: lmax1 is negative.' )
+      CALL_ASSERT( lmax2 >= 0,  'non_zero_gaunt_real_gen: lmax2 is negative.' )
+      CALL_ASSERT( lmax3 >= 0,  'non_zero_gaunt_real_gen: lmax3 is negative.' )
+      CALL_ASSERT( lmax1 <= 50, 'non_zero_gaunt_real_gen: lmax1 is too large (>50).' )
+      CALL_ASSERT( lmax2 <= 50, 'non_zero_gaunt_real_gen: lmax2 is too large (>50).' )
+      CALL_ASSERT( lmax3 <= 50, 'non_zero_gaunt_real_gen: lmax3 is too large (>50).' )
 
       gaunt%lmax = [lmax1, lmax2, lmax3]
       if( allocated( gaunt%num ) ) deallocate( gaunt%num )
@@ -165,12 +164,12 @@ module gaunt
       eps = 1.d-20
       if( present( tolerance ) ) eps = tolerance
 
-      call assert( lmax1 >= 0,  'non_zero_gaunt_complex_gen: lmax1 is negative.' )
-      call assert( lmax2 >= 0,  'non_zero_gaunt_complex_gen: lmax2 is negative.' )
-      call assert( lmax3 >= 0,  'non_zero_gaunt_complex_gen: lmax3 is negative.' )
-      call assert( lmax1 <= 50, 'non_zero_gaunt_complex_gen: lmax1 is too large (>50).' )
-      call assert( lmax2 <= 50, 'non_zero_gaunt_complex_gen: lmax2 is too large (>50).' )
-      call assert( lmax3 <= 50, 'non_zero_gaunt_complex_gen: lmax3 is too large (>50).' )
+      CALL_ASSERT( lmax1 >= 0,  'non_zero_gaunt_complex_gen: lmax1 is negative.' )
+      CALL_ASSERT( lmax2 >= 0,  'non_zero_gaunt_complex_gen: lmax2 is negative.' )
+      CALL_ASSERT( lmax3 >= 0,  'non_zero_gaunt_complex_gen: lmax3 is negative.' )
+      CALL_ASSERT( lmax1 <= 50, 'non_zero_gaunt_complex_gen: lmax1 is too large (>50).' )
+      CALL_ASSERT( lmax2 <= 50, 'non_zero_gaunt_complex_gen: lmax2 is too large (>50).' )
+      CALL_ASSERT( lmax3 <= 50, 'non_zero_gaunt_complex_gen: lmax3 is too large (>50).' )
 
       gaunt%lmax = [lmax1, lmax2, lmax3]
       if( allocated( gaunt%num ) ) deallocate( gaunt%num )

@@ -8,15 +8,17 @@
 
 !> Math utilities and functions
 module math_utils
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: pi, zzero, zone, zi, fourpi, twopi, real_zero, real_one
   use iso_fortran_env, only: error_unit
   use, intrinsic :: ISO_C_BINDING
   use lapack_f95_interfaces, only: dsyev, zheev
-  use precision, only: sp, dp, i32
+  use precision, only: sp, dp, i32, long_int
   use seed_generation, only: set_seed
   use to_char_conversion, only: to_char
   use iso_c_binding, only: c_f_pointer, c_loc
+
+#include "offload.fpp"
   
   implicit none
 
@@ -52,9 +54,14 @@ module math_utils
             fill_random, &
             transpose_reshape, &
             interp1d, &
+            integrate1d, &
             contains_duplicates, &
             unique, &
-            is_increasing_by_increment
+            is_increasing_by_increment, &
+            flattened_upper_triangle_index_to_element_indexes, &
+            number_of_upper_triangle_elements, &
+            flatten_idx_for_elements_upper_triangle, &
+            integer_sqrt
 
 
   !> Default tolerance
@@ -298,8 +305,7 @@ end subroutine fill_random_rank2_complex_dp
 
     integer(sp) :: i
 
-   call assert(size(a, dim=1) == size(a, dim=2), &
-     & 'diag_int_sp: Input needs to be a square matrix.')
+   CALL_ASSERT(size(a, dim=1) == size(a, dim=2),   'diag_int_sp: Input needs to be a square matrix.')
 
    allocate (diagonal(size(a, dim=1)))
 
@@ -318,8 +324,7 @@ end subroutine fill_random_rank2_complex_dp
 
     integer(sp) :: i
 
-    call assert(size(a, dim=1) == size(a, dim=2), &
-      & 'diag_real_dp: Input needs to be a square matrix.')
+    CALL_ASSERT(size(a, dim=1) == size(a, dim=2),   'diag_real_dp: Input needs to be a square matrix.')
 
     allocate (diagonal(size(a, dim=1)))
 
@@ -337,8 +342,7 @@ end subroutine fill_random_rank2_complex_dp
     complex(dp), allocatable :: diagonal(:)
     integer(sp) :: i
 
-    call assert(size(a, dim=1) == size(a, dim=2), &
-      & 'diag_complex_dp: Input needs to be a square matrix.')
+    CALL_ASSERT(size(a, dim=1) == size(a, dim=2),   'diag_complex_dp: Input needs to be a square matrix.')
 
     allocate (diagonal(size(a, dim=1)))
 
@@ -575,8 +579,7 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(sp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank1_real_sp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank1_real_sp: size of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -600,11 +603,9 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(sp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank2_real_sp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank2_real_sp: size of input arrays differs.')
 
-    call assert(all(shape(a) == shape(b)), &
-      & 'all_close_rank2_real_sp: shape of input arrays differs.')
+    CALL_ASSERT(all(shape(a) == shape(b)),   'all_close_rank2_real_sp: shape of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -629,11 +630,9 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(sp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank3_real_sp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank3_real_sp: size of input arrays differs.')
 
-    call assert(all(shape(a) == shape(b)), &
-      & 'all_close_rank3_real_sp: shape of input arrays differs.')
+    CALL_ASSERT(all(shape(a) == shape(b)),   'all_close_rank3_real_sp: shape of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -659,11 +658,9 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(sp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank4_real_sp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank4_real_sp: size of input arrays differs.')
 
-    call assert(all(shape(a) == shape(b)), &
-      & 'all_close_rank4_real_sp: shape of input arrays differs.')
+    CALL_ASSERT(all(shape(a) == shape(b)),   'all_close_rank4_real_sp: shape of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -707,8 +704,7 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(dp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank1_real_dp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank1_real_dp: size of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -732,11 +728,9 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(dp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank2_real_dp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank2_real_dp: size of input arrays differs.')
 
-    call assert(all(shape(a) == shape(b)), &
-      & 'all_close_rank2_real_dp: shape of input arrays differs.')
+    CALL_ASSERT(all(shape(a) == shape(b)),   'all_close_rank2_real_dp: shape of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -761,11 +755,9 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(dp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank3_real_dp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank3_real_dp: size of input arrays differs.')
 
-    call assert(all(shape(a) == shape(b)), &
-      & 'all_close_rank3_real_dp: shape of input arrays differs.')
+    CALL_ASSERT(all(shape(a) == shape(b)),   'all_close_rank3_real_dp: shape of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -791,11 +783,9 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(dp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank4_real_dp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank4_real_dp: size of input arrays differs.')
 
-    call assert(all(shape(a) == shape(b)), &
-      & 'all_close_rank4_real_dp: shape of input arrays differs.')
+    CALL_ASSERT(all(shape(a) == shape(b)),   'all_close_rank4_real_dp: shape of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -850,8 +840,7 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(dp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank1_complex_dp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank1_complex_dp: size of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -880,11 +869,9 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(dp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank2_complex_dp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank2_complex_dp: size of input arrays differs.')
 
-    call assert(all(shape(a) == shape(b)), &
-      & 'all_close_rank2_complex_dp: shape of input arrays differs.')
+    CALL_ASSERT(all(shape(a) == shape(b)),   'all_close_rank2_complex_dp: shape of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -909,11 +896,9 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(dp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank3_complex_dp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank3_complex_dp: size of input arrays differs.')
 
-    call assert(all(shape(a) == shape(b)), &
-      & 'all_close_rank3_complex_dp: shape of input arrays differs.')
+    CALL_ASSERT(all(shape(a) == shape(b)),   'all_close_rank3_complex_dp: shape of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -939,11 +924,9 @@ end subroutine fill_random_rank2_complex_dp
     !> Local absolute tolerance
     real(dp) :: tol_
 
-    call assert(size(a) == size(b), &
-      & 'all_close_rank4_complex_dp: size of input arrays differs.')
+    CALL_ASSERT(size(a) == size(b),   'all_close_rank4_complex_dp: size of input arrays differs.')
 
-    call assert(all(shape(a) == shape(b)), &
-      & 'all_close_rank4_complex_dp: shape of input arrays differs.')
+    CALL_ASSERT(all(shape(a) == shape(b)),   'all_close_rank4_complex_dp: shape of input arrays differs.')
 
     tol_ = default_tol
     if (present(tol)) tol_ = tol
@@ -1226,8 +1209,7 @@ end subroutine fill_random_rank2_complex_dp
     !> Matrix for which the determinant is calculated
     real(dp), dimension(:, :), intent(in) :: A
 
-    call assert(is_square(A), &
-      & message='real_determinant_dp: Input needs to be a square matrix.')
+    CALL_ASSERT(is_square(A),   message='real_determinant_dp: Input needs to be a square matrix.')
     real_determinant_dp = real_determinant_laplace_dp(A, -1)
   end function real_determinant_dp
 
@@ -1238,8 +1220,7 @@ end subroutine fill_random_rank2_complex_dp
     !> Matrix for which the determinant is calculated
     complex(dp), dimension(:, :), intent(in) :: A
 
-    call assert(is_square(A), &
-      & message='complex_determinant_dp: Input needs to be a square matrix.')
+    CALL_ASSERT(is_square(A),   message='complex_determinant_dp: Input needs to be a square matrix.')
     complex_determinant_dp = complex_determinant_laplace_dp(A, -1)
   end function complex_determinant_dp
 
@@ -1250,8 +1231,7 @@ end subroutine fill_random_rank2_complex_dp
     !> Matrix for which the determinant is calculated
     integer, dimension(:, :), intent(in) :: A
 
-    call assert(is_square(A), &
-      & message='integer_determinant: Input needs to be a square matrix.')
+    CALL_ASSERT(is_square(A),   message='integer_determinant: Input needs to be a square matrix.')
     integer_determinant = integer_determinant_laplace(A, -1)
   end function integer_determinant
 
@@ -1265,8 +1245,7 @@ end subroutine fill_random_rank2_complex_dp
     !> Matrix for which the permanent is calculated
     real(dp), dimension(:, :), intent(in) :: A
 
-    call assert(is_square(A), &
-      &  message='real_permanent_dp: Input needs to be a square matrix.')
+    CALL_ASSERT(is_square(A),    message='real_permanent_dp: Input needs to be a square matrix.')
     real_permanent_dp = real_determinant_laplace_dp(A, 1)
   end function real_permanent_dp
 
@@ -1277,8 +1256,7 @@ end subroutine fill_random_rank2_complex_dp
     !> Matrix for which the permanent is calculated
     complex(dp), dimension(:, :), intent(in) :: A
 
-    call assert(is_square(A), &
-      &  message='complex_permanent_dp: Input needs to be a square matrix.')
+    CALL_ASSERT(is_square(A),    message='complex_permanent_dp: Input needs to be a square matrix.')
     complex_permanent_dp = complex_determinant_laplace_dp(A, 1)
   end function complex_permanent_dp
 
@@ -1288,8 +1266,7 @@ end subroutine fill_random_rank2_complex_dp
     !> Matrix for which the permanent is calculated
     integer, dimension(:, :), intent(in) :: A
 
-    call assert(is_square(A), &
-      &  message='integer_permanent: Input needs to be a square matrix.')
+    CALL_ASSERT(is_square(A),    message='integer_permanent: Input needs to be a square matrix.')
     integer_permanent = integer_determinant_laplace(A, 1)
   end function integer_permanent
 
@@ -1319,16 +1296,14 @@ end subroutine fill_random_rank2_complex_dp
     !> Dimension of input matrix
     integer(sp) :: n
 
-    call assert(is_square(a), &
-      &  message='real_determinant_laplace_dp: Input needs to be a square matrix.')
+    CALL_ASSERT(is_square(a),    message='real_determinant_laplace_dp: Input needs to be a square matrix.')
 
     n = size(a, dim=2)
 
     allocate(b(n - 1, n - 1))
     permanent_ = -1
     if (present(permanent)) then
-      call assert( abs(permanent) == 1, &
-             & message="real_determinant_laplace_dp: permanent needs to be 1 or -1.")
+      CALL_ASSERT( abs(permanent) == 1,   message="real_determinant_laplace_dp: permanent needs to be 1 or -1.")
       permanent_ = permanent
     end if
 
@@ -1362,16 +1337,14 @@ end subroutine fill_random_rank2_complex_dp
     !> Dimension of input matrix
     integer(sp) :: n
 
-    call assert(is_square(a), &
-      &  message='complex_determinant_laplace_dp: Input needs to be a square matrix.')
+    CALL_ASSERT(is_square(a),    message='complex_determinant_laplace_dp: Input needs to be a square matrix.')
 
     n = size(a, dim=2)
 
     allocate(b(n - 1, n - 1))
     permanent_ = -1
     if (present(permanent)) then
-      call assert( abs(permanent) == 1, &
-             & message="complex_determinant_laplace_dp: permanent needs to be 1 or -1.")
+      CALL_ASSERT( abs(permanent) == 1,   message="complex_determinant_laplace_dp: permanent needs to be 1 or -1.")
       permanent_ = permanent
     end if
 
@@ -1405,16 +1378,14 @@ end subroutine fill_random_rank2_complex_dp
     !> Dimension of input matrix
     integer(sp) :: n
 
-    call assert(is_square(a), &
-      &  message='integer_determinant_laplace: Input needs to be a square matrix.')
+    CALL_ASSERT(is_square(a),    message='integer_determinant_laplace: Input needs to be a square matrix.')
 
     n = size(a, dim=2)
 
     allocate(b(n - 1, n - 1))
     permanent_ = -1
     if (present(permanent)) then
-      call assert( abs(permanent) == 1, &
-             & message="integer_determinant_laplace: permanent needs to be 1 or -1.")
+      CALL_ASSERT( abs(permanent) == 1,   message="integer_determinant_laplace: permanent needs to be 1 or -1.")
       permanent_ = permanent
     end if
 
@@ -1500,7 +1471,7 @@ end subroutine fill_random_rank2_complex_dp
     end do
 
     if (present(N_out)) then
-      call assert(N_out <= N, 'N_out > N.')
+      CALL_ASSERT(N_out <= N, 'N_out > N.')
       p = p(: N_out)
     end if
   end function random_order
@@ -1541,8 +1512,8 @@ end subroutine fill_random_rank2_complex_dp
     m = size(vector_set2, 1)
     n = size(vector_set2, 2) 
 
-    call assert(k == m, 'vector_set1 and vector_set2 have not the same number of rows.')
-    call assert(all(shape(all_vector_distances) == [l, n]), "all_vector_distances has the wrong shape.")
+    CALL_ASSERT(k == m, 'vector_set1 and vector_set2 have not the same number of rows.')
+    CALL_ASSERT(all(shape(all_vector_distances) == [l, n]), "all_vector_distances has the wrong shape.")
 
     !$OMP parallel do shared(vector_set1, vector_set2, all_vector_distances) private(i)
     do j = 1, n
@@ -1569,8 +1540,8 @@ end subroutine fill_random_rank2_complex_dp
     m = size(vector_set2, 1)
     n = size(vector_set2, 2)
 
-    call assert(k == m, 'vector_set1 and vector_set2 have not the same number of rows.')
-    call assert(all(shape(all_vector_differences) == [k, l, n]), 'all_vector_differences has not the correct shape.')
+    CALL_ASSERT(k == m, 'vector_set1 and vector_set2 have not the same number of rows.')
+    CALL_ASSERT(all(shape(all_vector_differences) == [k, l, n]), 'all_vector_differences has not the correct shape.')
 
     !$OMP parallel default(shared) private(vector2, i)
     !$OMP do
@@ -1600,9 +1571,7 @@ end subroutine fill_random_rank2_complex_dp
 
     integer :: i, j
 
-    call assert(all(shape(C) == [size(a), size(b)]), "First dimension of output matrix C &
-                has to equal the size of input vector a and second dimension of output matrix C &
-                has to equal the size of input vector b.")
+    CALL_ASSERT(all(shape(C) == [size(a), size(b)]), "First dimension of output matrix C  has to equal the size of input vector a and second dimension of output matrix C  has to equal the size of input vector b.")
 
     do j = 1, size(b)
        do i = 1, size(a)
@@ -1636,14 +1605,12 @@ end subroutine fill_random_rank2_complex_dp
     !> Output indices matrix
     integer, allocatable :: indices(:, :)
 
-    call assert(interval_size >= subinterval_size, message = "Interval size has to be &
-                larger than or equal to the subinterval size.")
+    CALL_ASSERT(interval_size >= subinterval_size, message = "Interval size has to be  larger than or equal to the subinterval size.")
 
     n_multiple = interval_size/ subinterval_size
     allocate(indices(2, n_multiple))
 
-    call assert(n_multiple * subinterval_size == interval_size, message = "n_multiple has to be an &
-                integer. Input sizes have to be multiples of each other.")
+    CALL_ASSERT(n_multiple * subinterval_size == interval_size, message = "n_multiple has to be an  integer. Input sizes have to be multiples of each other.")
 
     do i = 1, n_multiple
       i1 = 1 + (i-1) * subinterval_size
@@ -1708,7 +1675,7 @@ end subroutine fill_random_rank2_complex_dp
     tolerance = default_tol
     if( present(tol) ) tolerance = tol
 
-    call assert( is_hermitian( A, tolerance ), 'A is not hermitian' )
+    CALL_ASSERT( is_hermitian( A, tolerance ), 'A is not hermitian' )
     n = size( A, 1 )
     allocate( A_copy(n, n), eigenvalues(n), rwork(3*n-2) )
     A_copy = A
@@ -1721,7 +1688,7 @@ end subroutine fill_random_rank2_complex_dp
     allocate( work(lwork) )
     ! Obtain the eigenvalues of A
     call ZHEEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, rwork, info )
-    call assert( info==0, 'Error(is_positive_definite): ZHEEV returned info = ' // to_char(info) )
+    CALL_ASSERT( info==0, 'Error(is_positive_definite): ZHEEV returned info = ' // to_char(info) )
     is_positive_definite_complex_dp = all( eigenvalues > tolerance )
   end function
 
@@ -1740,7 +1707,7 @@ end subroutine fill_random_rank2_complex_dp
     tolerance = default_tol
     if( present(tol) ) tolerance = tol
 
-    call assert( is_hermitian( A, tolerance ), 'A is not hermitian' )
+    CALL_ASSERT( is_hermitian( A, tolerance ), 'A is not hermitian' )
     n = size( A, 1 )
     allocate( A_copy, source=A )
     allocate( eigenvalues(n) )
@@ -1753,7 +1720,7 @@ end subroutine fill_random_rank2_complex_dp
     allocate( work(lwork) )
     ! Obtain the eigenvalues of A
     call DSYEV( 'N', 'U', n, A_copy, n, eigenvalues, work, lwork, info )
-    call assert( info==0, 'Error(is_positive_definite): DSYEV returned info = ' // to_char(info) )
+    CALL_ASSERT( info==0, 'Error(is_positive_definite): DSYEV returned info = ' // to_char(info) )
     is_positive_definite_real_dp = all( eigenvalues > tolerance )
   end function
 
@@ -1982,7 +1949,7 @@ end subroutine fill_random_rank2_complex_dp
     !> list of degenerate blocks
     integer, allocatable :: deg(:,:)
 
-    real(dp), parameter :: eps0 = tiny(real_zero) ! smallest non-zero number 
+    real(dp), parameter :: eps0 = epsilon(real_zero) ! smallest non-zero number 
 
     integer :: n, i, j
     real(dp) :: e
@@ -1996,7 +1963,8 @@ end subroutine fill_random_rank2_complex_dp
       reltol_local = real_zero
     end if
 
-    if (any(eval(2:n) + eps0 <  eval(1:n-1) )) then
+    e = maxval( abs( eval ) )
+    if (any(eval(2:n) + eps0*e < eval(1:n-1) )) then
       error stop 'Eigenvalues are not increasing.'
     end if
 
@@ -2021,7 +1989,7 @@ end subroutine fill_random_rank2_complex_dp
 
   !> For the checking of degeneracies we also use relative tolerance
   !> It mimics Python's math.isclose()
-  elemental logical function is_close(a, b, rtol, atol)
+  pure elemental logical function is_close(a, b, rtol, atol)
     !> numbers to compare
     real(dp), intent(in) :: a, b 
     !> Relative tolerance
@@ -2099,10 +2067,10 @@ end subroutine fill_random_rank2_complex_dp
     real(dp), allocatable :: cf(:, :)
 
     ni = size( xi )
-    call assert( size( yi ) == ni, 'Input arrays `xi` and `yi` have different length.' )
+    CALL_ASSERT( size( yi ) == ni, 'Input arrays `xi` and `yi` have different length.' )
     nj = size( xj )
-    call assert( size( yj ) == nj, 'Input arrays `xj` and `yj` have different length.' )
-    call assert( any( trim( method ) == ['linear', 'spline'] ), 'Invalid interpolation method.' )
+    CALL_ASSERT( size( yj ) == nj, 'Input arrays `xj` and `yj` have different length.' )
+    CALL_ASSERT( any( trim( method ) == ['linear', 'spline'] ), 'Invalid interpolation method.' )
 
     ! sort output points
     srt = sort_index_1d( nj, xj )
@@ -2153,6 +2121,69 @@ end subroutine fill_random_rank2_complex_dp
     deallocate( srt, ivl )
   end subroutine interp1d
 
+  !> Integrate real function \(y=f(x)\) on the interval \([x_1,x_N]\).
+  !> Currently supported interpolation methods are
+  !> * trapezoidal rule (`trapez`)
+  !> * midpoint rule (`midpoint`)
+  !> * Romberg's method (`romberg`)
+  function integrate1d( x, y, method, interpolation_method ) result( integral )
+    !> input samping points \(x_i\) in increasing order
+    real(dp), intent(in) :: x(:)
+    !> input function values \(y_i\)
+    real(dp), intent(in) :: y(:)
+    !> integration method
+    character(*), intent(in) :: method
+    !> interpolation method for integration methods that require resampling (see [[interp1d(subroutine)]])
+    !> (default: `'spline'`)
+    character(*), optional, intent(in) :: interpolation_method
+    !> integral result
+    real(dp) :: integral
+  
+    integer :: n, p2, i
+    real(dp) :: c
+    character(len=:), allocatable :: interp
+
+    real(dp), allocatable :: dx(:), xx(:), yy(:), s(:)
+
+    n = size( x )
+    CALL_ASSERT( size( y ) == n, 'Input arrays `x` and `y` have different length.' )
+    CALL_ASSERT( any( trim( method ) == ['trapez', 'midpoint', 'romberg'] ), 'Invalid interpolation method.' )
+
+    interp = 'spline'
+    if (present(interpolation_method)) interp = interpolation_method
+
+    select case (trim(method))
+      ! trapezoidal rule
+      case ('trapez')
+        dx = x(2:n) - x(1:n-1)
+        yy = (y(2:n) + y(1:n-1)) / 2
+        integral = dot_product( dx, yy )
+      ! midpoint rule
+      case ('midpoint')
+        dx = x(2:n) - x(1:n-1)
+        xx = (x(2:n) + x(1:n-1)) / 2
+        allocate( yy(size(xx)) )
+        call interp1d( x, y, xx, yy, method=interp )
+        integral = dot_product( dx, yy )
+      ! Romberg's method
+      case ('romberg')
+        p2 = ceiling( (log(real(n, kind=dp)) / log(2.0_dp)) * (1.0_dp - epsilon(x)) )
+        if (n == 2**p2+1) then
+          s = [((sum(y(1::2**(p2-i))) - (y(1) + y(n))/2) / 2**i, i=0, p2)]
+        else
+          xx = x(1) + (x(n) - x(1)) * [(i*(1.0_dp/2**p2), i=0, 2**p2)]
+          allocate( yy(size(xx)) )
+          call interp1d( x, y, xx, yy, method=interp )
+          s = [((sum(yy(1::2**(p2-i))) - (y(1) + y(n))/2) / 2**i, i=0, p2)]
+        end if
+        do i = 1, p2
+          c = 2.0_dp**(-2*i)
+          s = 1.0_dp/(1.0_dp - c) * s(2:) - c/(1.0_dp - c) * s(:size(s)-1)
+        end do
+        integral = (x(n) - x(1)) * s(1)
+    end select
+
+  end function integrate1d
 
   !> Returns `.true.` if [[list]] contains duplicate elements, else `.false.`.
   pure logical function contains_duplicates(list)
@@ -2204,6 +2235,99 @@ end subroutine fill_random_rank2_complex_dp
       is_increasing_by_increment = is_increasing_by_increment .and. (list(idx) == list(idx-1) + increment)
     end do
   end function is_increasing_by_increment
+
+  !> Convert a flattened upper-triangular matrix index into row and column indices.
+  !>
+  !> This subroutine maps a 1D index `tri_idx`, which refers to an element of the
+  !> upper triangle (excluding the diagonal) of an `num_n × num_n` matrix stored
+  !> in row-major order, back to its corresponding `(row_idx, col_idx)` position.
+  !>
+  !> The upper triangle is assumed to be flattened row by row as:
+  !>   (0,1), (0,2), ..., (0,num_n-1),
+  !>   (1,2), (1,3), ..., (1,num_n-1), ...
+  !>
+  pure subroutine flattened_upper_triangle_index_to_element_indexes(tri_idx, num_n, row_offset, col_offset, row_idx, col_idx)
+
+    use precision, only: i32, long_int, dp
+
+    !> Flattened index into the upper-triangular part of the matrix (1-based)
+    integer(long_int), intent(in)  :: tri_idx
+    !> Size of the (square) matrix dimension
+    integer(i32), intent(in)       :: num_n
+    !> Offset added to the computed row index
+    integer(i32), intent(in)       :: row_offset
+    !> Offset added to the computed column index
+    integer(i32), intent(in)       :: col_offset
+    !> Computed row index corresponding to `tri_idx`
+    integer(i32), intent(out)      :: row_idx
+    !> Computed column index corresponding to `tri_idx`
+    integer(i32), intent(out)      :: col_idx
+
+    real(dp) :: x
+    integer(long_int) :: offset, n
+
+    ! Compile this function also for the device
+    OMP_OFFLOAD declare target
+
+    ! Invert the triangular-number relation to find the row index
+    x = real(2*num_n - 1, dp)
+    x = (x - sqrt(x*x - 8.0_dp*(tri_idx-1))) / 2.0_dp
+    n = int(floor(x), long_int)
+
+    ! Number of elements preceding row n in the flattened upper triangle
+    offset = n*(2*num_n - n - 1)/2
+
+    ! Compute column index within row n
+    col_idx = tri_idx - int(offset, kind=i32) + n
+
+    ! Apply global offsets
+    row_idx = int(n, kind=i32) + row_offset
+    col_idx = col_idx + col_offset
+
+  end subroutine flattened_upper_triangle_index_to_element_indexes
+
+  !> For a given square matrix of size N returns the number of upper triangle elements
+  pure integer(long_int) function number_of_upper_triangle_elements(n)
+    integer(i32), intent(in) :: n
+    number_of_upper_triangle_elements = (int(n,kind=long_int) * int(n - 1_long_int, kind=long_int)) / 2_long_int
+  end function number_of_upper_triangle_elements
+
+  !> For element n, and l of a square matrix of size num_n returns the flatten index in 1-based
+  !> Returns -1 if outside the upper triangle
+  pure integer(long_int) function flatten_idx_for_elements_upper_triangle(num_n, n, l, offset_n, offset_l)
+    integer(i32), intent(in) :: num_n, n, offset_n, l, offset_l
+    integer(long_int) :: n_, l_
+    n_ = n - offset_n
+    l_ = l - offset_l
+    flatten_idx_for_elements_upper_triangle =  merge(- n_ * ( n_ - 2 * num_n - 1) / 2_long_int - 2*n_ + l_, -1_long_int, l_ > n_)
+  end function flatten_idx_for_elements_upper_triangle
+  
+  !> Binary search for the square root of a non-negative integer
+  integer(i32) function integer_sqrt(n) result(isqrt)
+    !> Number to find the square root of
+    integer(i32), intent(in) :: n
+
+    integer(i32) :: high, low, mid, i
+
+    CALL_ASSERT( n >= 0, "square root of a negative number requested" )
+    if ( n > 1 ) then
+      low = 1; high = n/2; isqrt = 0
+      do while ( low <= high )
+        mid = low + ( high - low ) / 2
+        ! prevent overflow by using division (mid <= n / mid) instead of (mid**2 <= n)
+        i = n / mid
+        if ( mid <= i ) then
+          isqrt = mid
+          if ( mid == i .and. mod( n, mid ) == 0 ) exit 
+          low = mid + 1
+        else
+          high = mid - 1
+        end if
+      end do
+    else ! n = 0 or 1
+      isqrt = n
+    end if    
+  end function
 
 end module math_utils
 

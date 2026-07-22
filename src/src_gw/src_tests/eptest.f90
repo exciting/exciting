@@ -3,6 +3,7 @@ subroutine eptest(ik,jk,iq)
     use modmain
     use modgw
     use mod_bands, only: eveckalm, eveckpalm, eveck, eveckp
+    use mod_get_eigenvectors_times_matchingcoefficients, only: get_eigenvectors_times_matchingcoefficients
 
     implicit none
     integer(4), intent(in) :: ik     ! index of the k-point.
@@ -30,8 +31,8 @@ subroutine eptest(ik,jk,iq)
     eveck = evecfv
     deallocate(evecfv)
 
-    call expand_evec(ik, 't')
-    call expand_evec(jk, 'c')
+    call get_eigenvectors_times_matchingcoefficients(ik, 't', eveck, eveckalm)
+    call get_eigenvectors_times_matchingcoefficients(jk, 'c', eveckp, eveckpalm)
     
     allocate(minmmat(matsiz,nstfv,nstfv))
     call calcminm(ik,iq,1,nstfv,1,nstfv,minmmat)
@@ -49,4 +50,3 @@ subroutine eptest(ik,jk,iq)
 
     return      
 end subroutine
-

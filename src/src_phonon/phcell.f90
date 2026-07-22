@@ -183,7 +183,7 @@ Subroutine phcell (iph, dph, iq, is, ia, ip)
                   Write (*, '("Error(phcell): too many atoms in superce&
                  &ll : ", I8)') na
                   Write (*, '(" for species ", I4)') js
-                  Write (*, '("Adjust maxatoms in modmain and recompile&
+                  Write (*, '("Adjust maxatoms in src/constants.f90 and recompile&
                  & code")')
                   Write (*,*)
                   Stop

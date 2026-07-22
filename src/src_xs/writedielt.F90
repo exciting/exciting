@@ -7,7 +7,6 @@
 !> random phase (RPA) approximation
 subroutine writedielt(file_tag, n_freq, freq, diel_tens, theory_level)
   use mod_misc, only: filext
-  use m_getunit
   use modinput, only: input
   use precision, only: sp,dp
 
@@ -32,8 +31,7 @@ subroutine writedielt(file_tag, n_freq, freq, diel_tens, theory_level)
   !> Running index frequencies
   integer(sp) :: i_freq
 
-  call getunit(un)
-  open(un, file=trim(file_tag)//trim(filext), form='formatted',&
+  open(newunit=un, file=trim(file_tag)//trim(filext), form='formatted',&
     & action='write', status='replace')
   write(un,*)
 

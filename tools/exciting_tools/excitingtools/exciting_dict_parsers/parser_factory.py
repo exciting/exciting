@@ -14,6 +14,8 @@ from typing import Callable, Union
 from excitingtools.exciting_dict_parsers import (
     RT_TDDFT_parser,
     bse_parser,
+    deltax_parser,
+    eph_parser,
     groundstate_parser,
     gw_eigenvalues_parser,
     gw_eps00_parser,
@@ -44,6 +46,8 @@ _file_to_parser = {
     "geometry.xml": groundstate_parser.parse_geometry,
     "LINENGY.OUT": groundstate_parser.parse_linengy,
     "LO_RECOMMENDATION.OUT": groundstate_parser.parse_lo_recommendation,
+    "VS_*": groundstate_parser.parse_vs,
+    "DFT_HALF_NSCF.OUT": groundstate_parser.parse_dft_half_nscf,
     "*3D.xml": properties_parser.parse_plot_3d,
     "LSJ.xml": properties_parser.parse_lsj,
     "EFG.xml": properties_parser.parse_efg,
@@ -68,6 +72,7 @@ _file_to_parser = {
     "TDOS_WANNIER.OUT": properties_parser.parse_tdos_wannier,
     "WANNIER_INFO.OUT": properties_parser.parse_wannier_info,
     "coreoverlap.xml": properties_parser.parse_core_overlap,
+    "MBD.OUT": properties_parser.parse_mbd,
     "wf1d-*.dat": properties_parser.parse_wf1d,
     "wf2d-*.xsf": properties_parser.parse_wf2d,
     "wf3d-*.xsf": properties_parser.parse_wf3d,
@@ -94,6 +99,9 @@ _file_to_parser = {
     "SIGMAC_K*": gw_taskgroup_parser.parse_sigmac,
     "SIGMAX_K*": gw_taskgroup_parser.parse_sigmax,
     "POLARIZABILITY_FACTOR_Q*": gw_taskgroup_parser.parse_polarizability_factor,
+    "OPTIMIZED_VXC_K*": gw_taskgroup_parser.parse_optimized_vxc,
+    "SIGMAC_OFFDIAGONAL_K*": gw_taskgroup_parser.parse_sigmac,
+    "SIGMAX_OFFDIAGONAL_K*": gw_taskgroup_parser.parse_sigmax,
     "CURRENT.OUT": RT_TDDFT_parser.parse_jind,
     "N_EXCITATIONS.OUT": RT_TDDFT_parser.parse_nexc,
     "POLARIZATION_RTTDDFT.OUT": RT_TDDFT_parser.parse_rttddft_polarization,
@@ -114,6 +122,12 @@ _file_to_parser = {
     "fastBSE_exciton_energies.out": bse_parser.parse_fastBSE_exciton_energies_out,
     "fastBSE_oscillator_strengths.out": bse_parser.parse_fastBSE_oscillator_strength_out,
     "PHONON.OUT": phonon_parser.parse_phonon_out,
+    "DYN_Q*.OUT": phonon_parser.parse_dyn_out,
+    "EPSINF.OUT": phonon_parser.parse_epsinf_out,
+    "ZSTAR.OUT": phonon_parser.parse_zstar_out,
+    "DELTAX.OUT": deltax_parser.parse_deltax_out,
+    "coulomb_vertex_q*.test": gw_taskgroup_parser.parse_coulomb_vertex,
+    "EVALQP_T*.dat": eph_parser.parse_evalqp_out,
 }
 
 
@@ -135,11 +149,12 @@ def parse(full_file_name: path_type) -> dict:
     file_name = full_file_path.name
 
     parser: Union[Callable[[str], dict], None] = None
-    for pattern, parser in _file_to_parser.items():
+    for pattern, p in _file_to_parser.items():
         if fnmatch(file_name, pattern):
+            parser = p
             break
 
-    if not parser:
+    if parser is None:
         raise KeyError(f"File does not have a parser: {file_name}")
 
     return parser(full_file_path)

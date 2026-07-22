@@ -9,17 +9,28 @@
 !> Does not close the file afterwards.
 !> Created January 2003 (JKD).
 Subroutine writeinfo (fnum)
-      Use modinput
-      Use modmain
-      use modmpi, only: procs
       use constants, only: twopi
-      use mod_misc, only: filext, versionname, version, compiler_version, githash, &
-                          notelns, notes
-      use mod_muffin_tin, only: idx_species_fixed_rmt
+      use mod_apw_lo, only: nlotot
+      use mod_atoms, only: atposc, natoms, natmtot, nspecies, spmass, spname, spsymb, spze, spzn
+      use mod_charge_and_moment, only: chgcr, chgtot, chgval, chgzn, rwigner
+      use mod_eigensystem, only: nmatmax
+      use mod_eigenvalue_occupancy, only: nstsv, sdescr
+      use mod_gkvector, only: gkmax, ngkmax
+      use mod_gvector, only: ngrid, ngvec
+      use mod_kpoint, only: nkpt
+      use mod_lattice, only: bvec, omega
+      use mod_lda_lu, only: ldapu, llu, ujlu
+      use mod_misc, only: compiler_version, githash, notelns, notes, task, versionname
+      use mod_muffin_tin, only: idx_species_fixed_rmt, nrmt, rmt
+      use mod_potential_and_density, only: xcdescr, xcgrad
+      use mod_spin, only: ncmag, vqcss
+      use mod_symmetry, only: nsymcrys, nsymlat
+      use modinput, only: getfixspinnumber, input, isspinorb, isspinspiral
+      use modmpi, only: procs
       use mgga_init, only: xcdescr_mgga
       use precision, only: i32, dp, str_1024
 #ifdef TETRA
-      Use modtetra
+      use modtetra
 #endif
 
       Implicit None
@@ -30,9 +41,15 @@ Subroutine writeinfo (fnum)
 #ifdef TETRA
       logical :: tetocc
 #endif
-      Character (10) :: dat, tim, acoord
+      character (10) :: dat, tim, acoord
       character(len=str_1024) :: string
       real(dp) :: dumsum
+      logical :: dfthalf_on, dfthalf_nscf
+
+      dfthalf_on = associated( input%groundstate%dfthalf )
+      if( dfthalf_on ) then
+        dfthalf_nscf = input%groundstate%dfthalf%NSCF
+      end if
 
       acoord = "lattice"
       if (input%structure%cartesian) acoord = "cartesian"
@@ -376,6 +393,13 @@ Subroutine writeinfo (fnum)
             End Do
          end if
       End If
+      if( dfthalf_on ) then
+        string = "SCF" 
+        if( dfthalf_nscf ) string = "NSCF"
+        write (fnum, "(A)") " DFT-1/2 calculation: " // trim( string )
+        write (fnum, "(A)") "     see PRB 78, 125116 (2008); Aip Adv 1, 032119 (2011); and " 
+        write (fnum, "(A)") "         Comput Phys Commun 220, 263 (2017)."
+      end if
       If (task .Eq. 300) Then
          Write (fnum,*)
          Write (fnum, '(" RDMFT calculation")')
@@ -419,7 +443,15 @@ Subroutine writeinfo (fnum)
            case(2)
              write(fnum,'(" Using multisecant Broyden potential mixing")')
            case(3)
-             write(fnum,'(" Using Pulay potential mixing")')
+             if (input%groundstate%mixerswitch.eq.2) then
+               write(fnum,'(" Using Pulay density mixing with Kerker preconditioning")')
+             else
+               write(fnum,'(" Using Pulay potential mixing")')
+             end if
+           case(4)
+             write(fnum,'(" Using Kerker mixing")')
+           case(5)
+             write(fnum,'(" Using simple linear mixing")')
          end select
       end if 
 

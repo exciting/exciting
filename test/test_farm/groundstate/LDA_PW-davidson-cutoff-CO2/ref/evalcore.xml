@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evalcore>
+  <species is="1" chemicalSymbol="C">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-1.014273207126e1"/>
+    </atom>
+  </species>
+  <species is="2" chemicalSymbol="O">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-1.908275272147e1"/>
+    </atom>
+    <atom ia="2">
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-1.908275272147e1"/>
+    </atom>
+  </species>
+</evalcore>

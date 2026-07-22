@@ -70,7 +70,6 @@ module file_utils
     !> delete file for serial i/o
     subroutine delete_file_serial(fname, ierr)
       use os_utils, only: path_exists
-      use m_getunit
       !> file name
       character(*), intent(in) :: fname
       !> system dependent error code; `0` on success
@@ -83,8 +82,7 @@ module file_utils
 
       ! open file if it isn't
       if (.not. file_is_open_by_name(fname, id, ierr)) then
-        call getunit(id)
-        open(unit=id, file=trim(fname), status='old', iostat=ierr)
+        open(newunit=id, file=trim(fname), status='old', iostat=ierr)
       end if
       if (ierr /= 0) return
 

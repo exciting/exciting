@@ -2,7 +2,7 @@
 !> The interfaces combine wrappers for the LAPACK routines 
 !> **[[dgetc2]]**, **[[dgetrf2]]**, **[[zgetc2]]**, **[[zgetrf2]]**, **[[dgetri]]**, **[[zgetri]]**
 module lu_factorization
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
   use precision, only: dp
   use constants, only: zzero, zone
@@ -177,12 +177,10 @@ module lu_factorization
 
     integer :: info
 
-    call assert(is_square(A), 'A is not a square matrix.')
-    call assert(matrix_rank_SVD(A) == size(A, dim=1), 'A is not a full rank matrix.')
-    call assert(size(row_pivot_map) == size(A, dim=1), &
-            'The size of row_pivot_map is not equal to the number of rows of A.')
-    call assert(size(column_pivot_map) == size(A, dim=2), &
-            'The size of column_pivot_map is not equal to the number of columns of A.')
+    CALL_ASSERT(is_square(A), 'A is not a square matrix.')
+    CALL_ASSERT(matrix_rank_SVD(A) == size(A, dim=1), 'A is not a full rank matrix.')
+    CALL_ASSERT(size(row_pivot_map) == size(A, dim=1),  'The size of row_pivot_map is not equal to the number of rows of A.')
+    CALL_ASSERT(size(column_pivot_map) == size(A, dim=2),  'The size of column_pivot_map is not equal to the number of columns of A.')
 
     call dgetc2(size(A, dim=1), A, size(A, dim=1), row_pivot_map, column_pivot_map, info)
 
@@ -257,12 +255,10 @@ module lu_factorization
 
     integer :: info
 
-    call assert(is_square(A), 'A is not a square matrix.')
-    call assert(matrix_rank_SVD(A) == size(A, dim=1), 'A is not a full rank matrix.')
-    call assert(size(row_pivot_map) == size(A, dim=1), &
-            'The size of row_pivot_map is not equal to the number of rows of A.')
-    call assert(size(column_pivot_map) == size(A, dim=2), &
-            'The size of column_pivot_map is not equal to the number of columns of A.')
+    CALL_ASSERT(is_square(A), 'A is not a square matrix.')
+    CALL_ASSERT(matrix_rank_SVD(A) == size(A, dim=1), 'A is not a full rank matrix.')
+    CALL_ASSERT(size(row_pivot_map) == size(A, dim=1),  'The size of row_pivot_map is not equal to the number of rows of A.')
+    CALL_ASSERT(size(column_pivot_map) == size(A, dim=2),  'The size of column_pivot_map is not equal to the number of columns of A.')
     
     call zgetc2(size(A, dim=1), A, size(A, dim=1), row_pivot_map, column_pivot_map, info)
 
@@ -332,8 +328,7 @@ module lu_factorization
 
     integer :: info
     
-    call assert(size(row_pivot_map) == min(size(A, dim=1), size(A, dim=2)), &
-               'The size of row_pivot_map must be equal to the minimum of rows and columns of A.')
+    CALL_ASSERT(size(row_pivot_map) == min(size(A, dim=1), size(A, dim=2)),  'The size of row_pivot_map must be equal to the minimum of rows and columns of A.')
 
     call dgetrf2(size(A, dim=1), size(A, dim=2), A, size(A, dim=1), row_pivot_map, info)
 
@@ -402,8 +397,7 @@ module lu_factorization
 
     integer :: info
     
-    call assert(size(row_pivot_map) == min(size(A, dim=1), size(A, dim=2)), &
-               'The size of row_pivot_map must be equal to the minimum of rows and columns of A.')
+    CALL_ASSERT(size(row_pivot_map) == min(size(A, dim=1), size(A, dim=2)),  'The size of row_pivot_map must be equal to the minimum of rows and columns of A.')
 
     call zgetrf2(size(A, dim=1), size(A, dim=2), A, size(A, dim=1), row_pivot_map, info)
 
@@ -432,8 +426,8 @@ module lu_factorization
     integer :: lwork, info
     real(dp), allocatable :: work(:)
 
-    call assert(is_square(LU), 'LU is not a square matrix.')
-    call assert(size(row_pivot_map) == size(LU, dim=1), 'row_pivot_map and LU have not the same size.')
+    CALL_ASSERT(is_square(LU), 'LU is not a square matrix.')
+    CALL_ASSERT(size(row_pivot_map) == size(LU, dim=1), 'row_pivot_map and LU have not the same size.')
 
     lwork = -1 
     allocate(work(1))
@@ -468,8 +462,8 @@ module lu_factorization
     integer :: lwork, info
     complex(dp), allocatable :: work(:)
 
-    call assert(is_square(LU), 'LU is not a square matrix.')
-    call assert(size(row_pivot_map) == size(LU, dim=1), 'row_pivot_map and LU have not the same size.')
+    CALL_ASSERT(is_square(LU), 'LU is not a square matrix.')
+    CALL_ASSERT(size(row_pivot_map) == size(LU, dim=1), 'row_pivot_map and LU have not the same size.')
 
     lwork = -1 
     allocate(work(1))
@@ -505,11 +499,11 @@ module lu_factorization
 ! This preprocessor usage is deliberate, to prevent if statements being evaluated in production code.
 #ifdef USE_ASSERT
     if (m > n) then
-      call assert(all(shape(L) == shape(A)), 'If m > n, L must be of the same shape as A.')
-      call assert(all(shape(U) == [k, k]), 'If m > n, U must be a suqare matrix of size min(m, n).')
+      CALL_ASSERT(all(shape(L) == shape(A)), 'If m > n, L must be of the same shape as A.')
+      CALL_ASSERT(all(shape(U) == [k, k]), 'If m > n, U must be a suqare matrix of size min(m, n).')
     else 
-      call assert(all(shape(L) == [k, k]), 'If m > n, L must be a suqare matrix of size min(m, n).')
-      call assert(all(shape(U) == shape(A)), 'If m > n, U must be of the same shape as A.')
+      CALL_ASSERT(all(shape(L) == [k, k]), 'If m > n, L must be a suqare matrix of size min(m, n).')
+      CALL_ASSERT(all(shape(U) == shape(A)), 'If m > n, U must be of the same shape as A.')
     end if 
 #endif
 
@@ -567,11 +561,11 @@ module lu_factorization
 ! This preprocessor usage is deliberate, to prevent if statements being evaluated in production code.
 #ifdef USE_ASSERT
     if (m > n) then
-      call assert(all(shape(L) == shape(A)), 'If m > n, L must be of the same shape as A.')
-      call assert(all(shape(U) == [k, k]), 'If m > n, U must be a suqare matrix of size min(m, n).')
+      CALL_ASSERT(all(shape(L) == shape(A)), 'If m > n, L must be of the same shape as A.')
+      CALL_ASSERT(all(shape(U) == [k, k]), 'If m > n, U must be a suqare matrix of size min(m, n).')
     else 
-      call assert(all(shape(L) == [k, k]), 'If m > n, L must be a suqare matrix of size min(m, n).')
-      call assert(all(shape(U) == shape(A)), 'If m > n, U must be of the same shape as A.')
+      CALL_ASSERT(all(shape(L) == [k, k]), 'If m > n, L must be a suqare matrix of size min(m, n).')
+      CALL_ASSERT(all(shape(U) == shape(A)), 'If m > n, U must be of the same shape as A.')
     end if 
 #endif
 
@@ -675,8 +669,7 @@ module lu_factorization
 
     integer :: temp_pivot_index, temp_index
 
-    call assert(size(pivot_map) <= size(permutation_map), &
-            'The sizes of pivot_map must be less than or equal than the size of permutation_map.')
+    CALL_ASSERT(size(pivot_map) <= size(permutation_map),  'The sizes of pivot_map must be less than or equal than the size of permutation_map.')
     
     permutation_map = mesh_1d(1, size(permutation_map))
     

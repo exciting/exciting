@@ -8,7 +8,7 @@ module phonons
 
   use modmpi
   use exciting_mpi, only: xmpi_allgatherv
-  use precision, only: dp
+  use precision, only: dp, long_int
   use block_data_file, only: block_data_file_type
 
   implicit none
@@ -29,10 +29,12 @@ module phonons
   real(dp), allocatable :: devalk(:,:,:), docck(:,:,:)
   !> eigenvector response at single \({\bf k}\) point
   complex(dp), allocatable :: deveck(:,:), deveckf(:,:)
-  !> overlap matrix response at all \({\bf k}\) points and irrep members
-  complex(dp), allocatable :: dSmat(:,:,:,:)
+  !> constant part of overlap matrix response at all \({\bf k}\) points and irrep members
+  complex(dp), allocatable :: dSmat_const(:,:,:,:)
   !> constant part of Hamiltonian matrix response at all \({\bf k}\) points and irrep members
   complex(dp), allocatable :: dHmat_const(:,:,:,:)
+  !> full overlap matrix response at single \({\bf k}\) point and irrep member
+  complex(dp), allocatable :: dSmat(:,:)
   !> full Hamiltonian matrix response at single \({\bf k}\) point and irrep member
   complex(dp), allocatable :: dHmat(:,:)
   !> density response matrix for all atoms and irrep members
@@ -41,8 +43,12 @@ module phonons
   complex(dp), allocatable :: drho_mt(:,:,:,:), drho_ir(:,:)
   !> muffin-tin and interstitial effective potential response for all irrep members
   complex(dp), allocatable :: dpot_mt(:,:,:,:), dpot_ir(:,:)
+  !> radial integrals of overlap response times Gaunt coefficients
+  complex(dp), allocatable :: dSmat_mt_basis(:,:,:,:)
   !> radial integrals of effective potential response times Gaunt coefficients
   complex(dp), allocatable :: dHmat_mt_basis(:,:,:,:)
+  !> interstitial overlap response times characteristic function in reciprocal space
+  complex(dp), allocatable :: dolp_cfun_ig(:,:)
   !> interstitial potential response times characteristic function in reciprocal space
   complex(dp), allocatable :: dpot_cfun_ig(:,:)
   !> interstitial (scalar relativistic) kinetic energy response times characteristic function in reciprocal space
@@ -102,7 +108,7 @@ module phonons
     !> This includes:
     !>
     !> * initialization of global phonon variables
-    !> * distribution of independent calcualtion parts among MPI processes
+    !> * distribution of independent calculation parts among MPI processes
     !> * obtaining eigenvalues and occupation numbers on the \({\bf k}_0\) points
     !>   of the unperturbed system
     !> * calculation of the constant parts for density and potential response
@@ -132,7 +138,7 @@ module phonons
       real(dp), allocatable :: evalt(:)
 
       force = .false.
-      if( present( do_force ) ) force = do_force
+      if (present( do_force )) force = do_force
 
       ! find independent parts and their computational load
       ! distribute parts according to their load among processes
@@ -160,7 +166,8 @@ module phonons
              '(ph_prepare): Eigenvalues and eigenvectors were not prepared. Call `dfpt_prepare` in advance.' )
 
       ! compute constant part of force response
-      if( force .and. size( ph_parts ) > 0 .and. .not. success ) then
+      if (force .and. size( ph_parts ) > 0 .and. .not. success) then
+        dforce_const = zzero
         ! set limits for k-point loops
         ik1 = firstofset( mpiglobal%rank, dfpt_kset%nkpt, mpiglobal%procs )
         ik2 = lastofset( mpiglobal%rank, dfpt_kset%nkpt, mpiglobal%procs )
@@ -215,7 +222,8 @@ module phonons
         if( mpiglobal%rank == 0 ) &
           call ph_io_write_dforce_const( dforce_const, success )
 
-        deallocate( evalk, occk, eveck, apwalmk )
+        deallocate( evalk, occk, apwalmk )
+        if (allocated(eveck)) deallocate( eveck )
       end if
 
       ! free unneeded variables
@@ -278,16 +286,16 @@ module phonons
       character(:), allocatable :: fxt
 
       write_info = .true.
-      if( present( info_output ) ) write_info = info_output
+      if (present( info_output )) write_info = info_output
 
       ! return if this rank is not working on this part
-      if( .not. ph_parts(ipart)%is_my_rank( mpiglobal%rank ) ) return
+      if (.not. ph_parts(ipart)%is_my_rank( mpiglobal%rank )) return
       ! get parallelization information
       mpilocal = ph_parts(ipart)%mpi      ! all processes working on this task
       mpilocalk = ph_parts(ipart)%mpik    ! all processes working on the first k-point in this task
       master = (mpilocalk%rank == 0)      ! local master
       localmasterrank = 0                 ! rank of local master within local communicator
-      if( master ) localmasterrank = mpilocal%rank
+      if (master) localmasterrank = mpilocal%rank
 #ifdef MPI
       call MPI_Allreduce( MPI_IN_PLACE, localmasterrank, 1, MPI_INTEGER, MPI_SUM, mpilocal%comm, mpilocal%ierr )
 #endif
@@ -332,11 +340,14 @@ module phonons
       allocate( occk(nstfv, ph_kset%nkpt), occkq(nmatmaxkq, ph_kqset%nkpt), docck(nstfv, ph_kset%nkpt, dirrep) )
       allocate( eveck(nmatmaxk, nstfv), eveckq(nmatmaxkq, nmatmaxkq), deveck(nmatmaxkq, nstfv), deveckf(nmatmaxkq, nstfv) )
       allocate( apwalmk(ngkmaxk, apwordmax, lmmaxapw, natmtot), apwalmkq(ngkmaxkq, apwordmax, lmmaxapw, natmtot) )
-      allocate( dSmat(nmatmaxkq, nstfv, ik1:ik2, id1:id2) )
+      allocate( dSmat_const(nmatmaxkq, nstfv, ik1:ik2, id1:id2) )
       allocate( dHmat_const(nmatmaxkq, nstfv, ik1:ik2, id1:id2) )
+      allocate( dSmat(nmatmaxkq, nstfv) )
       allocate( dHmat(nmatmaxkq, nstfv) )
       allocate( drho_mat(mt_basis%n_basis_fun_max, mt_basis%n_basis_fun_max, natmtot, id1:id2) )
+      allocate( dSmat_mt_basis(mt_basis%n_basis_fun_max, mt_basis%n_basis_fun_max, natmtot, id1:id2) )
       allocate( dHmat_mt_basis(mt_basis%n_basis_fun_max, mt_basis%n_basis_fun_max, natmtot, id1:id2) )
+      allocate( dolp_cfun_ig(ph_Gqset%ngvec, id1:id2) )
       allocate( dpot_cfun_ig(ph_Gqset%ngvec, id1:id2) )
       allocate( dkin_cfun_ig(ph_Gqset%ngvec, id1:id2) )
       allocate( dpol(3, dirrep) )
@@ -380,7 +391,7 @@ module phonons
              efermi, occkq(1:nstfv, :), ph_tset )
       ! compute overlap response and constant part of Hamiltonian response
       ! for all k points and irrep members
-      dSmat = zzero; dHmat_const = zzero
+      dSmat_const = zzero; dHmat_const = zzero
       do ik = ik1, ik2
         ! get matching coefficients at k
         ngkmax_ptr => ngkmaxk
@@ -395,7 +406,7 @@ module phonons
         call feveckq%read( ik, eveckq )
         do id = id1, id2
           call ph_eig_gen_dSHmat( ik, ph_Gkset, ph_Gkqset, 1, nstfv, &
-                 eveck, eveckq, apwalmk, apwalmkq, dSmat(:, :, ik, id), dHmat_const(:, :, ik, id), &
+                 eveck, eveckq, apwalmk, apwalmkq, dSmat_const(:, :, ik, id), dHmat_const(:, :, ik, id), &
                  pat=ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id) )
         end do
       end do
@@ -489,15 +500,18 @@ module phonons
       if( allocated( docck ) ) deallocate( docck )
       if( allocated( deveck ) ) deallocate( deveck )
       if( allocated( deveckf ) ) deallocate( deveckf )
-      if( allocated( dSmat ) ) deallocate( dSmat )
+      if( allocated( dSmat_const ) ) deallocate( dSmat_const )
       if( allocated( dHmat_const ) ) deallocate( dHmat_const )
+      if( allocated( dSmat ) ) deallocate( dSmat )
       if( allocated( dHmat ) ) deallocate( dHmat )
       if( allocated( drho_mt ) ) deallocate( drho_mt )
       if( allocated( drho_ir ) ) deallocate( drho_ir )
       if( allocated( drho_mat ) ) deallocate( drho_mat )
       if( allocated( dpot_mt ) ) deallocate( dpot_mt )
       if( allocated( dpot_ir ) ) deallocate( dpot_ir )
+      if( allocated( dSmat_mt_basis ) ) deallocate( dSmat_mt_basis )
       if( allocated( dHmat_mt_basis ) ) deallocate( dHmat_mt_basis )
+      if( allocated( dolp_cfun_ig ) ) deallocate( dolp_cfun_ig )
       if( allocated( dpot_cfun_ig ) ) deallocate( dpot_cfun_ig )
       if( allocated( dkin_cfun_ig ) ) deallocate( dkin_cfun_ig )
       if( allocated( dforce ) ) deallocate( dforce )
@@ -509,7 +523,7 @@ module phonons
       scrpath = './'
     end subroutine ph_part_finalize
 
-    !> This subroutine runs the self-consistency cycle for obataining 
+    !> This subroutine runs the self-consistency cycle for obtaining 
     !> the density and potential response for an independent part
     !> of a DFPT phonon calculation.
     !>
@@ -525,7 +539,7 @@ module phonons
     subroutine ph_part_scf( ipart, &
         info_output )
       use dfpt_density_potential, only: dfpt_rhopot_mixpack
-      use dfpt_eigensystem, only: dfpt_eig_prepare_dHmat
+      use dfpt_eigensystem, only: dfpt_eig_prepare_dSHmat
       use phonons_density_potential, only: ph_rhopot_gen_drho_k, ph_rhopot_gen_drho_mt, ph_rhopot_gen_dpot, ph_rhopot_symmetrize
       use phonons_eigensystem, only: ph_eig_gen_dSHmat, ph_eig_sternheimer
       use phonons_parallelization, only: ph_par_zscatter, ph_par_zgather
@@ -575,7 +589,7 @@ module phonons
         allocate( rvmix(nmix) )
         allocate( vconv(input%groundstate%niterconvcheck) )
         call dfpt_rhopot_mixpack( drho_mt, drho_ir, dpot_mt, dpot_ir, .true., dirrep, nmix, rvmix )
-        call mixerifc( input%groundstate%mixernumber, nmix, rvmix, conv, mixermode )
+        call mixerifc( input%groundstate%mixernumber, int(nmix, kind=long_int), rvmix, conv, mixermode )
         conv = 1.0_dp
       end if
       ! allocate record length and offsets for MPI communication
@@ -630,7 +644,7 @@ module phonons
           drho_ir = zzero
           devalk = 0.0_dp
           ngkmaxk = ph_Gkset%ngkmax
-          ngkmaxkq = ph_Gkset%ngkmax
+          ngkmaxkq = ph_Gkqset%ngkmax
           do ik = ik1, ik2
             ! get matching coefficients at k
             ngkmax_ptr => ngkmaxk
@@ -644,18 +658,22 @@ module phonons
             call feveck%read( ik, eveck )
             call feveckq%read( ik, eveckq )
             do id = id1, id2
-              ! generate k-independent part of Hamiltonian response
-              if( ik == ik1 ) &
-                call dfpt_eig_prepare_dHmat( pot_mt, pot_ir, dpot_mt(:, :, :, id), dpot_ir(:, id), dHmat_mt_basis(:, :, :, id), dpot_cfun_ig(:, id), dkin_cfun_ig(:, id), &
-                                             Gset=ph_Gqset )
-              ! generate full Hamiltonian response
+              ! generate k-independent part of overlap and Hamiltonian response
+              if (ik == ik1) then
+                call dfpt_eig_prepare_dSHmat( pot_mt, pot_ir, dpot_mt(:, :, :, id), dpot_ir(:, id), &
+                       dSmat_mt_basis(:, :, :, id), dHmat_mt_basis(:, :, :, id), &
+                       dolp_cfun_ig(:, id), dpot_cfun_ig(:, id), dkin_cfun_ig(:, id), Gset=ph_Gqset )
+              end if
+              ! generate full overlap and Hamiltonian response
+              dSmat = dSmat_const(:, :, ik, id)
               dHmat = dHmat_const(:, :, ik, id)
               call ph_eig_gen_dSHmat( ik, ph_Gkset, ph_Gkqset, 1, nstfv, &
-                     eveck, eveckq, apwalmk, apwalmkq, dSmat(:, :, ik, id), dHmat, &
-                     dHmat_mt_basis=dHmat_mt_basis(:, :, :, id), dpot_cfun_ig=dpot_cfun_ig(:, id), dkin_cfun_ig=dkin_cfun_ig(:, id) )
+                     eveck, eveckq, apwalmk, apwalmkq, dSmat, dHmat, &
+                     dSmat_mt_basis=dSmat_mt_basis(:, :, :, id), dHmat_mt_basis=dHmat_mt_basis(:, :, :, id), &
+                     dolp_cfun_ig=dolp_cfun_ig(:, id), dpot_cfun_ig=dpot_cfun_ig(:, id), dkin_cfun_ig=dkin_cfun_ig(:, id) )
               ! solve Sternheimer equation
               call ph_eig_sternheimer( ik, ph_Gkqset, 1, nstfv, &
-                     evalk(:, ik), occk(:, ik), evalkq(:, ik), occkq(:, ik), eveckq, dSmat(:, :, ik, id), dHmat, gamma, &
+                     evalk(:, ik), occk(:, ik), evalkq(:, ik), occkq(:, ik), eveckq, dSmat, dHmat, gamma, &
                      devalk(:, ik, id), deveck )
               ! write eigenvector response to file
               call fdeveck%write( ph_parts(ipart)%get_dk_offset(id, ik)+1, deveck )
@@ -700,7 +718,7 @@ module phonons
             call ph_rhopot_symmetrize( dpot_mt, dpot_ir, ph_qset%vkl(:, iq), dirrep, &
                    ph_irrep_basis(iq)%nsym, ph_irrep_basis(iq)%isym, ph_irrep_basis(iq)%ivsym, &
                    ph_irrep_basis(iq)%irreps(iirrep)%symmat )
-            ! uppdate occupation response
+            ! update occupation response
             ! and write eigenvalue and occupation response to file
             if( gamma ) then
               do id = 1, dirrep
@@ -741,7 +759,7 @@ module phonons
         ! mixing
         if( master ) then
           call dfpt_rhopot_mixpack( drho_mt, drho_ir, dpot_mt, dpot_ir, .true., dirrep, nmix, rvmix )
-          call mixerifc( input%groundstate%mixernumber, nmix, rvmix, conv, mixermode )
+          call mixerifc( input%groundstate%mixernumber, int(nmix, kind=long_int), rvmix, conv, mixermode )
           do i = 1, input%groundstate%niterconvcheck - 1
             vconv(i) = vconv(i+1)
           end do
@@ -779,7 +797,7 @@ module phonons
       deallocate( rlen, roff )
       if( master ) then
         mixermode = -2
-        call mixerifc( input%groundstate%mixernumber, nmix, rvmix, conv, mixermode )
+        call mixerifc( input%groundstate%mixernumber, int(nmix, kind=long_int), rvmix, conv, mixermode )
         deallocate( rvmix, vconv )
       end if
 
@@ -796,7 +814,7 @@ module phonons
     !> See [[ph_dynmat_canonical_from_file(subroutine)]] for the transformation of the dynamical 
     !> matrix into canonical (Cartesian) coordinates.
     subroutine ph_part_force( ipart )
-      use dfpt_eigensystem, only: dfpt_eig_prepare_dHmat
+      use dfpt_eigensystem, only: dfpt_eig_prepare_dSHmat
       use phonons_eigensystem, only: ph_eig_gen_dSHmat, ph_eig_sternheimer
       use phonons_parallelization, only: ph_par_zgather
       use phonons_density_potential, only: ph_rhopot_gen_dpot
@@ -845,7 +863,7 @@ module phonons
 
       dforce = zzero
       ngkmaxk = ph_Gkset%ngkmax
-      ngkmaxkq = ph_Gkset%ngkmax
+      ngkmaxkq = ph_Gkqset%ngkmax
       ! k-point contribution
       do ik = ik1, ik2
         ! get matching coefficients at k
@@ -860,18 +878,23 @@ module phonons
         call feveck%read( ik, eveck )
         call feveckq%read( ik, eveckq )
         do id = id1, id2
-          ! generate k-independent part of Hamiltonian response
-          if( ik == ik1 ) &
-            call dfpt_eig_prepare_dHmat( pot_mt, pot_ir, dpot_mt(:, :, :, id), dpot_ir(:, id), dHmat_mt_basis(:, :, :, id), dpot_cfun_ig(:, id), dkin_cfun_ig(:, id), &
-                                         Gset=ph_Gqset )
-          ! generate full Hamiltonian response
+          ! generate k-independent part of overlap and Hamiltonian response
+          if (ik == ik1) then
+            call dfpt_eig_prepare_dSHmat( pot_mt, pot_ir, dpot_mt(:, :, :, id), dpot_ir(:, id), &
+                   dSmat_mt_basis(:, :, :, id), dHmat_mt_basis(:, :, :, id), &
+                   dolp_cfun_ig(:, id), dpot_cfun_ig(:, id), dkin_cfun_ig(:, id), &
+                   Gset=ph_Gqset )
+          end if
+          ! generate full overlap and Hamiltonian response
+          dSmat = dSmat_const(:, :, ik, id)
           dHmat = dHmat_const(:, :, ik, id)
           call ph_eig_gen_dSHmat( ik, ph_Gkset, ph_Gkqset, 1, nstfv, &
-                 eveck, eveckq, apwalmk, apwalmkq, dSmat(:, :, ik, id), dHmat, &
-                 dHmat_mt_basis=dHmat_mt_basis(:, :, :, id), dpot_cfun_ig=dpot_cfun_ig(:, id), dkin_cfun_ig=dkin_cfun_ig(:, id) )
+                 eveck, eveckq, apwalmk, apwalmkq, dSmat, dHmat, &
+                 dSmat_mt_basis=dSmat_mt_basis(:, :, :, id), dHmat_mt_basis=dHmat_mt_basis(:, :, :, id), &
+                 dolp_cfun_ig=dolp_cfun_ig(:, id), dpot_cfun_ig=dpot_cfun_ig(:, id), dkin_cfun_ig=dkin_cfun_ig(:, id) )
           ! solve Sternheimer equation without projection
           call ph_eig_sternheimer( ik, ph_Gkqset, 1, nstfv, &
-                 evalk(:, ik), occk(:, ik), evalkq(:, ik), occkq(:, ik), eveckq, dSmat(:, :, ik, id), dHmat, gamma, &
+                 evalk(:, ik), occk(:, ik), evalkq(:, ik), occkq(:, ik), eveckq, dSmat, dHmat, gamma, &
                  devalk(:, ik, id), deveck, devecf=deveckf )
           ! add k-point contribution to force response
           ! TODO: For some reason, the results improve when dismissing the Gamma point contributions to the force response.
@@ -880,7 +903,7 @@ module phonons
                  evalk(:, ik), devalk(:, ik, id), occk(:, ik), docck(:, ik, id), eveck, deveck, deveckf, apwalmk, apwalmkq, &
                  ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id), .false., &
                  dforce(:, :, id), &
-                 dHmat_mt_basis=dHmat_mt_basis(:, :, :, id) )
+                 dSmat_mt_basis=dSmat_mt_basis(:, :, :, id), dHmat_mt_basis=dHmat_mt_basis(:, :, :, id) )
           call ph_frc_dsurf_k( ik, ph_kset, ph_Gkset, ph_Gkqset, 1, nstfv, &
                  evalk(:, ik), devalk(:, ik, id), occk(:, ik), docck(:, ik, id), eveck, deveck, deveckf, &
                  ph_irrep_basis(iq)%irreps(iirrep)%pat(:, :, id), .false., &
@@ -1153,7 +1176,7 @@ module phonons
       ! find equivalent q-point q0 in set and connecting symmetry
       call findkptinset( vql, ph_qset, isym, iq )
 
-      ! read dyamical matrix in irrep basis at q0
+      ! read dynamical matrix in irrep basis at q0
       ! and transform it into canonical basis
       do iirrep = 1, ph_irrep_basis(iq)%nirrep
         dirrep = ph_irrep_basis(iq)%irreps(iirrep)%dim

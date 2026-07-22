@@ -67,6 +67,15 @@
                   every atom.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="fourier" default="false" type="xs:boolean">
+              <xs:annotation>
+                <xs:documentation>
+                  Use a smooth Fourier interpolation for calculating the band-structure 
+                  (see 10.1103/PhysRevB.38.2721). This is mainly used for self-consistent
+                  GW calculations.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="wannier" default="false" type="xs:boolean">
               <xs:annotation>
                 <xs:documentation>Wannier interpolation is used for calculating the band-structure.</xs:documentation>
@@ -371,6 +380,16 @@
           minOccurs="0">
           <xs:annotation>
             <xs:documentation> If the subelement <elementref>DFTD2</elementref> is specified inside the element <elementref>properties</elementref>, the <bf>DFT-D2</bf> method (find reference here: <attref>vdWcorrection</attref>) for van-der-Waals correction to the total energy is used. The energy correction is written to a file called <pre>DFTD2.OUT</pre>. It is not necessary to perform a ground-state calculation, so you could choose <attref>do</attref>=<pre>"skip"</pre> and only calculate the van-der-Waals correction. Only the input file <pre>input.xml</pre> with the declaration of the structure of interest must be provided. If you are interested in changing any of the <bf>DFT-D2</bf> parameters, you can use the element <elementref>DFTD2parameters</elementref> to do so.
+	    </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ex:importance="essential" ex:unit="" name="MBD" maxOccurs="1"
+          minOccurs="0">
+          <xs:annotation>
+            <xs:documentation> If the subelement <elementref>MBD</elementref> is specified inside the element <elementref>properties</elementref>, the <bf>MBD@rsSCS</bf> method (find reference here: <attref>vdWcorrection</attref>) for van-der-Waals correction to the total energy is used. The energy correction is written to a file called <pre>MBD.OUT</pre>. Since this method makes use of the electron density of the specific system under investigation, the <bf>MBD@rsSCS</bf> correction can only be obtained in combination with a standard DFT ground-state calculation. In case you skip the ground-state calculation (<attref>do</attref>=<pre>"skip"</pre>), you should make sure that a <pre>STATE.OUT</pre>-file from a previous calculation is contained in your working directory. The electron density will then be read in from this file. If you are interested in changing any of the <bf>MBD@rsSCS</bf> parameters, you can use the element <elementref>MBDparameters</elementref> to do so.
 	    </xs:documentation>
           </xs:annotation>
           <xs:complexType>
@@ -1114,7 +1133,7 @@
                     </xs:simpleType>
                   </xs:attribute>
 
-                  <xs:attribute ex:importance="experimental" ex:unit="" name="neighcells" type="xs:boolean" default="false">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="neighcells" type="xs:boolean" default="true">
                     <xs:annotation>
                       <xs:documentation>Use atoms in neighboring unit cells for projection.</xs:documentation>
                     </xs:annotation>
@@ -1341,6 +1360,12 @@
                   </xs:enumeration>
                 </xs:restriction>
               </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="spindis" default="false" type="xs:boolean">
+              <xs:annotation>
+                <xs:documentation>If true, the input calculation is assumed to include only collinear magnetic effects. Wannier functions are then calculated from spin up/down states of each group separately and independently, allowing for spin resolved dos and band structure calculations</xs:documentation>
+              </xs:annotation>
             </xs:attribute>
 
                   

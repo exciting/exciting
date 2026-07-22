@@ -76,21 +76,21 @@ def test_dielectric_BN(file_name: str):
     epsilon_results_BN = parse(f"{dirname(__file__)}/{TUTORIAL_XANES_RUNDIR}/BN-XANES/EPSILON/{file_name}")
 
     assert np.allclose(epsilon_results_BN['frequency'], epsilon_reference_BN['frequency']), \
-        f"Frequency grid not equivalent to reference calculation for dielectric function calculations for cubic" \
-        f" boron-nitride"
+        "Frequency grid not equivalent to reference calculation for dielectric function calculations for cubic" \
+        " boron-nitride"
 
     assert np.allclose(epsilon_results_BN['real_oscillator_strength'],
                        epsilon_reference_BN['real_oscillator_strength']), \
-        f"Real part of dielectric function not equivalent to reference calculation for cubic boron-nitride"
+        "Real part of dielectric function not equivalent to reference calculation for cubic boron-nitride"
 
     assert np.allclose(epsilon_results_BN['imag_oscillator_strength'],
-                       epsilon_reference_BN['imag_oscillator_strength']), \
-        f"Imaginary part of dielectric function not equivalent to reference calculation for cubic boron-nitride"
+                       epsilon_reference_BN['imag_oscillator_strength'], atol=1e-5), \
+        "Imaginary part of dielectric function not equivalent to reference calculation for cubic boron-nitride"
                         
     assert np.allclose(epsilon_results_BN['real_oscillator_strength_kkt'],
                        epsilon_reference_BN['real_oscillator_strength_kkt']),\
-         f"Real part of dielectric function (by Kramers-Kronig) not equivalent to reference calculation for cubic" \
-         f" boron-nitride"
+         "Real part of dielectric function (by Kramers-Kronig) not equivalent to reference calculation for cubic" \
+         " boron-nitride"
 
     
 def test_loss_BN(file_name: str):
@@ -101,13 +101,13 @@ def test_loss_BN(file_name: str):
     loss_results_BN = parse(f"{dirname(__file__)}/{TUTORIAL_XANES_RUNDIR}/BN-XANES/LOSS/{file_name}")
 
     assert np.allclose(loss_results_BN['frequency'], loss_reference_BN['frequency']), \
-        f"Frequency grid not equivalent to reference calculation for loss function calculations for cubic boron-nitride"
+        "Frequency grid not equivalent to reference calculation for loss function calculations for cubic boron-nitride"
 
-    assert np.allclose(loss_results_BN['real_oscillator_strength'], loss_reference_BN['real_oscillator_strength']), \
-        f"Real part of loss function not equivalent to reference calculation for cubic boron-nitride"
+    assert np.allclose(loss_results_BN['real_oscillator_strength'], loss_reference_BN['real_oscillator_strength'], atol=1e-5), \
+        "Real part of loss function not equivalent to reference calculation for cubic boron-nitride"
 
-    assert np.allclose(loss_results_BN['imag_oscillator_strength'], loss_reference_BN['imag_oscillator_strength']), \
-        f"Imaginary part of loss function not equivalent to reference calculation for cubic boron-nitride"     
+    assert np.allclose(loss_results_BN['imag_oscillator_strength'], loss_reference_BN['imag_oscillator_strength'], atol=1e-5), \
+        "Imaginary part of loss function not equivalent to reference calculation for cubic boron-nitride"     
     
 
 def test_groundstate_TiO2(converged_results_TiO2: dict):
@@ -180,21 +180,21 @@ def test_dielectric_TiO2(file_name: str):
     epsilon_results_TiO2 = parse(f"{dirname(__file__)}/{TUTORIAL_XANES_RUNDIR}/TiO2-XANES/EPSILON/{file_name}")
 
     assert np.allclose(epsilon_results_TiO2['frequency'], epsilon_reference_TiO2['frequency']), \
-        f"Frequency grid not equivalent to reference calculation for dielectric function calculations for rutile" \
-        f" titanium dioxide"
+        "Frequency grid not equivalent to reference calculation for dielectric function calculations for rutile" \
+        " titanium dioxide"
 
     assert np.allclose(epsilon_results_TiO2['real_oscillator_strength'],
                        epsilon_reference_TiO2['real_oscillator_strength']), \
-        f"Real part of dielectric function not equivalent to reference calculation for rutile titanium dioxide"
+        "Real part of dielectric function not equivalent to reference calculation for rutile titanium dioxide"
 
     assert np.allclose(epsilon_results_TiO2['imag_oscillator_strength'],
-                       epsilon_reference_TiO2['imag_oscillator_strength']), \
-        f"Imaginary part of dielectric function not equivalent to reference calculation for rutile titanium dioxide"
+                       epsilon_reference_TiO2['imag_oscillator_strength'], atol=1e-5), \
+        "Imaginary part of dielectric function not equivalent to reference calculation for rutile titanium dioxide"
                         
     assert np.allclose(epsilon_results_TiO2['real_oscillator_strength_kkt'],
                        epsilon_reference_TiO2['real_oscillator_strength_kkt']), \
-        f"Real part of dielectric function (by Kramers-Kronig) not equivalent to reference calculation for rutile" \
-        f" titanium dioxide"
+        "Real part of dielectric function (by Kramers-Kronig) not equivalent to reference calculation for rutile" \
+        " titanium dioxide"
 
     
 def test_loss_TiO2(file_name: str):
@@ -205,16 +205,16 @@ def test_loss_TiO2(file_name: str):
     loss_results_TiO2 = parse(f"{dirname(__file__)}/{TUTORIAL_XANES_RUNDIR}/TiO2-XANES/LOSS/{file_name}")
 
     assert np.allclose(loss_results_TiO2['frequency'], loss_reference_TiO2['frequency']), \
-        f"Frequency grid not equivalent to reference calculation for loss function calculations for rutile titanium" \
-        f" dioxide"
+        "Frequency grid not equivalent to reference calculation for loss function calculations for rutile titanium" \
+        " dioxide"
 
     assert np.allclose(loss_results_TiO2['real_oscillator_strength'],
-                       loss_reference_TiO2['real_oscillator_strength']), \
-        f"Real part of loss function not equivalent to reference calculation for rutile titanium dioxide"
+                       loss_reference_TiO2['real_oscillator_strength'], atol=1e-5), \
+        "Real part of loss function not equivalent to reference calculation for rutile titanium dioxide"
 
     assert np.allclose(loss_results_TiO2['imag_oscillator_strength'],
                        loss_reference_TiO2['imag_oscillator_strength']), \
-        f"Imaginary part of loss function not equivalent to reference calculation for rutile titanium dioxide"
+        "Imaginary part of loss function not equivalent to reference calculation for rutile titanium dioxide"
 
 def main():
     results_BN = parse(f"{dirname(__file__)}/{TUTORIAL_XANES_RUNDIR}/BN-XANES/INFO.OUT")

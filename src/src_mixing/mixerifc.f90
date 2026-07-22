@@ -11,17 +11,18 @@ Subroutine mixerifc (mtype, n, v, dv, mode)
       Use mod_convergence, Only: iscl
       Use modmixermsec
       Use modmixadapt
+      Use precision, only: i32, long_int, dp
       Implicit None
 ! arguments
-      Integer, Intent (In) :: mtype
-      Integer, Intent (In) :: n
-      Real (8), Intent (Inout) :: v (n)
-      Real (8), Intent (Out) :: dv
-      Integer, Intent (Inout) :: mode
+      Integer(i32), Intent (In) :: mtype
+      Integer(long_int), Intent (In) :: n
+      Real(dp), Intent (Inout) :: v (n)
+      Real(dp), Intent (Out) :: dv
+      Integer(i32), Intent (Inout) :: mode
 !mode: 	-1 call initialisation routines,
 !		-2:call destructor
 !		else ignore
-      Integer, Parameter :: maxsd = 3
+      Integer(i32), Parameter :: maxsd = 3
       Select Case (mtype)
       Case (1)
 ! adaptive linear mixing

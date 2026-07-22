@@ -68,3 +68,12 @@ def test_convert_exciting_to_pymatgen_read_species_files(
         structure_H2He, species_files=species_files_h_hcore_he
     )
     assert [x.symbol for x in pymatgen_struct.species] == ["H", "H", "He"]
+
+
+def test_get_n_irreducible_mesh_points():
+    pymatgen_conversion = pytest.importorskip("excitingtools.structure.pymatgen_utilities")
+    cubic_lattice = [[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]]
+    cu_atom = [{"species": "Cu", "position": [0, 0, 0]}]
+    struct = ExcitingStructure(cu_atom, cubic_lattice, "./")
+    n_irreducible_mesh_points = pymatgen_conversion.get_num_irreducible_k_points(struct, (10, 10, 10))
+    assert n_irreducible_mesh_points == 56

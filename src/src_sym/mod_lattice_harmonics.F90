@@ -6,7 +6,7 @@
 
 !> Module for computing lattice harmonics (symmetrized real spherical harmonics).
 module mod_lattice_harmonics
-  use asserts, only: assert
+
   use constants, only: real_zero, sqrt_two, zi, zone, zzero
   use general_matrix_multiplication, only: matrix_multiply
   use grid_utils, only: mesh_1d

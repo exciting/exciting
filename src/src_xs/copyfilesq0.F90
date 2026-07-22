@@ -11,6 +11,7 @@ Subroutine copyfilesq0
 ! !USES:
       Use modmain
       Use modxs
+      use mod_getoccsv, only: getoccsv
       Use m_getapwcmt
       Use m_getlocmt
 ! !DESCRIPTION:
@@ -44,7 +45,7 @@ Subroutine copyfilesq0
          Call getevecfv (vkl(1, ik), vgkl(1, 1, 1, ik), evecfvt)
          Call getevecsv (vkl(1, ik), evecsv)
          Call getevalsv (vkl(1, ik), evalsv(1, ik))
-         Call getoccsv (vkl(1, ik), occsv(1, ik))
+         Call getoccsv (vkl(:, ik), occsv(:, ik))
          Call getapwcmt (iq, ik, 1, nstfv, input%groundstate%lmaxapw, &
         & apwlm)
          Call getlocmt (iq, ik, 1, nstfv, lolm)

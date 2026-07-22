@@ -1,6 +1,6 @@
 module putgeteps0
   use modmpi
-  use m_getunit, only: getunit
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
   use m_genfilname
   use precision, only: i32, long_int, dp
 
@@ -77,22 +77,12 @@ module putgeteps0
       else 
         debug_local = .false.
       end if
-
-      call getunit(un)
       
       ! Get record length (q dependent through numgq)
-      inquire (iolength=reclen) iq, qvec, numgq, iw, w,&
-            & eps0hd, eps0wg, eps0
+      call inquire_large( reclen, [iq], qvec, [numgq, iw], [w], eps0hd, eps0wg, eps0 )
 
       ! Open with recl=1, so that record length is determined
-      open(unit=un, file=trim(filename), form='unformatted',&
-        & action='write', access='direct', recl=reclen, iostat=stat)
-      
-        if(stat /= 0) then
-        write(*,'("Error: (",a,"):",a, i3)') trim(thisnam),&
-          & "Error opening file, iostat:", stat
-        call terminate
-      end if
+      call open_direct_unformatted_large( un, trim( filename ), "write", reclen, "unknown" )
 
       ! Write output for frequency iw
       write(un, rec=iw, iostat=stat) iq, qvec, numgq, iw, w,&
@@ -186,20 +176,12 @@ module putgeteps0
       else 
         debug_local = .false.
       end if
-
-      call getunit(un)
   
       ! Get record length (q dependent through numgq)
-      inquire (iolength=reclen) iq, qvec, numgq, iw, w, eps0
+      call inquire_large( reclen, [iq], qvec, [numgq, iw], [w], eps0 )
 
-      ! Open with recl=1, so that record length is determined 
-      open(unit=un, file=trim(filename), form='unformatted',&
-        & action='write', access='direct', recl=reclen, iostat=stat)
-      if(stat /= 0) then
-        write(*,'("Error: (",a,"):",a, i3)') trim(thisnam),&
-          & "Error opening file, iostat:", stat
-        call terminate
-      end if
+      ! Open with recl=1, so that record length is determined
+      call open_direct_unformatted_large( un, trim( filename ), "write", reclen, "unknown" )
 
       ! Write output for frequency iw
       write(un, rec=iw, iostat=stat) iq, qvec, numgq, iw, w, eps0
@@ -294,7 +276,6 @@ module putgeteps0
       else
         call genfilname(basename='EPS0', iq=iq, filnam=filename)
       end if
-      call getunit(un)
 
       ! Check for debug mode
       if(present(debug)) then
@@ -314,17 +295,8 @@ module putgeteps0
       numgq = size(eps0, dim=1)
 
       ! Get q-dependent record length
-      inquire(iolength=reclen) iq_read, qvec_read, numgq_read, &
-                      iw_read, w_read, eps0hd, eps0wg, eps0
-
-      open(unit=un, file=trim(filename), status='old',&
-        & form='unformatted', action='read',&
-        & access='direct', recl=reclen, iostat=stat)
-      if(stat /= 0) then
-        write(*,'("Error: (",a,"):",a, i3)') trim(thisnam),&
-          & "Error opening file, iostat:", stat
-        call terminate
-      end if
+      call inquire_large( reclen, [iq_read], qvec_read, [numgq_read, iw_read], [w_read], eps0hd, eps0wg, eps0 )
+      call open_direct_unformatted_large( un, trim( filename ), "read", reclen, "old" )
 
       ! Read from recpos onwards
       read(un, rec=iw, iostat=stat) iq_read, qvec_read, numgq_read,&
@@ -449,9 +421,6 @@ module putgeteps0
         debug_local = .false.
       end if
 
-
-      call getunit(un)
-
       ! Check if file exists
       inquire(file=trim(filename), exist=existent)
       if( .not. existent) then
@@ -463,17 +432,10 @@ module putgeteps0
       numgq = size(eps0, dim=1)
 
       ! Get q-dependent record length
-      inquire(iolength=reclen) iq_read, qvec_read, numgq_read, &
-                      iw_read, w_read, eps0
+      call inquire_large( reclen, [iq_read], qvec_read, [numgq_read, iw_read], [w_read], eps0 )
 
-      open(unit=un, file=trim(filename), status='old',&
-        & form='unformatted', action='read',&
-        & access='direct', recl=reclen, iostat=stat)
-      if(stat /= 0) then
-        write(*,'("Error: (",a,"):",a, i3)') trim(thisnam),&
-          & "Error opening file, iostat:", stat
-        call terminate
-      end if
+      ! Open with recl=1, so that record length is determined
+      call open_direct_unformatted_large( un, trim( filename ), "read", reclen, "old" )
 
       ! Read from recpos onwards
       read(un, rec=iw, iostat=stat) iq_read, qvec_read, numgq_read,&

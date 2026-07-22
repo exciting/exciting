@@ -1,7 +1,7 @@
 !> This module handles all Berry-phase-related calculations required for RT-TDDFT 
 !> using the dynamical Berry phase approach to describe the interaction with the external field.
 module rttddft_berry
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zone, zzero, zi, fourpi
   use determinant, only: determinant_LU
   use exciting_mpi, only: xmpi_allgatherv
@@ -63,10 +63,10 @@ contains
     use_save_local = .false.
     if ( present( use_save ) ) use_save_local = use_save
 
-    call assert( psi%n_basis() == size( berry_coupling_term, 1 ), "n_basis is different for psi and berry_coupling_term" )
-    call assert( psi%n_basis() == size( pws_for_berry_phase, 1 ), "n_basis is different for psi and pws_for_berry_phase" )
-    call assert( size( k_ptrs, 1) == size( td_overlap_det, 2), "n_kpt is different for k_ptrs and td_overlap_det" )
-    call assert( psi%n_kpts() == size( berry_coupling_term, 3 ), "n_kpt is different for psi and berry_coupling_term" )
+    CALL_ASSERT( psi%n_basis() == size( berry_coupling_term, 1 ), "n_basis is different for psi and berry_coupling_term" )
+    CALL_ASSERT( psi%n_basis() == size( pws_for_berry_phase, 1 ), "n_basis is different for psi and pws_for_berry_phase" )
+    CALL_ASSERT( size( k_ptrs, 1) == size( td_overlap_det, 2), "n_kpt is different for k_ptrs and td_overlap_det" )
+    CALL_ASSERT( psi%n_kpts() == size( berry_coupling_term, 3 ), "n_kpt is different for psi and berry_coupling_term" )
 
     allocate( td_overlap(psi%n_occupied(), psi%n_occupied(), first_kpt : last_kpt, n_cartesian, 4) )
     allocate( all_active_states(psi%n_basis(), psi%n_active(), kset%nkpt), source = zzero )

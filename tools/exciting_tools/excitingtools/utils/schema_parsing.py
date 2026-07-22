@@ -120,6 +120,7 @@ def get_attribute_type(attribute: xmlschema.XsdAttribute) -> Tuple[TypeWrapper, 
         "anyURI": (TypeWrapper(str), 1),
         "vect3d": (TypeWrapper(float), 3),
         "integer": (TypeWrapper(int), 1),
+        "positiveInteger": (TypeWrapper(int), 1),
         "integerpair": (TypeWrapper(int), 2),
         "vect2d": (TypeWrapper(float), 2),
         "booleantriple": (TypeWrapper(bool), 3),
@@ -187,7 +188,7 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
     :param schema_dict: contains all the information read from the schema
     :return info_string: string of python-formatted code
     """
-    info_string = f"\n# {super_tag} information \n"
+    info_string = f"\n# {super_tag} information\n"
     for tag in schema_dict:
         valid_subtrees = schema_dict[tag]["children"]
         mandatory_attributes = sorted(schema_dict[tag]["mandatory_attribs"])
@@ -198,13 +199,13 @@ def write_schema_info(super_tag: str, schema_dict: dict) -> str:
             continue
 
         if attribute_types:
-            info_string += variable_to_pretty_str(f"{tag}_attribute_types", attribute_types) + " \n"
+            info_string += variable_to_pretty_str(f"{tag}_attribute_types", attribute_types) + "\n"
         if valid_subtrees:
-            info_string += variable_to_pretty_str(f"{tag}_valid_subtrees", valid_subtrees) + " \n"
+            info_string += variable_to_pretty_str(f"{tag}_valid_subtrees", valid_subtrees) + "\n"
         if mandatory_attributes:
-            info_string += variable_to_pretty_str(f"{tag}_mandatory_attributes", mandatory_attributes) + " \n"
+            info_string += variable_to_pretty_str(f"{tag}_mandatory_attributes", mandatory_attributes) + "\n"
         if multiple_childs:
-            info_string += variable_to_pretty_str(f"{tag}_multiple_children", multiple_childs) + " \n"
+            info_string += variable_to_pretty_str(f"{tag}_multiple_children", multiple_childs) + "\n"
         info_string += "\n"
     return info_string
 
@@ -224,8 +225,8 @@ def main():
     """Main function to read the schema and write it to python readable file."""
     filename = Path(__file__).parent / "valid_attributes.py"
     info = (
-        '""" Automatically generated file with the valid attributes from the schema. \n'
-        'Do not manually change. Instead, run "utils/schema_parsing.py" to regenerate. """ \n'
+        '""" Automatically generated file with the valid attributes from the schema.\n'
+        'Do not manually change. Instead, run "utils/schema_parsing.py" to regenerate. """\n'
     )
 
     schemas = get_all_include_files()
@@ -242,7 +243,7 @@ def main():
         fid.write(info[:-1])
 
     for file in tmp_files:
-        file.unlink()
+        file.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,6 @@ Contains
          Use modmain
          Use modinput
          Use modxs
-         Use m_getunit
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq, ik, i1, i2, n1, n2, nw
@@ -43,8 +42,7 @@ Contains
     !     get parameters     !
     !------------------------!
          Inquire (IoLength=Recl) vql_, vkl_, nstsv_, n1_, n2_
-         Call getunit (un)
-         Open (un, File=trim(fnam), Action='read', Form='unformatted', &
+         Open (newunit=un, File=trim(fnam), Action='read', Form='unformatted', &
         & Status='old', Access='direct', Recl=Recl)
          Read (un, Rec=1) vql_, vkl_, nstsv_, n1_, n2_
          Close (un)
@@ -81,10 +79,9 @@ Contains
     ! record position with proper n1 and n2 values
          irec = (ik-1) * n1_ * n2_ + (i1-1) * n2_ + i2
     ! read from file
-         Call getunit (un)
          Inquire (IoLength=Recl) vql_, vkl_, nstsv_, n1_, n2_, cw, cwa, &
         & cwsurf
-         Open (un, File=trim(fnam), Form='unformatted', Action='read', &
+         Open (newunit=un, File=trim(fnam), Form='unformatted', Action='read', &
         & Status='old', Access='direct', Recl=Recl)
          Read (un, Rec=irec) vql_, vkl_, nstsv_, n1_, n2_, cw, cwa, &
         & cwsurf

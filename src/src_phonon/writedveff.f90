@@ -28,7 +28,7 @@ End Subroutine
 
 subroutine write_potential_response( path, nspecies, natoms, nrmt, lmax, ngrid, dveffmt, shapemt, dveffir, shapeir )
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
   use os_utils, only: path_exists
   use mod_misc, only: version
@@ -50,14 +50,10 @@ subroutine write_potential_response( path, nspecies, natoms, nrmt, lmax, ngrid, 
   lmmax = (lmax + 1)**2
   ngrtot = product( ngrid )
 
-  call assert( shapemt(1) == lmmax, &
-    'Inconsistent 1st dimension of argument `dveffmt`.' )
-  call assert( shapemt(2) == nrmtmax, &
-    'Inconsistent 2nd dimension of argument `dveffmt`.' )
-  call assert( shapemt(3) == natmtot, &
-    'Inconsistent 3rd dimension of argument `dveffmt`.' )
-  call assert( shapeir(1) == ngrtot, &
-    'Inconsistent size of argument `dveffir`.' )
+  CALL_ASSERT( shapemt(1) == lmmax,  'Inconsistent 1st dimension of argument `dveffmt`.' )
+  CALL_ASSERT( shapemt(2) == nrmtmax,  'Inconsistent 2nd dimension of argument `dveffmt`.' )
+  CALL_ASSERT( shapemt(3) == natmtot,  'Inconsistent 3rd dimension of argument `dveffmt`.' )
+  CALL_ASSERT( shapeir(1) == ngrtot,  'Inconsistent size of argument `dveffir`.' )
   
   open( newunit=un, file=trim( path ), action='write', form='unformatted', iostat=ierr )
 

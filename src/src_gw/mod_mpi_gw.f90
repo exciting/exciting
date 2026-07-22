@@ -1,6 +1,6 @@
 !> Module for MPI features used by GW
 module mod_mpi_gw
-    use asserts, only: assert
+#include "asserts.fpp"
     use exciting_mpi, only: mpiinfo, xmpi_allreduce, xmpi_reduce
     use modmpi, only: ierr, firstofset, lastofset, distribute_loop, terminate_if_false
 #ifdef MPI
@@ -105,16 +105,20 @@ contains
     !> Number of MPI (sub)domains to split the current MPI domain
     integer(i32), intent(in) :: n_domains
     
-    integer(i32) :: n_tasks
+    integer(i32) :: n_tasks, n_effective_domains
 
-    call assert( this%index%global_first <= this%index%global_last, 'First index must be <= than last one' )
-    call terminate_if_false( mpi_type_to_split%procs >= n_domains, 'There are '// to_char(mpi_type_to_split%procs) // &
-      ' MPI ranks in this MPI domain, which is insufficient to split into ' // to_char(n_domains) // ' domains')
+    CALL_ASSERT( this%index%global_first <= this%index%global_last, 'First index must be <= than last one' )
+    call terminate_if_false(n_domains > 0, 'Number of MPI domains must be positive')
+    n_effective_domains = min(n_domains, mpi_type_to_split%procs)
+    if (mpi_type_to_split%rank == 0 .and. n_effective_domains < n_domains) then
+      call warning('Warning(mod_mpi_gw): Requested ' // trim(to_char(n_domains)) // &
+        ' MPI domains, reducing to available rank count: ' // trim(to_char(n_effective_domains)))
+    end if
     n_tasks = this%index%global_last - this%index%global_first + 1
-    this%color = get_color( mpi_type_to_split%procs, n_domains, mpi_type_to_split%rank )
+    this%color = get_color( mpi_type_to_split%procs, n_effective_domains, mpi_type_to_split%rank )
     call mpi_split( mpi_type_to_split, this%color, this%mpi_environment, .true. )
-    call this%index%set_my_first_last( firstofset( this%color, n_tasks, n_domains ), &
-                                  lastofset( this%color, n_tasks, n_domains ) )
+    call this%index%set_my_first_last( firstofset( this%color, n_tasks, n_effective_domains ), &
+                                  lastofset( this%color, n_tasks, n_effective_domains ) )
     call this%index%shift_first_last()
   end subroutine
 

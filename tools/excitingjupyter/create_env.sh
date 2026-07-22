@@ -11,6 +11,8 @@ pip3 install -e ../exciting_tools || exit 1
 pip3 install -e ../excitingscripts || exit 1
 # Install excitingjupyter
 pip3 install -e . || exit 1
+# Install FSvisual
+pip3 install --upgrade fsvisual || exit 1
 # Install local kernal for jupyter
 python3 -m ipykernel install --user --name=excitingjupyter || exit 1
 # Find path for custom CSS file:

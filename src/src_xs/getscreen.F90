@@ -6,7 +6,6 @@
 subroutine getscreen(iqr, ngq, scrh, scrw, scrb)
   use modinput, only: input
   use m_genfilname
-  use m_getunit
 
   implicit none
 
@@ -25,8 +24,7 @@ subroutine getscreen(iqr, ngq, scrh, scrw, scrb)
 
   ! Read in screening
   call genfilname(basename='SCREEN', iq=iqr, bzsampl=bzsampl, filnam=fname)
-  call getunit(un)
-  open(un, file=trim(fname), form='formatted', action='read', status='old')
+  open(newunit=un, file=trim(fname), form='formatted', action='read', status='old')
 
   do igq1 = 1, ngq
     do igq2 = 1, ngq

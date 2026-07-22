@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<input>
+	<title>CO2</title>
+	<structure speciespath="./" autormt="true">
+		<crystal>
+			<basevect>23.199522366457707 0.0 0.0</basevect>
+			<basevect>0.0 18.897261246257703 0.0</basevect>
+			<basevect>0.0 0.0 18.897261246257703</basevect>
+		</crystal>
+		<species speciesfile="C.xml">
+			<atom coord="0.4999999999999999 0.5 0.5"> </atom>
+		</species>
+		<species speciesfile="O.xml">
+			<atom coord="0.5927230537819238 0.5 0.5"> </atom>
+			<atom coord="0.4072769462180762 0.5 0.5"> </atom>
+		</species>
+	</structure>
+	<groundstate
+	   do="fromscratch"
+	   ngridk="1 1 1"
+	   lmaxapw="8"
+	   lmaxvr="8"
+	   lmaxmat="8"
+	   nempty="5"
+	   rgkmax="2.8"
+	   epsengy="0.001"
+	   epspot="0.0001"
+		 cutofftype="0d"
+		 rCutCoulomb="14.d0">
+		<solver type="Davidson" constructHS="false"> </solver>
+		<libxc correlation="XC_LDA_C_PW" exchange="XC_LDA_X"> </libxc>
+	</groundstate>
+</input>

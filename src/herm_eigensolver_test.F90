@@ -9,7 +9,8 @@ module herm_eigensolver_test
   use herm_eigensolver, only: lapack_eigensolver
   use exciting_mpi, only: xmpi_bcast
 #ifdef SCAL
-  use herm_eigensolver, only: scalapack_eigensolver
+  use herm_eigensolver, only: scalapack_eigensolver_pzheevx, scalapack_eigensolver_pzheevd
+  use modmpi, only: MPI_UNDEFINED, MPI_Comm_split
 #endif
 #ifdef _ELPA_
   use herm_eigensolver, only: elpa_eigensolver
@@ -38,13 +39,17 @@ contains
     call test_lapack_solver(test_report, mpiglobal)
     
 #ifdef SCAL
-    ! Test ScaLAPACK solver (if compiled with ScaLAPACK)
-    call test_scalapack_solver(test_report, mpiglobal)
+    ! Test ScaLAPACK pzheevx solver (if compiled with ScaLAPACK)
+    call test_scalapack_solver(test_report, mpiglobal, 'pzheevx')
+    ! Test ScaLAPACK pzheevd solver (if compiled with ScaLAPACK)
+    call test_scalapack_solver(test_report, mpiglobal, 'pzheevd')
 #endif
     
 #ifdef _ELPA_
-    ! Test ELPA solver (if compiled with ELPA)
-    call test_elpa_solver(test_report, mpiglobal)
+    ! Test ELPA 2stage solver (if compiled with ELPA)
+    call test_elpa_solver(test_report, mpiglobal, '2')
+    ! Test ELPA 1stage solver (if compiled with ELPA)
+    call test_elpa_solver(test_report, mpiglobal, '1')
 #endif
     
     if (present(kill_on_failure)) then
@@ -95,7 +100,7 @@ contains
     end do
     
     ! Initialize BLACS context (non-distributed: 1×1 grid for LAPACK)
-    call setupblacs(mpiglobal, '2d', binfo, np=1)
+    call setupblacs(mpiglobal, '0d', binfo, np=1)
     call new_dzmat(ham, N, N, binfo)
     call new_dzmat(ham_orig, N, N, binfo)
     call new_dzmat(evec, N, N, binfo)
@@ -124,14 +129,16 @@ contains
 
 #ifdef SCAL
   !> Test ScaLAPACK solver with a random Hermitian matrix  
-  subroutine test_scalapack_solver(test_report, mpiglobal)
+  subroutine test_scalapack_solver(test_report, mpiglobal, scala_solver)
     !> test_report:Test report object
     type(unit_test_type), intent(inout) :: test_report
     !> mpiglobal:MPI environment
     type(mpiinfo), intent(inout) :: mpiglobal
-    
+    !> which ScaLAPACK solver to use, must be 'pzheevx' or 'pzheevd'
+    character(7), intent(in) :: scala_solver
+
     !> N:Matrix dimension
-    integer, parameter :: N = 5
+    integer, parameter :: N = 200
     !> ham:Hermitian matrix to diagonalize
     type(dzmat) :: ham
     !> ham_orig:Original Hamiltonian (for verification)
@@ -163,41 +170,54 @@ contains
     
     ! Initialize BLACS context (parallel: use all available processes for ScaLAPACK)
     call setupblacs(mpiglobal, '2d', binfo, np=mpiglobal%procs)
-    call new_dzmat(ham, N, N, binfo)
-    call new_dzmat(ham_orig, N, N, binfo)
-    call new_dzmat(evec, N, N, binfo)
-    call dzmat_copy_global2local(H_matrix, ham, binfo)
-    call dzmat_copy_global2local(H_matrix, ham_orig, binfo)
-    
-    ! Run ScaLAPACK eigensolver directly (destroys ham)
-    call scalapack_eigensolver(ham, eval, binfo, evec)
-    
-    ! Test 1: Check eigenvector orthonormality
-    call check_orthonormality(evec, binfo, mpiglobal, evecs_orthonormal, tol)
-    call test_report%assert(evecs_orthonormal, &
-         'Test ScaLAPACK: eigenvectors orthonormal (X^H * X = I)')
-    
-    call check_eigenvalue_equation(ham_orig, evec, eval, binfo, mpiglobal, eigenvalue_eq_ok, tol)
-    call test_report%assert(eigenvalue_eq_ok, &
-         'Test ScaLAPACK: eigenvalue equation (H * X = Lambda * X)')
-    
-    call del_dzmat(ham)
-    call del_dzmat(ham_orig)
-    call del_dzmat(evec)
+
+    ! guard for idle ranks
+    if(binfo%isactive) then
+      call new_dzmat(ham, N, N, binfo)
+      call new_dzmat(ham_orig, N, N, binfo)
+      call new_dzmat(evec, N, N, binfo)
+      call dzmat_copy_global2local(H_matrix, ham, binfo)
+      call dzmat_copy_global2local(H_matrix, ham_orig, binfo)
+
+      ! Run ScaLAPACK eigensolver directly (destroys ham)
+      if (scala_solver == 'pzheevx') then
+        call scalapack_eigensolver_pzheevx(ham, eval, binfo, evec)
+      else if (scala_solver == 'pzheevd') then
+        call scalapack_eigensolver_pzheevd(ham, eval, binfo, evec)
+      else
+        call terminate('Error(test_scalapack_solver): Solver name not recognized, use "pzheevx" or "pzheevd".')
+      end if
+
+      ! Test 1: Check eigenvector orthonormality
+      call check_orthonormality(evec, binfo, mpiglobal, evecs_orthonormal, tol)
+      call test_report%assert(evecs_orthonormal, &
+           'Test ScaLAPACK: eigenvectors orthonormal (X^H * X = I)')
+
+      call check_eigenvalue_equation(ham_orig, evec, eval, binfo, mpiglobal, eigenvalue_eq_ok, tol)
+      call test_report%assert(eigenvalue_eq_ok, &
+           'Test ScaLAPACK: eigenvalue equation (H * X = Lambda * X)')
+
+      call del_dzmat(ham)
+      call del_dzmat(ham_orig)
+      call del_dzmat(evec)
+      call blacsbarrier(binfo)
+     end if
     call exitblacs(binfo)
   end subroutine test_scalapack_solver
 #endif
 
 #ifdef _ELPA_
   !> Test ELPA solver with a random Hermitian matrix
-  subroutine test_elpa_solver(test_report, mpiglobal)
+  subroutine test_elpa_solver(test_report, mpiglobal, elpa_solver)
     !> test_report:Test report object
     type(unit_test_type), intent(inout) :: test_report
     !> mpiglobal:MPI environment
     type(mpiinfo), intent(inout) :: mpiglobal
-    
+    !> which ELPA solver to use, must be '1' or '2'
+    character(1), intent(in) :: elpa_solver
+
     !> N:Matrix dimension
-    integer, parameter :: N = 5
+    integer, parameter :: N = 200
     !> ham:Hermitian matrix to diagonalize
     type(dzmat) :: ham
     !> ham_orig:Original Hamiltonian (for verification)
@@ -218,7 +238,21 @@ contains
     integer :: i
     !> tol:Tolerance for numerical comparison
     real(dp), parameter :: tol = 1e-9_dp
-    
+    !> total number of processes
+    integer :: nprocs
+    !> number of processes in columns/rows
+    integer :: npcols,nprows
+    !> number of used processes in the 2d grid
+    integer :: nprocs2d
+    !> specifier if rank is active or not
+    integer :: color
+    !> MPI communicator of the active BLACS grid
+    integer :: comm_active
+    !> error status
+    integer :: ierror
+    !> mpi instance only for active ranks, used for ELPA
+    type(mpiinfo) :: mpicom_active
+
     ! Create a positive definite Hermitian matrix: H = A^H * A + alpha * I
     ! This guarantees full rank (linear independence of all columns)
     call fill_random(H_matrix)
@@ -228,29 +262,48 @@ contains
     end do
     
     ! Initialize BLACS context (parallel: use all available processes for ELPA)
-    call setupblacs(mpiglobal, '2d', binfo, np=mpiglobal%procs)
-    call new_dzmat(ham, N, N, binfo)
-    call new_dzmat(ham_orig, N, N, binfo)
-    call new_dzmat(evec, N, N, binfo)
-    call dzmat_copy_global2local(H_matrix, ham, binfo)
-    call dzmat_copy_global2local(H_matrix, ham_orig, binfo)
-    
-    ! Run ELPA eigensolver directly (destroys ham)
-    call elpa_eigensolver(ham, eval, binfo, evec)
-    
-    ! Test 1: Check eigenvector orthonormality
-    call check_orthonormality(evec, binfo, mpiglobal, evecs_orthonormal, tol)
-    call test_report%assert(evecs_orthonormal, &
-         'Test ELPA: eigenvectors orthonormal (X^H * X = I)')
-    
-    call check_eigenvalue_equation(ham_orig, evec, eval, binfo, mpiglobal, eigenvalue_eq_ok, tol)
-    call test_report%assert(eigenvalue_eq_ok, &
-         'Test ELPA: eigenvalue equation (H * X = Lambda * X)')
-    
-    call del_dzmat(ham)
-    call del_dzmat(ham_orig)
-    call del_dzmat(evec)
+    nprocs = mpiglobal%procs
+    npcols = int(sqrt(dble(nprocs)))
+    nprows = nprocs / npcols
+    nprocs2d = npcols*nprows
+    if(mpiglobal%rank < nprocs2d) then
+      color = 1
+    else
+      color = MPI_UNDEFINED
+    end if
+    call MPI_Comm_split(mpiglobal%comm, color, 0, comm_active, ierror)
+    if (color /= MPI_UNDEFINED) then
+      call mpicom_active%init(comm_active)
+      call setupblacs(mpicom_active, 'grid', binfo, np=nprocs2d)
+    else
+      call setupblacs(mpiglobal, 'xxx', binfo, np=nprocs2d)
+    end if
+    if(binfo%isactive) then
+      call new_dzmat(ham, N, N, binfo)
+      call new_dzmat(ham_orig, N, N, binfo)
+      call new_dzmat(evec, N, N, binfo)
+      call dzmat_copy_global2local(H_matrix, ham, binfo)
+      call dzmat_copy_global2local(H_matrix, ham_orig, binfo)
+
+      ! Run ELPA eigensolver directly (destroys ham)
+      call elpa_eigensolver(ham, eval, binfo, elpa_solver, evec)
+
+      ! Test 1: Check eigenvector orthonormality
+      call check_orthonormality(evec, binfo, mpiglobal, evecs_orthonormal, tol)
+      call test_report%assert(evecs_orthonormal, &
+           'Test ELPA: eigenvectors orthonormal (X^H * X = I)')
+
+      call check_eigenvalue_equation(ham_orig, evec, eval, binfo, mpiglobal, eigenvalue_eq_ok, tol)
+      call test_report%assert(eigenvalue_eq_ok, &
+           'Test ELPA: eigenvalue equation (H * X = Lambda * X)')
+
+      call del_dzmat(ham)
+      call del_dzmat(ham_orig)
+      call del_dzmat(evec)
+      call blacsbarrier(binfo)
+    end if
     call exitblacs(binfo)
+    call barrier(callername='test_elpa_solver')
   end subroutine test_elpa_solver
 #endif
 
@@ -304,7 +357,8 @@ contains
     result = result_arr(1)
     
     call del_dzmat(tmp)
-    deallocate(gram, identity)
+    if(allocated(gram)) deallocate(gram)
+    if(allocated(identity)) deallocate(identity)
   end subroutine check_orthonormality
 
   !> Helper: Check eigenvalue equation (H * X = Lambda * X)
@@ -367,7 +421,8 @@ contains
     result = result_arr(1)
     
     call del_dzmat(tmp)
-    deallocate(lhs, rhs)
+    if(allocated(lhs)) deallocate(lhs)
+    if(allocated(rhs)) deallocate(rhs)
   end subroutine check_eigenvalue_equation
 
 end module herm_eigensolver_test

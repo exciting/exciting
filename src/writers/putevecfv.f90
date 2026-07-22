@@ -9,36 +9,34 @@
 Subroutine putevecfv (ik, evecfv)
       Use modmain
       Use modmpi
+      use mod_large_io, only: inquire_large, open_direct_unformatted_large
+      use precision, only: i32, dp, long_int, str_256
 !
       Implicit None
   ! arguments
       Integer, Intent (In) :: ik
-      Complex (8), Intent (In) :: evecfv (nmatmax, nstfv, nspnfv)
+      Complex (dp), Intent (In) :: evecfv (nmatmax, nstfv, nspnfv)
   ! local variables
 !
-      Character (256) :: filetag
-      Character (256), External :: outfilenamestring
-      Integer :: recl, koffset
-!
-!
-  ! find the record length
-      Inquire (IoLength=Recl) vkl (:, ik), nmatmax, nstfv, nspnfv, &
-     & evecfv
-  !$OMP CRITICAL
+      Character (len=str_256) :: filetag
+      Character (len=str_256), External :: outfilenamestring
+      integer(i32) :: koffset, io_unit
+      integer(long_int) ::reclength
+      
+      call inquire_large( reclength, vkl (:, ik), [nmatmax, nstfv, nspnfv], evecfv )
+
+!$OMP CRITICAL
       filetag = 'EVECFV'
       If (splittfile .Or. (rank .Eq. 0).or. (.not.input%sharedfs)) Then
-         Open (70, File=outfilenamestring(filetag, ik), Action='WRITE', &
-        & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+         call open_direct_unformatted_large( io_unit, outfilenamestring(filetag, ik), "write", reclength, "unknown" )
          If (splittfile) Then
             koffset = ik - firstofset (procofindex(ik, nkpt), nkpt) + 1
          Else
             koffset = ik
          End If
-         Write (70, Rec=koffset) vkl (:, ik), nmatmax, nstfv, nspnfv, &
+         Write (io_unit, Rec=koffset) vkl (:, ik), nmatmax, nstfv, nspnfv, &
         & evecfv
-         Close (70)
-!
+         Close (io_unit)
       End If
-   !$OMP END CRITICAL
-      Return
+!$OMP END CRITICAL
 End Subroutine putevecfv

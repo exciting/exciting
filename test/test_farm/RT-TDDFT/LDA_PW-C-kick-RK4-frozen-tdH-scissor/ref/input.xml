@@ -1,0 +1,66 @@
+<input>
+        <title>C</title>
+        <structure speciespath="./">
+                <crystal scale="6.7407">
+                        <basevect>0.0 0.5 0.5 </basevect>
+                        <basevect>0.5 0.0 0.5 </basevect>
+                        <basevect>0.5 0.5 0.0 </basevect>
+                </crystal>
+                <species speciesfile="C.xml" rmt="1.4">
+                        <atom coord="0.00 0.00 0.00"/>
+                        <atom coord="0.25 0.25 0.25"/>
+                </species>
+        </structure>
+        <groundstate
+                ngridk="3 3 3"
+                rgkmax="4.0"
+                gmaxvr="12.0"
+                epsengy="1e-6"
+                reducek="false"
+                nosym="true"
+                vkloff="0.097 0.273 0.493"
+                do="fromscratch"
+                mixerswitch="1"
+                mixer="msec"
+                findlinentype="Wigner_Seitz"
+                frozencore="false"
+                outputlevel="high"
+                nempty="20"
+                useDensityMatrix="false"
+                radialgridtype="cubic-2"
+                xctype="LDA_PW">
+        </groundstate>
+        <xs
+          xstype ="RT-TDDFT"
+          ngridk="3 3 3"
+	        vkloff="0.097 0.273 0.493"
+          nosym="true"
+	        reducek="false"
+          nempty="20"
+          scissor="0.08">
+          <realTimeTDDFT
+            propagator="RK4"                                                                                                                                              
+            timeStep="0.25d0"                                                                                                                                                
+            endTime="10.0d0"                                                                                                                                                 
+            printTimingGeneral="true"
+            printTimingDetailed="true"
+            calculateTotalEnergy="true"
+            calculateNExcitedElectrons="true"
+            printAfterIterations="25"
+            vectorPotentialSolver="improvedeuler"
+            numberOfFrozenStates="1"
+            eeInteraction="tdH"
+            orthogonalizeAgainstFrozen="true">
+            <pmat readFromFile="false" forceHermitian="false" />
+            <laser fieldType="total">
+              <kick t0="1.d0" width="0d0" amplitude="0.01d0" direction="z"/>
+            </laser>
+            <screenshots niter="20">
+              <eigenvalues nEigenvalues="-1" tolerance="1d-14" />
+              <projectionCoefficients printAbsoluteValue="true" format="F10.5" />
+              <occupations format="F15.8" textFormat="true" binaryFormat="true" />
+            </screenshots>
+          </realTimeTDDFT>
+
+        </xs>
+</input>

@@ -12,7 +12,7 @@ post queries on the [MatSci exciting board](https://matsci.org/c/exciting/47).
 License: See README of exciting.
 
 ## Requirements:  
-The test suite requires python 3.5 (or above) and the following packages:
+The test suite requires the following packages:
  * argparse
  * collections
  * numpy
@@ -24,6 +24,8 @@ and additionally, pytest, if one wishes to run the framework's unit tests (defin
 To install excitingtools, from exciting's root directory type:
 
     pip3 install -e tools/exciting_tools
+
+The minimal required python version is determined by the exctingtools package.
 
 ## Quickstart
 

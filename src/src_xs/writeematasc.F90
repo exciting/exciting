@@ -10,7 +10,6 @@ Subroutine writeematasc
       Use modmain
       Use modinput
       Use modxs
-      Use m_getunit
       Use m_getemat
       Use m_genfilname
       Implicit None
@@ -22,7 +21,6 @@ Subroutine writeematasc
       Call xssave0
       Call init2
       Call readfermi
-      Call getunit (un)
   ! loop over q-points
       Do iq = 1, nqpt
          Call genfilname (iqmt=iq, setfilext=.True.)
@@ -44,7 +42,7 @@ Subroutine writeematasc
      ! filename for matrix elements file
          Call genfilname (basename='EMAT', asc=.True., iqmt=iq, &
         & etype=input%xs%emattype, filnam=filnam)
-         Open (un, File=trim(filnam), Action='write')
+         Open (newunit=un, File=trim(filnam), Action='write')
      ! read matrix elements of exponential expression
          Call genfilname (basename='EMAT', iqmt=iq, &
         & etype=input%xs%emattype, filnam=fnemat)

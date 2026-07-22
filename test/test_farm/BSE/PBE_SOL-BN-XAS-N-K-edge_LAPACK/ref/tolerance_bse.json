@@ -1,0 +1,46 @@
+{
+  "EPSILON_??.OUT": {
+    "frequency": {
+      "tol": 1e-08,
+      "unit": "eV"
+    },
+    "real_oscillator_strength": {
+      "tol": 2e-05,
+      "unit": "null"
+    },
+    "imag_oscillator_strength": {
+      "tol": 2e-05,
+      "unit": "null"
+    },
+    "real_oscillator_strength_kkt": {
+      "tol": 2e-05,
+      "unit": "null"
+    }
+  },
+  "EXCITON_??.OUT": {
+    "state": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "energy": {
+      "tol": 8e-04,
+      "unit": "eV"
+    },
+    "energy_shifted": {
+      "tol": 8e-04,
+      "unit": "eV"
+    },
+    "abs_oscillator_strength": {
+      "tol": 8e-05,
+      "unit": "null"
+    },
+    "real_oscillator_strength": {
+      "tol": 8e-05,
+      "unit": "null"
+    },
+    "imag_oscillator_strength": {
+      "tol": 8e-05,
+      "unit": "null"
+    }
+  }
+}

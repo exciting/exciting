@@ -41,6 +41,9 @@ Subroutine genkinmat
       Allocate (vmat(nstsv, nstsv))
       Allocate (bmat(nstsv, nstsv))
       Allocate (c(nstsv, nstsv))
+      ! initialisations for the Davidson eigensolver
+      if (trim( input%groundstate%solver%type ) == 'Davidson') call releasesingular
+
 ! convert muffin-tin effective potential and magnetic field to spherical
 ! coordinates
       Do is = 1, nspecies
@@ -103,5 +106,6 @@ Subroutine genkinmat
       If (associated(input%groundstate%spin)) deallocate (rvfmt)
       Deallocate (rfmt, evalfv, apwalm, evecfv, evecsv)
       Deallocate (wfmt, wfir, vmat, bmat, c)
+      Call releasesingular 
       Return
 End Subroutine

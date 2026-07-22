@@ -3,7 +3,7 @@ module eph_electrons
   use eph_variables
 
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use exciting_mpi, only: xmpi_allgatherv
   use modmpi
   use matrix_fourier_interpolation, only: mfi_type
@@ -18,6 +18,8 @@ module eph_electrons
   complex(dp), allocatable, public :: eph_el_evec_k(:,:,:)
   !> object for matrix Fourier interpolation on electron \({\bf k}\)-grid
   type(mfi_type), public :: eph_el_mfi
+  !> apply minimal distance interpolation for electrons
+  logical, public :: eph_el_mindist = .true.
   !> electron Hamiltonian in real space Wannier gauge, \(\mathcal{H}_{mn}({\bf R})\)
   complex(dp), allocatable :: eph_el_HR(:,:,:)
   !> name for binary file to save Hamiltonian in real space Wannier gauge for later access
@@ -25,7 +27,7 @@ module eph_electrons
   !> name for binary file to save Wannier gauge matrices for later access
   character(*), parameter :: eph_el_Uk_filename = "EPH_Uk.OUT"
 
-  public :: eph_el_free, eph_el_set_energies, eph_el_setup_interpolation, eph_el_interpolate
+  public :: eph_el_free, eph_el_set_wannier_eigensystem, eph_el_setup_interpolation, eph_el_interpolate, eph_el_gen_Hk_wannier, eph_el_set_default_frequency_grid, eph_el_fermi_and_scissor
 
 contains
 
@@ -38,23 +40,32 @@ contains
   end subroutine eph_el_free
 
   !================================================================================ 
-  ! SET CORRECT ELECTRON ENERGIES
+  ! SET CORRECT ELECTRON ENERGIES AND EIGENVECTORS
   !
-  !> Replace KS energies by the ones used in the Wannier calculation according to
+  !> Replace KS energies and eigenvectors by the ones used in the Wannier calculation according to
   !> the attribute `input` in `<wannier>`.
   !>
-  !> Throughout the eph calculation, we will access energies via [[dfpt_eig_geteval(subroutine)]].
-  !> We replace the eigenenergies in the respective file by the ones obtained from [[wfhelp_geteval(subroutine)]].
-  subroutine eph_el_set_energies
-    use dfpt_variables, only : dfpt_kset, fevalk0
-    use mod_wannier_variables, only : wf_kset
-    use mod_wannier_helper, only : wfhelp_geteval
+  !> Throughout the eph calculation, we will access energies and eigenvectors via [[dfpt_eig_geteval(subroutine)]]
+  !> and [[dfpt_eig_getevec(subroutine)]], respectively.
+  !> We replace the eigenenergies and eigenvectors in the respective file by the ones obtained from 
+  !> [[wfhelp_geteval(subroutine)]] and [[wfhelp_getevec(subroutine)]].
+  subroutine eph_el_set_wannier_eigensystem
+    use dfpt_variables, only: dfpt_kset, dfpt_Gkset, fevalk0, feveck0
+    use mod_wannier_variables, only: wf_kset
+    use mod_wannier_helper, only: wfhelp_geteval, wfhelp_getevec
+    use mod_eigensystem, only: nmatmax_ptr
+    use mod_eigenvalue_occupancy, only: nstsv
+    use mod_APW_LO, only: nlotot
+    use mod_spin, only: nspinor
+    use sorting, only: sort_index_1d
     use modinput
 
-    integer :: fst, lst, ik_dfpt, ik_wan, isym
+    integer :: fst, lst, ik_dfpt, ik_wan, ik1, ik2, isym, nmat, ist
+    integer, target :: nmatmax
 
-    integer, allocatable :: shp(:)
+    integer, allocatable :: sort(:), shp(:)
     real(dp), allocatable :: eval_wan(:,:), eval_dfpt(:)
+    complex(dp), allocatable :: evec_wan(:,:,:), evec_dfpt(:,:)
 
     ! return, if there is nothing to do
     if (.not. eph_use_wannier) return
@@ -62,24 +73,35 @@ contains
 
     ! read energies used for Wannier functions
     call wfhelp_geteval( eval_wan, fst, lst )
-    ! read and replace DFPT energies
+
     shp = fevalk0%get_block_shape()
     allocate( eval_dfpt(shp(1)) )
-    do ik_dfpt = 1, dfpt_kset%nkpt
-      call fevalk0%read( ik_dfpt, eval_dfpt )
+    shp = feveck0%get_block_shape()
+    allocate( evec_dfpt(shp(1), shp(2)) )
+    nmatmax = dfpt_Gkset%ngkmax + nlotot
+    nmatmax_ptr => nmatmax
+    allocate( evec_wan(nmatmax_ptr, nstsv, nspinor) )
+
+    ! (Resort energies. Might not be sorted in case of GW.)
+    sort = [(ist, ist=1, nstsv)]
+    ik1 = firstofset( mpiglobal%rank, dfpt_kset%nkpt, mpiglobal%procs )
+    ik2 = lastofset( mpiglobal%rank, dfpt_kset%nkpt, mpiglobal%procs )
+    do ik_dfpt = ik1, ik2
       call findkptinset( dfpt_kset%vkl(:, ik_dfpt), wf_kset, isym, ik_wan )
-      eval_dfpt(fst:lst) = eval_wan(:, ik_wan)
-      ! shift energies relative to Fermi level and apply scissor
-      eval_dfpt = eval_dfpt - eph_efermi
-      where( eval_dfpt < 0.0_dp )
-        eval_dfpt = eval_dfpt - eph_scissor(1)
-      elsewhere
-        eval_dfpt = eval_dfpt + eph_scissor(2)
-      end where
+      nmat = dfpt_Gkset%ngk(1, ik_dfpt) + nlotot
+      sort(fst:lst) = sort_index_1d( size(eval_wan, dim=1), eval_wan(:, ik_wan) ) + fst - 1
+      ! replace DFPT energies
+      call fevalk0%read( ik_dfpt, eval_dfpt )
+      eval_dfpt(fst:lst) = eval_wan(sort(fst:lst), ik_wan)
       call fevalk0%write( ik_dfpt, eval_dfpt )
+      ! replace DFPT eigenvectors
+      call wfhelp_getevec( ik_wan, evec_wan )
+      call feveck0%read( ik_dfpt, evec_dfpt )
+      evec_dfpt(1:nmat, 1:nstsv) = evec_wan(1:nmat, sort, 1)
+      call feveck0%write( ik_dfpt, evec_dfpt )
     end do
-    deallocate( eval_wan, eval_dfpt, shp )
-  end subroutine eph_el_set_energies
+    deallocate( eval_wan, eval_dfpt, evec_wan, evec_dfpt, shp )
+  end subroutine eph_el_set_wannier_eigensystem
   !-------------------------------------------------------------------------------- 
 
   !================================================================================ 
@@ -94,18 +116,21 @@ contains
   !>   * computation of localized Hamiltonian in real space Wannier gauge \(\mathcal{H}_{mn}({\bf R})\)
   !>     and writing to file
   !>   * or reading \(\mathcal{H}_{mn}({\bf R})\) from file, if possible
+  !>   * building an index map between Wannier interpolated bands and original input bands
   subroutine eph_el_setup_interpolation( write_localization )
     use dfpt_variables, only: dfpt_Gset, dfpt_Gkset
     use mod_kpointset, only: generate_Gk_vectors
+    use modinput
     !> write spatial localization of \(\mathcal{\bf H}({\bf R})\) to file (default: `.false.`)
     logical, optional, intent(in) :: write_localization
 
-    integer :: ik, ik0, ir, isym, un, stat
+    integer :: ik, ik0, ir, isym, ist, jst, un, stat
     logical :: write_loc
     type(block_data_file_type) :: HR_file
 
-    real(dp), allocatable :: centers(:,:)
-    complex(dp), allocatable :: Hk(:,:,:)
+    integer, allocatable :: map(:,:)
+    real(dp), allocatable :: centers(:,:), eval(:,:)
+    complex(dp), allocatable :: Hk(:,:,:), evec(:,:,:)
 
     write_loc = .false.
     if (present(write_localization)) write_loc = write_localization
@@ -121,12 +146,7 @@ contains
       No Wannier functions could be found. Make sure, they have been precomputed.' )
 
     ! shift energies relative to Fermi level and apply scissor
-    eph_el_energy_k = eph_el_energy_k - eph_efermi
-    where( eph_el_energy_k < 0.0_dp )
-      eph_el_energy_k = eph_el_energy_k - eph_scissor(1)
-    elsewhere
-      eph_el_energy_k = eph_el_energy_k + eph_scissor(2)
-    end where
+    call eph_el_fermi_and_scissor( eph_el_energy_k, size(eph_el_energy_k), eph_efermi, eph_scissor )
 
     ! setup matrix fourier interpolation
     ! (Note: The electron / Wannier k-grid is assumed to be non-reduced!)
@@ -151,7 +171,7 @@ contains
       allocate( Hk(eph_nwf_tot, eph_nwf_tot, eph_el_mfi%np) )
       do ik = 1, eph_el_mfi%np
         call findkptinset( eph_el_mfi%vpl(:, ik), eph_kset_el, isym, ik0 )
-        call gen_Hk_wannier( eph_el_energy_k(:, ik0), eph_el_evec_k(:, :, ik0), Hk(:, :, ik) )
+        call eph_el_gen_Hk_wannier( eph_el_energy_k(:, ik0), eph_el_evec_k(:, :, ik0), Hk(:, :, ik) )
       end do
       call eph_el_mfi%transform_p2R( [eph_nwf_tot, eph_nwf_tot], 1, Hk, eph_nwf_tot**2, 1, eph_el_HR, eph_nwf_tot**2, 1 )
       deallocate( Hk )
@@ -165,7 +185,43 @@ contains
 
     if (allocated(centers)) deallocate( centers )
 
+    ! build index map
+    ! This assumes a unique and contiguous Wannierization, i.e., the Wannierized part of the
+    ! band structure must not contain any gaps and each band must be Wannierized exactly once.
+    ! (No two groups with overlapping inner windows.)
+    allocate( eph_wf_band_map(eph_nwf_tot, 0:eph_kset_el%nkpt), source=0 )
+    call eph_el_interpolate( eph_kset_el%vkl(:, 1:eph_kset_el%nkpt), eval, evec, irange=[1, eph_nwf_tot] )
+    do ik = 1, eph_kset_el%nkpt
+      jst = eph_fst - 1 + maxloc( [(count( abs( eph_el_energy_k(ist:ist+eph_nwf_tot-1, ik) - eval(:, ik) ) < eph_el_degtol ), ist=eph_fst, eph_lst-eph_nwf_tot+1)], dim=1 )
+      eval(:, ik) = eval(:, ik) - eph_el_energy_k(jst:jst+eph_nwf_tot-1, ik) 
+      where (abs(eval(:, ik)) < eph_el_degtol)
+        eph_wf_band_map(:, ik) = [(ist, ist=jst, jst+eph_nwf_tot-1)]
+      end where
+    end do
+    eph_wf_band_map(:, 0) = sum( eph_wf_band_map, dim=2 ) / eph_kset_el%nkpt
+    where (eph_wf_band_map(:, 0) /= maxval(eph_wf_band_map, dim=2)) 
+      eph_wf_band_map(:, 0) = 0
+    end where
+    call terminate_if_false( any( eph_wf_band_map(:, 0) > 0 ), '(eph_el_setup_interpolation) &
+      No band seems to be described exactly by Wannierization. Index alignment failed.' )
+    if (mpiglobal%rank == 0) then
+      write( *, '("Info: Range of Wannier functions that exactly describe original bands is ",i3," to ",i3,".")' ) &
+        minloc( pack( eph_wf_band_map(:, 0), eph_wf_band_map(:, 0) > 0 ) ), &
+        maxloc( pack( eph_wf_band_map(:, 0), eph_wf_band_map(:, 0) > 0 ) )
+      write( *, '("      Range of Wannier functions that are included in EPH calculation is ",i3," to ",i3,".")' ) &
+        eph_fwf, eph_lwf
+    end if
+    ! original index of first and last state that is covered by Wannier functions
+    eph_fst_span = findloc( eph_wf_band_map(:, 0) > 0, .true., dim=1 )
+    if (eph_fst_span > 0) eph_fst_span = eph_wf_band_map(eph_fwf+eph_fst_span-1, 0) - eph_fst_span + 1
+    eph_lst_span = eph_fst_span + eph_nwf - 1
+    if (mpiglobal%rank == 0) then
+      write( *, '("      Range of original bands that are described by Wannier functions is ",i3," to ",i3,".")' ) &
+        eph_fst_span, eph_lst_span
+    end if
+
     ! write spatial localization to file
+    call barrier( mpicom=mpiglobal )
     if (mpiglobal%rank == 0 .and. write_loc) then
       open( newunit=un, file='eph_el_loc.dat', action='write', form='formatted', iostat=stat )
       call terminate_if_false( stat == 0, '(eph_el_setup_interpolation) &
@@ -211,7 +267,7 @@ contains
     !> MPI communicator (default: global MPI communicator)
     type(mpiinfo), optional, intent(inout) :: mpicomm
 
-    integer :: nk, ik, ik1, ik2, nwf, irng(2), irank, jrank
+    integer :: nk, ik, ik1, ik2, nwf, irng(2), irank
     type(mpiinfo) :: mpi
 
     integer, allocatable :: irng_list(:,:), ik_range(:,:), ix_range(:,:)
@@ -227,12 +283,11 @@ contains
     nwf = irng(2) - irng(1) + 1
     nk = size( vkl, dim=2 )
 
-    call assert( size( vkl, dim=1 ) == 3, &
-      '`vkl` must be a set of vectors of length 3.' )
+    CALL_ASSERT( size( vkl, dim=1 ) == 3,  '`vkl` must be a set of vectors of length 3.' )
 
     ! communicate information on band distribution
-    allocate( irng_list(2, mpi%procs) )
-    irng_list = 0; irng_list(:, mpi%rank+1) = irng
+    allocate( irng_list(3, 0:mpi%procs-1) )
+    irng_list = 0; irng_list(:, mpi%rank) = [irng, irng(2)-irng(1)+1]
     call xmpi_allreduce( irng_list, mpi )
     
     ! distribute k among processes
@@ -248,8 +303,9 @@ contains
     allocate( Umnk(irng(1):irng(2), eph_nwf_tot, nk) )
 
     ! interpolate Hamiltonian
-    call eph_el_mfi%transform_R2p( [eph_nwf_tot, eph_nwf_tot], 1, eph_el_HR, eph_nwf_tot**2, 1, H, eph_nwf_tot**2, 1, vkl(:, ik1:ik2), &
-      minimal_distances=.true. )
+    if (ik2 >= ik1) &
+      call eph_el_mfi%transform_R2p( [eph_nwf_tot, eph_nwf_tot], 1, eph_el_HR, eph_nwf_tot**2, 1, H, eph_nwf_tot**2, 1, vkl(:, ik1:ik2), &
+        minimal_distances=eph_el_mindist )
 
     ! diagonalize Hamiltonian
     allocate( eval(eph_nwf_tot, ik1:ik2), evec(eph_nwf_tot, eph_nwf_tot) )
@@ -263,22 +319,20 @@ contains
 
     ! distribute results
 #ifdef MPI
-    do jrank = 0, mpi%procs-1
-      if (mpi%rank == jrank) then
-        do irank = 0, mpi%procs-1
-          if (irank == jrank) cycle
-          do ik = ik_range(1, irank+1), ik_range(2, irank+1)
-            call MPI_Recv( evalk(:, ik), nwf, MPI_DOUBLE, irank, irank*nk+ik, MPI_COMM(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
-            call MPI_Recv( Umnk(:, :, ik), nwf*eph_nwf_tot, MPI_DOUBLE_COMPLEX, irank, (mpi%procs+irank)*nk+ik, MPI_COMM(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
-          end do
-        end do
-      else
-        do ik = ik1, ik2
-          evec = H(irng_list(1, jrank+1):irng_list(2, jrank+1), :, ik)
-          call MPI_Send( evalk(irng_list(1, jrank+1), ik), size( evec, dim=1 ), MPI_DOUBLE, jrank, mpi%rank*nk+ik, MPI_COMM(mpi%comm), mpi%ierr )
-          call MPI_Send( evec, size( evec ), MPI_DOUBLE_COMPLEX, jrank, (mpi%procs+mpi%rank)*nk+ik, MPI_COMM(mpi%comm), mpi%ierr )
-        end do
-      end if
+    do irank = 0, mpi%procs-1
+      if (irank == mpi%rank) cycle
+      do ik = ik1, ik2
+        evec = H(irng_list(1, irank):irng_list(2, irank), :, ik)
+        call MPI_Send( eval(irng_list(1, irank), ik), irng_list(3, irank), MPI_DOUBLE, irank, mpi%rank*nk+ik, MPI_COMM(mpi%comm), mpi%ierr )
+        call MPI_Send( evec, size( evec ), MPI_DOUBLE_COMPLEX, irank, (mpi%procs+mpi%rank)*nk+ik, MPI_COMM(mpi%comm), mpi%ierr )
+      end do
+    end do
+    do irank = 0, mpi%procs-1
+      if (irank == mpi%rank) cycle
+      do ik = ik_range(1, irank+1), ik_range(2, irank+1)
+        call MPI_Recv( evalk(:, ik), nwf, MPI_DOUBLE, irank, irank*nk+ik, MPI_COMM(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+        call MPI_Recv( Umnk(:, :, ik), nwf*eph_nwf_tot, MPI_DOUBLE_COMPLEX, irank, (mpi%procs+irank)*nk+ik, MPI_COMM(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+      end do
     end do 
 #endif
     deallocate( H, eval, evec, irng_list, ik_range, ix_range )
@@ -297,18 +351,19 @@ contains
   !> DFPT calculation which are used to compute matrix elements.
   subroutine eph_el_read_wannier( kset, Gkset, nwf, evalk, eveck, centers )
     use constants, only: zzero, zone, twopi
-    use dfpt_variables, only : dfpt_kset, dfpt_Gkset, feveck0
-    use dfpt_eigensystem, only : dfpt_eig_getevec
+    use dfpt_variables, only: dfpt_kset, dfpt_Gkset, feveck0
+    use dfpt_eigensystem, only: dfpt_eig_getevec
     use mod_wannier_variables, only: wf_fst, wf_lst, wf_nst, wf_nwf, wf_kset, wf_transform, wf_centers
-    use mod_wannier_filehandling, only : wffile_readtransform
-    use mod_wannier_helper, only : wfhelp_geteval, wfhelp_getevec
+    use mod_wannier_filehandling, only: wffile_readtransform
+    use mod_wannier_helper, only: wfhelp_geteval, wfhelp_getevec
     use mod_kpointset, only: k_set, Gk_set
-    use mod_eigensystem, only : nmatmax_ptr
-    use mod_eigenvalue_occupancy, only : nstfv
-    use mod_spin, only : nspinor
-    use mod_APW_LO, only : nlotot
-    use m_linalg, only : zlsp
-    use xlapack, only : svd_divide_conquer
+    use mod_eigensystem, only: nmatmax_ptr
+    use mod_eigenvalue_occupancy, only: nstsv
+    use mod_spin, only: nspinor
+    use mod_APW_LO, only: nlotot
+    use m_linalg, only: zlsp
+    use xlapack, only: svd_divide_conquer
+    use sorting, only: sort_index_1d
     !> set of \({\bf k}\)-vectors for which electron energies \(\epsilon_{n{\bf k}}\) 
     !> and Wannier matrices \(U_{mn}({\bf k})\) should be read
     type(k_set), intent(in) :: kset
@@ -328,6 +383,7 @@ contains
     logical :: success
     type(block_data_file_type) :: Uk_file
 
+    integer, allocatable :: sort(:)
     real(dp), allocatable :: eval(:,:), sval(:)
     complex(dp), allocatable :: evec_wan(:,:,:), evec_dfpt(:,:), rot(:,:), lsvec(:,:), rsvec(:,:)
 
@@ -344,13 +400,16 @@ contains
     nwf = wf_nwf
 
     ! read energies
+    ! (Resort energies. Might not be sorted in case of GW.)
     if (allocated(evalk)) deallocate( evalk )
     allocate( evalk(wf_fst:wf_lst, kset%nkpt) )
+    allocate( sort(wf_fst:wf_lst) )
     do ik = 1, kset%nkpt
       call findkptinset( kset%vkl(:, ik), wf_kset, isym, ikw )
       call terminate_if_false( isym == 1, '(eph_el_read_wannier) &
         Requested k-point not found in Wannier k-point set.' )
-      evalk(:, ik) = eval(wf_fst:wf_lst, ikw)
+      sort = sort_index_1d( wf_nst, eval(wf_fst:wf_lst, ikw) ) + wf_fst - 1
+      evalk(:, ik) = eval(sort, ikw)
     end do
 
     ! get Wannier gauge matrices U(k)
@@ -370,7 +429,7 @@ contains
     else
       nmatmax = Gkset%ngkmax + nlotot
       nmatmax_ptr => nmatmax
-      allocate( evec_wan(nmatmax_ptr, nstfv, nspinor) )
+      allocate( evec_wan(nmatmax_ptr, nstsv, nspinor) )
 
       call Uk_file%open( mpiglobal )
       do ik = ik1, ik2
@@ -406,7 +465,7 @@ contains
   end subroutine eph_el_read_wannier
 
   !> Generate the Hamiltonian at \({\bf k}\) in Wannier gauge, \(\mathcal{H}_{mn}({\bf k})\).
-  subroutine gen_Hk_wannier( evalk, Umnk, Hk )
+  subroutine eph_el_gen_Hk_wannier( evalk, Umnk, Hk )
     use constants, only: zzero, zone
     use math_utils, only: is_square
     !> electron energies at \({\bf k}\) (relative to Fermi energy)
@@ -423,12 +482,9 @@ contains
     nst = size( Umnk, dim=1 )
     nwf = size( Umnk, dim=2 )
 
-    call assert( is_square( Hk ), &
-      '`Hk` must be square.' )
-    call assert( nst == size( evalk ), &
-      'Number of electronic states in `Umnk` and `evalk` do not match.' )
-    call assert( nwf == size( Hk, dim=1 ), &
-      'Number of Wannier functions in `Umnk` and `Hk` do not match.' )
+    CALL_ASSERT( is_square( Hk ),  '`Hk` must be square.' )
+    CALL_ASSERT( nst == size( evalk ),  'Number of electronic states in `Umnk` and `evalk` do not match.' )
+    CALL_ASSERT( nwf == size( Hk, dim=1 ),  'Number of Wannier functions in `Umnk` and `Hk` do not match.' )
 
     allocate( auxmat(nst, nwf) )
     do ist = 1, nst
@@ -436,6 +492,49 @@ contains
     end do
     call zgemm( 'c', 'n', nwf, nwf, nst, zone, Umnk, nst, auxmat, nst, zzero, Hk, nwf )
     deallocate( auxmat )
-  end subroutine gen_Hk_wannier
+  end subroutine eph_el_gen_Hk_wannier
+
+  !> Shifts a set of energies relative to the Fermi level and applies a scissor operator.
+  pure subroutine eph_el_fermi_and_scissor( energies, ne, efermi, scissor )
+    !> set of electron energies
+    real(dp), intent(inout) :: energies(*)
+    !> number of energies
+    integer, intent(in) :: ne
+    !> Fermi energy
+    real(dp), intent(in) :: efermi
+    !> scissor shift for occupied and unoccupied bands
+    real(dp), intent(in) :: scissor(2)
+  
+    energies(:ne) = energies(:ne) - efermi
+    if (abs(scissor(1)) < eph_el_degtol) then
+      where (energies(:ne) > eph_el_degtol) 
+        energies(:ne) = energies(:ne) + scissor(2)
+      end where
+    else if (abs(scissor(2)) < eph_el_degtol) then
+      where (energies(:ne) < -eph_el_degtol) 
+        energies(:ne) = energies(:ne) - scissor(1)
+      end where
+    else
+      where (energies(:ne) < 0.0_dp) 
+        energies(:ne) = energies(:ne) - scissor(1)
+      end where
+      where (energies(:ne) > 0.0_dp) 
+        energies(:ne) = energies(:ne) + scissor(2)
+      end where
+    end if
+  end subroutine eph_el_fermi_and_scissor
+
+  !> Set default parameters for frequency grid used for electron energies.
+  pure subroutine eph_el_set_default_frequency_grid( fgrid )
+    use modinput, only: freq_grid_type
+    !> frequency grid object
+    type(freq_grid_type), intent(out) :: fgrid
+  
+    fgrid%type = 'density'          ! density based sampling
+    fgrid%numpoints = 500           ! number of sampling points
+    fgrid%range = [minval(eph_el_energy_k), maxval(eph_el_energy_k)]
+    fgrid%padding = 0.1_dp          ! padding to add at both ends of range
+    fgrid%lorentzwidth = 0.02_dp    ! width of Lorentzian density
+  end subroutine eph_el_set_default_frequency_grid
   !-------------------------------------------------------------------------------- 
 end module eph_electrons

@@ -3,7 +3,6 @@
 !> will be merged with the fast-BSE code and remove duplicates.
 module xs_file_interface
     use precision, only: sp, dp
-    use m_getunit, only: getunit
 
     implicit none
 
@@ -29,9 +28,7 @@ contains
 
         character(256) :: charline
 
-        call getunit(unit_id)
-
-        open (unit=unit_id, file=trim(file_name), status='old', action='read')
+        open (newunit=unit_id, file=trim(file_name), status='old', action='read')
         read (unit_id, *) n_vecs
 
         do i = 1, n_vecs
@@ -59,9 +56,7 @@ contains
         real(dp) :: vec(6)
         integer :: unit_id
 
-        call getunit(unit_id)
-
-        open (unit=unit_id, file=trim(file_name_q), status='old', action='read')
+        open (newunit=unit_id, file=trim(file_name_q), status='old', action='read')
         read (unit_id, *) n_qvecs
         do i_q = 1, n_qvecs
             read (unit_id, *) dummy_int, vec, n_gqvecs(i_q)
@@ -118,7 +113,6 @@ contains
     subroutine write_gq_vectors(gqvecs_dirname, iq, gq_vecs_lat, &
                                 gq_vecs_cart, n_gq)
 
-        use m_getunit, only: getunit
         !> Directory name where (G+q)-vectors are stored
         character(*), intent(in) :: gqvecs_dirname
         !> Running index q-vector
@@ -143,8 +137,7 @@ contains
         ! Generate filename and open file
         write (strnum, '(I5.5)') iq
         fname = trim(gqvecs_dirname)//'/GQPOINTS_SCR_Q'//trim(strnum)//'.OUT'
-        call getunit(fid)
-        open (unit=fid, file=trim(fname), action='write', iostat=stat)
+        open (newunit=fid, file=trim(fname), action='write', iostat=stat)
 
         ! Write header
         write (fid, '(I6, " : ngq; G+q-point, vgql, vgqc, gqc, |G| below")') n_gq
@@ -162,7 +155,6 @@ contains
 
     !> Writes all q-vectors to file. The filename has to be specified as input.
     subroutine write_q_vectors(qvecs_fname, qvecs_lat, qvecs_cart, n_gqvecs)
-        use m_getunit, only: getunit
         use modmpi, only: terminate_mpi_env, mpiglobal
         integer :: fid
         !> q-vectors in lattice coordinates
@@ -183,8 +175,7 @@ contains
         n_qvecs = size(n_gqvecs)
 
         ! Open file
-        call getunit(fid)
-        open (unit=fid, file=trim(qvecs_fname), action='write', iostat=stat)
+        open (newunit=fid, file=trim(qvecs_fname), action='write', iostat=stat)
         if (stat /= 0) then
             write (*, *) "Error opening file, iostat:", stat, qvecs_fname
             call terminate_mpi_env(mpiglobal)

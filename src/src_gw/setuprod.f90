@@ -28,7 +28,7 @@ subroutine setuprod(ia,is)
     integer(4) :: io1, io2
     integer(4) :: ilo1, ilo2
     integer(4) :: ipr1, ipr2
-    integer(4) :: ir, l1, l2, ist
+    integer(4) :: ir, l1, l2, ist, core_state
     integer(4) :: nupcore
     real(8) :: fr(nrmtmax)
     real(8) :: gr(nrmtmax) 
@@ -72,7 +72,8 @@ subroutine setuprod(ia,is)
     if (input%gw%coreflag.ne.'vab') then 
 
       do ist = 1, ncore(is)
-        l1 = spl(ist,is)
+        core_state = core_state_indices(ist,is)
+        l1 = spl(core_state,is)
         if (l1 <= input%gw%MixBasis%lmaxmb) then
 
           !------------------------------------

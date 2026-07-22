@@ -12,7 +12,7 @@ Subroutine idfq(iq)
     Use modinput, Only: input
     Use modxs, Only: ivgigq, wpari, wparf, ngq, ikmapikq, istocc0, istunocc0, &
                     & isto0, isto, istu0, istu, ivgmt, unitout, bzsampl, unit1, &
-                    & istocc, istunocc, nwdf, tfxcbse, unit2, qvkloff
+                    & istocc, istunocc, nwdf, tfxcbse, qvkloff
     Use modfxcifc, Only: fxcifc
     Use constants, Only: zzero
     Use mod_misc, Only: task
@@ -24,7 +24,6 @@ Subroutine idfq(iq)
     Use m_dyson, Only: dyson
     Use m_dysonsym, Only: dysonsym
     Use m_getx0, Only: getx0
-    Use m_getunit, Only: getunit
     Use m_genfilname, Only: genfilname
     Implicit None
 
@@ -82,8 +81,6 @@ Subroutine idfq(iq)
 
     ! Record length
     Inquire(IoLength=Recl) mdf1(1)
-    Call getunit(unit1)
-    Call getunit(unit2)
 
     igmt = ivgigq(ivgmt(1, iq), ivgmt(2, iq), ivgmt(3, iq), iq)
     If (igmt .Gt. n) Then
@@ -134,7 +131,7 @@ Subroutine idfq(iq)
                     nar=.Not.input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m .Eq. 1), &
                     fxctype=input%xs%tddft%fxctypenumber, &
                     tq0=tq0, oc1=oct1, oc2=oct2, iqmt=iq, procs=procs, rank=rank, filnam=filnam2)
-                Open(unit1, File=trim(filnam2), Form='unformatted', Action='write', Access='direct', Recl=Recl)
+                Open(newunit=unit1, File=trim(filnam2), Form='unformatted', Action='write', Access='direct', Recl=Recl)
 
                 Select Case(input%xs%tddft%fxctypenumber)
                 Case(9:11)

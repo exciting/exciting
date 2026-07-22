@@ -2,11 +2,10 @@
 module grid_utils
   use precision, only: sp, dp
   use constants, only: pi, zi
-  use asserts, only: assert
+#include "asserts.fpp"
   use math_utils, only: kronecker_product, mod1, all_close
   use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
-  use asserts, only: assert
-
+#include "asserts.fpp"
   implicit none
   
   private
@@ -116,7 +115,7 @@ contains
     spacing_local = 1
     if (present(spacing)) spacing_local = spacing
 
-    call assert(spacing_local > 0, 'spacing <= 0.')
+    CALL_ASSERT(spacing_local > 0, 'spacing <= 0.')
 
     dx = last - first
     spacing_local = isign(spacing_local, dx)
@@ -151,8 +150,7 @@ contains
 
     integer :: N, i, sign
 
-    call assert(spacing >= 0._dp, &
-        message='linspace: Spacing must be larger equal zero.')
+    CALL_ASSERT(spacing >= 0._dp,  message='linspace: Spacing must be larger equal zero.')
 
     if (all_close(spacing, 0._dp)) then
       grid = [first]
@@ -197,8 +195,8 @@ contains
     integer :: n_points
     real(dp) :: spacing
     
-    call assert(N > 0, 'The number of grid points (N) is <= 0.')
-    call assert( .not. (all_close(first, last) .and. N /= 1), 'start == end, thus N must be 1.' )
+    CALL_ASSERT(N > 0, 'The number of grid points (N) is <= 0.')
+    CALL_ASSERT( .not. (all_close(first, last) .and. N /= 1), 'start == end, thus N must be 1.' )
 
     if (N == 1) then
       grid = [first]
@@ -252,8 +250,8 @@ contains
     len_1 = size(v1)
     len_2 = size(v2)
 
-    call assert(len_1 > 0, 'size(v1) == 0.')
-    call assert(len_2 > 0, 'size(v2) == 0.')
+    CALL_ASSERT(len_1 > 0, 'size(v1) == 0.')
+    CALL_ASSERT(len_2 > 0, 'size(v2) == 0.')
 
     allocate(v_out(len_1 + len_2))
 
@@ -273,8 +271,8 @@ contains
     len_1 = size(v1)
     len_2 = size(v2)
 
-    call assert(len_1 > 0, 'size(v1) == 0.')
-    call assert(len_2 > 0, 'size(v2) == 0.')
+    CALL_ASSERT(len_1 > 0, 'size(v1) == 0.')
+    CALL_ASSERT(len_2 > 0, 'size(v2) == 0.')
 
     allocate(v_out(len_1 + len_2))
 
@@ -294,8 +292,8 @@ contains
     len_1 = size(v1)
     len_2 = size(v2)
 
-    call assert(len_1 > 0, 'size(v1) == 0.')
-    call assert(len_2 > 0, 'size(v2) == 0.')
+    CALL_ASSERT(len_1 > 0, 'size(v1) == 0.')
+    CALL_ASSERT(len_2 > 0, 'size(v2) == 0.')
 
     allocate(v_out(len_1 + len_2))
 
@@ -430,7 +428,7 @@ contains
 
     integer :: i
 
-    call assert(size(r_array, 1) == 3, 'First dimension of r_array needs to be 3.')
+    CALL_ASSERT(size(r_array, 1) == 3, 'First dimension of r_array needs to be 3.')
     
     allocate(phase(size(r_array, 2)))
 
@@ -493,7 +491,7 @@ contains
 
     integer :: i
 
-    call assert(all(N_grid_in > 0),  'Number of k-points per dimension is zero.')
+    CALL_ASSERT(all(N_grid_in > 0),  'Number of k-points per dimension is zero.')
     N_grid_out = 2 * N_grid_in
     do i = 1, 3
       if (N_grid_in(i) == 1) N_grid_out(i) = 1
@@ -524,8 +522,7 @@ contains
       !> Default absolute tolerance
       real(dp) :: tol_
 
-      call assert(size(array, dim=1) == size(vector), message= &
-                  'column_index: First dimension of array should be dimension of vector.')
+      CALL_ASSERT(size(array, dim=1) == size(vector), message=  'column_index: First dimension of array should be dimension of vector.')
 
       tol_ = tol_default
       if (present(tol)) tol_ = tol
@@ -552,8 +549,7 @@ contains
       !> Running index vectors
       integer :: i
 
-      call assert(size(array, dim=1) == size(vector), message= &
-                  'column_index: First dimension of array should be dimension of vector.')
+      CALL_ASSERT(size(array, dim=1) == size(vector), message=  'column_index: First dimension of array should be dimension of vector.')
 
       idx_vec = 0
 
@@ -604,8 +600,7 @@ contains
       real(dp)  :: tol_
       integer :: i
 
-      call assert(size(grid, dim=1) == 3, 'Error indices_finite_vectors: &
-                  Grid dimensions are wrong (should be (3, n_vecs)).')
+      CALL_ASSERT(size(grid, dim=1) == 3, 'Error indices_finite_vectors:  Grid dimensions are wrong (should be (3, n_vecs)).')
 
       tol_ = tol_default
       if (present(tol)) tol_ = tol
@@ -630,7 +625,7 @@ contains
 
     integer :: divider(3), i, index3d(3)
 
-    call assert(all(mod(N_grid_dense, N_grid) == 0) , 'N_grid_dense modulus N_grid is not zero for all dimensions.')
+    CALL_ASSERT(all(mod(N_grid_dense, N_grid) == 0) , 'N_grid_dense modulus N_grid is not zero for all dimensions.')
 
     divider = N_grid_dense / N_grid
     allocate(map(product(N_grid)))
@@ -656,8 +651,8 @@ contains
     integer, allocatable :: multi_index(:)
 
 
-    call assert(size(shape_B) == size(shape_A), 'shape_B and shape_A have not the same size.')
-    call assert(all(shape_A >= shape_B), 'shape_A < shape_B.')
+    CALL_ASSERT(size(shape_B) == size(shape_A), 'shape_B and shape_A have not the same size.')
+    CALL_ASSERT(all(shape_A >= shape_B), 'shape_A < shape_B.')
 
     size_B = product(shape_B)
     rank = size(shape_B)
@@ -681,8 +676,8 @@ contains
     !> Index of the subset.
     integer :: i
 
-    call assert(i <= size(n_elements), 'i > size(n_elements).')
-    call assert(all(n_elements > 0), 'some of n_elements <=0.')
+    CALL_ASSERT(i <= size(n_elements), 'i > size(n_elements).')
+    CALL_ASSERT(all(n_elements > 0), 'some of n_elements <=0.')
 
     if(i==1) then
       first_element = 1
@@ -700,8 +695,8 @@ contains
     !> Index of the subset.
     integer :: i
 
-    call assert(i <= size(n_elements), 'i > size(n_elements).')
-    call assert(all(n_elements > 0), 'some of n_elements <=0.')
+    CALL_ASSERT(i <= size(n_elements), 'i > size(n_elements).')
+    CALL_ASSERT(all(n_elements > 0), 'some of n_elements <=0.')
 
     last_element = sum(n_elements(:i))
   end function last_element
@@ -726,9 +721,9 @@ contains
     real(dp), allocatable :: y_int(:), cf(:,:)
 
     nx = size( x )
-    call assert( size( y ) == nx, 'Lengths of `x` and `y` do not match.' )
-    call assert( all( y > 0.0_dp ), '`y` must be positive.' )
-    call assert( N >= 2, '`N` must be at least 2.' )
+    CALL_ASSERT( size( y ) == nx, 'Lengths of `x` and `y` do not match.' )
+    CALL_ASSERT( all( y > 0.0_dp ), '`y` must be positive.' )
+    CALL_ASSERT( N >= 2, '`N` must be at least 2.' )
 
     ! get normalized integrated density
     allocate( y_int(nx), cf(3, nx) )

@@ -65,6 +65,8 @@ Subroutine writeengy (fnum)
             Write (fnum, '(" DFT-D2 dispersion correction", T45, ": ", F18.8)') e_disp
          Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then
             Write (fnum, '(" TS-vdW dispersion correction", T45, ": ", F18.8)') e_disp
+         Else If(input%groundstate%vdWcorrection .Eq. "MBD" ) Then
+            Write (fnum, '(" Many body dispersion correction", T45, ": ", F18.8)') e_disp
          End If
       End If
 

@@ -10,7 +10,6 @@ Subroutine pmatxs2orig
       Use modmain
       Use modxs
       Use modmpi
-      Use m_getunit
       Use m_getpmat
       Implicit None
   ! local variables
@@ -23,8 +22,7 @@ Subroutine pmatxs2orig
          Call init2
          Allocate (pm(3, nstsv, nstsv))
          Inquire (IoLength=Recl) pm
-         Call getunit (un)
-         Open (un, File='PMAT.OUT', Form='unformatted', Action='write', &
+         Open (newunit=un, File='PMAT.OUT', Form='unformatted', Action='write', &
         & Status='replace', Access='direct', Recl=Recl)
          Do ik = 1, nkpt
             Call getpmat (ik, vkl, 1, nstsv, 1, nstsv, .True., 'PMAT_XS&

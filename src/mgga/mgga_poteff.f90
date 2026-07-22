@@ -1,13 +1,15 @@
 !> Routines to calculate the mgga or gga potential. 
 module mgga_poteff
-    use precision, only: dp
+    use exciting_mpi, only: xmpi_bcast
+    use precision, only: dp, i32, long_int
     use modinput, only: input
-    use asserts, only: assert
+#include "asserts.fpp"
     use mgga_potxc, only: potxc_ir_spinunpolarised, potxc_mt_spinunpolarised
     use mod_potential_and_density, only: vclir, vclmt, vhalfir, vhalfmt
     use mod_muffin_tin, only: nrmtmax, nrmt, lmmaxvr, nrmtinr, lmmaxinr
     use mod_atoms, only: nspecies, natoms, idxas, natmtot
     use mod_Gvector, only: ngrtot
+    use modmpi, only: mpiglobal
 
     implicit none 
 
@@ -68,9 +70,9 @@ module mgga_poteff
             !> Effective (multiplicative) potential in the interstitial region 
             real(dp), intent(inout) :: veffir_mgga(:)
             !> Degree of exchange-correlation potential (can be 2 - for GGA or 3 - for meta-GGA)
-            integer, intent(in) :: xcgrad
+            integer(i32), intent(in) :: xcgrad
             !> Exchange-correlation type
-            integer, intent(in) :: xctype(:)
+            integer(i32), intent(in) :: xctype(:)
             !> Density in the muffin-tin region
             real(dp), intent(in) :: rhomt(:, :, :)
             !> Density in the interstitial region
@@ -96,7 +98,7 @@ module mgga_poteff
             !> mon-multiplicative exchange-correlation potential in the interstitial region
             real(dp), intent(inout) :: vxcir_mgga_nonmult(:)
 
-            call assert((xcgrad == 3), message='subroutine for mGGAs only.')
+            CALL_ASSERT((xcgrad == 3), message='subroutine for mGGAs only.')
             
             call potxc_mt_spinunpolarised(xcgrad, xctype, rhomt, vxcmt_mgga, exmt_mgga, ecmt_mgga, ked_mt, vxcmt_mgga_nonmult)
             call potxc_ir_spinunpolarised(xcgrad, xctype, rhoir, vxcir_mgga, exir_mgga, ecir_mgga, ked_ir, vxcir_mgga_nonmult)
@@ -115,9 +117,9 @@ module mgga_poteff
             !> Effective (multiplicative) potential in the interstitial region (IR)
             real(dp), intent(inout) :: veffir_gga(:)
             !> degree of exchange-correlation potential (can be 2 - for GGA or 3 - for meta-GGA)
-            integer, intent(in) :: xcgrad
+            integer(i32), intent(in) :: xcgrad
             !> exchange-correlation type
-            integer, intent(in) :: xctype(:)
+            integer(i32), intent(in) :: xctype(:)
             !> density in the muffin-tin region 
             real(dp), intent(in) :: rhomt(:, :, :)
             !> density in the interstitial region 
@@ -135,7 +137,7 @@ module mgga_poteff
             !> correlation energy density in the interstitial region
             real(dp), intent(inout) :: ecir_gga(:)
 
-            call assert((xcgrad == 2), message='Only with libxc GGAs implemented.')
+            CALL_ASSERT((xcgrad == 2), message='Only with libxc GGAs implemented.')
             
             call potxc_mt_spinunpolarised(xcgrad, xctype, rhomt, vxcmt_gga, exmt_gga, ecmt_gga)
             call potxc_ir_spinunpolarised(xcgrad, xctype, rhoir, vxcir_gga, exir_gga, ecir_gga)
@@ -165,10 +167,13 @@ module mgga_poteff
             !> Exchange-correlation potential in the interstitial region 
             real(dp), intent(inout) :: vxcir(:)
     
-            integer :: is, ias, ia, lmmax, ir, lm 
+            integer(i32) :: is, ias, ia, lmmax, ir, lm 
             real(dp) :: shift 
+            logical :: dfthalf_on
             
             shift=input%groundstate%energyref
+            dfthalf_on = associated( input%groundstate%dfthalf )
+            if( dfthalf_on ) dfthalf_on = .not. input%groundstate%dfthalf%NSCF
 
             vclmt(1,:,:) = vclmt(1,:,:)+shift/y00
             Do is = 1, nspecies
@@ -178,7 +183,7 @@ module mgga_poteff
                     Do ir = 1, nrmt (is)
                     If (ir .Gt. nrmtinr(is)) lmmax = lmmaxvr
                     Do lm = 1, lmmax
-                        if (associated(input%groundstate%dfthalf)) then
+                        if ( dfthalf_on ) then
                             veffmt(lm,ir,ias) = vclmt(lm,ir,ias) + vxcmt(lm,ir,ias) + vhalfmt (lm, ir, ias)
                         else
                             veffmt(lm,ir,ias) = vclmt(lm,ir,ias) + vxcmt(lm,ir,ias)
@@ -194,7 +199,7 @@ module mgga_poteff
             ! interstitial part
             vclir(:) = vclir(:) + shift
             
-            if (associated(input%groundstate%dfthalf)) then
+            if ( dfthalf_on ) then
                 veffir(:) = vclir(:) + vxcir(:) + vhalfir(:)
             else
                 veffir(:) = vclir(:) + vxcir(:)
@@ -206,9 +211,6 @@ module mgga_poteff
         !> and interstitial region are mixed. 
         subroutine mgga_mixer(iscl, nu, mode, currentconvergence, vcurrentconvergence)
             use modmpi,         only: rank
-#ifdef MPI
-            use modmpi, only: MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr
-#endif
             use modinput
             use mod_spin,       only: ndmag
             use mod_muffin_tin, only: lmmaxvr, nrmtmax
@@ -216,18 +218,18 @@ module mgga_poteff
             use mod_atoms,      only: natmtot
 
             !> scf-iteration 
-            integer, intent(in)                 :: iscl
+            integer(i32), intent(in)                 :: iscl
             !> (un)packed function
             real(dp), allocatable, intent(inout):: nu(:)
             !> mode for mixing: -1: call initialisation routines, -2: call destructor, else ignore
-            integer, intent(inout)             :: mode
+            integer(i32), intent(inout)             :: mode
             !> Convergence of current scf-iteration
             real(dp), intent(inout)            :: currentconvergence
             !> Array to save consecutive convergence values 
             real(dp), intent(inout)            :: vcurrentconvergence(:)
 
-            ! Local variables
-            integer :: n, id
+            integer(long_int) :: n
+            integer(i32) :: id
 
             if (input%groundstate%mixernumber == 3) then
                 write(*,*) "Error(mgga mixer): meta-GGA not tested with Pulay mixer"
@@ -259,9 +261,7 @@ module mgga_poteff
                     vcurrentconvergence(input%groundstate%niterconvcheck) = currentconvergence
                 end if
 
-#ifdef MPI
-                call MPI_Bcast(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-#endif
+                call xmpi_bcast(mpiglobal, nu)
 
                 call mgga_pot_mixpack(.false., n, nu)
             end if
@@ -276,11 +276,11 @@ module mgga_poteff
             !> `.true.` for packing and `.false.` for unpacking
             logical, intent(in) :: tpack
             !> number of elements per function
-            integer, intent(out) :: n
+            integer(long_int), intent(out) :: n
             !> (un)packed function
             real(dp), intent(inout) :: nu(*)
             
-            integer :: idm
+            integer(i32) :: idm
 
             n = 0
             if (tpack) then 

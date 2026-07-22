@@ -5,14 +5,15 @@
 
 !> Select exciting features to run
 subroutine tasklauncher()
-    use modinput
+    use groundstatetasklauncher, only: launch_groundstate
+    use modinput, only: input
     use xs_task_launcher
     
     implicit none
 
     ! Note that the order of the calls below may be important!
     if (associated(input%groundstate)) &
-        call groundstatetasklauncher()
+        call launch_groundstate()
 
     if (associated(input%properties)) &
         call propertylauncher()

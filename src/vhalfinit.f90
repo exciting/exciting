@@ -1,17 +1,15 @@
-!
-!
-!
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-!
-!BOP
-! !ROUTINE: vhalfinit (modified from rhoinit)
-! !INTERFACE:
-!
-!
-Subroutine vhalfinit
-! !USES:
+!> Module for the initialization of the \(V_S\) potential (used in DFT-1/2)
+module vhalfinit
+
+  implicit none
+
+  private
+
+  public :: initialize_vhalf
+
+contains
+!> Initialize the \(V_S\) potential (used in DFT-1/2) from the atomic potential `vhalf_sph`
+Subroutine initialize_vhalf( vhalf_sph )
       Use modinput
       Use modmain
       use constants, only: fourpi, pi
@@ -19,43 +17,24 @@ Subroutine vhalfinit
 #ifdef USEOMP
       use omp_lib
 #endif
-! !DESCRIPTION:
-!   Initialises the crystal charge density. Inside the muffin-tins it is set to
-!   the spherical atomic density. In the interstitial region it is taken to be
-!   constant such that the total charge is correct. Requires that the atomic
-!   densities have already been calculated.
-!
-! !REVISION HISTORY:
-!   Created January 2015 (Ronaldo R Pela)
-!EOP
-!BOC
-      Implicit None
-! local variables
-! polynomial order of smooth step function
-      Integer, Parameter :: n = 4
-      Integer :: lmax, lmmax, l, m, lm, ir, irc
+      use precision, only: dp
+      real(dp), intent(in) :: vhalf_sph (:, :)
+
+      Integer :: lmax, lmmax, ir, irc
       Integer :: is, ia, ias, ig, ifg
-      Real (8) :: x, t1, t2, jlgr01, jlgr(0:1)
-      Complex (8) zt1, zt2, zt3,yy(4),update(4)
-      Real (8) :: ta,tb, tc,td
+      Real (8) :: x, t2, jlgr01, jlgr(0:1)
+      Complex (8) :: yy(4) 
 ! automatic arrays
       Real (8) :: fr (spnrmax), gr (spnrmax), cf (3, spnrmax)
 ! allocatable arrays
-      Real (8), Allocatable :: jj(:,:)
-      Real (8), Allocatable :: th (:, :)
       Real (8), Allocatable :: ffacg (:)
       Real (8), Allocatable :: rhomodel(:,:)
-      Complex (8), Allocatable :: zfmt (:, :),z2fmt (:,:)
+      Complex (8), Allocatable :: zfmt (:, :)
       Complex (8), Allocatable :: zfft (:)
 
-      integer :: auxgridsize,mtgridsize,lastpoint
+      integer :: auxgridsize, lastpoint
       Real (8), Allocatable :: auxgrid(:),auxrho(:),a(:),c(:),b(:)
-      Real (8) :: rhoder,rhoder2, tp(2),r
-      real(8), parameter :: threshold=1d-12
-      integer, parameter :: PointsPerPeriod=20
-
-      integer:: boundhi,boundlo,middle
-      real(8):: jthr,cs,sn,xi
+      real(8):: cs, sn
 #ifdef USEOMP
       integer:: whichthread,nthreads
 #endif
@@ -65,11 +44,10 @@ Subroutine vhalfinit
       real(8),allocatable :: swc(:),swoverlap(:,:),sine(:),cosine(:),swgr(:),pwswc(:,:),swoverlap2(:,:,:),pwswc2(:)
       complex(8),allocatable :: swc2(:,:,:),swctmp(:,:,:)!,pwswc(:,:)
       real(8) :: maxswg,swg,rhotest
-      real(8) :: aa,bb,ans,rmt3
-
+      real(8) :: aa,bb,rmt3
 
 ! maximum angular momentum for density initialisation
-      lmax = 5
+      lmax = input%groundstate%lmaxvr
       lmmax = (lmax+1) ** 2
 ! allocate local arrays     
       Allocate (ffacg(ngvec))
@@ -85,7 +63,6 @@ Subroutine vhalfinit
       vhalfmt (:, :, :) = 0.d0
       vhalfir (:) = 0.d0
       zfmt (:,:) = 0.d0
-      call timesec(ta)
 ! compute the superposition of all tails of all vhalf-atoms
       zfft (:) = 0.d0
       Do is = 1, nspecies
@@ -97,7 +74,7 @@ Subroutine vhalfinit
          allocate(auxgrid(auxgridsize))
          allocate(auxrho(auxgridsize))
          auxgrid(1:auxgridsize)=spr(1:lastpoint, is)
-         auxrho(1:auxgridsize)=vhalfsph(1:lastpoint, is)
+         auxrho(1:auxgridsize)=vhalf_sph(1:lastpoint, is)
 ! Initialise auxiliary basis - spherical Bessel functions
          nsw=int(2d0*input%groundstate%gmaxvr*auxgrid(auxgridsize)/(pi))+1
          allocate(swc(0:nsw))
@@ -246,13 +223,8 @@ Subroutine vhalfinit
             End Do
          End Do
       End Do
-      call timesec(tb)
-      !write(*,*) 'rhoinit, step 1:',tb-ta
-      call timesec(ta)
 ! compute the tails in each muffin-tin
 
-! Choose .false. if you want to revert to old ways
-if (.true.) then
       Do is = 1, nspecies
          nsw=int(2*input%groundstate%gmaxvr*rmt(is)/(pi))+1
          allocate(swc2(0:nsw,4,natoms(is)))
@@ -491,118 +463,6 @@ if (.true.) then
 
      enddo
 
-else
-
-      Do is = 1, nspecies
-         Do ia = 1, natoms (is)
-            ias = idxas (ia, is)
-            zfmt (:, :) = 0.d0
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(NONE) SHARED(zfft,is,ias,rcmt,gc,nrcmt,ngvec,sfacg,ffacg,ylmg,zfmt,igfft,vgc) PRIVATE(ig,irc,x,zt1,zt2,zt3,jj,z2fmt,boundlo,boundhi,ifg,yy,cs,sn,update,xi,jthr,r,tp,whichthread,nthreads)
-#endif
-            Allocate (jj(0:1, nrcmt (is)))
-            Allocate (z2fmt(4, nrcmt (is)))
-            z2fmt (:, :) = 0.d0
-#ifdef USEOMP
-!$OMP DO
-#endif
-            Do ig = 1, ngvec
-               ifg = igfft (ig)
-               yy=conjg(ylmg(1:4,ig))
-               zt1 = fourpi * zfft (ifg) * sfacg (ig, ias)
-
-! Here we are supposed to compute the spherical Bessel functions for every r.
-! The thing that we actually want to do can be described by 4 lines.
-!               Do irc = 1, nrcmt (is)
-!                 x = gc (ig) * rcmt (irc, is)
-!                 Call sbessel (lmax, x, jj(:,irc))
-!               enddo
-! Unfortunately, this is slow.
-
-! To make the code faster, we explicitly use assumptions:
-! * lmax=1,
-! * rcmt(:,is) is sorted.
-
-! First, we separate x<1d-8 from large x.
-! It is done using binary search.
-               jthr=1d-8/gc (ig)
-               boundhi=nrcmt (is)
-               boundlo=1
-               if (rcmt (1, is).gt.jthr) then
-                 boundlo=0
-                 boundhi=1
-               elseif (rcmt (nrcmt (is), is).lt.jthr) then
-                 boundlo=nrcmt (is)
-                 boundhi=nrcmt (is)+1
-               else
-                 do while (boundhi-boundlo.gt.1)
-                   irc=(boundhi+boundlo)/2
-                   if (rcmt (irc, is).gt.jthr) then
-                     boundhi=irc
-                   else
-                     boundlo=irc
-                   endif
-                 enddo
-               endif
-! Second, we apply the Taylor expansion for small x.
-               do irc=1,boundlo
-                 x=gc (ig)*rcmt (irc, is)
-                 jj(0,irc)=1d0-sixth*x**2
-                 jj(1,irc)=third*x*(1d0-0.1d0*x**2)
-               enddo
-! Third, we apply the actual formula for spherical Bessel functions for large x.
-! j0(x)=sin(x)/x
-! j1(x)=sin(x)/x**2-cos(x)/x
-               do irc=boundhi,nrcmt(is)
-                 x=gc (ig)*rcmt (irc, is)
-                 xi=1d0/x
-                 cs=cos(x)
-                 sn=sin(x)
-                 jj(0,irc)=sn*xi
-                 jj(1,irc)=(jj(0,irc)-cs)*xi
-               enddo
-! End of story. :)
-
-               update(1)=zt1*yy(1)
-               update(2:4)=zt1*yy(2:4)*zi
-               Do irc = 1, nrcmt (is)
-               z2fmt (1, irc) = z2fmt (1, irc) + jj(0,irc) * update(1)
-                z2fmt (2:4, irc) = z2fmt (2:4, irc) + jj(1,irc) * update(2:4)
-               End Do
-            End Do
-#ifdef USEOMP
-!$OMP END DO
-            nthreads=omp_get_num_threads()
-            whichthread=omp_get_thread_num()
-            do irc=0,nthreads-1
-              if (irc.eq.whichthread) then
-                zfmt(1:4,1:nrcmt (is))= zfmt(1:4,1:nrcmt (is))+ z2fmt(1:4,1:nrcmt (is))
-              endif
-!$OMP BARRIER
-            enddo
-            deallocate(jj,z2fmt)
-!$OMP END PARALLEL
-#else
-            zfmt=z2fmt
-            deallocate(jj,z2fmt)
-#endif
-            irc = 0
-            Do ir = 1, nrmt (is), input%groundstate%lradstep
-               irc = irc + 1
-               Call ztorflm (lmax, zfmt(:, irc), vhalfmt(:, ir, ias))
-            End Do
-         End Do
-      End Do
-
-endif
-
-
-
-
-      call timesec(tb)
-      !write(*,*) 'rhoinit, step 2:',tb-ta
-      call timesec(ta)
- 
 ! Remove model Vhalf from vhalfmt
       Do is = 1, nspecies
         Do ia = 1, natoms (is)
@@ -620,7 +480,7 @@ endif
 ! Actually this is sloppy, since we have to subtract the contribution that is described by plane waves.
 ! Instead we subtract the model function that we try to expand in plane waves. In the limit of large Gmax,
 ! both things are equivalent. 
-               t2 = (vhalfsph(ir, is)) / y00
+               t2 = (vhalf_sph(ir, is)) / y00
                vhalfmt (1, ir, ias) = vhalfmt (1, ir, ias) + t2
             End Do
          End Do
@@ -631,7 +491,5 @@ endif
          vhalfir (ir) = dble (zfft(ir))
       End Do
       Deallocate (ffacg, zfmt, zfft,a,b,c,rhomodel)
-      call timesec(tb)
-      Return
 End Subroutine
-!EOC
+end module

@@ -1,7 +1,6 @@
 
 module normalize
-
-  use asserts, only: assert
+#include "asserts.fpp"
   use precision, only: dp, i32
   use math_utils, only: is_positive_definite
   use xlapack, only: dot_multiply, hermitian_matrix_multiply
@@ -62,9 +61,9 @@ contains
     complex(dp), allocatable :: A(:, :)
     integer(i32) :: j
 
-    call assert( is_positive_definite(matrix), 'matrix is not positive definite.' )
+    CALL_ASSERT( is_positive_definite(matrix), 'matrix is not positive definite.' )
     associate( m => size(matrix, 1), n_vectors => size(vectors, 2) )
-      call assert( size(norms_squared) == n_vectors, 'norms must have size = n_vectors' )
+      CALL_ASSERT( size(norms_squared) == n_vectors, 'norms must have size = n_vectors' )
       allocate( A(m, n_vectors) )
       call hermitian_matrix_multiply( matrix, vectors, A )
       do j = 1, n_vectors

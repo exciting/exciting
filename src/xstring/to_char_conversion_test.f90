@@ -1,6 +1,6 @@
 !> Test [[to_char_conversion]]
 module to_char_conversion_test
-  use asserts, only: assert
+
   use math_utils, only: transpose_reshape
   use modmpi, only: mpiinfo
   use precision, only: dp, i32, long_int, sp

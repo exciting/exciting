@@ -1,5 +1,5 @@
 module unit_cell_utils
-  use asserts, only: assert
+
   use precision, only: dp
   use constants, only: pi
   use math_utils, only: all_zero

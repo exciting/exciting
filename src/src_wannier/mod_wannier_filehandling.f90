@@ -14,8 +14,6 @@ module mod_wannier_filehandling
   use mod_potential_and_density, only: xctype
   use mod_misc,                  only: filext
   use modinput
-  use m_getunit
-  use m_plotmat
   use modmpi
 
   implicit none
@@ -36,8 +34,6 @@ module mod_wannier_filehandling
       real(8) :: vkl_( 3), vkl_tmp( 3, wf_kset%nkpt)
       character(32) :: method
 
-      call getunit( un)
-
       success = .true.
       inquire( file=trim( wf_filename)//"_TRANSFORM"//trim( filext), exist=success)
       if( .not. success) then
@@ -47,7 +43,7 @@ module mod_wannier_filehandling
         end if
         return
       end if
-      open( un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
+      open( newunit=un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
 
       ! global parameters
       read( un) fst_, lst_, nst_, nwf_, nkpt_, ngroups_, wf_nprojtot
@@ -123,6 +119,7 @@ module mod_wannier_filehandling
           write(*,'("Input file setting is used.")')
         end if
         read( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst 
+        read( un) wf_groups( igroup)%fst_ks, wf_groups( igroup)%lst_ks, wf_groups( igroup)%nst_ks 
         read( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf 
         read( un) wf_groups( igroup)%nproj
         read( un) wf_groups( igroup)%win_i
@@ -213,9 +210,7 @@ module mod_wannier_filehandling
       
       if( mpiglobal%rank .gt. 0) return
 
-      call getunit( un)
-
-      open( un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='WRITE', form='UNFORMATTED')
+      open( newunit=un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='WRITE', form='UNFORMATTED')
       ! global parameters
       write( un) wf_fst, wf_lst, wf_nst, wf_nwf, wf_kset%nkpt, wf_ngroups, wf_nprojtot
 
@@ -228,6 +223,7 @@ module mod_wannier_filehandling
       do igroup = 1, wf_ngroups
         write( un) wf_groups( igroup)%method
         write( un) wf_groups( igroup)%fst, wf_groups( igroup)%lst, wf_groups( igroup)%nst
+        write( un) wf_groups( igroup)%fst_ks, wf_groups( igroup)%lst_ks, wf_groups( igroup)%nst_ks
         write( un) wf_groups( igroup)%fwf, wf_groups( igroup)%lwf, wf_groups( igroup)%nwf
         write( un) wf_groups( igroup)%nproj
         write( un) wf_groups( igroup)%win_i
@@ -293,8 +289,6 @@ module mod_wannier_filehandling
       real(8) :: vln(3), vkl_( 3), vkl_tmp( 3, wf_kset%nkpt)
       complex(8) :: ztmp
 
-      call getunit( un)
-
       success = .true.
       inquire( file=trim( wf_filename)//"_EMAT"//trim( filext), exist=success)
       if( .not. success) then
@@ -304,7 +298,7 @@ module mod_wannier_filehandling
         end if
         return
       end if
-      open( un, file=trim( wf_filename)//"_EMAT"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
+      open( newunit=un, file=trim( wf_filename)//"_EMAT"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
       read( un) fst_, lst_, nst_, ntot_, nkpt_
       if( (fst_ .gt. wf_fst) .or. (lst_ .lt. wf_lst)) then
         if( mpiglobal%rank .eq. 0) then
@@ -393,9 +387,7 @@ module mod_wannier_filehandling
 
       if( mpiglobal%rank .gt. 0) return
 
-      call getunit( un)
-
-      open( un, file=trim( wf_filename)//"_EMAT"//trim( filext), action='WRITE', form='UNFORMATTED')
+      open( newunit=un, file=trim( wf_filename)//"_EMAT"//trim( filext), action='WRITE', form='UNFORMATTED')
       write( un) wf_fst, wf_lst, wf_nst, wf_n_ntot, wf_kset%nkpt
       do idxn = 1, wf_n_ntot
         write( un) wf_n_vl( :, idxn)
@@ -424,8 +416,7 @@ module mod_wannier_filehandling
 
       inquire( file=trim( wf_filename)//"_EMAT"//trim( filext), exist=exist)
       if( exist) then
-        call getunit( un)
-        open( un, file=trim( wf_filename)//"_EMAT"//trim( filext))
+        open( newunit=un, file=trim( wf_filename)//"_EMAT"//trim( filext))
         close( un, status='delete')
       end if
 
@@ -537,9 +528,9 @@ module mod_wannier_filehandling
       call printbox( wf_info, '-', string)
       string = wf_groups( wf_group)%method(1:16)
       write( wf_info, *)
-      write( wf_info, '(" lowest band:",T30,13x,I3)') wf_groups( wf_group)%fst
-      write( wf_info, '(" highest band:",T30,13x,I3)') wf_groups( wf_group)%lst
-      write( wf_info, '(" #bands involved:",T30,13x,I3)') wf_groups( wf_group)%nst
+      write( wf_info, '(" lowest band:",T30,13x,I3)') wf_groups( wf_group)%fst_ks
+      write( wf_info, '(" highest band:",T30,13x,I3)') wf_groups( wf_group)%lst_ks
+      write( wf_info, '(" #bands involved:",T30,13x,I3)') wf_groups( wf_group)%nst_ks
       write( wf_info, '(" #Wannier functions:",T30,13x,I3)') wf_groups( wf_group)%nwf
       if( wf_groups( wf_group)%neighcells) then
         write( wf_info, '(" #projection functions (nc):",T30,11x,I5)') wf_groups( wf_group)%nproj
@@ -558,9 +549,10 @@ module mod_wannier_filehandling
     end subroutine wffile_writeinfo_task
 
     subroutine wffile_writeinfo_finish
+      use mod_wannier_spin, only: wfspin_sz_wannier
       real(8) :: t
       character(64) :: string
-      
+
       if( mpiglobal%rank .gt. 0) return
 
       call timesec( t)
@@ -572,38 +564,75 @@ module mod_wannier_filehandling
 
     subroutine wffile_writeinfo_results
       use mod_lattice, only: ainv
+      use mod_wannier_spin, only: wfspin_sz_wannier
+      use mod_spin, only: nspinor
       integer :: i, igroup
       real(8) :: vl(3)
+      complex(8), allocatable :: spin_z(:, :)
 
       if( mpiglobal%rank .gt. 0) return
 
-      call printbox( wf_info, '*', "Wannier functions")
-      write( wf_info, *)
-      write( wf_info, '(3x,"#",4x,"localization center (lattice)",8x,"Omega",3x,"Omega_I",3x,"Omega_D",2x,"Omega_OD")')
-      write( wf_info, '(80("="))')
+      if ( nspinor == 1 .or. issvlo() ) then
+        call printbox( wf_info, '*', "Wannier functions")
+        write( wf_info, *)
+        write( wf_info, '(3x,"#",4x,"localization center (lattice)",8x,"Omega",3x,"Omega_I",3x,"Omega_D",2x,"Omega_OD")')
+        write( wf_info, '(80("="))')
 
-      do igroup = 1, wf_ngroups
-        do i = wf_groups( igroup)%fwf, wf_groups( igroup)%lwf
-          call r3mv( ainv, wf_centers( :, i), vl)
-          write( wf_info, '(I4,3x,3F10.4,3x,4F10.4)') i, vl, wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i)
+        do igroup = 1, wf_ngroups
+          do i = wf_groups( igroup)%fwf, wf_groups( igroup)%lwf
+            call r3mv( ainv, wf_centers( :, i), vl)
+            write( wf_info, '(I4,3x,3F10.4,3x,4F10.4)') i, vl, wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i)
+          end do
+          if( wf_ngroups .gt. 1) then
+            if( igroup .le. wf_ngroups) write( wf_info, '(80("-"))')
+            write( wf_info, '(34x,"total:",4F10.4)') sum( wf_omega( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+                                                     sum( wf_omega_i( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+                                                     sum( wf_omega_d( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+                                                     sum( wf_omega_od( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf))
+          end if
+          if( igroup .lt. wf_ngroups) write( wf_info, '(80("-"))')
         end do
-        if( wf_ngroups .gt. 1) then
-          if( igroup .le. wf_ngroups) write( wf_info, '(80("-"))')
-          write( wf_info, '(34x,"total:",4F10.4)') sum( wf_omega( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
-                                                   sum( wf_omega_i( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
-                                                   sum( wf_omega_d( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
-                                                   sum( wf_omega_od( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf))
-        end if
-        if( igroup .lt. wf_ngroups) write( wf_info, '(80("-"))')
-      end do
 
-      write( wf_info, '(80("="))')
-      write( wf_info, '(34x,"total:",4F10.4)') sum( wf_omega), sum( wf_omega_i), sum( wf_omega_d), sum( wf_omega_od)
-      write( wf_info, '(32x,"average:",4F10.4)') sum( wf_omega)/wf_nwf, sum( wf_omega_i)/wf_nwf, sum( wf_omega_d)/wf_nwf, sum( wf_omega_od)/wf_nwf
+        write( wf_info, '(80("="))')
+        write( wf_info, '(34x,"total:",4F10.4)') sum( wf_omega), sum( wf_omega_i), sum( wf_omega_d), sum( wf_omega_od)
+        write( wf_info, '(32x,"average:",4F10.4)') sum( wf_omega)/wf_nwf, sum( wf_omega_i)/wf_nwf, sum( wf_omega_d)/wf_nwf, sum( wf_omega_od)/wf_nwf
 
-      write( wf_info, *)
-      call flushifc( wf_info)
-      close( wf_info)
+        write( wf_info, *)
+        call flushifc( wf_info)
+        close( wf_info)
+      else
+        allocate( spin_z( wf_nwf, wf_nwf ) )
+        call wfspin_sz_wannier( spin_z )
+
+        call printbox( wf_info, '*', "Wannier functions")
+        write( wf_info, *)
+        write( wf_info, '(3x,"#",4x,"localization center (lattice)",8x,"Omega",3x,"Omega_I",3x,"Omega_D",2x,"Omega_OD",8x,"<S_z>")')
+        write( wf_info, '(93("="))')
+
+        do igroup = 1, wf_ngroups
+          do i = wf_groups( igroup)%fwf, wf_groups( igroup)%lwf
+            call r3mv( ainv, wf_centers( :, i), vl)
+            ! TODO revert spin_z print?
+            write( wf_info, '(I4,3x,3F10.4,3x,4F10.4,3x,F10.4)') i, vl, wf_omega( i), wf_omega_i( i), wf_omega_d( i), wf_omega_od( i), real( spin_z(i,i) )
+          end do
+          if( wf_ngroups .gt. 1) then
+            if( igroup .le. wf_ngroups) write( wf_info, '(93("-"))')
+            write( wf_info, '(34x,"total:",4F10.4)') sum( wf_omega( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+                                                     sum( wf_omega_i( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+                                                     sum( wf_omega_d( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf)), &
+                                                     sum( wf_omega_od( wf_groups( igroup)%fwf:wf_groups( igroup)%lwf))
+          end if
+          if( igroup .lt. wf_ngroups) write( wf_info, '(93("-"))')
+        end do
+
+        write( wf_info, '(93("="))')
+        write( wf_info, '(34x,"total:",4F10.4)') sum( wf_omega), sum( wf_omega_i), sum( wf_omega_d), sum( wf_omega_od)
+        write( wf_info, '(32x,"average:",4F10.4)') sum( wf_omega)/wf_nwf, sum( wf_omega_i)/wf_nwf, sum( wf_omega_d)/wf_nwf, sum( wf_omega_od)/wf_nwf
+
+        write( wf_info, *)
+        call flushifc( wf_info)
+        close( wf_info)
+      end if
     end subroutine wffile_writeinfo_results
 
 end module mod_wannier_filehandling

@@ -5,7 +5,7 @@
 ! Created Apr 2021 (Ronaldo)
 !> Module for Ehrenfest Dynamics in RT-TDDFT
 module rttddft_MD
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zone, zzero
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
   use linear_system_positive_definite, only: positive_definite_solve
@@ -97,7 +97,7 @@ contains
     tDetail = .false.
     if( present(printTimings) ) tDetail = printTimings%detailed()
     if( tDetail ) then
-      call assert( present(t_MD), 't_MD must be present when tDetail is true' )
+      CALL_ASSERT( present(t_MD), 't_MD must be present when tDetail is true' )
       call timesec( ti )
     end if
     
@@ -169,8 +169,8 @@ contains
     real(dp) :: sumaux(3, natmtot)
     complex(dp), allocatable :: mathcalS(:, :, :, :)
 
-    call assert( size(forces_val, 1) == 3, 'forces_val must have size = 3 along 1st dim' )
-    call assert( size(forces_val, 2) == natmtot, 'forces_val must have size = natmtot along 2nd dim' )
+    CALL_ASSERT( size(forces_val, 1) == 3, 'forces_val must have size = 3 along 1st dim' )
+    CALL_ASSERT( size(forces_val, 2) == natmtot, 'forces_val must have size = natmtot along 2nd dim' )
 
     last_kpt = ubound( evecfv_time, 3 )
     allocate( aux(3, natmtot, first_kpt : last_kpt) )
@@ -227,18 +227,18 @@ contains
     integer                         :: ia, ias, is
     real(dp)                        :: ti
 
-    call assert( size(forces, 1) == 3, 'forces must have size = 3 along dim = 1' )
-    call assert( size(forces_old, 1) == 3, 'forces_old must have size = 3 along dim = 1' )
-    call assert( size(forces, 2) == natmtot, 'forces must have size = natmtot along dim = 2' )
-    call assert( size(forces_old, 2) == natmtot, 'forces_old must have size = natmtot along dim = 2' )
-    call assert( size(nuclei_motion%velocities, 2) == natmtot, 'velocities must have size = natmtot along dim = 2' )
+    CALL_ASSERT( size(forces, 1) == 3, 'forces must have size = 3 along dim = 1' )
+    CALL_ASSERT( size(forces_old, 1) == 3, 'forces_old must have size = 3 along dim = 1' )
+    CALL_ASSERT( size(forces, 2) == natmtot, 'forces must have size = natmtot along dim = 2' )
+    CALL_ASSERT( size(forces_old, 2) == natmtot, 'forces_old must have size = natmtot along dim = 2' )
+    CALL_ASSERT( size(nuclei_motion%velocities, 2) == natmtot, 'velocities must have size = natmtot along dim = 2' )
     call nuclei_motion%assert_consistency( )
   
     ! Check optional (timing) arguments
     tDetail = .False.
     if ( present(printTimings) ) tDetail = printTimings%detailed()
     if( tDetail ) then 
-      call assert( present(t_MD), 't_MD must be present when tDetail is true' )
+      CALL_ASSERT( present(t_MD), 't_MD must be present when tDetail is true' )
       call timesec( ti )
     end if
 
@@ -307,14 +307,14 @@ contains
     integer(i32) :: ias, i, j, n_atoms, ld
     complex(dp), allocatable  :: aux(:,:), prod(:,:)
   
-    call assert( size( mathcalS, 3 ) == 3, 'mathcalS must have size = 3 along dim = 3' )
+    CALL_ASSERT( size( mathcalS, 3 ) == 3, 'mathcalS must have size = 3 along dim = 3' )
     do i = 1, 4
-      call assert( size( B, i ) == size( mathcalS, i ), 'B and mathcalS must have same size along all dimensions' )
+      CALL_ASSERT( size( B, i ) == size( mathcalS, i ), 'B and mathcalS must have same size along all dimensions' )
     end do
     do i = 1, 2
-      call assert( size( H, i ) == size( S, i ), 'H and S must have same size along all dimensions' )
-      call assert( size( H, i ) == size( B, i ), 'H and B must have same size along all dimensions' )
-      call assert( size( H, i) >= nmatp, 'H must have size >= nmatp along all dimenstions' )
+      CALL_ASSERT( size( H, i ) == size( S, i ), 'H and S must have same size along all dimensions' )
+      CALL_ASSERT( size( H, i ) == size( B, i ), 'H and B must have same size along all dimensions' )
+      CALL_ASSERT( size( H, i) >= nmatp, 'H must have size >= nmatp along all dimenstions' )
     end do
 
     n_atoms = size( mathcalS, 4 )
@@ -360,12 +360,12 @@ contains
     n_kpt = size( mathcal_B, 5)
     n_atoms = size( atoms_velocities, 2 )
 
-    call assert( size( atoms_velocities, 1 ) == 3, 'atoms_velocities must have size = 3 along dim = 1' )
-    call assert( size( atoms_velocities, 2 ) == size( mathcal_B, 4 ), 'size(atoms_velocities,2) and size(mathcal_B,4) must be equal' )
-    call assert( all( shape( B_now ) == shape( B_old ) ), 'B_now and B_old must have same shape' )
-    call assert( size( B_now, 1 ) == size( mathcal_B, 1 ), 'B_now and mathcal_B must have same size along 1st dim' )
-    call assert( size( B_now, 2 ) == size( mathcal_B, 2 ), 'B_now and mathcal_B must have same size along 2nd dim' )
-    call assert( size( B_now, 3 ) == n_kpt, 'B_now must have size=n_kpt along 3rd dim' )
+    CALL_ASSERT( size( atoms_velocities, 1 ) == 3, 'atoms_velocities must have size = 3 along dim = 1' )
+    CALL_ASSERT( size( atoms_velocities, 2 ) == size( mathcal_B, 4 ), 'size(atoms_velocities,2) and size(mathcal_B,4) must be equal' )
+    CALL_ASSERT( all( shape( B_now ) == shape( B_old ) ), 'B_now and B_old must have same shape' )
+    CALL_ASSERT( size( B_now, 1 ) == size( mathcal_B, 1 ), 'B_now and mathcal_B must have same size along 1st dim' )
+    CALL_ASSERT( size( B_now, 2 ) == size( mathcal_B, 2 ), 'B_now and mathcal_B must have same size along 2nd dim' )
+    CALL_ASSERT( size( B_now, 3 ) == n_kpt, 'B_now must have size=n_kpt along 3rd dim' )
     
     B_old = B_now
     B_now = zzero

@@ -161,10 +161,9 @@
 			<xs:annotation>
 				<xs:documentation> This element specifies some of the fundamentals parameters 
 					(for each species) regarding a <bf>DFT-1/2</bf> calculation. 
-					Do not forget to specify the subelement <elementref>dfthalf</elementref> 
+					The subelement <elementref>dfthalf</elementref> must be present 
 					inside the element <elementref>groundstate</elementref>, otherwise 
-					no <bf>DFT-1/2</bf> correction will be done 
-					(even though you specify the parameters).
+					no <bf>DFT-1/2</bf> correction will be done.
 				</xs:documentation>
 			</xs:annotation>
 			<xs:complexType>
@@ -192,38 +191,40 @@
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ampl" type="fortrandouble"
+					    default="1.00">
+              <xs:annotation>
+                <xs:documentation> Specifies the amplitude of the self-energy potential 
+                <inlinemath>V_S({\bf r})</inlinemath>.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="exponent" type="xs:integer"
+              default="8">
+              <xs:annotation>
+                <xs:documentation> Specifies the exponent <inlinemath>n</inlinemath> of the cutoff-function
+                  (for the self-energy potential)
+                  <displaymath>
+                    \Theta (r) = A\left[1-\left(\frac{r}{r_{\rm cut}} \right)^{\!\!n} \right]^3
+                    \nonumber
+                  </displaymath>
+                  for <inlinemath>r \le r_{\rm cut}</inlinemath>.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="Bohr" name="cut" type="fortrandouble"
+              default="0.0d0">
+              <xs:annotation>
+                <xs:documentation> Specifies the value of <inlinemath>r_{\rm cut}</inlinemath> (in Bohrs) 
+                  for the self-energy potential (<inlinemath>V_S({\bf r})</inlinemath>), 
+                  which determines the range of the correction. 
+                  Note that this can/should be specified for each species.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
 					  </xs:complexType>
 					</xs:element>
 				 </xs:sequence>
-				 <xs:attribute ex:importance="expert" ex:unit="" name="ampl" type="fortrandouble"
-					default="1.00">
-					<xs:annotation>
-						<xs:documentation> Specifies the amplitude of the self-energy potential.
-						</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute ex:importance="expert" ex:unit="" name="exponent" type="xs:integer"
-					default="8">
-					<xs:annotation>
-						<xs:documentation> Specifies the exponent <inlinemath>n</inlinemath> of the cutoff-function
-							(for the self-energy potential)
-							<displaymath>
-							  \Theta (r) = A\left[1-\left(\frac{r}{r_{\rm cut}} \right)^{\!\!n} \right]^3
-							  \nonumber
-							</displaymath>
-							for <inlinemath>r \le r_{\rm cut}</inlinemath>.
-						</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute ex:importance="expert" ex:unit="Bohr" name="cut" type="fortrandouble"
-					default="0.0d0">
-					<xs:annotation>
-						<xs:documentation> Specifies the value of <inlinemath>r_{\rm cut}</inlinemath> (in Bohrs) 
-							for the self-energy potential, which determines the range of the correction. 
-							Note that this can/should be specified for each species.
-						</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
                 </xs:complexType>  
               </xs:element>
             </xs:sequence>

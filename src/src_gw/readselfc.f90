@@ -12,7 +12,6 @@ subroutine readselfc
 !
 !!USES:
     use modgw, only : kset, freq_selfc, ibgw, nbgw, selfec
-    use m_getunit
 
 !!LOCAL VARIABLES:
     implicit none
@@ -25,9 +24,8 @@ subroutine readselfc
 !
 !EOP
 !BOC
-    call getunit(fid)
 
-    open(fid,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
+    open(newunit=fid,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
     read(fid) ib, nb, no, nk
     close(fid)
 
@@ -50,7 +48,7 @@ subroutine readselfc
       stop
     end if
     
-    open(fid,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
+    open(newunit=fid,file='SELFC.OUT',form='UNFORMATTED',status='UNKNOWN')
     read(fid) ib, nb, no, nk, selfec
     close(fid)
      

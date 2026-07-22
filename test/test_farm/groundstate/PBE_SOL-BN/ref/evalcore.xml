@@ -2,12 +2,12 @@
 <evalcore>
   <species is="1" chemicalSymbol="B">
     <atom ia="1">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-5.949553931660e0"/>
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-5.949553934903e0"/>
     </atom>
   </species>
   <species is="2" chemicalSymbol="N">
     <atom ia="1">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-1.337731813522e1"/>
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-1.337731812757e1"/>
     </atom>
   </species>
 </evalcore>

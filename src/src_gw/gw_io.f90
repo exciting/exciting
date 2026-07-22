@@ -1,9 +1,8 @@
 !> This module is designed to centralize IO operation in GW
 module gw_io
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
   use mod_mpi_gw, only: indexes_parallelization
-  use m_getunit, only: getunit
   use precision, only: dp, i32, str_128
   use to_char_conversion, only: to_char
 
@@ -343,7 +342,7 @@ subroutine write_header_to_file_complex_array( unit, file_format, array, lbounds
   ! This means that ubound( array ) + lbounds - 1
   ! is not safe
 
-  call assert( size(lbounds) == rank(array), 'Incompatible array rank and lbounds' )
+  CALL_ASSERT( size(lbounds) == rank(array), 'Incompatible array rank and lbounds' )
   select case( trim(file_format) )
     case( file_format_text )
       write( unit, * ) rank( array )
@@ -368,7 +367,7 @@ subroutine write_header_to_file_real_array( unit, file_format, array, lbounds )
   !> Lbounds of `array`
   integer(i32), intent(in) :: lbounds(:)
 
-  call assert( size(lbounds) == rank(array), 'Incompatible array rank and lbounds' )
+  CALL_ASSERT( size(lbounds) == rank(array), 'Incompatible array rank and lbounds' )
   select case( trim(file_format) )
     case( file_format_text )
       write( unit, * ) rank( array )
@@ -395,7 +394,7 @@ subroutine read_header_of_file( unit, file_format, rank_of_array, lbounds, uboun
   !> Ubounds of the array
   integer(i32), intent(out) :: ubounds(:)
   
-  call assert( size(lbounds) == size(ubounds), 'lbounds and ubounds must have same size')
+  CALL_ASSERT( size(lbounds) == size(ubounds), 'lbounds and ubounds must have same size')
   select case( trim(file_format) )
     case( file_format_text )
       read( unit, * ) rank_of_array
@@ -737,8 +736,7 @@ subroutine open_file_generic( file_name, action, file_format, unit )
   !> unit number of file to open
   integer, intent(out) :: unit
 
-  call assert( trim(file_format)==file_format_text .or. trim(file_format)==file_format_binary, &
-    'file_format must be '// file_format_text // ' or ' // file_format_binary )
+  CALL_ASSERT( trim(file_format)==file_format_text .or. trim(file_format)==file_format_binary,  'file_format must be '// file_format_text // ' or ' // file_format_binary )
   
   select case( trim( file_format ) )
     case( file_format_text )
@@ -759,8 +757,7 @@ subroutine open_text_file( file_name, action, unit )
   !> Unit of the file (that will be opened)
   integer(i32), intent(out)     :: unit
 
-  call getunit( unit )
-  open( unit, file=trim(file_name), action=action, form='formatted' )
+  open( newunit=unit, file=trim(file_name), action=action, form='formatted' )
 
 end subroutine
 
@@ -774,8 +771,7 @@ subroutine open_binary_file( file_name, action, unit )
   !> Unit of the file (that will be opened)
   integer(i32), intent(out)     :: unit
 
-  call getunit( unit )
-  open( unit, file=trim(file_name), action=action, form='unformatted', access='stream' )
+  open( newunit=unit, file=trim(file_name), action=action, form='unformatted', access='stream' )
   
 end subroutine
 

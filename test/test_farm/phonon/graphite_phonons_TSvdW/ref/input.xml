@@ -1,0 +1,42 @@
+<input>
+    <title>Graphite TS relaxed </title>
+    <structure speciespath="." autormt="false" >
+        <crystal scale="4.649111033832722">
+            <basevect> 0.5000000  -0.8660254   0.0         </basevect>
+            <basevect> 0.5000000   0.8660254   0.0         </basevect>
+            <basevect> 0.0           0.0           2.71873531 </basevect>
+        </crystal>
+
+        <species speciesfile="C.xml" rmt="1.25">
+            <atom coord="0.00000000  0.00000000  0.0"/>
+            <atom coord="0.66666667  0.33333333  0.0"/>
+            <atom coord="0.66666667  0.33333333  0.5"/>
+            <atom coord="0.33333333  0.66666667  0.5"/>
+        </species>
+
+        </structure>
+
+    <groundstate
+        do="fromscratch"
+        gmaxvr="15"
+        ngridk="9 9 3"
+        rgkmax="5.5"
+        swidth="0.01"
+        xctype="GGA_PBE"
+        vdWcorrection="TSvdW"
+        lmaxapw="8"
+        lmaxmat="8"
+	lmaxvr="8">
+    <TSvdWparameters />
+    </groundstate>
+    <phonons
+        do="skip"
+        method="dfpt"
+        polar="false"
+        ngridq="1 1 2">
+    <qpointset>
+    <qpoint> 0.0 0.0 0.0 </qpoint>
+    <qpoint> 0.0 0.0 0.5 </qpoint>
+    </qpointset>
+    </phonons>
+    </input>

@@ -6,7 +6,7 @@ module phonons_variables
 
   use precision, only: dp
   use modmpi
-  use asserts, only: assert
+#include "asserts.fpp"
   use mod_kpointset, only: k_set, Gk_set, G_set
   use mod_opt_tetra, only: t_set
 
@@ -160,8 +160,7 @@ module phonons_variables
       real(dp) :: vql(3), vqc(3), v(3), gc, t1
 
       ! copy q-vector
-      call assert( iq >= 0 .and. iq <= ph_qset%nkpt, '(ph_var_init_q): &
-        Invalid q-point index.' )
+      CALL_ASSERT( iq >= 0 .and. iq <= ph_qset%nkpt, '(ph_var_init_q):  Invalid q-point index.' )
       if( iq == 0 ) then
         vql = 0.0_dp
         vqc = 0.0_dp

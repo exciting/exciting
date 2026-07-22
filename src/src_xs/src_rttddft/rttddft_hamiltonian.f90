@@ -1,24 +1,29 @@
 ! TODO(Ronaldo): Refactor to reduce the number of global variables
 !> Module that manages the hamiltonian matrix in RT-TDDFT
 module rttddft_Hamiltonian
-  use asserts, only: assert
-  use constants, only: fourpi, y00, zi, zone, zzero
+#include "asserts.fpp"
+  use constants, only: fourpi, real_zero, y00, zi, zone, zzero
+  use generation_wavefunction, only: generate_basisfunction_secondvariation_MT
+  use math_utils, only: is_hermitian
   use matrix_elements, only: me_mt_alloc, me_mt_prepare, me_mt_mat, me_ir_alloc, me_ir_prepare, me_ir_mat
-  use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies
+  use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, spr
   use mod_gvector, only: cfunig
   use mod_kpointset, only: Gk_set
   use mod_lattice, only: omega
-  use mod_muffin_tin, only: rmt
+  use mod_muffin_tin, only: nrcmtmax, nrmt, rcmt, rmt
   use mod_potential_and_density, only: meffig, veffig, veffir, veffmt
-  use modinput, only: input
+  use mod_variation, only: variation_multiplication
+  use modinput, only: input, isspinorb
   use physical_constants, only: alpha, c
   use precision, only: dp, i32
   use rttddft_arrays, only: generic_matrix_set, hermitian_matrix_set
   use rttddft_Overlap, only: overlap_set
+  use rttddft_pmat, only: pmat_set
   use rttddft_timings, only: Print_Timings, Timing_RTTDDFT_hamiltonian, &
     Timing_Ehrenfest, timesec_RTTDDFT
   use rttddft_VectorPotential, only: Vector_Potential_Field
-  use xlapack, only: scaled_add
+  use to_char_conversion, only: to_char
+  use xlapack, only: matrix_multiply, scaled_add
 
   implicit none
 
@@ -42,10 +47,16 @@ module rttddft_Hamiltonian
     class(generic_matrix_set), allocatable, public :: H_t_minus_dt
     !> Matrix elements of the KS potential at time \(t = 0\)
     type(hermitian_matrix_set), public :: V_KS_0
+    !> Matrix of the scissor shift operator
+    type(hermitian_matrix_set), private :: scissor_matrix
     !> Hamiltonian eigenvalues at time \(t = 0\)
     real(dp), public, allocatable :: initial_eigenvalues(:, :)
     !> If `.true.`, explicit evaluation should be performed in [[hamiltonian_set_calculate]]
     logical, private :: explicit_evaluation_needed = .true.
+    !> If `.true.`, the SOC part of the hamiltonian should be recalculated every time H is calculated
+    logical, private :: obtainSOC = .true.
+    !> If `.true.`, Hamiltonian is built in the LAPW+lo basis set
+    logical, private :: lapwlo_basis = .true.
     !> `mathcalH` gives the impact of an ion displacement on the hamiltonian matrix
     !> \[ \left[ \left\langle 
     !> \frac{\partial \phi_{\mu'}^{\mathbf{k}}}{\partial \mathbf{R}_J}
@@ -66,14 +77,16 @@ module rttddft_Hamiltonian
     procedure, private :: calculate_ik => hamiltonian_set_calculate_lapw_basis_ik
     procedure, public  :: calculate => hamiltonian_set_calculate
     procedure, public  :: copy_H_t => hamiltonian_set_copy_H_t
+    procedure, public  :: build_lapwlo_scissor_matrix => hamiltonian_set_build_lapwlo_scissor_matrix
     procedure, public  :: adjust_eigenvalues_with_scissor_shift => hamiltonian_set_adjust_eigenvalues_with_scissor_shift
+    procedure, public  :: represented_in_lapwlo => hamiltonian_set_represented_in_lapwlo
     final              :: destructor
   end type
 
 contains
 
   subroutine hamiltonian_set_allocate( this, max_dimension, ki, dims, n_states, &
-      allocate_H_past, evolve_H0, is_LAPWLO_basis, MD, is_IPA )
+      allocate_H_past, evolve_H0, is_LAPWLO_basis, MD, is_IPA, scissor_shift, update_SOC )
     class(hamiltonian_set), intent(inout) :: this
     !> Maximum dimension of the matrices for all \( \mathbf{k} \)-points
     integer(i32), intent(in) :: max_dimension
@@ -93,14 +106,22 @@ contains
     logical, intent(in) :: MD ! TODO: two logicals should actually be passed: molecular_dynamics%on and molecular_dynamics%valence_corrections
     !> if `.True`, independent particle approximation is employed
     logical, intent(in) :: is_IPA
+    !> Requested scissor energy correction value
+    real(dp), intent(in) :: scissor_shift
+    !> if `.True`, SOC should be updated every time H is calculated
+    logical, intent(in) :: update_SOC
 
     logical :: is_KS_basis
     integer(i32) :: kf
 
-    call assert( max_dimension >= maxval( dims ), 'm must be >= maxval( dims )' )
     this%IPA = is_IPA
-    is_KS_basis = .not. is_LAPWLO_basis
-    if ( is_KS_basis ) call assert ( max_dimension == n_states, 'max_dimension must be equal to n_states' )
+    this%lapwlo_basis = is_LAPWLO_basis
+    is_KS_basis = .not. this%lapwlo_basis
+    if ( is_KS_basis ) then
+      CALL_ASSERT ( max_dimension == n_states, 'max_dimension must be equal to n_states' )
+    else
+      CALL_ASSERT( max_dimension >= maxval( dims ), 'max_dimension must be >= maxval( dims )' )
+    end if
     kf = ubound( dims, 1 )
     if( MD ) then ! H_t and H_t_minus_dt matrices are not hermitian
       allocate( generic_matrix_set :: this%H_t )
@@ -122,6 +143,9 @@ contains
     end if
     if( allocated( this%initial_eigenvalues ) ) deallocate( this%initial_eigenvalues )
     allocate( this%initial_eigenvalues(n_states, ki:kf) )
+    this%obtainSOC = update_SOC
+    if ( scissor_shift > eps_scissor .and. is_LAPWLO_basis ) &
+      call this%scissor_matrix%allocate_array( [1, 1, ki], [max_dimension, max_dimension, kf] )
   end subroutine
 
   !> Copy `H_t` into `H_t_minus_dt`
@@ -143,8 +167,9 @@ contains
   end subroutine
 
   !> Interface to decide if calculate in LAPW or KS basis and call the corresponding subroutines.
-  subroutine hamiltonian_set_calculate( this, l_max_pot, apwalm, Gkset, ks_lapwlo_transition_matrix,&
-    printTimings, t_ham, a_tot, obtain_mathcalH, t_MD )
+  subroutine hamiltonian_set_calculate( this, l_max_pot, apwalm, Gkset, &
+    ks_lapwlo_transition_matrix, psi_gnd_second_variation, printTimings, t_ham, &
+    a_tot, obtain_mathcalH, t_MD ) ! ks_lapwlo_transition_matrix,&
     class(hamiltonian_set), intent(inout) :: this
     !> Maximal value of l in spherical harmonics expansion of DFT potential
     integer(i32), intent(in) :: l_max_pot
@@ -154,6 +179,8 @@ contains
     type(Gk_set), intent(in) :: Gkset
     !> KS-LAPW+lo transition matrix (nmatmax, n_basis_ks, first_kpt : last_kpt)
     complex(dp), contiguous, optional, intent(in) :: ks_lapwlo_transition_matrix(:, :, :)
+    !> Second-variational ground state wavefunctions
+    complex(dp), contiguous, optional, intent(in) :: psi_gnd_second_variation(:, :, :)
     !> Object that packs information about printing of timings
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the Hamiltonian
@@ -165,13 +192,15 @@ contains
     !> Object that packs information about timings related to MD
     type(Timing_Ehrenfest), optional, intent(out) :: t_MD
 
-    if( present( ks_lapwlo_transition_matrix ) ) then
-      call this%calculate_in_ks_basis( l_max_pot, apwalm, Gkset, &
-        ks_lapwlo_transition_matrix, printTimings, t_ham )
-    else  
+    if ( this%represented_in_lapwlo() ) then
       call this%calculate_in_lapw_basis( l_max_pot, apwalm, Gkset, &
         printTimings, t_ham, a_tot, obtain_mathcalH, t_MD )
+    else
+      CALL_ASSERT( present( ks_lapwlo_transition_matrix ), "ks_lapwlo_transition_matrix should be present if KS basis is used" )
+      call this%calculate_in_ks_basis( l_max_pot, apwalm, Gkset, &
+        ks_lapwlo_transition_matrix, psi_gnd_second_variation, printTimings, t_ham )
     end if
+
     ! with IPA, the Hamiltonian should only be calculated from scratch at t = 0
     if ( this%IPA ) this%explicit_evaluation_needed = .false.
   end subroutine
@@ -215,9 +244,12 @@ contains
     if( present( printTimings ) ) call printTimings%get( timings_general, timings_detailed )
 
     ! sanity checks
-    if( timings_general ) call assert( present( t_ham ) .or. present( t_MD ), &
-      't_ham or t_MD must be present when general timing is desired' )
-    if( timings_detailed ) call assert( timings_general, 'timings_general must be true if timings_detailed is true')
+    if( timings_general ) then
+      CALL_ASSERT( present( t_ham ) .or. present( t_MD ),  't_ham or t_MD must be present when general timing is desired' )
+    end if
+    if( timings_detailed ) then
+      CALL_ASSERT( timings_general, 'timings_general must be true if timings_detailed is true')
+    end if
 
     if( timings_general ) call timesec( t_i )
     if( this%explicit_evaluation_needed ) then
@@ -254,6 +286,7 @@ contains
             mt_part, cfunig, a_tot, obtain_mathcalH )
         end do
       end if
+      if ( allocated( this%scissor_matrix%array ) ) this%H_t%array = this%H_t%array + this%scissor_matrix%array
     else
       call this%H_0%assert_allocated()
       call this%H_t%copy_from( this%H_0 )
@@ -298,7 +331,7 @@ contains
     ! - to avoid allocating "tmp" when not needed (this can be a large array)
     associate( np => Gkset%ngk(1, ik) )
     if( get_mathcalH ) then
-      call assert( present( a_tot ), "a_tot must be present" )
+      CALL_ASSERT( present( a_tot ), "a_tot must be present" )
       tmp = this%H_t%array(:, :, ik)
       do is = 1, nspecies
         do ia = 1, natoms(is)
@@ -346,11 +379,11 @@ contains
     complex(dp) :: t5
 
     associate( m => size(mathcalH_ik_ias, 1) )
-      call assert( size(gplusk_cart, 1) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
-      call assert( size(gplusk_cart, 2) >= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
-      call assert( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "mathcalH_ik_ias must have shape [m, m, n_cartesian]" )
-      call assert( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "p_MT_ias_ik must have shape [m, m, n_cartesian]" )
-      call assert( n_pw <= m, "n_pw must be <= m" )
+      CALL_ASSERT( size(gplusk_cart, 1) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
+      CALL_ASSERT( size(gplusk_cart, 2) >= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
+      CALL_ASSERT( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "mathcalH_ik_ias must have shape [m, m, n_cartesian]" )
+      CALL_ASSERT( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "p_MT_ias_ik must have shape [m, m, n_cartesian]" )
+      CALL_ASSERT( n_pw <= m, "n_pw must be <= m" )
       a_scaled = a_tot / c
       t1 = fourpi*(rmt(is)**3)/omega
       do i_cart = 1, n_cartesian
@@ -395,7 +428,7 @@ contains
   !> is time-independent. \( V_{\rm eff}(t) \) is time-dependent through the 
   !> time-dependent charge density.
   subroutine hamiltonian_set_calculate_ks_basis( this, lmaxvr, apwalm, Gkset, &
-      ks_lapwlo_transition_matrix, printTimings, t_ham )
+      ks_lapwlo_transition_matrix, psi_gnd_second_variation, printTimings, t_ham )
     class(hamiltonian_set), intent(inout) :: this
     !> Maximal value of l in spherical harmonics expansion of DFT potential
     integer(i32), intent(in) :: lmaxvr
@@ -406,27 +439,47 @@ contains
     type(Gk_set), intent(in) :: Gkset
     !> KS-LAPW+lo transition matrix (nmatmax, n_basis_ks, first_kpt : last_kpt)
     complex(dp), contiguous, intent(in) :: ks_lapwlo_transition_matrix(:, :, :)
+    !> Second-variational ground state wavefunctions
+    complex(dp), contiguous, optional, intent(in) :: psi_gnd_second_variation(:, :, :)
     !> Object that packs information about printing of timings
     type(Print_Timings), optional, intent(in) :: printTimings
     !> Object that packs information about timings to update the Hamiltonian
     type(Timing_RTTDDFT_hamiltonian), optional, intent(out) :: t_ham
 
-    integer(i32) :: ik, first_kpt, last_kpt, shift, n_basis, is, ia, ias, ngp
-    complex (dp), allocatable :: local_effective_potential(:, :), mt_contribution(:, :, :)
-    logical :: timings_general, timings_detailed
+    integer(i32) :: ik, first_kpt, last_kpt, shift, n_basis_first_variation, is, ia, ias
+    integer(i32) :: n_atoms, n_states_second_variation, ngp
+    complex (dp), allocatable :: V_KS_first_variation(:, :), mt_contribution(:, :, :)
+    complex (dp), allocatable :: V_KS_second_variation(:, :), V_SOC(:, :)
+    logical :: timings_general, timings_detailed, second_variation, spin_orbit_coupling
     real(dp) :: ti
+    real(dp), allocatable :: V_SOC_radial(:, :)
 
     first_kpt = lbound( this%H_t%array, 3 )
     last_kpt = ubound( this%H_t%array, 3 )
-    n_basis = size( this%H_t%array, 1 )
+    n_basis_first_variation = size( ks_lapwlo_transition_matrix, 2 )
     shift = first_kpt - 1
+    second_variation = present( psi_gnd_second_variation )
+    if( second_variation ) then
+      n_states_second_variation = size( psi_gnd_second_variation, 1 )
+      allocate( V_KS_second_variation(n_states_second_variation, n_states_second_variation) )
+      CALL_ASSERT( all( shape( psi_gnd_second_variation ) == shape( this%H_t%array ) ), 'psi_gnd_second_variation must have the same shape as H_t%array' )
+    end if
+    spin_orbit_coupling = isspinorb() .and. this%obtainSOC
+    if( spin_orbit_coupling ) then
+      allocate( V_SOC(n_states_second_variation, n_states_second_variation) )
+      n_atoms = size( veffmt, 3 )
+      allocate( V_SOC_radial(nrcmtmax, n_atoms), source = real_zero )
+    end if
 
     timings_general = .False.
     timings_detailed = .False.
     if ( present( printTimings ) ) call printTimings%get( timings_general, timings_detailed )
-    if( timings_general ) call assert( present( t_ham ), &
-      't_ham must be present when general timing is desired' )
-    if( timings_detailed ) call assert( timings_general, 'timings_general must be true if timings_detailed is true')
+    if( timings_general ) then
+      CALL_ASSERT( present( t_ham ),  't_ham must be present when general timing is desired' )
+    end if
+    if( timings_detailed ) then
+      CALL_ASSERT( timings_general, 'timings_general must be true if timings_detailed is true')
+    end if
 
     if( timings_general ) call timesec( ti )
 
@@ -437,7 +490,7 @@ contains
       call this%H_t%subtract( this%V_KS_0 )
 
       call me_mt_alloc( mt_contribution )
-      allocate( local_effective_potential(n_basis, n_basis) )
+      allocate( V_KS_first_variation(n_basis_first_variation, n_basis_first_variation) )
     
       do is = 1, nspecies
         do ia = 1, natoms(is)
@@ -447,28 +500,196 @@ contains
             mt_contribution(:, :, ias) )
         end do ! natoms
       end do ! nspecies
+      if( spin_orbit_coupling ) call obtain_SOC_potential_radial( V_SOC_radial )
 
       do ik = first_kpt, last_kpt
         ngp = Gkset%ngk(1, ik)
-        local_effective_potential = zzero
+        V_KS_first_variation = zzero
         ! mt contribution
         do is = 1, nspecies
           do ia = 1, natoms(is)
             ias = idxas(ia, is)
             call me_mt_mat( is, ias, ngp, apwalm(:, :, :, ias, ik-shift), &
               ks_lapwlo_transition_matrix(:, :, ik-shift), zone, mt_contribution(:, :, ias), &
-              zone, local_effective_potential )
+              zone, V_KS_first_variation )
           end do ! natoms
         end do ! nspecies
         ! ir contribution
         call me_ir_mat( Gkset, ik, ks_lapwlo_transition_matrix(:, :, ik-shift), &
-          zone, veffig, zone, local_effective_potential )
+          zone, veffig, zone, V_KS_first_variation )
         ! final hamiltonian
-        this%H_t%array(:, :, ik) = this%H_t%array(:, :, ik) + local_effective_potential
+        if( second_variation ) then
+          call variation_multiplication( psi_gnd_second_variation(:, :, ik-shift), V_KS_first_variation, &
+            psi_gnd_second_variation(:, :, ik-shift), V_KS_second_variation, &
+            dimA=n_states_second_variation, dimB=n_states_second_variation, startA=1, startB=1 )
+          if( spin_orbit_coupling ) then
+            call obtain_SOC_potential( lmaxvr, ngp, apwalm(:, :, :, :, ik-shift), &
+              ks_lapwlo_transition_matrix(:, :, ik-shift), psi_gnd_second_variation(:, :, ik-shift), V_SOC_radial, V_SOC )
+            V_KS_second_variation = V_KS_second_variation + V_SOC
+          end if
+          this%H_t%array(:, :, ik) = this%H_t%array(:, :, ik) + V_KS_second_variation
+        else
+          this%H_t%array(:, :, ik) = this%H_t%array(:, :, ik) + V_KS_first_variation
+        end if
       end do ! ik
     end if ! this%explicit_evaluation_needed
 
     if( timings_general ) call timesec_RTTDDFT( ti, t_ham%total )
+  end subroutine
+
+  !> (private) Obtain the SOC potential inside each MT sphere \(J\) as
+  !> \[ V_{\mathrm{SOC}, J}(r, t) = \frac{\alpha^2/4}{(1-\alpha^2 V_{\mathrm{KS}, J}(r, t)/2)^2} 
+  !> \frac{1}{r} \frac{\partial V_{\mathrm{KS}, J}(r,t)}{\partial r}, \]
+  !> where \( V_{\mathrm{KS}, J}(r,t) \) is the spherically averaged KS potential inside 
+  !> a given MT sphere \(J\), and \( \alpha \) is the fine structure constant. 
+  !> If the KS potential inside a MT sphere \(J\) is expanded as
+  !> \[ V_{\mathrm{KS}, J}(\mathbf{r}, t) = \sum_{lm} 
+  !>          v_{lm, J}(r, t) Y_{lm}(\hat{r}), \]
+  !> then, \(V_{\mathrm{KS}, J}(r,t)\) is simply
+  !> \[ V_{\mathrm{KS}, J}(r, t) = v_{00,J}(r, t) Y_{00}, \]
+  subroutine obtain_SOC_potential_radial( V_SOC_radial )
+    !> SOC potential \( V_{\mathrm{KS}, J}(r,t)\) inside each MT sphere. 
+    !> 2nd index: MT sphere around each atom; 
+    !> 1st index: radial grid of the corresponding MT sphere
+    real(dp), contiguous, intent(out) :: V_SOC_radial(:, :)
+
+    integer(i32) :: ia, ias, is, ir, irc, n
+    real(dp) :: aux
+    real(dp), parameter :: factor1 = 0.5_dp * alpha**2, factor2 = 0.25_dp * alpha**2
+    real(dp), allocatable :: vr(:), dv_dr(:), fake(:, :)
+
+    n = size( veffmt, 2 )
+    allocate( vr(n), dv_dr(n), fake(3, n) )
+    do is = 1, nspecies
+      do ia = 1, natoms(is)
+        ias = idxas(ia, is)
+        vr = veffmt(1, :, ias) * y00
+        call fderiv(1, nrmt(is), spr(:, is), vr, dv_dr, fake)
+        irc = 0
+        do ir = 1, nrmt(is), input%groundstate%lradstep
+          irc = irc + 1
+          aux = 1 - factor1 * vr(ir)
+          V_SOC_radial(irc, ias) = factor2 * dv_dr(ir) / (spr(ir, is)*aux**2)
+        end do
+      end do
+    end do
+  end subroutine
+
+  !> (private) Obtain the SOC potential in the 2nd variational KS basis at \(t = 0\). 
+  !> Inspired in the `seceqnsv` subroutine.
+  !> The 2nd variational wavefunctions are assumed to be expanded as
+  !> \[ \psi_{i\mathbf{k}}(\mathbf{r}) = \sum_{\sigma n}C^{\mathrm{SV}}_{ni\mathbf{k}\sigma}
+  !> \phi_{n\mathbf{k}\sigma}(\mathbf{r})|\sigma\rangle,  \]
+  !> where \(\phi_{n\mathbf{k}\sigma}(\mathbf{r})\) are the first variational wavefunctions at \(t = 0\),
+  !> \(C^{\mathrm{SV}}_{ni\mathbf{k}\sigma}\) are the second variational coefficients at time \(t = 0\),
+  !> and \(|\sigma\rangle\) is the spin state, that could be \(|\uparrow\rangle\) or \(|\downarrow\rangle\). 
+  !> The SOC potential determined here can be formally expressed as
+  !> \[ \hat{V}_{\mathrm{SOC}}(t) = \sum_{J} V_{\mathrm{SOC}, J}(r, t) \boldsymbol{\sigma}\cdot\mathbf{L}, \]
+  !> where \(V_{\mathrm{SOC}, J}(r, t)\) is radial part of the SOC potential inside the MT sphere \(J\)
+  !> (as given by [[obtain_SOC_potential_radial]]), 
+  !> \(\boldsymbol{\sigma} = \sigma_x \hat{x} + \sigma_y \hat{y} + \sigma_z \hat{z}\) 
+  !> is the Pauli matrix, and \(\mathbf{L}\) is the angular momentum operator.
+  !> Using the 2nd variational KS wavefunctions at \(t = 0\) as basis:
+  !> \[ \hat{V}_{\mathrm{SOC},ij}(t) = \sum_{mn\sigma\sigma'} 
+  !> (C^{\mathrm{SV}}_{mi\mathbf{k}\sigma})^* \hat{V}_{\mathrm{SOC},mn}(t)
+  !> (C^{\mathrm{SV}}_{nj\mathbf{k}\sigma'}), \]
+  !> where
+  !> \[ \hat{V}_{\mathrm{SOC},mn}(t) = \sum_J 
+  !>    \langle \phi_{m\mathbf{k}\sigma} \sigma| 
+  !>     V_{\mathrm{SOC}, J}(r, t) \boldsymbol{\sigma}\cdot\mathbf{L}|
+  !>     | \phi_{n\mathbf{k}\sigma'}\sigma\rangle. \] 
+  !> This subroutine initially implements the following steps:
+  !> <ol>
+  !> <li> Given \(J\), the radial components of the 1st variational wavefunctions are explicitly obtained 
+  !> \[ \phi_{m\mathbf{k}\sigma}(\mathbf{r})|\sigma\rangle = 
+  !>     \sum_{lm} A_{{\bf G+k},lm,\xi} u_{lm}(r) Y_{lm}(\hat{r}) \]
+  !> </li> 
+  !> <li> The \(\mathbf{L}\) operator is applied to \(Y_{lm}\)</li>
+  !> <li> The result is multiplied by \(V_{\mathrm{SOC}, J}(r, t)\) </li>
+  !> <li> The \(\boldsymbol{\sigma}\) operator is applied to \(|\sigma'\rangle\) </li>
+  !> <li> The result is then used to compute the expectation value with \(\langle \phi_{m\mathbf{k}\sigma} \sigma|\) </li>
+  !> <li> The result is accumulated, as a sum over \(m\), \(n\), and \(J\) is required </li>
+  !> <li> The matrix operation with \(C^{\mathrm{SV}}_{n\mathbf{k}\sigma'}\) takes place.<\li>
+  !> </ol>
+  subroutine obtain_SOC_potential( lmax_vr, ngp, apwalm, evecfv, evecsv, V_SOC_radial, V_SOC )
+    integer(i32), intent(in) :: lmax_vr
+    !> number of \({\bf G+k}\) vectors
+    integer(i32), intent(in) :: ngp
+    !> wavefunction matching coefficients \(A_{{\bf G+k},lm,\xi}\)
+    complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :)
+    !> First variation eigenvectors
+    complex(dp), contiguous, intent(in) :: evecfv(:, :)
+    !> Second variation eigenvectors
+    complex(dp), contiguous, intent(in) :: evecsv(:, :)
+    !> SOC potential \( V_{\rm SOC}(r)\) inside each MT sphere.
+    real(dp), contiguous, intent(in) :: V_SOC_radial(:, :)
+    !> SOC potential in the 1st variational KS basis
+    complex(dp), contiguous, intent(out) :: V_SOC(:, :)
+
+    integer(i32) :: i, ia, ias, irc, is, ist, j, jst, k, lm, lmmax_vr, n_basis_first_variation, n_r
+    real(dp) :: t1
+    complex(dp), allocatable :: wfmt1(:, :, :), wfmt2(:, :, :), zlflm(:, :)
+    complex(dp), external :: zfmtinp
+
+    V_SOC = zzero
+    n_basis_first_variation = size( evecfv, 2 )
+    n_r = size( V_SOC_radial, 1 )
+    lmmax_vr = ( lmax_vr + 1 ) ** 2
+    allocate( wfmt1(lmmax_vr, n_r, n_basis_first_variation), source = zzero )
+    allocate( wfmt2(lmmax_vr, n_r, n_cartesian), source = zzero )
+    allocate( zlflm(lmmax_vr, n_cartesian), source = zzero )
+    do is = 1, nspecies
+      do ia = 1, natoms(is)
+        ias = idxas(ia, is)
+        ! radial part of 1st variational wavefunctions is stored in wfmt1
+        call generate_basisfunction_secondvariation_MT( lmax_vr, lmmax_vr, ia, is, &
+          ngp, apwalm, evecfv, wfmt1 )
+        do jst = 1, n_basis_first_variation
+          do irc = 1, n_r
+            ! apply the \(\mathbf{L}\) operator is applied to each \(lm\)-component
+            call lopzflm( lmax_vr, wfmt1(:, irc, jst), lmmax_vr, zlflm )
+            t1 = V_SOC_radial(irc, ias)
+            ! apply the spin operator
+            do lm = 1, lmmax_vr
+              ! result for \(\sigma_zL_z|\uparrow\rangle\) is stored in the 1st component
+              wfmt2(lm, irc, 1) = wfmt2(lm, irc, 1) + t1 * zlflm(lm, 3)
+              ! result for \(\sigma_zL_z|\downarrow\rangle\) is stored in the 2nd component
+              wfmt2(lm, irc, 2) = wfmt2(lm, irc, 2) - t1 * zlflm(lm, 3)
+              ! result for \((\sigma_xL_x+\sigma_yL_y)|\downarrow\rangle\) is stored in the 3rd component
+              wfmt2(lm, irc, 3) = wfmt2(lm, irc, 3) + t1 * ( zlflm(lm, 1) - zi*zlflm(lm, 2) )
+            end do
+          end do
+          do ist = 1, n_basis_first_variation
+            do k = 1, n_cartesian
+              if (k == 1) then
+                ! case: \(\langle \uparrow | \) and \( \uparrow \rangle\)
+                i = ist; j = jst
+              else if (k == 2) then
+                ! case: \(\langle \downarrow | \) and \( \downarrow \rangle\)
+                i = ist + n_basis_first_variation; j = jst + n_basis_first_variation
+              else
+                ! case: \(\langle \uparrow | \) and \( \downarrow \rangle\)
+                i = ist; j = jst + n_basis_first_variation
+              end if
+              V_SOC(i, j) = V_SOC(i, j) + zfmtinp(.True., lmax_vr, n_r, &
+                  rcmt(:, is), lmmax_vr, wfmt1(:, :, ist), wfmt2(:, :, k) )
+            end do
+          end do
+        end do
+      end do
+    end do
+    ! Hermitize
+    do ist = 1, size( V_SOC, 1 )
+      do jst = 1, ist-1
+        V_SOC(ist, jst) = conjg( V_SOC(jst, ist) )
+      end do
+      V_SOC(ist, ist) = V_SOC(ist, ist)%re
+    end do
+    deallocate( zlflm )
+    allocate( zlflm, mold = V_SOC)
+    call matrix_multiply( V_SOC, evecsv, zlflm )
+    call matrix_multiply( evecsv, zlflm, V_SOC, trans_A='C' )
+    CALL_ASSERT( is_hermitian(V_SOC), 'V_SOC is not hermitian' )
   end subroutine
   
   !> Add the pre-calculated length gauge interaction term to the Hamiltonian
@@ -477,8 +698,7 @@ contains
     !> Length gauge interaction matrix (n_basis, n_basis, n_kpts)
     complex(dp), contiguous, intent(in) :: external_coupling_length_gauge(:, :, :)
 
-    call assert( all( shape( external_coupling_length_gauge ) == shape( this%H_t%array ) ), &
-      'external_coupling_length_gauge and hamiltonian have incompatible dimensions' )
+    CALL_ASSERT( all( shape( external_coupling_length_gauge ) == shape( this%H_t%array ) ),  'external_coupling_length_gauge and hamiltonian have incompatible dimensions' )
 
     this%H_t%array = this%H_t%array + external_coupling_length_gauge
   end subroutine
@@ -492,18 +712,21 @@ contains
     type(Vector_Potential_Field), intent(in) :: a_tot
     !> Overlap matrix
     class(overlap_set), intent(in) :: overlap
-    !> Momentum matrix elements (n_basis, n_basis, 3, n_kpts)
-    complex(dp), contiguous, intent(in) :: pmat(:, :, :, :)
+    !> Momentum matrix elements
+    class(pmat_set), intent(in) :: pmat
 
     real(dp), parameter :: interaction_tol = 1.e-14_dp
     integer(i32) :: ik, i
     real(dp) :: a_scaled(n_cartesian), fact
 
+    CALL_ASSERT( this%represented_in_lapwlo() .eqv. pmat%represented_in_lapwlo(), "different basis sets used for pmat and Hamiltonian" )
     a_scaled = a_tot%components / c
     fact = 0.5_dp * dot_product( a_scaled, a_scaled )
     if ( fact < interaction_tol ) return
     associate( m => size( this%H_t%array, 1 ), n_kpts => size( this%H_t%array, 3 ) )
-      call assert( size( pmat, 4 ) == n_kpts, "pmat and hamiltonian have different n_kpts" )
+      do i = 1, n_cartesian
+        CALL_ASSERT( size( pmat%components(i)%array, 3 ) == n_kpts, "pmat(" // to_char( i ) // ") and hamiltonian have different n_kpts" )
+      end do
       if( overlap%is_identity() ) then
         ! TODO: use DO CONCURRENT here after ifort2021 support is dropped
         do ik = lbound(this%H_t%array, 3), ubound(this%H_t%array, 3)
@@ -512,12 +735,11 @@ contains
           end do
         end do
       else
-        call assert( all( shape( overlap%array ) == shape( this%H_t%array ) ), &
-          "overlap and hamiltonian must have same shape" )
+        CALL_ASSERT( all( shape( overlap%array ) == shape( this%H_t%array ) ),  "overlap and hamiltonian must have same shape" )
         call scaled_add( fact, overlap%array, this%H_t%array )
       end if
       do i = 1, n_cartesian
-        call scaled_add( a_scaled(i), pmat(:, :, i, :), this%H_t%array )
+        call scaled_add( a_scaled(i), pmat%components(i)%array, this%H_t%array )
       end do
     end associate
   end subroutine
@@ -532,6 +754,56 @@ contains
 
     if ( scissor_shift > eps_scissor ) &
       this%initial_eigenvalues(first_unoccupied:, :) = this%initial_eigenvalues(first_unoccupied:, :) + scissor_shift
+  end subroutine
+
+  !> Return whether the Hamiltonian is represented in the LAPW+lo basis
+  pure logical function hamiltonian_set_represented_in_lapwlo( this ) result( represented_in_lapwlo )
+    class(hamiltonian_set), intent(in) :: this
+
+    represented_in_lapwlo = this%lapwlo_basis
+  end function
+
+  !> When the LAPWlo basis is used, build the matrix of the scissor operator \( V_{\rm scissor} \), 
+  !> which rigidly shifts the conduction band upwards by \( \Delta E \) to adjust the band gap:
+  !> \[
+  !> V_{\rm scissor} = \Delta E \sum_{i} {\Theta}(\epsilon_i - E_{\rm Fermi}) \left S | \psi_i \right \rangle 
+  !> \left \langle \psi_i \right | S^{\dagger},
+  !> \]
+  !> where \( \psi_i \) and \( \epsilon_i \) are the ground-state Kohn Sham eigenstates and eigenenergies, 
+  !> \( E_{\rm Fermi} \) is the Fermi energy, \( S \) is the overlap matrix, and \( \Theta (x) \) is the Heaviside step function.
+  subroutine hamiltonian_set_build_lapwlo_scissor_matrix( this, scissor_shift, &
+    first_unoccupied, overlap, ks_lapwlo_transition_matrix )
+    class(hamiltonian_set), intent(inout) :: this
+    !> Energy shift  \( \Delta E \) for scissor operator
+    real(dp), intent(in) :: scissor_shift
+    !> Position of the first unoccupied state
+    integer, intent(in) :: first_unoccupied
+    !> Object that encapsulates the overlap matrix \( S \)
+    class(overlap_set), intent(in) :: overlap
+    !> KS-LAPW+lo transition matrix (nmatmax, n_ks_states, n_kpt_this_proc)
+    complex(dp), contiguous, intent(in):: ks_lapwlo_transition_matrix(:, :, :)
+
+    integer(i32) :: ik, first_kpt, last_kpt, k_shift, n_conduction_states
+    complex(dp), allocatable :: overlap_times_psi_lapwlo(:, :)
+
+    if ( scissor_shift > eps_scissor ) then
+      call this%scissor_matrix%assert_allocated()
+      CALL_ASSERT ( size( this%initial_eigenvalues, 1 ) == size( ks_lapwlo_transition_matrix, 2 ), '2nd dimension of ks_lapwlo_transition_matrix must be equal to the 1st dimension of initial_eigenvalues' )
+      CALL_ASSERT ( size( this%H_t%array, 3 ) == size( ks_lapwlo_transition_matrix, 3 ), '3rd dimension of ks_lapwlo_transition_matrix and this%H_t%array must be the same' )
+      n_conduction_states = size( this%initial_eigenvalues, 1 ) - first_unoccupied + 1
+      first_kpt = lbound( this%H_t%array, 3 )
+      last_kpt = ubound( this%H_t%array, 3 )
+      allocate( overlap_times_psi_lapwlo(size( ks_lapwlo_transition_matrix, 1 ), n_conduction_states), source = zzero )
+      k_shift = 1 - first_kpt
+      do ik = first_kpt, last_kpt
+        overlap_times_psi_lapwlo = zzero
+        call matrix_multiply( overlap%array(:, :, ik ), &
+          ks_lapwlo_transition_matrix(:, first_unoccupied:, ik + k_shift), overlap_times_psi_lapwlo )
+        call matrix_multiply( overlap_times_psi_lapwlo, overlap_times_psi_lapwlo, &
+          this%scissor_matrix%array(:, :, ik), trans_B = 'C' )
+        this%scissor_matrix%array(:, :, ik) = this%scissor_matrix%array(:, :, ik) * scissor_shift
+      end do
+    end if
   end subroutine
 
 end module rttddft_Hamiltonian

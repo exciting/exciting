@@ -6,6 +6,7 @@ module mod_wannier
   use mod_wannier_disentangle
   use mod_wannier_filehandling
   use mod_wannier_helper
+  use mod_wannier_spin
   use mod_optkgrid
   use mod_kpointset
   use xlapack, only: svd_divide_conquer
@@ -14,7 +15,6 @@ module mod_wannier
   use mod_pwmat
 
   implicit none
-
 ! methods
   contains
     !BOP
@@ -36,20 +36,30 @@ module mod_wannier
       !EOP
       !BOC
 
-      ! local variables
-
       if( wf_initialized) call wannier_destroy
       call init0
       call init1
+
+      if ( trim( input%properties%wannier%input ) == "bse" .and. nspinor == 2) then
+        if ( mpiglobal%rank .eq. 0 ) then
+          write(*, '( "Error (wannier_init): Spinor wannier functions not implemented for BSE.")')
+        end if
+        stop
+      end if
+      if ( issvlo() .and. nspinor == 2) then
+        if ( mpiglobal%rank .eq. 0 ) then
+          write(*, '( "Error (wannier_init): Spinor wannier functions do not support SVLO yet.")')
+        end if
+        stop
+      end if
 
       !********************************************************************
       ! open INFO file
       !********************************************************************
       write( wf_filename, '("WANNIER")')
-      call getunit( wf_info)
       if( mpiglobal%rank .eq. 0) then
         if( input%properties%wannier%do .ne. "fromfile") then
-          open( wf_info, file=trim( wf_filename)//"_INFO"//trim(filext), action='write', form='formatted')
+          open( newunit=wf_info, file=trim( wf_filename)//"_INFO"//trim(filext), action='write', form='formatted')
         end if
       end if
       call timesec( wf_t0)
@@ -64,6 +74,15 @@ module mod_wannier
       !********************************************************************
       call wannier_readinput
 
+      ! check for spindis in input and prepare spin disentanglement if true
+      if ( input%properties%wannier%spindis .and. associated(input%groundstate%spin) ) then
+        call wfspin_set_wf_spin_dis
+        call wfspin_spinDis_double_groups
+        if ( wf_spin_dis .and. wf_spin_dis_method .ne. "SMV" ) then
+          call wfspin_spinDis_divide_groups
+        end if
+      end if
+      
       !********************************************************************
       ! find geometry
       !********************************************************************
@@ -104,7 +123,7 @@ module mod_wannier
       ! initialize transformation matrices
       !********************************************************************
       call wannier_init_transform
-        
+      
       !********************************************************************
       ! build projection functions and overlap matrices
       !********************************************************************
@@ -119,7 +138,6 @@ module mod_wannier
       end select
 
       wf_initialized = .true.
-      !call wannier_writesetup
 
       return
     end subroutine wannier_init
@@ -163,9 +181,13 @@ module mod_wannier
             end do
             do i = 1, wf_groups( igroup)%win_no( ik)
               n = wf_groups( igroup)%win_io( i, ik)
-              score( n, ik) = score( n, ik) + &
-                1.d0/( 1.d0 + exp( -fac*( eval( n, ik) - win(1))/( win(2) - win(1)))) * &
-                1.d0/( 1.d0 + exp(  fac*( eval( n, ik) - win(2))/( win(2) - win(1))))
+              if (wf_spin_dis) then
+                score(n, ik) = score(n, ik) + 0.5d0
+              else
+                score( n, ik) = score( n, ik) + &
+                  1.d0/( 1.d0 + exp( -fac*( eval( n, ik) - win(1))/( win(2) - win(1)))) * &
+                  1.d0/( 1.d0 + exp(  fac*( eval( n, ik) - win(2))/( win(2) - win(1))))
+              end if
             end do
           end do
           scoresum = sum( score, 2)/wf_kset%nkpt
@@ -214,7 +236,7 @@ module mod_wannier
       logical :: success
 
       ! allocatable arrays
-      complex(8), allocatable :: evecfv1(:,:,:), evecfv2(:,:,:)
+      complex(8), allocatable :: evec1(:,:,:), evec2(:,:,:)
 
       write( wf_info, '(" calculate plane-wave matrix-elements...")')
       call timesec( t0)
@@ -246,15 +268,15 @@ module mod_wannier
         call pwmat_init( input%groundstate%lmaxapw, 8, wf_kset, wf_fst, wf_lst, wf_fst, wf_lst, &
                fft=.false.)
 
-        allocate( evecfv1( nmatmax_ptr, nstfv, nspinor))
-        allocate( evecfv2( nmatmax_ptr, nstfv, nspinor))
+        allocate( evec1( nmatmax_ptr, nstsv, nspinor))
+        allocate( evec2( nmatmax_ptr, nstsv, nspinor))
 
         k1 = firstofset( mpiglobal%rank, wf_kset%nkpt)
         k2 = lastofset( mpiglobal%rank, wf_kset%nkpt)
 
         do iknr = k1, k2
-          call wfhelp_getevec( iknr, evecfv1)
-          call pwmat_prepare( iknr, evecfv1( :, :, 1))
+          call wfhelp_getevec( iknr, evec1)
+          call pwmat_prepare( iknr, evec1( :, :, :))
         end do
         call barrier
           
@@ -263,13 +285,10 @@ module mod_wannier
           cntk = 0
           do iknr = k1, k2
             ! read eigenvectors
-            call wfhelp_getevec( iknr, evecfv1)
-            call wfhelp_getevec( wf_n_ik( idxn, iknr), evecfv2)
+            call wfhelp_getevec( iknr, evec1)
+            call wfhelp_getevec( wf_n_ik( idxn, iknr), evec2)
             ! generate plane-wave matrix elements
-            call pwmat_genpwmat( iknr, &
-                   evecfv1( :, wf_fst, 1), &
-                   evecfv2( :, wf_fst, 1), &
-                   wf_m0( :, :, iknr, idxn))
+            call pwmat_genpwmat( iknr, evec1, evec2, wf_m0( :, :, iknr, idxn) )
             cntk = cntk + 1
             if( mpiglobal%rank .eq. 0) then
               write(*,'(1a1,"Calculating plane-wave matrix elements (neighbor ",i2.2," of ",i2.2,"): ",f10.3,"%",$)') achar(13), idxn, wf_n_ntot, &
@@ -281,7 +300,7 @@ module mod_wannier
         if( mpiglobal%rank .eq. 0) then
           write(*,*)
         end if
-        deallocate( evecfv1, evecfv2)
+        deallocate( evec1, evec2)
 
         call pwmat_destroy
         call wffile_writeemat
@@ -773,7 +792,9 @@ module mod_wannier
               do ir = 1, 125
                 if( abs( dist( ir) - d) .lt. input%structure%epslat) tmpmul( nrpt) = tmpmul( nrpt) + 1
               end do
-              tmpvec( :, nrpt) = (/i, j, k/)
+              tmpvec(1, nrpt) = i
+              tmpvec(2, nrpt) = j
+              tmpvec(3, nrpt) = k
               length( nrpt) = norm2( vc)
             end if
           end do
@@ -906,7 +927,7 @@ module mod_wannier
 
       ! initialize Fermi energy
       call wfhelp_getefermi( wf_efermi)
-      call wfhelp_geteval( eval, fst, lst)
+      call wfhelp_geteval( eval, fst, lst )
       allocate( occ( fst:lst, wf_kset%nkpt))
       call wfhelp_occupy( wf_kset, eval, fst, lst, wf_efermi, occ)
       deallocate( occ)
@@ -944,7 +965,7 @@ module mod_wannier
             wf_groups( igroup)%win_ni = 0
             wf_groups( igroup)%win_no = 0
 
-            wf_groups( igroup)%fst = 100000000
+            wf_groups( igroup)%fst = huge(1)
             wf_groups( igroup)%lst = 0
             do ik = 1, wf_kset%nkpt
               do ist = fst, lst
@@ -1012,63 +1033,25 @@ module mod_wannier
               wf_groups( igroup)%win_ii(ist,:) = ist + wf_groups( igroup)%fst - 1
             end do
           end if 
-          ! sanity checks for band ranges
-          if( wf_groups( igroup)%fst .lt. 1) then
+          ! check if band ranges are compatible with available states
+          if( (wf_groups(igroup)%fst < fst) .or. (wf_groups(igroup)%fst > lst)) then
             if( mpiglobal%rank .eq. 0) then
               write(*,*)
-              write( *, '("Error (wannier_readinput): The lowest band (fst) is smaller than 1 for group ",I2,".")') igroup
+              write( *, '("Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
+                  wf_groups( igroup)%fst, fst, lst, igroup
             end if
             stop
           end if
-          if( wf_groups( igroup)%lst .gt. nstfv) then
+          if( wf_groups(igroup)%lst < wf_groups(igroup)%fst .or. wf_groups( igroup)%lst > lst) then
             if( mpiglobal%rank .eq. 0) then
               write(*,*)
-              write( *, '("Error (wannier_readinput): The highest band (lst = ",I4,") is greater than total number of states (nstfv = ",I4,") for group ",I2,".")') &
-                  wf_groups( igroup)%lst, nstfv, igroup
+              write( *, '("Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
+                  wf_groups( igroup)%lst, wf_groups( igroup)%fst, lst, igroup
             end if
             stop
           end if
           ! set number of envolved bands
           wf_groups( igroup)%nst = wf_groups( igroup)%lst - wf_groups( igroup)%fst + 1
-          ! check if band ranges are compatible with available states
-          if( input%properties%wannier%input .eq. "gw") then
-            if( (wf_groups( igroup)%fst .lt. input%gw%ibgw) .or. (wf_groups( igroup)%fst .gt. input%gw%nbgw)) then
-              if( mpiglobal%rank .eq. 0) then
-                write(*,*)
-                write( *, '("Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
-                    wf_groups( igroup)%fst, input%gw%ibgw, input%gw%nbgw-1, igroup
-              end if
-              stop
-            end if
-          else
-            if( (wf_groups( igroup)%fst .lt. 1) .or. (wf_groups( igroup)%fst .gt. nstfv)) then
-              if( mpiglobal%rank .eq. 0) then
-                write(*,*)
-                write( *, '("Error (wannier_readinput): lower band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
-                    wf_groups( igroup)%fst, 1, nstfv-1, igroup
-              end if
-              stop
-            end if
-          end if
-          if( input%properties%wannier%input .eq. "gw") then
-            if( wf_groups( igroup)%lst .gt. input%gw%nbgw) then
-              if( mpiglobal%rank .eq. 0) then
-                write(*,*)
-                write( *, '("Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
-                    wf_groups( igroup)%lst, wf_groups( igroup)%fst+1, input%gw%nbgw, igroup
-              end if
-              stop
-            end if
-          else
-            if( wf_groups( igroup)%lst .gt. nstfv) then
-              if( mpiglobal%rank .eq. 0) then
-                write(*,*)
-                write( *, '("Error (wannier_readinput): upper band-index (",I4,") out of range (",I4,":",I4,") for group ",I2,".")') &
-                    wf_groups( igroup)%lst, wf_groups( igroup)%fst+1, nstfv, igroup
-              end if
-              stop
-            end if
-          end if
           ! set the appropriate method
           if( wf_groups( igroup)%method .eq. 'pro' .or. &
               wf_groups( igroup)%method .eq. 'promax' .or. &
@@ -1098,9 +1081,13 @@ module mod_wannier
             end if
           end if
 
+          ! copy band boundaries
+          wf_groups(igroup)%fst_ks = wf_groups(igroup)%fst
+          wf_groups(igroup)%lst_ks = wf_groups(igroup)%lst
+          wf_groups(igroup)%nst_ks = wf_groups(igroup)%nst
         end do !igroup
 
-        wf_fst = 10000000
+        wf_fst = huge(1)
         wf_lst = 0
         wf_nwf = 0
         do igroup = 1, wf_ngroups
@@ -1115,8 +1102,6 @@ module mod_wannier
       ! read input from TRANSFORM file
       else if( (input%properties%wannier%do .eq. "fromfile") .or. (input%properties%wannier%do .eq. "maxfromfile")) then
 
-        call getunit( un)
-
         inquire( file=trim( wf_filename)//"_TRANSFORM"//trim( filext), exist=success)
         if( .not. success) then
           if( mpiglobal%rank .eq. 0) then
@@ -1125,7 +1110,7 @@ module mod_wannier
           end if
           return
         end if
-        open( un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
+        open( newunit=un, file=trim( wf_filename)//"_TRANSFORM"//trim( filext), action='READ', form='UNFORMATTED', status='OLD')
         read( un) fst_, lst_, nst_, nwf_, nkpt_, disentangle_
         !wf_disentangle = disentangle_
         if( (fst_ .ne. wf_fst) .or. (lst_ .ne. wf_lst)) then

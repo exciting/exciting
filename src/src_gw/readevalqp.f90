@@ -1,71 +1,62 @@
-
+!> Read quasiparticle energies from a direct-access binary file.
 subroutine readevalqp(fname, kset, ib, nb, eks, efks, eqp, efqp)
 
     use mod_kpointset
+    use modmpi, only: terminate_if_false
+    use mod_large_io, only: inquire_large, open_direct_unformatted_large
+    use precision, only: i32, dp, long_int
     implicit none
+    !> File name to read.
     character(*), intent(in)  :: fname
+    !> k-point set associated with the stored eigenvalues.
     type(k_set),  intent(in)  :: kset
-    integer(4),   intent(in)  :: ib
-    integer(4),   intent(in)  :: nb
-    real(8),      intent(out) :: eks(ib:nb,kset%nkpt)
-    real(8),      intent(out) :: efks
-    real(8),      intent(out) :: eqp(ib:nb,kset%nkpt)
-    real(8),      intent(out) :: efqp
+    !> First band index to read.
+    integer(i32), intent(in)  :: ib
+    !> Last band index to read.
+    integer(i32), intent(in)  :: nb
+    !> Kohn-Sham eigenvalues.
+    real(dp),     intent(out) :: eks(ib:nb,kset%nkpt)
+    !> Kohn-Sham Fermi energy.
+    real(dp),     intent(out) :: efks
+    !> Quasiparticle energies.
+    real(dp),     intent(out) :: eqp(ib:nb,kset%nkpt)
+    !> Quasiparticle Fermi energy.
+    real(dp),     intent(out) :: efqp
     ! local
-    integer(4)    :: ik, nk0, ib0, nb0
-    real(8)       :: vkl(3)
-    integer(4)    :: recl
+    integer(i32)  :: ik, nk0, ib0, nb0, unit
+    real(dp)      :: vkl(3)
+    integer(long_int) :: recl
     logical       :: exist
 
     !-----------------------------------------------------------------------------
     ! Read the file
     !-----------------------------------------------------------------------------
     inquire( File=trim(fname), Exist=exist )
-    if ( .not.exist ) then
-        write(*,*)'ERROR(readevalqp): File ', trim(fname), ' does not exist!'
-        stop
-    end if
+    call terminate_if_false(exist, 'ERROR(readevalqp): File ' // trim(fname) // ' does not exist!')
 
-    inquire( IoLength=recl ) nk0, ib0, nb0
-    open(70, File=trim(fname), Action='READ', Form='UNFORMATTED', &
-         Access='DIRECT', Recl=recl)
-    read(70, Rec=1) nk0, ib0, nb0
-    close(70)
+    call inquire_large( recl, [nk0, ib0, nb0] )
+    call open_direct_unformatted_large( unit, trim(fname), "read", recl, "old" )
+    read(unit, Rec=1) nk0, ib0, nb0
+    close(unit)
 
     ! Consistency check
-    if ( nk0 /= kset%nkpt ) then
-        write(*,*) 'ERROR(readevalqp): Inconsistent number of k-points!'
-        write(*,*) 'nk0 = ', nk0, ' nkpt = ', kset%nkpt
-        stop
-    end if
-    if ( ib0 /= ib ) then
-        write(*,*) 'ERROR(readevalqp): Inconsistent number of GW states!'
-        write(*,*) 'ib0 = ', ib0, ' ib = ', ib
-        stop
-    end if
-    if ( nb0 /= nb0 ) then
-        write(*,*) 'ERROR(readevalqp): Inconsistent number of GW states!'
-        write(*,*) 'nb0 = ', nb0, ' nb = ', nb
-        stop
-    end if
+    call terminate_if_false(nk0 == kset%nkpt, 'ERROR(readevalqp): Inconsistent number of k-points!')
+    call terminate_if_false(ib0 == ib, 'ERROR(readevalqp): Inconsistent first GW state in checkpoint!')
+    call terminate_if_false(nb0 == nb, 'ERROR(readevalqp): Inconsistent last GW state in checkpoint!')
 
-    inquire( IoLength=recl) nk0, ib0, nb0, vkl, &
-             eqp(ib:nb,1), eks(ib:nb,1), &
-             efqp, efks
+    call inquire_large( recl, [nk0, ib0, nb0], vkl, &
+                        eqp(ib:nb,1), eks(ib:nb,1), [efqp, efks] )
 
-    open(70, File=trim(fname), Action='READ', Form='UNFORMATTED', &
-         Access='DIRECT', Recl=recl)
+    call open_direct_unformatted_large( unit, trim(fname), "read", recl, "old" )
 
     do ik = 1, kset%nkpt
-        read(70, Rec=ik) nk0, ib0, nb0, vkl, &
+        read(unit, Rec=ik) nk0, ib0, nb0, vkl, &
              eqp(ib:nb,ik), eks(ib:nb,ik), &
              efqp, efks
-        if ( abs(sum(vkl(:)-kset%vkl(:,ik))) > 1.d-6 ) then
-            write(*,*) 'ERROR(readevalqp): Inconsistent k-points!'
-            stop
-        end if
+        call terminate_if_false(abs(sum(vkl(:)-kset%vkl(:,ik))) <= 1.d-6, &
+            'ERROR(readevalqp): Inconsistent k-points!')
     end do ! ik
 
-    close(70)
+    close(unit)
 
 end subroutine

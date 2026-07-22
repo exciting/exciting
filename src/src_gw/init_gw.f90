@@ -1,4 +1,4 @@
-
+!> Initialize GW data and task-specific setup.
 subroutine init_gw()
 
     use modinput
@@ -13,10 +13,14 @@ subroutine init_gw()
     use mod_hdf5
     use gw_scf, only: set_gs_solver_threads, thread_consistent_scf
     use exciting_idiel_interface, only: init_idiel_handler
+    use mod_selfconsistent_gw, only: is_gw_selfconsistent_flavour, iteration, qsgw, gw_first_iteration
+    use self_consistent_eigenvalue_gw0, only: will_use_evgw0_input_qp
 #include "offload.fpp"
 
     implicit none
-    logical :: reducek, is_task_group, is_task_epsilon, is_task_invertEpsilon, is_task_sigmac
+    logical :: reducek, is_task_group, is_task_epsilon, is_task_invertEpsilon, is_task_sigmac, &
+               is_task_polarizability, is_task_cc4sInterface
+    logical :: initialize_idiel
     integer :: lmax, ik
     real(8) :: t0, t1, tstart, tend
 
@@ -54,6 +58,17 @@ subroutine init_gw()
       filext = '_PBE.OUT'
       call readstate()
       filext = '.OUT'
+
+    else if (.not. gw_first_iteration() .and. is_gw_selfconsistent_flavour(qsgw)) then
+      
+      ! In this case we are forced to use the same parameters as for the previous
+      ! GS, i.e., nempty and ngridk.
+      ! Remark: the wavefunction for a general k-point will be obtained applying
+      ! a rotation algorithm implemented in getevecfv.f90.
+      ! Unfortunately, there are some small artefacts caused by the rotation.
+      call init1()
+      filext = '.OUT'
+      call readstate()
 
     else
 
@@ -120,15 +135,20 @@ subroutine init_gw()
       is_task_epsilon = associated( input%gw%taskGroup%epsilon )
       is_task_invertEpsilon = associated( input%gw%taskGroup%invertEpsilon )
       is_task_sigmac = associated( input%gw%taskGroup%sigmac )
+      is_task_polarizability = associated( input%gw%taskGroup%polarizability )
+      is_task_cc4sInterface = associated( input%gw%taskGroup%cc4sInterface )
     else 
       is_task_epsilon = .false.
       is_task_invertEpsilon = .false.
       is_task_sigmac = .false.
+      is_task_polarizability = .false.
+      is_task_cc4sInterface = .false.
     end if
 
     if (input%gw%taskname=='g0w0' .or. &
         input%gw%taskname=='emac' .or. &
-        is_task_epsilon .or. is_task_invertEpsilon .or. is_task_sigmac ) then
+        is_task_epsilon .or. is_task_invertEpsilon .or. is_task_sigmac .or. &
+        is_task_polarizability .or. is_task_cc4sInterface) then
       call generate_freqgrid(freq, &
       &                      input%gw%freqgrid%fgrid, &
       &                      input%gw%freqgrid%fconv, &
@@ -162,8 +182,10 @@ subroutine init_gw()
     call timesec(t1)
     time_initeval = time_initeval+t1-t0
 
+    initialize_idiel = .not. will_use_evgw0_input_qp(input%gw)
+
     ! Initialize if compiled with the IDieL library handler
-    call init_idiel_handler()
+    if (initialize_idiel) call init_idiel_handler()
     
     ! Upload GS globals to the devices
     OMP_OFFLOAD target enter data map(always, to: idxas, idxlo, idxlm, lorbl, apword, nlorb, corind, evalcr, evalfv)

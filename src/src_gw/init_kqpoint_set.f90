@@ -7,7 +7,6 @@ subroutine init_kqpoint_set()
     use mod_kpointset
     use mod_frequency
     use modmpi,     only : rank
-    use m_getunit
 #include "offload.fpp"
 
     implicit none
@@ -29,8 +28,7 @@ subroutine init_kqpoint_set()
     &                       input%groundstate%reducek)
 
     if ((input%gw%printKpoints).and.(rank==0)) then
-      call getunit(fid)
-      open(fid,file='GW_KPOINTS.OUT',action='Write',status='Unknown')
+      open(newunit=fid,file='GW_KPOINTS.OUT',action='Write',status='Unknown')
       call print_k_vectors(kset,fid)
       close(fid)
     end if

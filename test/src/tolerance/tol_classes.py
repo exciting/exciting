@@ -99,7 +99,8 @@ tol_file_name = {'groundstate': 'tolerance_ground_state.json',
                  'core_properties': 'tolerance_core.json',
                  'spin_properties': 'tolerance_spin.json',
                  'wfplot': 'tolerance_wfplot.json',
-                 'fastBSE': 'tolerance_fastBSE.json'
+                 'fastBSE': 'tolerance_fastBSE.json',
+                 'phonon': 'tolerance_phonon.json'
                  }
 
 methods = list(tol_file_name.keys())

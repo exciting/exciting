@@ -1,5 +1,5 @@
 module MD
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: y00
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
   use mod_atoms, only: atposc, idxas, natoms, nspecies
@@ -192,9 +192,9 @@ contains
   subroutine trajectory_assert_consistency( this )
     class(trajectory), intent(in) :: this
 
-    call assert( size( this%positions, 1 ) == n_cartesian, "positions must have " // to_char(n_cartesian) // " components along 1st dim")
-    call assert( size( this%velocities, 1 ) == n_cartesian, "velocities must have " // to_char(n_cartesian) // " components along 1st dim")
-    call assert( size( this%velocities, 2 ) == size( this%positions, 2 ), "velocities and positions must have same size along 2nd dim")
+    CALL_ASSERT( size( this%positions, 1 ) == n_cartesian, "positions must have " // to_char(n_cartesian) // " components along 1st dim")
+    CALL_ASSERT( size( this%velocities, 1 ) == n_cartesian, "velocities must have " // to_char(n_cartesian) // " components along 1st dim")
+    CALL_ASSERT( size( this%velocities, 2 ) == size( this%positions, 2 ), "velocities and positions must have same size along 2nd dim")
   end subroutine
 
   subroutine trajectory_allocate_arrays( this, n_atoms )
@@ -273,8 +273,8 @@ contains
     real (dp), external    :: rfmtinp
     
     nr = size( radial_grid )
-    call assert( size(vc_lm, 1) >= lm_max, '1st dim of vc_lm must be >= lm_max')
-    call assert( size(vc_lm, 2) == nr, '2nd dim of vc_lm must contain nr elements' )
+    CALL_ASSERT( size(vc_lm, 1) >= lm_max, '1st dim of vc_lm must be >= lm_max')
+    CALL_ASSERT( size(vc_lm, 2) == nr, '2nd dim of vc_lm must contain nr elements' )
     
     allocate( grad(lm_max, nr, n_cartesian), source = 0._dp )
     call gradrfmt( 1, nr, radial_grid, lm_max, nr, vc_lm(1:lm_max, :), grad )
@@ -302,9 +302,9 @@ contains
     real (dp), external    :: rfmtinp
     
     nr = size( radial_grid )
-    call assert( size(rho_core) == nr, 'Size of rho_core must be nr' )
-    call assert( size(vKS_MT, 1) >= lm_max, '1st dim of vKS_MT must be >= lm_max')
-    call assert( size(vKS_MT, 2) == nr, '2nd dim of vKS_MT must contain nr elements' )
+    CALL_ASSERT( size(rho_core) == nr, 'Size of rho_core must be nr' )
+    CALL_ASSERT( size(vKS_MT, 1) >= lm_max, '1st dim of vKS_MT must be >= lm_max')
+    CALL_ASSERT( size(vKS_MT, 2) == nr, '2nd dim of vKS_MT must contain nr elements' )
     
     allocate( rho_mt(lm_max, nr), source = 0._dp )
     allocate( grad(lm_max, nr, n_cartesian), source = 0._dp )
@@ -345,12 +345,12 @@ contains
     nr = size( radial_grid )
     lm_max = size( rho_MT, 1 )
     l_max = int( sqrt( dble(lm_max) ) ) - 1
-    call assert( lm_max == (l_max+1)**2, 'lm_max must be a perfect square' )
-    call assert( size(rho_core) == nr, 'Size of rho_core must be nr' )
-    call assert( size(rho_MT, 1) == lm_max, '1st dim of rho_MT must be == lm_max')
-    call assert( size(rho_MT, 2) == nr, '2nd dim of rho_MT must contain nr elements' )
-    call assert( size(vKS_MT, 1) == lm_max, '1st dim of vKS_MT must be >= lm_max')
-    call assert( size(vKS_MT, 2) == nr, '2nd dim of vKS_MT must contain nr elements' )
+    CALL_ASSERT( lm_max == (l_max+1)**2, 'lm_max must be a perfect square' )
+    CALL_ASSERT( size(rho_core) == nr, 'Size of rho_core must be nr' )
+    CALL_ASSERT( size(rho_MT, 1) == lm_max, '1st dim of rho_MT must be == lm_max')
+    CALL_ASSERT( size(rho_MT, 2) == nr, '2nd dim of rho_MT must contain nr elements' )
+    CALL_ASSERT( size(vKS_MT, 1) == lm_max, '1st dim of vKS_MT must be >= lm_max')
+    CALL_ASSERT( size(vKS_MT, 2) == nr, '2nd dim of vKS_MT must contain nr elements' )
 
     allocate( rho_val, source = rho_MT )
     allocate( vaux, source = vKS_MT)
@@ -386,13 +386,13 @@ contains
     m = size( psi, 1 )
     n = size( psi, 2 )
     allocate( diff(m, m), prod(m, n), aux(n) )
-    call assert( size(H,1) == m, 'H must have m elements along 1st dim')
-    call assert( size(H,2) == m, 'H must have m elements along 2nd dim')
-    call assert( size(H,3) == n_cartesian, 'H must have n_cartesian elements along 3rd dim')
-    call assert( size(S,1) == m, 'S must have m elements along 1st dim')
-    call assert( size(S,2) == m, 'S must have m elements along 2nd dim')
-    call assert( size(S,3) == n_cartesian, 'S must have n_cartesian elements along 3rd dim')
-    call assert( size(occ) == n, 'occ must have n elements')
+    CALL_ASSERT( size(H,1) == m, 'H must have m elements along 1st dim')
+    CALL_ASSERT( size(H,2) == m, 'H must have m elements along 2nd dim')
+    CALL_ASSERT( size(H,3) == n_cartesian, 'H must have n_cartesian elements along 3rd dim')
+    CALL_ASSERT( size(S,1) == m, 'S must have m elements along 1st dim')
+    CALL_ASSERT( size(S,2) == m, 'S must have m elements along 2nd dim')
+    CALL_ASSERT( size(S,3) == n_cartesian, 'S must have n_cartesian elements along 3rd dim')
+    CALL_ASSERT( size(occ) == n, 'occ must have n elements')
 
     ! loop over x, y, z
     do j = 1, n_cartesian

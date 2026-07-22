@@ -13,12 +13,12 @@ subroutine calcpmatgw
     use mod_atoms, only: natmtot
     use mod_eigensystem, only: nmatmax
     use mod_core_states,   only : ncg
+    use mod_large_io, only: inquire_large, open_direct_unformatted_large
     use mod_pmat, only: init_pmat, genevecalm, genpmatvv_k, genpmatcv_k, clear_pmat
     use mod_dielectric_function, only: fname_pmatvv, fname_pmatcv
     use modgw, only: kset, kqset, Gkqset, time_pmat 
     use mod_bands, only: nomax, numin, nstdf
     use mod_eigenvalue_occupancy, only: nstfv
-    use m_getunit
     use modmpi, only: rank, firstofset, lastofset, barrier 
 
 !!DESCRIPTION:
@@ -130,12 +130,10 @@ subroutine calcpmatgw
 
     ! overwrite existing files
     if (rank==0) then
-      call getunit(fid)
-      open(fid,File=fname_pmatvv,form='UNFORMATTED',status='REPLACE')
+      open(newunit=fid,File=fname_pmatvv,form='UNFORMATTED',status='REPLACE')
       close(fid)
       if (coreflag_is_all) then
-        call getunit(fid)
-        open(fid,File=fname_pmatcv,form='UNFORMATTED',status='REPLACE')
+        open(newunit=fid,File=fname_pmatcv,form='UNFORMATTED',status='REPLACE')
         close(fid)
       end if
     endif
@@ -143,17 +141,13 @@ subroutine calcpmatgw
 
     do ikp = 1, kset%nkpt
       if (rank == ikp2rank(ikp)) then
-        call getunit(fid)
-        inquire(iolength=recl) pmv(:,:,:,ikp)
-        open(fid,File=fname_pmatvv,Action='WRITE',Form='UNFORMATTED',&
-             Access='DIRECT',Status='OLD',Recl=recl)
+        call inquire_large( recl, pmv(:,:,:,ikp) )
+        call open_direct_unformatted_large( fid, fname_pmatvv, "write", recl, "old" )
         write(fid,rec=ikp) pmv(:,:,:,ikp)
         close(fid)
         if (coreflag_is_all) then
-          call getunit(fid)
-          inquire(iolength=recl) pmc(:,:,:,ikp)
-          open(fid,File=fname_pmatcv,Action='WRITE',Form='UNFORMATTED',&
-               Access='DIRECT',Status='OLD',Recl=recl)
+          call inquire_large( recl, pmc(:,:,:,ikp) )
+          call open_direct_unformatted_large( fid, fname_pmatcv, "write", recl, "old" )
           write(fid,rec=ikp) pmc(:,:,:,ikp)
           close(fid)
         end if

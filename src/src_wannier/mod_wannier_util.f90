@@ -15,7 +15,6 @@ module mod_wannier_util
     !
     subroutine wfutil_bandstructure
       ! !USES:
-      use m_getunit 
       use FoX_wxml
       ! !INPUT PARAMETERS:
       ! !DESCRIPTION:
@@ -30,7 +29,7 @@ module mod_wannier_util
       type( k_set) :: tmp_kset
       type( xmlf_t), save :: xf
       character(256) :: fxt, fname, buffer
-
+      
       real(8), allocatable :: wf_dvp1d(:), wf_vplp1d(:,:), wf_dpp1d(:), bc(:,:,:,:), velo(:,:,:), mass(:,:,:,:), deriv(:,:,:)
 
       ! generate k-points along path
@@ -48,9 +47,12 @@ module mod_wannier_util
         call r3mv( wf_kset%bvec, tmp_kset%vkl( :, iq), tmp_kset%vkc( :, iq))
       end do
 
+      !set number of spin channels
+      call wfint_set_num_spin_channels
+
       ! interpolate energies
       call wfint_init( tmp_kset)
-      
+
       ! interpolate band-derivatives
       if( input%properties%bandstructure%deriv) then
         allocate( deriv( 3, wf_nwf, wfint_kset%nkpt))
@@ -75,12 +77,8 @@ module mod_wannier_util
             deriv( 3, ist, iq) = dot_product( dk, v)
           end do
         end do
-      end if
 
-      !call wfint_interpolate_eigvec
-      !write(*,*) wf_npp1d, tmp_kset%nkpt, wfint_kset%nkpt
-      !call wfint_interpolate_gwpermat
-      !stop
+      end if
 
       ! set Fermi energy to zero in output
       write( fxt, '(".OUT")')
@@ -91,7 +89,7 @@ module mod_wannier_util
 
       ! interpolate bandcharacter if requested
       if( input%properties%bandstructure%character) then
-        lmax = min( 4, input%groundstate%lmaxapw)
+        lmax = min( 3, input%groundstate%lmaxapw)
         allocate( bc( 0:lmax, natmtot, wf_nwf, wfint_kset%nkpt))
         call wfint_interpolate_bandchar( lmax, bc)
       end if
@@ -99,7 +97,7 @@ module mod_wannier_util
       ! generate ouput
       if( mpiglobal%rank .eq. 0) then
         if( input%properties%wannier%input .eq. "gw") then
-          call xml_OpenFile( "bandstructure_wannier-gw.xml", xf, replace=.true., pretty_print=.true.)
+          call xml_OpenFile( "bandstructure_wannier_gw.xml", xf, replace=.true., pretty_print=.true.)
         else
           call xml_OpenFile( "bandstructure_wannier.xml", xf, replace=.true., pretty_print=.true.)
         end if
@@ -122,8 +120,7 @@ module mod_wannier_util
               call xml_AddAttribute( xf, "coord", trim( adjustl( buffer)))
               ias = idxas( ia, is)
               write( fname, '("BAND_WANNIER_S", I2.2, "_A", I4.4)') is, ia
-              call getunit( un)
-              open( un, file=trim( fname)//trim( fxt), action='write', form='formatted')
+              open( newunit=un, file=trim( fname)//trim( fxt), action='write', form='formatted')
 
               do ist = 1, wf_nwf
                 call xml_NewElement( xf, "band")
@@ -157,9 +154,9 @@ module mod_wannier_util
                   end do
                   call xml_endElement( xf, "point")
                   if( input%properties%bandstructure%deriv) then
-                    write( un, '(2G20.10, 20F12.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq), deriv( :, ist, iq)
+                    write( un, '(2G20.10, 20F14.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq), deriv( :, ist, iq)
                   else
-                    write( un, '(2G20.10, 20F12.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq)
+                    write( un, '(2G20.10, 20F14.6)') wf_dpp1d( iq), wfint_eval( ist, iq), sum, bc( :, ias, ist, iq)
                   end if
                 end do
                 call xml_endElement( xf, "band")
@@ -178,8 +175,7 @@ module mod_wannier_util
 
         ! without bandcharacter
         else
-          call getunit( un)
-          open( un, file='BAND_WANNIER'//trim( fxt), action='write', form='formatted')
+          open( newunit=un, file='BAND_WANNIER'//trim( fxt), action='write', form='formatted')
           call xml_NewElement( xf, "title")
           call xml_AddCharacters( xf, trim( input%title))
           call xml_endElement( xf, "title")
@@ -221,8 +217,7 @@ module mod_wannier_util
         end if
 
         ! vertex lines
-        call getunit( un)
-        open( un, file='BANDLINES_WANNIER'//trim( fxt), action='write', form='formatted')
+        open( newunit=un, file='BANDLINES_WANNIER'//trim( fxt), action='write', form='formatted')
         do iv = 1, wf_nvp1d
           call xml_NewElement( xf, "vertex")
           write( buffer, '(5G20.10)') wf_dvp1d( iv)
@@ -246,13 +241,12 @@ module mod_wannier_util
         call xml_close( xf)
 
         ! bandstructure.dat
-        call getunit( un)
         if( input%properties%wannier%input .eq. "gw") then
-          open( un, file='bandstructure_wannier_gw.dat', action='write', form='formatted')
+          open( newunit=un, file='bandstructure_wannier_gw.dat', action='write', form='formatted')
         else if( input%properties%wannier%input .eq. "qsgw") then
-          open( un, file='bandstructure_wannier_qsgw.dat', action='write', form='formatted')
+          open( newunit=un, file='bandstructure_wannier_qsgw.dat', action='write', form='formatted')
         else
-          open( un, file='bandstructure_wannier.dat', action='write', form='formatted')
+          open( newunit=un, file='bandstructure_wannier.dat', action='write', form='formatted')
         end if
         write( un, *) "# ", wf_fst, wf_fst+wf_nwf-1, wfint_kset%nkpt
         do ist = 1, wf_nwf
@@ -278,7 +272,6 @@ module mod_wannier_util
     !
     subroutine wfutil_dos
       ! !USES:
-      use m_getunit 
       use FoX_wxml
       use mod_optkgrid, only: getoptkgrid
       ! !INPUT PARAMETERS:
@@ -289,16 +282,16 @@ module mod_wannier_util
       !   Created November 2017 (SeTi)
       !EOP
       !BOC
-      integer :: lmax, lmmax, is, ia, ias, l, m, lm, ie, un, ist, ntrans, mtrans, nsm
+      integer :: lmax, lmmax, is, ia, ias, l, m, lm, ie, un, ist, ntrans, mtrans, nsm, ispn
       integer :: intgrid(3), nsmooth, neffk, nsube
       real(8) :: ewin(2), scissor, rad, opt, ropt, v(3), vbz
-      logical :: genpdos, genjdos
+      logical :: genpdos, genjdos, lonly
       character(64) :: inttype
       character(256) :: fname
       character(512) :: buffer
       type (xmlf_t), save :: xf
 
-      real(8), allocatable :: e(:), tdos(:), pdos(:,:,:), jdos(:,:)
+      real(8), allocatable :: e(:), tdos(:,:), pdos(:,:,:,:), jdos(:,:)
 
       rad = 1.d-2
 
@@ -329,8 +322,8 @@ module mod_wannier_util
           write(*,'(" used grid:  ",3I5)') intgrid
         end if
       end if
-      
-      lmax = min( 3, input%groundstate%lmaxapw)
+
+      lmax = min( 4, input%groundstate%lmaxapw)
       lmmax = (lmax+1)**2
       genpdos = input%properties%dos%lmirep
       genjdos = input%properties%dos%jdos
@@ -341,6 +334,22 @@ module mod_wannier_util
       ewin = input%properties%dos%winddos
       inttype = trim( input%properties%dos%inttype)
       nsm = input%properties%dos%nsmdos
+      lonly = input%properties%dos%lonly
+      If ( isspinorb() ) then
+           lonly = .true.
+      end if
+      if ( .not. input%properties%dos%sqados(3) .Ge. 1.d0-input%structure%epslat ) then
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*) "Warning: 'sqados' option is currently not supported for wannier interpolation. Proceding assuming z as spin-quantization axis."
+        end if
+      end if
+      if ( genjdos .and. associated( input%groundstate%spin ) ) then
+        genjdos = .false.
+        if( mpiglobal%rank .eq. 0) then
+          write(*,*) "Warning: 'jdos' option is currently not supported for wannier interpolation of spin polarized calculations. Proceeding without jdos."
+        end if
+      end if
+      
       ! smoothing is already done in old integration routine
       if( input%properties%dos%inttype /= 'tetra') nsm = 0
 
@@ -349,8 +358,11 @@ module mod_wannier_util
         e( ie) = ewin(1) + dble( ie-1)*(ewin(2)-ewin(1))/(nsube-1)
       end do
 
-      allocate( tdos( nsube))
-      if( genpdos) allocate( pdos( nsube, lmmax, natmtot))
+      ! set interpolate module global n_spin_channel
+      call wfint_set_num_spin_channels
+
+      allocate( tdos( nsube, wfint_get_num_spin_channels()))
+      if( genpdos) allocate( pdos( nsube, lmmax, natmtot, wfint_get_num_spin_channels()))
       if( genjdos) allocate( jdos( nsube, 0:wf_nwf))
 
       ! interpolate DOS
@@ -359,7 +371,7 @@ module mod_wannier_util
              scissor=scissor, &
              pdos=pdos, &
              inttype=inttype, &
-             lonly=input%properties%dos%lonly)
+             lonly=lonly)
       else if( .not. genpdos .and. genjdos) then
         call wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, tdos, &
              scissor=scissor, &
@@ -370,7 +382,7 @@ module mod_wannier_util
         call wfint_interpolate_dos( lmax, nsmooth, intgrid, neffk, nsube, ewin, tdos, &
              scissor=scissor, &
              pdos=pdos, &
-             lonly=input%properties%dos%lonly, &
+             lonly=lonly, &
              jdos=jdos, &
              inttype=inttype, &
              ntrans=ntrans, mtrans=mtrans)
@@ -384,9 +396,7 @@ module mod_wannier_util
 
         ! generate output
         ! total DOS
-        if( nsm .gt. 0) call fsmooth( nsm, nsube, 1, tdos)
-        call getunit( un)
-        open( un, file='TDOS_WANNIER'//trim( filext), action='write', form='formatted')
+        open( newunit=un, file='TDOS_WANNIER'//trim( filext), action='write', form='formatted')
         call xml_OpenFile( "dos_wannier.xml", xf, replace=.True., pretty_print=.True.)
         call xml_NewElement( xf, "dos")
         call xml_NewElement( xf, "title")
@@ -402,23 +412,27 @@ module mod_wannier_util
         call xml_endElement( xf, "axis")
 
         call xml_NewElement( xf, "totaldos")
-        call xml_NewElement( xf, "diagram")
-        call xml_AddAttribute( xf, "type", "totaldos")
-        write( buffer,*) 1
-        call xml_AddAttribute( xf, "nspin", trim( adjustl( buffer)))
 
-        do ie = 1, nsube
-          call xml_NewElement (xf, "point")
-          write( buffer, '(G20.10E3)') e( ie)
-          call xml_AddAttribute( xf, "e", trim( adjustl( buffer)))
-          write( buffer, '(G20.10E3)') occmax*tdos( ie)
-          call xml_AddAttribute( xf, "dos", trim( adjustl( buffer)))
-          call xml_endElement( xf, "point")
-          write( un, '(2G20.10E3)') e( ie), occmax*tdos( ie)
+        do ispn = 1, wfint_get_num_spin_channels()
+          if( nsm .gt. 0) call fsmooth( nsm, nsube, 1, tdos(:, ispn))
+          call xml_NewElement( xf, "diagram")
+          call xml_AddAttribute( xf, "type", "totaldos")
+          write( buffer,*) ispn
+          call xml_AddAttribute( xf, "nspin", trim( adjustl( buffer)))
+
+          do ie = 1, nsube
+            call xml_NewElement (xf, "point")
+            write( buffer, '(G20.10E3)') e( ie)
+            call xml_AddAttribute( xf, "e", trim( adjustl( buffer)))
+            write( buffer, '(G20.10E3)') occmax*tdos( ie, ispn)
+            call xml_AddAttribute( xf, "dos", trim( adjustl( buffer)))
+            call xml_endElement( xf, "point")
+            write( un, '(2G20.10E3)') e( ie), occmax*tdos( ie, ispn)
+          end do
+          call xml_endElement( xf, "diagram")
+          write( un, *)
         end do
-        write( un, *)
         close( un)
-        call xml_endElement( xf, "diagram")
         call xml_endElement( xf, "totaldos")
 
         ! partial and interstitial DOS
@@ -426,9 +440,8 @@ module mod_wannier_util
           do is = 1, nspecies
             do ia = 1, natoms( is)
               ias = idxas( ia, is)
-              call getunit( un)
               write( fname, '("PDOS_WANNIER_S",I2.2,"_A",I4.4)') is, ia
-              open( un, file=trim( fname)//trim( filext), action='write', form='formatted')
+              open( newunit=un, file=trim( fname)//trim( filext), action='write', form='formatted')
               call xml_NewElement( xf, "partialdos")
               call xml_AddAttribute( xf, "type", "partial")
               call xml_AddAttribute( xf, "speciessym", trim( adjustl( input%structure%speciesarray(is)%species%chemicalSymbol)))
@@ -436,83 +449,86 @@ module mod_wannier_util
               call xml_AddAttribute( xf, "speciesrn", trim( adjustl( buffer)))
               write( buffer,*) ia
               call xml_AddAttribute( xf, "atom", trim( adjustl( buffer)))
-              do l = 0, lmax
-                if( input%properties%dos%lonly) then
-                  if( nsm .gt. 0) call fsmooth( nsm, nsube, 1, pdos( :, l+1, ias))
-                  call xml_NewElement( xf, "diagram")
-                  write( buffer,*) 1
-                  call xml_AddAttribute( xf, "nspin", trim( adjustl( buffer)))
-                  write( buffer,*) l
-                  call xml_AddAttribute( xf, "l", trim( adjustl( buffer)))
-                  do ie = 1, nsube
-                    call xml_NewElement( xf, "point")
-                    write( buffer, '(G20.10E3)') e( ie)
-                    call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
-                    write( buffer, '(G20.10E3)') occmax*pdos( ie, l+1, ias)
-                    call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
-                    call xml_endElement( xf, "point")
-                    write( un, '(2G20.10E3)') e( ie), occmax*pdos( ie, l+1, ias)
-                    tdos( ie) = tdos( ie) - pdos( ie, l+1, ias)
-                  end do
-                  write( un, *)
-                  call xml_endElement( xf, "diagram")
-                else
-                  do m = -l, l
-                    lm = idxlm( l, m)
-                    if( nsm .gt. 0) call fsmooth( nsm, nsube, 1, pdos( :, lm, ias))
+              do ispn = 1, wfint_get_num_spin_channels()
+                do l = 0, lmax
+                  if( lonly) then
+                    if( nsm .gt. 0) call fsmooth( nsm, nsube, 1, pdos( :, l+1, ias, ispn))
                     call xml_NewElement( xf, "diagram")
-                    write( buffer,*) 1
+                    write( buffer,*) ispn
                     call xml_AddAttribute( xf, "nspin", trim( adjustl( buffer)))
                     write( buffer,*) l
                     call xml_AddAttribute( xf, "l", trim( adjustl( buffer)))
-                    write( buffer,*) m
-                    call xml_AddAttribute( xf, "m", trim( adjustl( buffer)))
                     do ie = 1, nsube
                       call xml_NewElement( xf, "point")
                       write( buffer, '(G20.10E3)') e( ie)
                       call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
-                      write( buffer, '(G20.10E3)') occmax*pdos( ie, lm, ias)
+                      write( buffer, '(G20.10E3)') occmax*pdos( ie, l+1, ias, ispn)
                       call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
                       call xml_endElement( xf, "point")
-                      write( un, '(2G20.10E3)') e( ie), occmax*pdos( ie, lm, ias)
-                      tdos( ie) = tdos( ie) - pdos( ie, lm, ias)
+                      write( un, '(2G20.10E3)') e( ie), occmax*pdos( ie, l+1, ias, ispn)
+                      tdos( ie, ispn) = tdos( ie, ispn) - pdos( ie, l+1, ias, ispn)
                     end do
                     write( un, *)
                     call xml_endElement( xf, "diagram")
-                  end do
-                end if
+                  else
+                    do m = -l, l
+                      lm = idxlm( l, m)
+                      if( nsm .gt. 0) call fsmooth( nsm, nsube, 1, pdos( :, lm, ias, ispn))
+                      call xml_NewElement( xf, "diagram")
+                      write( buffer,*) ispn
+                      call xml_AddAttribute( xf, "nspin", trim( adjustl( buffer)))
+                      write( buffer,*) l
+                      call xml_AddAttribute( xf, "l", trim( adjustl( buffer)))
+                      write( buffer,*) m
+                      call xml_AddAttribute( xf, "m", trim( adjustl( buffer)))
+                      do ie = 1, nsube
+                        call xml_NewElement( xf, "point")
+                        write( buffer, '(G20.10E3)') e( ie)
+                        call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
+                        write( buffer, '(G20.10E3)') occmax*pdos( ie, lm, ias, ispn)
+                        call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
+                        call xml_endElement( xf, "point")
+                        write( un, '(2G20.10E3)') e( ie), occmax*pdos( ie, lm, ias, ispn)
+                        tdos( ie, ispn) = tdos( ie, ispn) - pdos( ie, lm, ias, ispn)
+                      end do
+                      write( un, *)
+                      call xml_endElement( xf, "diagram")
+                    end do
+                  end if
+                end do
               end do
               close( un)
               call xml_endElement( xf, "partialdos")
             end do
           end do
-          call getunit( un)
-          open( un, file='IDOS_WANNIER'//trim( filext), action='write', form='formatted')
+          ! IDOS
+          open( newunit=un, file='IDOS_WANNIER'//trim( filext), action='write', form='formatted')
           call xml_NewElement( xf, "interstitialdos")
-          call xml_NewElement( xf, "diagram")
-          call xml_AddAttribute( xf, "type", "interstitial")
-          write( buffer,*) 1
-          call xml_AddAttribute( xf, "nspin", trim( adjustl( buffer)))
-          do ie = 1, nsube
-            call xml_NewElement( xf, "point")
-            write( buffer, '(G20.10E3)') e( ie)
-            call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
-            write( buffer, '(G20.10E3)') occmax*tdos( ie)
-            call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
-            call xml_endElement( xf, "point")
-            write( un, '(2G20.10E3)') e( ie), occmax*tdos( ie)
+          do ispn = 1, wfint_get_num_spin_channels()
+            call xml_NewElement( xf, "diagram")
+            call xml_AddAttribute( xf, "type", "interstitial")
+            write( buffer,*) ispn
+            call xml_AddAttribute( xf, "nspin", trim( adjustl( buffer)))
+            do ie = 1, nsube
+              call xml_NewElement( xf, "point")
+              write( buffer, '(G20.10E3)') e( ie)
+              call xml_AddAttribute (xf, "e", trim( adjustl( buffer)))
+              write( buffer, '(G20.10E3)') occmax*tdos( ie, ispn)
+              call xml_AddAttribute (xf, "dos", trim( adjustl( buffer)))
+              call xml_endElement( xf, "point")
+              write( un, '(2G20.10E3)') e( ie), occmax*tdos( ie, ispn)
+            end do
+            write( un, *)
+            call xml_endElement( xf, "diagram")
           end do
-          write( un, *)
           close( un)
-          call xml_endElement( xf, "diagram")
           call xml_endElement( xf, "interstitialdos")
           deallocate( pdos)
         end if
 
         ! joint DOS
         if( genjdos) then
-          call getunit( un)
-          open( un, file='JDOS_WANNIER'//trim( filext), action='write', form='formatted')
+          open( newunit=un, file='JDOS_WANNIER'//trim( filext), action='write', form='formatted')
           do ist = 1, ntrans
             if( nsm .gt. 0) call fsmooth( nsm, nsube, 1, jdos( :, ist))
             do ie = 1, nsube
@@ -526,8 +542,7 @@ module mod_wannier_util
           end do
           close( un)
           if( nsm .gt. 0) call fsmooth( nsm, nsube, 1, jdos( :, 0))
-          call getunit( un)
-          open( un, file='TJDOS_WANNIER'//trim( filext), action='write', form='formatted')
+          open( newunit=un, file='TJDOS_WANNIER'//trim( filext), action='write', form='formatted')
           do ie = 1, nsube
             if( abs( e( ie)) .gt. 1.d-4) then
               write( un, '(3G20.10E3)') e( ie), jdos( ie, 0)/( e( ie)*e( ie))/dble( ntrans*mtrans), jdos( ie, 0)
@@ -538,9 +553,9 @@ module mod_wannier_util
           write( un, *)
           close( un)
           deallocate( jdos)
-        end if        
-                
-        deallocate( e, tdos)       
+        end if
+
+        deallocate( e, tdos)
 
         call xml_endElement( xf, "dos")
         call xml_close( xf)
@@ -578,7 +593,6 @@ module mod_wannier_util
       use mod_eigenvalue_occupancy, only: occmax
       use mod_charge_and_moment, only: chgval
       use mod_optkgrid, only: getoptkgrid
-      use m_getunit
 
       integer :: nvm, iqvbm, iqcbm, ndiv(3), degvbm, degcbm, ist, n1, n2, un, nkpt
       real(8) :: vvbm(3), vcbm(3)
@@ -694,8 +708,7 @@ module mod_wannier_util
         if( extlist( ist)) call wfutil_energy_extremal( kptlist( :, ist), bndlist( ist), energy( ist), v)
       end do
 
-      call getunit( un)
-      open( un, file='GAP_WANNIER.OUT', action='write', form='formatted')
+      open( newunit=un, file='GAP_WANNIER.OUT', action='write', form='formatted')
 
       call generate_k_vectors( tmp_kset, wf_kset%bvec, (/1, 1, nkpt/), (/0.d0, 0.d0, 0.d0/), .false.)
       do ist = 1, nkpt
@@ -840,16 +853,16 @@ module mod_wannier_util
       ! input/output
       integer, intent(in) :: fst, lst, cell(3)
       ! local variables
-      integer :: ip, np, nv, ik, iknr, ist, is, ia, ias, maxnpt
+      integer :: ip, np, nv, ik, iknr, ispn, ispn_, ist, is, ia, ias, maxnpt
       character(80) :: fname
-      real(8) :: cellc(3), s, phi, v0(3), v1(3), v2(3), v3(3), rrange( 2, fst:lst), irange( 2, fst:lst) 
+      real(8) :: cellc(3), s, phi, v0(3), v1(3), v2(3), v3(3), rrange( 2, nspinor, fst:lst), irange( 2, nspinor, fst:lst), zdatatot_abs
       complex(8) :: phase
       ! allocatable arrays
       real(8), allocatable :: dist(:)
-  !    complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), dmatk(:,:,:,:,:), dmatr(:,:,:,:)
-      complex(8), allocatable :: evecfv(:,:), apwalm(:,:,:,:), evec(:)
+  !    complex(8), allocatable :: evec(:,:,:), apwalm(:,:,:,:,:), dmatk(:,:,:,:,:), dmatr(:,:,:,:)
+      complex(8), allocatable :: evec(:,:,:), apwalm(:,:,:,:), evec_int(:)
       complex(8), allocatable :: wfmt(:,:,:,:), wfir(:,:)
-      complex(8), allocatable :: zdata(:), zdatatot(:,:)
+      complex(8), allocatable :: zdata(:), zdatatot(:,:,:)
       !
       type(rgrid), allocatable :: grid(:)
   
@@ -857,7 +870,7 @@ module mod_wannier_util
       input%groundstate%lradstep = 1
       ! WARNING: make sure that the correct state is read and correct global k-point arrays are definded
       !call init0
-      !call init1    
+      !call init1
       call wfhelp_genradfun
   
       if ((fst<1) .or. (lst>wf_nwf)) then
@@ -924,20 +937,20 @@ module mod_wannier_util
       do ist = fst, lst
         maxnpt = max( maxnpt, grid( ist)%npt)
       end do
-      allocate( zdatatot( maxnpt, fst:lst))
-      zdatatot(:,:) = zzero
+      allocate( zdatatot( maxnpt, nspinor, fst:lst))
+      zdatatot(:,:,:) = zzero
       ! calculate the Wannier function on the grid
   
   
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ip, ik, evecfv, apwalm, evec, wfmt, wfir, zdata, phase, is, ia, ias)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( iknr, ip, ik, evec, apwalm, evec_int, wfmt, wfir, zdata, phase, is, ia, ias)
 #endif
       allocate( zdata( maxnpt))
       allocate( wfmt( lmmaxapw, nrmtmax, natmtot, nspinor))
       allocate( wfir( ngrtot, nspinor))
       allocate( apwalm( ngkmax, apwordmax, lmmaxapw, natmtot))
-      allocate( evecfv( nmatmax, nstfv))
-      allocate( evec( nmatmax))
+      allocate( evec( nmatmax, nstsv, nspinor))
+      allocate( evec_int( nmatmax))
 #ifdef USEOMP
 !$OMP DO
 #endif
@@ -946,7 +959,7 @@ module mod_wannier_util
 #ifdef USEOMP
 !$OMP CRITICAL (readevec)
 #endif
-        call wfhelp_getevec( ik, evecfv)
+        call wfhelp_getevec( ik, evec)
 #ifdef USEOMP
 !$OMP END CRITICAL (readevec)
 #endif
@@ -955,74 +968,76 @@ module mod_wannier_util
         call match( wf_Gkset%ngk( 1, ik), wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm)
         
         call ws_weight( dble( cell), dble( cell), wf_kset%vkl( :, ik), wf_kset%ngridk, phase)
-  
-        do ist = fst, lst
-          call zgemv( 'n', nmatmax, wf_nst, zone, &
-                 evecfv( :, wf_fst:wf_lst), nmatmax, &
-                 wf_transform( :, ist, ik), 1, zzero, &
-                 evec, 1)
+        do ispn = 1, nspinor
+          do ist = fst, lst
+            call zgemv( 'n', nmatmax, wf_nst, zone, &
+                  evec( :, wf_fst:wf_lst, ispn), nmatmax, &
+                  wf_transform( :, ist, ik), 1, zzero, &
+                  evec_int, 1)
           
-          ! calculate the wavefunctions for all states
-          wfmt(:,:,:,:) = zzero
-          wfir(:,:) = zzero
-          zdata(:) = zzero
-          do is = 1, nspecies
-            do ia = 1, natoms( is)
-              ias = idxas( ia, is)
-              call wavefmt( 1, input%groundstate%lmaxapw, is, ia, wf_Gkset%ngk( 1, ik), apwalm, evec, lmmaxapw, wfmt( :, :, ias, 1))
+            ! calculate the wavefunctions for all states
+            wfmt(:,:,:,:) = zzero
+            wfir(:,:) = zzero
+            zdata(:) = zzero
+            do is = 1, nspecies
+              do ia = 1, natoms( is)
+                ias = idxas( ia, is)
+                call wavefmt( 1, input%groundstate%lmaxapw, is, ia, wf_Gkset%ngk( 1, ik), apwalm, evec_int, lmmaxapw, wfmt( :, :, ias, 1))
+              end do
             end do
-          end do
-          wfir( 1:wf_Gkset%ngk( 1, ik), 1) = evec( 1:wf_Gkset%ngk( 1, ik))/dsqrt( omega)
-          call calc_zdata_rgrid( grid( ist), iknr, wfmt(:,:,:,1), wfir(:,1), zdata( 1:grid( ist)%npt), nosym=.true.)
+            wfir( 1:wf_Gkset%ngk( 1, ik), 1) = evec_int( 1:wf_Gkset%ngk( 1, ik))/dsqrt( omega)
+           call calc_zdata_rgrid( grid( ist), iknr, wfmt(:,:,:,1), wfir(:,1), zdata( 1:grid( ist)%npt), nosym=.true.)
 #ifdef USEOMP
 !$OMP CRITICAL (adddata)
 #endif
-          zdatatot( 1:grid( ist)%npt, ist) = zdatatot( 1:grid( ist)%npt, ist) + phase*zdata( 1:grid( ist)%npt)
+            zdatatot( 1:grid( ist)%npt, ispn, ist) = zdatatot( 1:grid( ist)%npt, ispn, ist) + phase*zdata( 1:grid( ist)%npt)
 #ifdef USEOMP
 !$OMP END CRITICAL (adddata)
 #endif
+          end do
         end do
   
-      end do        
+      end do
 #ifdef USEOMP
-!$OMP END DO 
+!$OMP END DO
 #endif
-      deallocate( zdata, wfmt, wfir, apwalm, evecfv, evec)
+      deallocate( zdata, wfmt, wfir, apwalm, evec, evec_int)
 #ifdef USEOMP
-!$OMP END PARALLEL 
+!$OMP END PARALLEL
 #endif
   
       zdatatot = zdatatot/wf_kset%nkpt
   
-      ist = fst
       ! phase correction
       allocate( dist( maxnpt))
-      do ist = fst, lst
-        phi = 0.d0
-        do ip = 1, grid( ist)%npt
-          dist( ip) = norm2( grid( ist)%vpc( :, ip) - wf_centers( :, ist) - cellc(:))
-          s = atan2( aimag( zdatatot( ip, ist)), dble( zdatatot( ip, ist)))
-          !write(*,'(F23.16)') s
-          if( s .gt. 0.5d0*pi) s = s - pi
-          if( s .lt. -0.5d0*pi) s = s + pi
-          !write(*,'(I,F13.6)') ip, s
-          phi = phi + abs( zdatatot( ip, ist))*s
+      do ispn = 1, nspinor
+        do ist = fst, lst
+          phi = 0.d0
+          do ip = 1, grid( ist)%npt
+            dist( ip) = norm2( grid( ist)%vpc( :, ip) - wf_centers( :, ist) - cellc(:))
+            s = atan2( aimag( zdatatot( ip, ispn, ist)), dble( zdatatot( ip, ispn, ist)))
+            !write(*,'(F23.16)') s
+            if( s .gt. 0.5d0*pi) s = s - pi
+            if( s .lt. -0.5d0*pi) s = s + pi
+            !write(*,'(I,F13.6)') ip, s
+            phi = phi + abs( zdatatot( ip, ispn, ist))*s
+          end do
+          phi = phi/sum( abs( zdatatot( :, ispn, ist)))
+          ip = minloc( dist, 1) 
+          s = atan2( aimag( zdatatot( ip, ispn, ist)), dble( zdatatot( ip, ispn, ist)))
+          if( abs( phi - s) .gt. 0.5d0*pi) phi = phi + pi
+          !write(*,*) ip
+          !write(*,'(3F13.6)') wf_centers( :, ist) + cellc
+          !write(*,'(3F13.6)') grid( ist)%vpc( :, ip)
+          !write(*,'(3F13.6)') minval( grid( ist)%vpc( 1, :)), minval( grid( ist)%vpc( 2, :)), minval( grid( ist)%vpc( 3, :))
+          !write(*,'(3F13.6)') maxval( grid( ist)%vpc( 1, :)), maxval( grid( ist)%vpc( 2, :)), maxval( grid( ist)%vpc( 3, :))
+          phase = cmplx( cos( phi), -sin( phi), 8)
+          zdatatot( :, ispn, ist) = phase*zdatatot( :, ispn, ist)
+          rrange( :, ispn, ist) = (/minval( dble( zdatatot( :, ispn, ist))), maxval( dble( zdatatot( :, ispn, ist)))/)
+          irange( :, ispn, ist) = (/minval( aimag( zdatatot( :, ispn, ist))), maxval( aimag( zdatatot( :, ispn, ist)))/)
         end do
-        phi = phi/sum( abs( zdatatot( :, ist)))
-        ip = minloc( dist, 1) 
-        s = atan2( aimag( zdatatot( ip, ist)), dble( zdatatot( ip, ist)))
-        if( abs( phi - s) .gt. 0.5d0*pi) phi = phi + pi
-        !write(*,*) ip
-        !write(*,'(3F13.6)') wf_centers( :, ist) + cellc
-        !write(*,'(3F13.6)') grid( ist)%vpc( :, ip)
-        !write(*,'(3F13.6)') minval( grid( ist)%vpc( 1, :)), minval( grid( ist)%vpc( 2, :)), minval( grid( ist)%vpc( 3, :))
-        !write(*,'(3F13.6)') maxval( grid( ist)%vpc( 1, :)), maxval( grid( ist)%vpc( 2, :)), maxval( grid( ist)%vpc( 3, :))
-        phase = cmplx( cos( phi), -sin( phi), 8)
-        zdatatot( :, ist) = phase*zdatatot( :, ist)
-        rrange( :, ist) = (/minval( dble( zdatatot( :, ist))), maxval( dble( zdatatot( :, ist)))/)
-        irange( :, ist) = (/minval( aimag( zdatatot( :, ist))), maxval( aimag( zdatatot( :, ist)))/)
       end do
-  
+      
       !----------------
       ! 1D case
       !----------------
@@ -1030,21 +1045,38 @@ module mod_wannier_util
         ! Output
         write(*,*)
         write(*,'("Info (wfutil_plot):")')
-        do ist = fst, lst
-          write(fname,'("wannier1d-",i4.4,".dat")') ist
-          open(77,file=trim(fname),status='Unknown',action='Write')
-          do ip = 1, grid( ist)%npt
-            ! path, |psi|^2, Re(psi), Im(psi) 
-            write(77,'(4f16.6)') grid( ist)%vpd(ip), abs(zdatatot(ip, ist))**2, zdatatot(ip, ist)
-            !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
+        do ispn = 1, nspinor
+          do ist = fst, lst
+            if ( nspinor < 2 ) then
+              write(fname,'("wannier1d-",i4.4,".dat")') ist
+            else
+              !write(*,'("Spinor wannier functions calculated. Output is wannier1d-IIII-spinor-1.dat/wannier1d-IIII-spinor-2.dat for spinor component 1 and 2.")')
+              write(fname,'("wannier1d-",i4.4,"-spinor-",i1,".dat")') ist, ispn
+            end if
+            open(77,file=trim(fname),status='Unknown',action='Write')
+            do ip = 1, grid( ist)%npt
+              ! path, |psi|^2, Re(psi), Im(psi) 
+              write(77,'(4f16.6)') grid( ist)%vpd(ip), sum(abs(zdatatot(ip, :, ist))**2), zdatatot(ip, ispn, ist)
+              !write(77,'(2f16.6)') grid%vpd(ip), wkpt(ik)*nkptnr*abs(zdata(ip))**2
+            end do
+            close(77)
+            if ( nspinor < 2 ) then
+              write(*,'(" 1D Wannier function written to wannier1d-",i4.4,".dat")') ist
+            else
+              write(*,'(" 1D Spinor wannier function component ",i1," written to wannier1d-",i4.4,"-spinor-",i1,".dat")') ispn, ist, ispn
+            end if
+            write(*,'(" real part range: ",2f13.6)') rrange( :, ispn, ist)
+            write(*,'(" imag part range: ",2f13.6)') irange( :, ispn, ist)
+            write(*,*)
           end do
-          close(77)
-          write(*,'(" 1D Wannier function written to wannier1d-",i4.4,".dat")') ist
-          write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
-          write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
-          write(*,*)
+        end do
+        do ist = fst, lst
           call delete_rgrid( grid( ist))
         end do
+        if ( nspinor == 2 ) then
+          write(*,'(" Squared modulus values of total spinor in file of both components.")')
+          write(*,*)
+        end if
       end if
   
       !----------------
@@ -1053,19 +1085,35 @@ module mod_wannier_util
       if (associated(input%properties%wannierplot%plot2d)) then
         write(*,*)
         write(*,'("Info (wannier_plot):")')
+        do ispn=1, nspinor
+          do ist = fst, lst
+            if ( nspinor < 2 ) then
+              write(fname,'("wannier2d-",i4.4,".xsf")') ist
+            else
+              write(fname,'("wannier2d-",i4.4,"-spinor-",i1,".xsf")') ist, ispn
+            end if
+            call str_strip(fname)
+            call write_structure_xsf(fname)
+            call write_2d_xsf(fname, 'module squared',   grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, sum( abs(zdatatot(:, :, ist))**2, dim=2 ) )
+            call write_2d_xsf(fname, 'real',             grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, dble(zdatatot( :, ispn, ist)))
+            call write_2d_xsf(fname, 'imaginary',        grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, aimag(zdatatot( :, ispn, ist)))
+            if ( nspinor < 2 ) then
+              write(*,'(" 2D Wannier function written to wannier2d-",i4.4,".xsf")') ist
+            else
+              write(*,'(" 2D Spinor wannier function component ",i1," written to wannier2d-",i4.4,"-spinor-",i1,".xsf")') ispn, ist, ispn
+            end if
+            write(*,'(" real part range: ",2f13.6)') rrange( :, ispn, ist)
+            write(*,'(" imag part range: ",2f13.6)') irange( :, ispn, ist)
+            write(*,*)
+          end do
+        end do
         do ist = fst, lst
-          write(fname,'("wannier2d-",i4.4,".xsf")') ist
-          call str_strip(fname)
-          call write_structure_xsf(fname)
-          call write_2d_xsf(fname, 'module squared',   grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, abs(zdatatot( :, ist))**2)
-          call write_2d_xsf(fname, 'real',             grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, dble(zdatatot( :, ist)))
-          call write_2d_xsf(fname, 'imaginary',        grid( ist)%boxl(1:3,:), grid( ist)%ngrid, grid( ist)%npt, aimag(zdatatot( :, ist)))
-          write(*,'(" 2D Wannier function written to wannier2d-",i4.4,".xsf")') ist
-          write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
-          write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
-          write(*,*)
           call delete_rgrid( grid( ist))
         end do
+        if ( nspinor == 2 ) then
+          write(*,'(" Squared modulus values of total spinor in file of both components.")')
+          write(*,*)
+        end if
       end if
   
       !----------------
@@ -1074,25 +1122,46 @@ module mod_wannier_util
       if (associated(input%properties%wannierplot%plot3d)) then
         write(*,*)
         write(*,'("Info (wannier_plot):")')
+        do ispn=1, nspinor
+          do ist = fst, lst
+
+            if ( nspinor < 2 ) then
+              write(fname,'("wannier3d-",i4.4,".xsf")') ist
+            else
+              write(fname,'("wannier3d-",i4.4,"-spinor-",i1,".xsf")') ist, ispn
+            end if
+            call str_strip(fname)
+            call write_structure_xsf(fname)
+            call write_3d_xsf(fname, 'squared modulus', grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, sum( abs(zdatatot(:, :, ist))**2, dim=2 ) )
+            call write_3d_xsf(fname, 'real',            grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, dble(zdatatot( :, ispn, ist)))
+            call write_3d_xsf(fname, 'imaginary',       grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, aimag(zdatatot( :, ispn, ist)))
+            if ( nspinor < 2 ) then
+              write(*,'(" 3D Wannier function written to wannier3d-",i4.4,".xsf")') ist
+            else
+              write(*,'(" 3D Spinor wannier function component ",i1," written to wannier3d-",i4.4,"-spinor-",i1,".xsf")') ispn, ist, ispn
+            end if
+            write(*,'(" real part range: ",2f13.6)') rrange( :, ispn, ist)
+            write(*,'(" imag part range: ",2f13.6)') irange( :, ispn, ist)
+            write(*,*)
+            !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
+    
+            ! Gaussian cube-format
+            if ( nspinor < 2 ) then
+              write(fname,'("wannier3d-",i4.4,".cube")') ist
+            else
+              write(fname,'("wannier3d-",i4.4,"-spinor-",i1,".cube")') ist, ispn
+            end if
+            call str_strip(fname)
+            call write_3d_cube(fname, 'squared modulus', grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, abs(zdatatot( :, ispn, ist))**2)
+          end do
+        end do
         do ist = fst, lst
-          write(fname,'("wannier3d-",i4.4,".xsf")') ist
-          call str_strip(fname)
-          call write_structure_xsf(fname)
-          call write_3d_xsf(fname, 'squared modulus', grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, abs(zdatatot( :, ist))**2)
-          call write_3d_xsf(fname, 'real',            grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, dble(zdatatot( :, ist)))
-          call write_3d_xsf(fname, 'imaginary',       grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, aimag(zdatatot( :, ist)))
-          write(*,'(" 3D Wannier function written to wannier3d-",i4.4,".xsf")') ist
-          write(*,'(" real part range: ",2f13.6)') rrange( :, ist)
-          write(*,'(" imag part range: ",2f13.6)') irange( :, ist)
-          write(*,*)
-          !call write_supercell_xsf('supercell.xsf',(/-2,2/),(/-2,2/),(/-2,2/))
-  
-          ! Gaussian cube-format
-          write(fname,'("wannier3d-",i4.4,".cube")') ist
-          call str_strip(fname)
-          call write_3d_cube(fname, 'squared modulus', grid( ist)%boxl(1:4,:), grid( ist)%ngrid, grid( ist)%npt, abs(zdatatot( :, ist))**2)
           call delete_rgrid( grid( ist))
         end do
+        if ( nspinor == 2 ) then
+          write(*,'(" Squared modulus values of total spinor in file of both components.")')
+          write(*,*)
+        end if
       end if
   
       deallocate( zdatatot, grid)

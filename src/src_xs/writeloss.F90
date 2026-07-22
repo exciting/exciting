@@ -8,7 +8,7 @@ module m_writeloss
 
   contains
 
-    subroutine writeloss(iq, w, loss, fn)
+    subroutine writeloss(iq, w, loss, fn, iop1, iop2)
       use modmpi
       Use FoX_wxml
       Use modmain, Only: version
@@ -16,13 +16,14 @@ module m_writeloss
       use constants, only: pi
       Use mod_charge_and_moment
       Use modxs
-      Use m_getunit
+      use modinput, only: input
+      use m_write_bse_header, only: generate_bse_header
       !Use m_writevars
 
       implicit none
 
       ! Arguments
-      integer(4), intent(in) :: iq
+      integer(4), intent(in) :: iq, iop1, iop2
       real(8), intent(in) :: w(:)
       real(8), intent(in) :: loss(:)
       character(*), intent(in) :: fn
@@ -42,16 +43,14 @@ module m_writeloss
 
       n = size(w,1)
 
-      Call getunit(un)
-      Open(un, File=trim(fn), Action='write')
+      igqmt = ivgigq(ivgmt(1,iq),ivgmt(2,iq),ivgmt(3,iq),iq)
+
+      Open(newunit=un, File=trim(fn), Action='write')
 
       ! Include dynamical structure factor
       ! Dynamical structure factor; expression taken from Weissker, PRL 2006
       ! Units of dynamical structure factor are Hartree^-1
       ! Rescaling of units if electron volts are selected
-
-      ! Get Gmt+qmt index
-      igqmt = ivgigq(ivgmt(1, iq), ivgmt(2, iq), ivgmt(3, iq), iq)
 
       ! Compute avarage valence density = total valence charge / unti cell volume
       nval = chgval/omega
@@ -60,15 +59,7 @@ module m_writeloss
       write(un, '("#")')
       write(un, '("#",1x,"L(Q,w)= -Im(1/eps_m(Q,w) [1]")')
       write(un, '("#",1x,"S(Q,w)= L(Q,w)*|Q|^2*/(4 pi^2 n_val) [Energy^-1]")')
-      write(un, '("#")')
-      write(un, '("# Momentum transfer Q=G+q in lattice coordinates")')
-      write(un, '("# G:",3i4)') ivgmt(1:3,iq) 
-      write(un, '("# q:",3f12.7)') vqlmt(1:3,iq) 
-      write(un, '("# Momentum transfer Q=G+q in Cartesian coordinates")')
-      write(un, '("# G:",3f12.7)') vgcmt(1:3,iq) 
-      write(un, '("# q:",3f12.7)') vqcmt(1:3,iq) 
-      write(un, '("# Norm2(G+q)",f12.7)') norm2(vgcmt(:,iq)+vqcmt(:,iq))
-      write(un, '("#")')
+      write(un, '(a)') generate_bse_header(input, iq, iop1, iop2)
       write(un, '("#",a22,1x,a23,1x,a23)')&
         & "Frequency/(eV/hbar)", "L(Q,w)", "S(Q,w)*1000"
       write(un, '(SP,E23.16,1x,E23.16,1x,E23.16)')&

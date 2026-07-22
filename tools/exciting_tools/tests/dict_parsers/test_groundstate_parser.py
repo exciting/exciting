@@ -4,11 +4,190 @@ Execute tests from exciting_tools directory:
 pytest --capture=tee-sys
 """
 
+import pytest
+
 from excitingtools.exciting_dict_parsers.groundstate_parser import (
+    parse_dft_half_nscf,
     parse_info_out,
     parse_linengy,
     parse_lo_recommendation,
+    parse_vs,
 )
+
+
+def test_parse_info_out_final_groundstate_forces(tmp_path):
+    info_out = """================================================================================
+| EXCITING TEST stopped                                                        =
+================================================================================
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Starting initialization                                                      +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ Lattice vectors (cartesian) :
+    1.00000000    0.00000000    0.00000000
+    0.00000000    1.00000000    0.00000000
+    0.00000000    0.00000000    1.00000000
+ Reciprocal lattice vectors (cartesian) :
+    1.00000000    0.00000000    0.00000000
+    0.00000000    1.00000000    0.00000000
+    0.00000000    0.00000000    1.00000000
+ Unit cell volume                        :         1.00000000
+ Brillouin zone volume                   :         1.00000000
+ Total number of atoms per unit cell     :         2
+ Spin treatment                          : spin-unpolarised
+ Number of Bravais lattice symmetries    :         1
+ Number of crystal symmetries            :         1
+ k-point grid                            : 1    1    1
+ Total number of k-points                :         1
+ R^MT_min * |G+k|_max (rgkmax)           :        7.00000000
+ Maximum |G+k| for APW functions         :        7.00000000
+ Maximum |G| for potential and density   :        7.00000000
+ Polynomial order for pseudochg. density :         9
+ Total number of G-vectors               :         8
+ Ending initialization
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    1                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :        -1.00000000
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop stopped                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--------------------------------------------------------------------------------
+- Writing atomic positions and forces                                          -
+--------------------------------------------------------------------------------
+
+ Total atomic forces including IBS (cartesian) :
+ atom     1   B   :     0.10000000   -0.20000000    0.30000000
+ atom     2   N   :    -0.40000000    0.50000000   -0.60000000
+
+ Atomic force components including IBS (cartesian) :
+ atom     1   B   :     0.10000000   -0.20000000    0.30000000   HF force
+ atom     2   N   :    -0.40000000    0.50000000   -0.60000000   HF force
+
+********************************************************************************
+* Groundstate module stopped                                                   *
+********************************************************************************
+
+================================================================================
+| EXCITING TEST stopped                                                        =
+================================================================================
+"""
+    file = tmp_path / "INFO.OUT"
+    file.write_text(info_out)
+
+    parsed = parse_info_out(file.as_posix())
+
+    assert parsed["groundstate"]["Total atomic forces"] == {"atom 1": [0.1, -0.2, 0.3], "atom 2": [-0.4, 0.5, -0.6]}
+    assert parsed["groundstate"]["Maximum force"] == pytest.approx(0.87749644)
+
+
+def test_parse_info_out_does_not_add_groundstate_for_relaxation(tmp_path):
+    info_out = """================================================================================
+| EXCITING TEST stopped                                                        =
+================================================================================
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Starting initialization                                                      +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ Lattice vectors (cartesian) :
+    1.00000000    0.00000000    0.00000000
+    0.00000000    1.00000000    0.00000000
+    0.00000000    0.00000000    1.00000000
+ Reciprocal lattice vectors (cartesian) :
+    1.00000000    0.00000000    0.00000000
+    0.00000000    1.00000000    0.00000000
+    0.00000000    0.00000000    1.00000000
+ Unit cell volume                        :         1.00000000
+ Brillouin zone volume                   :         1.00000000
+ Total number of atoms per unit cell     :         2
+ Spin treatment                          : spin-unpolarised
+ Number of Bravais lattice symmetries    :         1
+ Number of crystal symmetries            :         1
+ k-point grid                            : 1    1    1
+ Total number of k-points                :         1
+ R^MT_min * |G+k|_max (rgkmax)           :        7.00000000
+ Maximum |G+k| for APW functions         :        7.00000000
+ Maximum |G| for potential and density   :        7.00000000
+ Polynomial order for pseudochg. density :         9
+ Total number of G-vectors               :         8
+ Ending initialization
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ SCF iteration number :    1                                                  +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Total energy                               :        -1.00000000
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Self-consistent loop stopped                                                 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--------------------------------------------------------------------------------
+- Writing atomic positions and forces                                          -
+--------------------------------------------------------------------------------
+
+ Total atomic forces including IBS (cartesian) :
+ atom     1   B   :     0.10000000    0.00000000    0.00000000
+ atom     2   N   :    -0.10000000    0.00000000    0.00000000
+
+ Atomic force components including IBS (cartesian) :
+ atom     1   B   :     0.10000000    0.00000000    0.00000000   HF force
+ atom     2   N   :    -0.10000000    0.00000000    0.00000000   HF force
+
+********************************************************************************
+* Groundstate module stopped                                                   *
+********************************************************************************
+
+********************************************************************************
+* Structure-optimization module started                                        *
+********************************************************************************
+
+--------------------------------------------------------------------------------
+- Optimization step 0: Initialize optimization                                 -
+--------------------------------------------------------------------------------
+ Maximum force magnitude           (target) :         0.10000000  (  0.00020000)
+ Total energy at this optimization step     :        -1.00000000
+
+ Atomic positions at this step (cartesian) :
+ atom     1   B   :     0.00000000    0.00000000    0.00000000
+ atom     2   N   :     0.00000000    0.00000000    1.00000000
+
+ Total atomic forces including IBS (cartesian) :
+ atom     1   B   :     0.10000000    0.00000000    0.00000000
+ atom     2   N   :    -0.10000000    0.00000000    0.00000000
+
+--------------------------------------------------------------------------------
+- Optimization step    1    (method = bfgs)                                    -
+--------------------------------------------------------------------------------
+ Number of investigated configurations      :         2
+ Number of total scf iterations             :         4
+ Maximum force magnitude           (target) :         0.00010000  (  0.00020000)
+ Total energy at this optimization step     :        -1.10000000
+
+ Atomic positions at this step (cartesian) :
+ atom     1   B   :     0.00000000    0.00000000    0.00000000
+ atom     2   N   :     0.00000000    0.00000000    1.10000000
+
+ Total atomic forces including IBS (cartesian) :
+ atom     1   B   :     0.00010000    0.00000000    0.00000000
+ atom     2   N   :    -0.00010000    0.00000000    0.00000000
+
+********************************************************************************
+* Structure-optimization module stopped                                        *
+********************************************************************************
+
+================================================================================
+| EXCITING TEST stopped                                                        =
+================================================================================
+"""
+    file = tmp_path / "INFO.OUT"
+    file.write_text(info_out)
+
+    parsed = parse_info_out(file.as_posix())
+
+    assert "groundstate" not in parsed
 
 
 def test_parse_info_out(tmp_path):
@@ -110,6 +289,8 @@ def test_parse_info_out(tmp_path):
                 "total charge in muffin-tins": 17.99816103,
                 "valence": 8.0,
                 "xc potential energy": -38.82700618,
+                "conduction-band minimum": [1, 0.0, 0.0, 0.0],
+                "valence-band maximum": [1, 0.0, 0.0, 0.0],
             },
             "11": {
                 "Total energy": -527.81796101,
@@ -140,6 +321,8 @@ def test_parse_info_out(tmp_path):
                 "RMS change in effective potential": 0.141030e-10,
                 "Absolute change in total energy": 0.662567e-09,
                 "Charge distance": 0.430772e-11,
+                "conduction-band minimum": [1, 0.0, 0.0, 0.0],
+                "valence-band maximum": [1, 0.0, 0.0, 0.0],
             },
             "12": {
                 "Core-electron kinetic energy": 0.0,
@@ -166,6 +349,8 @@ def test_parse_info_out(tmp_path):
                 "total charge in muffin-tins": 17.99815963,
                 "valence": 8.0,
                 "xc potential energy": -38.82693481,
+                "conduction-band minimum": [1, 0.0, 0.0, 0.0],
+                "valence-band maximum": [1, 0.0, 0.0, 0.0],
             },
         },
     }
@@ -2097,4 +2282,91 @@ GGA_PBE_SOL_automatic_trial_energies_NaCl_LO_RECOMMENDATION_OUT = """# Recommend
       18  22    937.887883257667
       19  23   1034.709065214155
       20  24   1136.240377687629
+"""
+
+
+def test_parse_vs(tmp_path) -> None:
+    vs_file_path = tmp_path / "VS_01.OUT"
+    vs_file_path.write_text(vs_file_content)
+    vs_dict = parse_vs(vs_file_path.as_posix())
+    vs_dict_ref = {
+        "species_number": 1,
+        "n_shells_ionize": 2,
+        "dft_half_parameters_list": [
+            {"shell": 9, "ionization": 0.5, "cut_amplitude": 1.0, "cut_radius": 1.2, "cut_exponent": 8},
+            {"shell": 12, "ionization": 0.3, "cut_amplitude": 0.8, "cut_radius": 2.6, "cut_exponent": 10},
+        ],
+        "r": [1.000000e-05, 0.0001004705, 1.037639],
+        "Vatom": [-3.099880e06, -3.085363e06, -2.987431e06],
+        "Vion": [-0.3295188, -0.3294186, -0.3293174],
+        "VS": [-0.3295188, -0.3294186, 0.0],
+    }
+    assert vs_dict == vs_dict_ref, "Parsed VS dictionary does not match reference"
+
+
+vs_file_content = """Species:    1
+   2 shell(s) must be ionized. Its/Their parameters(s) are listed below.
+ shell     ionization  cut_amplitude     cut_radius   cut_exponent
+     9       0.500000       1.000000       1.200000              8
+    12       0.300000       0.800000       2.600000             10 
+number of radial points:          3
+                   r               Vatom                Vion                  VS
+        1.000000E-05       -3.099880E+06       -3.295188E-01       -3.295188E-01
+        1.004705E-04       -3.085363E+06       -3.294186E-01       -3.294186E-01
+        1.037639E+00       -2.987431E+06       -3.293174E-01        0.000000E+00
+"""
+
+
+def test_parse_dft_half_nscf(tmp_path) -> None:
+    dft_half_nscf_file_path = tmp_path / "DFT_HALF_NSCF.OUT"
+    dft_half_nscf_file_path.write_text(dft_half_nscf_file_content)
+    dft_half_nscf = parse_dft_half_nscf(dft_half_nscf_file_path.as_posix())
+    dft_half_nscf_ref = {
+        "n_kpoints": 2,
+        "n_states": 5,
+        "kpoints": [
+            {
+                "ik": 1,
+                "kpoint": [0.0, 0.0, 0.0],
+                "states": [
+                    {"state": 1, "eigenvalue": 0.13369, "occupancy": 2.0, "Salpha": -0.24461},
+                    {"state": 2, "eigenvalue": 0.13369, "occupancy": 2.0, "Salpha": -0.24461},
+                    {"state": 3, "eigenvalue": 0.13369, "occupancy": 2.0, "Salpha": -0.24461},
+                    {"state": 4, "eigenvalue": 0.30193, "occupancy": 0.0, "Salpha": -0.086533},
+                    {"state": 5, "eigenvalue": 0.70449, "occupancy": 0.0, "Salpha": -0.045047},
+                ],
+            },
+            {
+                "ik": 2,
+                "kpoint": [0.33333, 0.0, 0.0],
+                "states": [
+                    {"state": 1, "eigenvalue": -0.0047586, "occupancy": 2.0, "Salpha": -0.16935},
+                    {"state": 2, "eigenvalue": 0.11492, "occupancy": 2.0, "Salpha": -0.23533},
+                    {"state": 3, "eigenvalue": 0.11492, "occupancy": 2.0, "Salpha": -0.23533},
+                    {"state": 4, "eigenvalue": 0.40827, "occupancy": 0.0, "Salpha": -0.080663},
+                    {"state": 5, "eigenvalue": 0.57927, "occupancy": 0.0, "Salpha": -0.10865},
+                ],
+            },
+        ],
+    }
+    assert dft_half_nscf == dft_half_nscf_ref, "Parsed DFT_HALF_NSCF dictionary does not match reference"
+
+
+dft_half_nscf_file_content = """     2 : nkpt
+    5 : nstsv
+   1   0.0000       0.0000       0.0000     : k-point, vkl
+(state, eigenvalue,   occupancy,   Salpha)        , at1:l=0 l=1 l=2 , at2:l=0 l=1 l=2 
+   1  0.13369       2.0000     -0.24461      0.0000  0.0186  0.0000  0.0000  0.7604  0.0000 
+   2  0.13369       2.0000     -0.24461      0.0000  0.0186  0.0000  0.0000  0.7604  0.0000 
+   3  0.13369       2.0000     -0.24461      0.0000  0.0186  0.0000  0.0000  0.7604  0.0000 
+   4  0.30193       0.0000     -0.86533E-01  0.2311  0.0000  0.0000  0.2647  0.0000  0.0000 
+   5  0.70449       0.0000     -0.45047E-01  0.0000  0.0000  0.2250  0.0000  0.0000  0.0553 
+ 
+   2  0.33333       0.0000       0.0000     : k-point, vkl
+(state, eigenvalue,   occupancy,   Salpha)        , at1:l=0 l=1 l=2 , at2:l=0 l=1 l=2 
+   1 -0.47586E-02   2.0000     -0.16935      0.0905  0.0030  0.0110  0.0257  0.4663  0.0001 
+   2  0.11492       2.0000     -0.23533      0.0000  0.0044  0.0267  0.0000  0.7245  0.0000 
+   3  0.11492       2.0000     -0.23533      0.0000  0.0044  0.0267  0.0000  0.7245  0.0000 
+   4  0.40827       0.0000     -0.80663E-01  0.0619  0.1241  0.0046  0.1392  0.0781  0.0104 
+   5  0.57927       0.0000     -0.10865      0.0795  0.0211  0.0555  0.0017  0.3161  0.0146 
 """

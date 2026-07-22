@@ -1,0 +1,95 @@
+<?xml version="1.0" ?>
+<spdb>
+	<sp chemicalSymbol="Pt" name="platinum" z="-78.0" mass="355605.4399">
+		<muffinTin rmin="1e-07" radius="2.0" rinf="22.1266" radialmeshPoints="1000"/>
+		<atomicState n="1" l="0" kappa="1" occ="2.0" core="true"/>
+		<atomicState n="2" l="0" kappa="1" occ="2.0" core="true"/>
+		<atomicState n="2" l="1" kappa="1" occ="2.0" core="true"/>
+		<atomicState n="2" l="1" kappa="2" occ="4.0" core="true"/>
+		<atomicState n="3" l="0" kappa="1" occ="2.0" core="true"/>
+		<atomicState n="3" l="1" kappa="1" occ="2.0" core="true"/>
+		<atomicState n="3" l="1" kappa="2" occ="4.0" core="true"/>
+		<atomicState n="3" l="2" kappa="2" occ="4.0" core="true"/>
+		<atomicState n="3" l="2" kappa="3" occ="6.0" core="true"/>
+		<atomicState n="4" l="0" kappa="1" occ="2.0" core="true"/>
+		<atomicState n="4" l="1" kappa="1" occ="2.0" core="true"/>
+		<atomicState n="4" l="1" kappa="2" occ="4.0" core="true"/>
+		<atomicState n="4" l="2" kappa="2" occ="4.0" core="true"/>
+		<atomicState n="4" l="2" kappa="3" occ="6.0" core="true"/>
+		<atomicState n="4" l="3" kappa="3" occ="6.0" core="false"/>
+		<atomicState n="4" l="3" kappa="4" occ="8.0" core="false"/>
+		<atomicState n="5" l="0" kappa="1" occ="2.0" core="false"/>
+		<atomicState n="5" l="1" kappa="1" occ="2.0" core="false"/>
+		<atomicState n="5" l="1" kappa="2" occ="4.0" core="false"/>
+		<atomicState n="5" l="2" kappa="2" occ="4.0" core="false"/>
+		<atomicState n="5" l="2" kappa="3" occ="5.0" core="false"/>
+		<atomicState n="6" l="0" kappa="1" occ="1.0" core="false"/>
+		<basis>
+			<default type="lapw" trialEnergy="0.15" searchE="false"/>
+			<custom l="3" type="lapw" n="4" searchE="false"/>
+			<custom l="0" type="lapw" n="6" searchE="false"/>
+			<custom l="1" type="lapw" n="5" searchE="false"/>
+			<custom l="2" type="lapw" n="5" searchE="false"/>
+			<lo l="0">
+				<wf matchingOrder="0" searchE="false" n="6"/>
+				<wf matchingOrder="0" searchE="false" n="5"/>
+			</lo>
+			<lo l="3">
+				<wf matchingOrder="0" searchE="false" n="4"/>
+				<wf matchingOrder="1" searchE="false" n="4"/>
+			</lo>
+			<lo l="3">
+				<wf matchingOrder="1" searchE="false" n="4"/>
+				<wf matchingOrder="2" searchE="false" n="4"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="0" searchE="false" n="5"/>
+				<wf matchingOrder="1" searchE="false" n="5"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="1" searchE="false" n="5"/>
+				<wf matchingOrder="2" searchE="false" n="5"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="0" searchE="false" n="6"/>
+				<wf matchingOrder="1" searchE="false" n="6"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="1" searchE="false" n="6"/>
+				<wf matchingOrder="2" searchE="false" n="6"/>
+			</lo>
+			<lo l="1">
+				<wf matchingOrder="0" searchE="false" n="5"/>
+				<wf matchingOrder="1" searchE="false" n="5"/>
+			</lo>
+			<lo l="1">
+				<wf matchingOrder="1" searchE="false" n="5"/>
+				<wf matchingOrder="2" searchE="false" n="5"/>
+			</lo>
+			<lo l="2">
+				<wf matchingOrder="0" searchE="false" n="5"/>
+				<wf matchingOrder="1" searchE="false" n="5"/>
+			</lo>
+			<lo l="2">
+				<wf matchingOrder="1" searchE="false" n="5"/>
+				<wf matchingOrder="2" searchE="false" n="5"/>
+			</lo>
+			<lo l="3">
+				<wf matchingOrder="2" searchE="false" n="4"/>
+				<wf matchingOrder="3" searchE="false" n="4"/>
+			</lo>
+			<lo l="1">
+				<wf matchingOrder="2" searchE="false" n="5"/>
+				<wf matchingOrder="3" searchE="false" n="5"/>
+			</lo>
+			<lo l="2">
+				<wf matchingOrder="2" searchE="false" n="5"/>
+				<wf matchingOrder="3" searchE="false" n="5"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="2" searchE="false" n="5"/>
+				<wf matchingOrder="3" searchE="false" n="5"/>
+			</lo>
+		</basis>
+	</sp>
+</spdb>

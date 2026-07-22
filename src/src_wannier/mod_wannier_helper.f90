@@ -3,20 +3,23 @@
 module mod_wannier_helper
   use mod_wannier_variables
 
+  use mod_large_io,             only: inquire_large, open_direct_unformatted_large
   use mod_spin,                  only: nspinor, nspnfv
-  use mod_eigensystem,           only: nmatmax_ptr, nmat_ptr, nmat, nmatmax, npmat
+  use svlo,                      only: get_num_of_basis_functions_sv
+  use mod_eigensystem,           only: nmatmax_ptr, nmatmax, nmat_ptr, nmat, npmat
   use mod_APW_LO,                only: nlotot
   use mod_lattice,               only: bvec
   use mod_Gvector,               only: intgv
   use mod_Gkvector!,              only: ngk_ptr, vgkl_ptr, vgkl, vgkc
-  use mod_eigenvalue_occupancy,  only: nstfv, occmax
+  use mod_eigenvalue_occupancy,  only: nstfv, nstsv, occmax
   use mod_charge_and_moment,     only: chgval
   use mod_potential_and_density, only: xctype
   use mod_misc,                  only: filext
   use mod_atoms,                 only: natmtot
+  use sorting,                   only: sort_index_1d  
   use mod_gen_lo,                only: genlofr
   use mod_kpoint
-  use m_getunit
+  use precision,                 only: long_int
 
   implicit none
 
@@ -41,7 +44,7 @@ module mod_wannier_helper
             wf_kset%vkl = vkl
             wf_kset%vkc = vkc
           end if
-          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
+          call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true., .false.)
           nstfv = min( minval( nmat_ptr), int( chgval/2.d0) + input%groundstate%nempty + 1)
         case( "gw")
           input%groundstate%stypenumber = -1 ! turn on LIBBZINT
@@ -87,9 +90,9 @@ module mod_wannier_helper
         case( "hybrid")
           nstfv = min( minval( nmat_ptr), int( chgval/2.d0) + input%groundstate%nempty + 1)
           input%groundstate%stypenumber = -1 ! turn on LIBBZINT
-          call init1
           call generate_k_vectors( wf_kset, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .false.)
           call generate_k_vectors( wf_kset_red, bvec, input%groundstate%ngridk, input%groundstate%vkloff, .true.)
+          call init1
         case default
           if( mpiglobal%rank .eq. 0) then
             write(*,*)
@@ -173,142 +176,301 @@ module mod_wannier_helper
     end subroutine wfhelp_genradfun
 
     !=====================================================================================
-    ! wrapper to fetch eigenenvectors in the respective context
-    subroutine wfhelp_getevec( ik, evec)
+    !> wrapper to fetch eigenenvectors in the respective context
+    subroutine wfhelp_getevec( ik, evec, sort)
       use constants, only: zone, zzero
+      use svlo, only: get_num_of_basis_functions_sv
 
       integer, intent( in)           :: ik
-      complex(8), intent( out)       :: evec( nmatmax_ptr, nstfv, nspinor)
+      logical, intent(in), optional  :: sort
+      complex(8), intent( out)       :: evec( nmatmax_ptr, nstsv, nspinor)
 
+      integer :: ispn, ist, num_of_basis_funs_sv, nmatk
       complex(8), allocatable :: auxmat(:,:)
+      complex(8), allocatable :: evecfv(:,:,:) ! EVECFV.OUT eigenvectors
+      complex(8), allocatable :: evecsv(:,:)   ! EVECSV.OUT eigenvectors
+      logical :: sort_
       character(22) :: filext0
 
+      sort_= .true.
+      if( present( sort)) sort_ = sort
+      allocate( evecfv( nmatmax_ptr, nstfv, nspnfv ) )
+      allocate( evecsv( nstsv, nstsv ) )
+
+      ! load EVECFV, EVECSV from file
       if( (input%properties%wannier%input .eq. "gs") .or. (input%properties%wannier%input .eq. "qsgw")) then
-        call getevecfv( wf_kset%vkl(:, ik), wf_Gkset%vgkl( :, :, :, ik), evec)
+        call getevecfv( wf_kset%vkl( :, ik ), wf_Gkset%vgkl( :, :, :, ik ), evecfv )
+        call wfhelp_getevecsv( ik, evecsv, sort=.false. )
       else if( input%properties%wannier%input .eq. "hybrid") then
-        call getevecfv( wf_kset%vkl(:, ik), wf_Gkset%vgkl( :, :, :, ik), evec)
+        call getevecfv( wf_kset%vkl( :, ik ), wf_Gkset%vgkl( :, :, :, ik ), evecfv )
+        call wfhelp_getevecsv( ik, evecsv, sort=.false. )
       else if( input%properties%wannier%input .eq. "gw") then
         if (xctype(1) >= 400) then
-          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evec)
+          call getevecfv( wf_kset%vkl( :, ik ), wf_Gkset%vgkl( :, :, :, ik ), evecfv )
+          call wfhelp_getevecsv( ik, evecsv, sort=.false. )
         else
           filext0 = filext
           filext  = "_GW.OUT"
-          call getevecfv( wf_kset%vkl( :, ik), wf_Gkset%vgkl( :, :, :, ik), evec)
+          call getevecfv( wf_kset%vkl( :, ik ), wf_Gkset%vgkl( :, :, :, ik ), evecfv )
+          call wfhelp_getevecsv( ik, evecsv, sort=.false. )
           filext = filext0
         end if
       else
         stop
       end if
 
-      ! phase correction
-      if( wf_fixphases) then
-        !write(*,*) 'phase correction'
-        allocate( auxmat( nmatmax_ptr, nstfv))
-        auxmat = evec( :, :, 1)
-        call zgemm( 'n', 'n', nmatmax_ptr, nstfv, nstfv, zone, &
-               auxmat, nmatmax_ptr, &
-               wf_evecphases( :, :, ik), nstfv, zzero, &
-               evec( :, :, 1), nmatmax_ptr)
-        deallocate( auxmat)
+      ! set evec (FV), or convert EVECFV/EVECSV from file to evec LAPW+lo-expansion (SV)
+      if ( .not. associated(input%groundstate%spin) ) then
+        ! no spin
+        evec = evecfv
+      else
+        ! spin
+        if ( .not. issvlo() ) then
+          ! SV
+          ! sigma 1 component
+          call zgemm( 'n', 'n', nmatmax_ptr, nstsv, nstfv, zone, &
+                evecfv( 1, 1, 1 ), nmatmax_ptr, &
+                evecsv( 1, 1 ), nstsv, zzero, &
+                evec( 1, 1, 1 ), nmatmax_ptr)
+          ! sigma 2 component
+          call zgemm( 'n', 'n', nmatmax_ptr, nstsv, nstfv, zone, & 
+                evecfv( 1, 1, 1 ), nmatmax_ptr, &
+                evecsv( nstfv+1, 1 ), nstsv, zzero, &
+                evec( 1, 1, 2), nmatmax_ptr)
+        else 
+          ! SVLO
+          evec = zzero
+          num_of_basis_funs_sv = get_num_of_basis_functions_sv()
+          ! FVAPW times SVFV (APW) components
+          ! sigma 1 component
+          call zgemm( 'n', 'n', wf_Gkset%ngk( 1, ik ), nstsv, nstfv, zone, &
+                evecfv( 1, 1, 1 ), nmatmax_ptr, &
+                evecsv( 1, 1 ), nstsv, zzero, &
+                evec( 1, 1, 1 ), nmatmax_ptr )
+          ! sigma 2 component
+          call zgemm( 'n', 'n', wf_Gkset%ngk( 1, ik ), nstsv, nstfv, zone, &
+                evecfv( 1, 1, 1 ), nmatmax_ptr, &
+                evecsv( num_of_basis_funs_sv + 1, 1 ), nstsv, zzero, &
+                evec( 1, 1, 2 ), nmatmax_ptr )
+          ! SVLO (LO) components
+          ! sigma 1 component
+          nmatk = wf_Gkset%ngk( 1, ik) + nlotot
+          evec( wf_Gkset%ngk( 1, ik )+1 : nmatk, 1:nstsv, 1 ) = evecsv( nstfv+1 : nstfv+nlotot, 1:nstsv)
+          ! sigma 2 component
+          evec( wf_Gkset%ngk( 1, ik )+1 : nmatk, 1:nstsv, 2 ) = evecsv( num_of_basis_funs_sv+nstfv+1 : num_of_basis_funs_sv+nstfv+nlotot, 1:nstsv)
+        end if
       end if
+      deallocate( evecfv )
+      deallocate( evecsv )
+      
+      ! sort evec according to eval-sorting
+      if ( sort_ ) then
+        if ( allocated( wf_index_map ) ) then
+          allocate( auxmat(size(evec, dim=1), size(evec, dim=2)) )
+          do ispn = 1, nspinor
+            auxmat = evec(:, :, ispn)
+            evec(:, :, ispn) = auxmat(:, wf_index_map(:, ik))
+          end do
+          deallocate( auxmat )
+        else
+          if( mpiglobal%rank .eq. 0) then
+            write(*,*)
+            write( *,'("Error (wfhelp_getevec): No index-map sorting eigenvalues/eigenvectors allocated!")')
+          end if
+          stop
+        end if
+      end if
+
+
+      ! phase correction !NOTE feature unused currently. Adapt for spinor evec
+      ! if( wf_fixphases) then
+      !   !write(*,*) 'phase correction'
+      !   allocate( auxmat( nmatmax_ptr, nstfv))
+      !   auxmat = evec( :, :, 1)
+      !   call zgemm( 'n', 'n', nmatmax_ptr, nstfv, nstfv, zone, &
+      !          auxmat, nmatmax_ptr, &
+      !          wf_evecphases( :, :, ik), nstfv, zzero, &
+      !          evec( :, :, 1), nmatmax_ptr)
+      !   deallocate( auxmat)
+      ! end if
 
       return
     end subroutine wfhelp_getevec
 
     !=====================================================================================
-    ! wrapper to fetch eigenenergies in the respective context
-    subroutine wfhelp_geteval( eval, fst, lst, mode, reduce)
-      real(8), allocatable, intent( out)  :: eval(:,:)
-      integer, intent( out)               :: fst, lst
-      character(*), optional, intent( in) :: mode
-      logical, optional, intent( in)      :: reduce
+    ! wrapper to fetch second variation eigenenvectors in the respective context
+    subroutine wfhelp_getevecsv( ik, evecsv, sort)
+      integer, intent(in)           :: ik
+      logical, intent(in), optional  :: sort
+      complex(8), intent(out)       :: evecsv(nstsv, nstsv) !NOTE for future svlo nstfv has to be replaced by get_num_of_basis_functions_sv
 
-      integer :: ik, ikk, ist, un, recl, nkpqp, fstqp, lstqp, nk, iq, nkequi, isymequi( wf_kset%nkpt), ikequi( wf_kset%nkpt)
-      real(8) :: vl(3), efermiqp, efermiks
-      character(256) :: mode_, fname, fxt
-      logical :: reduce_, exist
-      type( k_set) :: kset
+      complex(8), allocatable :: auxmat(:,:)
+      logical :: sort_
+      character(22) :: filext0
 
-      real(8), allocatable :: evalqp(:), evalks(:), evalfv(:,:)
+      sort_= .true.
+      if( present( sort ) ) sort_ = sort
 
-      mode_ = input%properties%wannier%input
-      if( present( mode)) mode_ = trim( mode)
-      reduce_ = .false.
-      if( present( reduce)) reduce_ = reduce
-      if( allocated( eval)) deallocate( eval)
-      
-      ! KS energies on GS grid ('gs')
-      ! generalized KS energies on GS grid ('hybrid')
-      ! KS energies on BSE grid ('bse')
-      if( (mode_ .eq. 'gs') .or. (mode_ .eq. 'hybrid') .or. (mode_ .eq. 'bse')) then
-        fxt = filext
-        nk = nstfv
-        if( mode_ .eq. 'bse') then
-          call generate_k_vectors( kset, wf_kset%bvec, input%xs%ngridk, input%xs%vkloff, reduce_)
-          nstfv = int( chgval/2.d0) + input%xs%nempty + 1
-        else
-          filext = '.OUT'
-          call generate_k_vectors( kset, wf_kset%bvec, input%groundstate%ngridk, input%groundstate%vkloff, reduce_)
-        end if
-        fst = 1
-        lst = nstfv
-        allocate( eval( fst:lst, kset%nkpt))
-        allocate( evalfv( nstfv, nspnfv))
-        do ik = 1, kset%nkpt
-          call getevalsv( kset%vkl( :, ik), evalfv)
-          ikk = ik
-          if( mode_ .ne. 'bse') call findkptinset( kset%vkl( :, ik), wf_kset, ist, ikk)
-          eval( :, ikk) = evalfv( :, 1)
-        end do
-        deallocate( evalfv)
-        filext = trim( fxt)
-        nstfv = nk
-      ! QP energies on GW grid ('gw')
-      ! KS energies on GW grid ('gwks')
-      else if( (mode_ .eq. 'gw') .or. (mode_ .eq. 'gwks')) then
-        call generate_k_vectors( kset, wf_kset%bvec, input%gw%ngridq, input%gw%vqloff, reduce_)
-        call getunit( un)
-        write( fname, '("EVALQP.OUT")')
-        inquire( file=trim( fname), exist=exist)
-        if( .not. exist) then
-          if( mpiglobal%rank .eq. 0) then
-            write(*,*)
-            write( *, '("Error (wfhelp_geteval): File EVALQP.OUT does not exist!")')
-          end if
-          stop
-        end if
-        inquire( iolength=recl) nkpqp, fstqp, lstqp
-        open( un, file=trim( fname), action='read', form='unformatted', access='direct', recl=recl)
-        read( un, rec=1) nkpqp, fstqp, lstqp
-        close( un)
-        allocate( evalqp( fstqp:lstqp))
-        allocate( evalks( fstqp:lstqp))
-        fst = fstqp
-        lst = lstqp
-        allocate( eval( fst:lst, kset%nkpt))
-        inquire( iolength=recl) nkpqp, fstqp, lstqp, vl, evalqp, evalks, efermiqp, efermiks
-        open( un, file=trim( fname), action='read', form='unformatted', access='direct', recl=recl)
-        do ik = 1, nkpqp
-          read( un, rec=ik) nkpqp, fstqp, lstqp, vl, evalqp, evalks, efermiqp, efermiks
-          call findequivkpt( vl, kset, nkequi, isymequi, ikequi)
-          do iq = 1, nkequi
-            if( mode_ .eq. 'gwks') then
-              eval( :, ikequi( iq)) = evalks(:)
-            else
-              eval( :, ikequi( iq)) = evalqp(:)
-            end if
-          end do
-        end do
-        close( un)
-        deallocate( evalqp, evalks)
-      else
+      ! SVLO failsafe. Getevecsv only used in mod_wannier_spin for S_z calculation in wannier gauge
+      if( issvlo() ) then
         if( mpiglobal%rank .eq. 0) then
           write(*,*)
-          write( *, '("Error (wfhelp_geteval): Given mode not supported.")')
+          write( *,'("Error (wfhelp_getevecsv): no svlo capability yet!")')
+          stop
         end if
+      end if
+
+      ! load EVECSV from file
+      if( (input%properties%wannier%input .eq. "gs") .or. (input%properties%wannier%input .eq. "qsgw")) then
+        call getevecsv( wf_kset%vkl( :, ik ), evecsv )
+      else if( input%properties%wannier%input .eq. "hybrid") then
+        call getevecsv( wf_kset%vkl( :, ik ), evecsv )
+      else if( input%properties%wannier%input .eq. "gw") then
+        if (xctype(1) >= 400) then
+          call getevecsv( wf_kset%vkl( :, ik ), evecsv )
+        else
+          filext0 = filext
+          filext  = "_GW.OUT"
+          call getevecsv( wf_kset%vkl( :, ik ), evecsv )
+          filext = filext0
+        end if
+      else
         stop
       end if
 
+      ! sort evec according to eval-sorting
+      if ( sort_ ) then
+        if ( allocated( wf_index_map ) ) then
+          allocate( auxmat, source=evecsv )
+          evecsv(:, :) = auxmat(:, wf_index_map(:, ik))
+          deallocate( auxmat )
+        else
+          if( mpiglobal%rank .eq. 0) then
+            write(*,*)
+            write( *,'("Error (wfhelp_getevecsv): No index-map sorting  eigenvalues/eigenvectors allocated!")')
+          end if
+          stop
+        end if
+      end if
+    end subroutine wfhelp_getevecsv
+
+    !=====================================================================================
+    ! wrapper to fetch eigenenergies in the respective context
+    subroutine wfhelp_geteval( eval, fst, lst, mode, reduce, sort)
+      real(8), allocatable, intent( out)          :: eval(:,:)
+      integer, intent( out)                       :: fst, lst
+      character(*), optional, intent( in)         :: mode
+      logical, optional, intent( in)              :: reduce
+      logical, optional, intent( in)              :: sort
+      
+     
+      integer :: ik, ikk, ist, un, nkpqp, fstqp, lstqp, nk, iq, nkequi, isymequi( wf_kset%nkpt), ikequi( wf_kset%nkpt)
+      integer(long_int) :: recl
+      real(8) :: vl(3), efermiqp, efermiks
+      character(256) :: mode_, fname, fxt
+      logical :: reduce_, exist
+      logical :: sort_
+      type( k_set) :: kset
+
+      real(8), allocatable :: evalqp(:), evalks(:), eval_file(:,:), evalsv(:)
+
+      mode_ = input%properties%wannier%input
+      if( present( mode)) mode_ = trim( mode)
+      sort_= .true.
+      if( present( sort)) sort_ = sort
+      reduce_ = .false.
+      if( present( reduce)) reduce_ = reduce
+      if( allocated( eval)) deallocate( eval)
+        ! KS energies on GS grid ('gs')
+        ! generalized KS energies on GS grid ('hybrid')
+        ! KS energies on BSE grid ('bse')
+        if( (mode_ .eq. 'gs') .or. (mode_ .eq. 'hybrid') .or. (mode_ .eq. 'bse')) then
+          fxt = filext
+          nk = nstsv
+          if( mode_ .eq. 'bse') then
+            call generate_k_vectors( kset, wf_kset%bvec, input%xs%ngridk, input%xs%vkloff, reduce_)
+            nstsv = int( chgval/2.d0) + input%xs%nempty + 1
+          else
+            filext = '.OUT'
+            call generate_k_vectors( kset, wf_kset%bvec, input%groundstate%ngridk, input%groundstate%vkloff, reduce_)
+          end if
+          fst = 1
+          lst = nstsv
+          allocate( eval( fst:lst, kset%nkpt))
+          allocate( eval_file( nstsv, nspnfv))
+          do ik = 1, kset%nkpt
+            call getevalsv( kset%vkl( :, ik), eval_file(:, 1))
+            ikk = ik
+            if( mode_ .ne. 'bse') call findkptinset( kset%vkl( :, ik), wf_kset, ist, ikk)
+            eval(:, ikk) = eval_file(:, 1)
+          end do
+          deallocate( eval_file)
+          filext = trim( fxt)
+          nstsv = nk
+        ! QP energies on GW grid ('gw')
+        ! KS energies on GW grid ('gwks')
+        else if( (mode_ .eq. 'gw') .or. (mode_ .eq. 'gwks')) then
+          call generate_k_vectors( kset, wf_kset%bvec, input%gw%ngridq, input%gw%vqloff, reduce_)
+          if ( nspinor == 1 ) then
+            write( fname, '("EVALQP.OUT")')
+          else
+            ! spinor case
+            write( fname, '("EVALQPSV.OUT")')
+          end if
+          inquire( file=trim( fname), exist=exist)
+          if( .not. exist) then
+            if( mpiglobal%rank .eq. 0) then
+              write(*,*)
+              write( *, '("Error (wfhelp_geteval): File EVALQP.OUT does not exist!")')
+            end if
+            stop
+          end if
+          call inquire_large( recl, [nkpqp, fstqp, lstqp] )
+          call open_direct_unformatted_large( un, trim( fname), "read", recl, "old" )
+          read( un, rec=1) nkpqp, fstqp, lstqp
+          close( un)
+          allocate( evalqp( fstqp:lstqp))
+          allocate( evalks( fstqp:lstqp))
+          fst = min( fstqp, nstsv )
+          lst = min( lstqp, nstsv )
+          allocate( eval( fst:lst, kset%nkpt))
+          call inquire_large( recl, [nkpqp, fstqp, lstqp], vl, evalqp, evalks, [efermiqp, efermiks] )
+          call open_direct_unformatted_large( un, trim( fname), "read", recl, "old" )
+          do ik = 1, nkpqp
+            read( un, rec=ik) nkpqp, fstqp, lstqp, vl, evalqp, evalks, efermiqp, efermiks
+            call findequivkpt( vl, kset, nkequi, isymequi, ikequi)
+            do iq = 1, nkequi
+              if( mode_ .eq. 'gwks') then
+                eval( :, ikequi( iq)) = evalks(fst:lst)
+              else
+                eval( :, ikequi( iq)) = evalqp(fst:lst)
+              end if
+            end do
+          end do
+          close( un)
+          deallocate( evalqp, evalks)
+        else
+          if( mpiglobal%rank .eq. 0) then
+            write(*,*)
+            write( *, '("Error (wfhelp_geteval): Given mode not supported.")')
+          end if
+          stop
+        end if
+        ! sort evals in ascending order and sort evals if sort given
+        if ( .not. allocated( wf_index_map ) ) then
+          ! generate wf_index_map
+          allocate( wf_index_map(nstsv, wf_kset%nkpt) )
+          do ik = 1, wf_kset%nkpt
+            wf_index_map(:, ik) = [(ist, ist=1, nstsv)]
+            wf_index_map(fst:lst, ik) = fst + sort_index_1d( lst-fst+1, eval(:, ik) ) - 1
+          end do
+        end if
+        if ( sort_ ) then
+          do ik = 1, wf_kset%nkpt
+            eval(:, ik) = eval(wf_index_map(fst:lst, ik), ik)
+          end do
+        end if
+      
       return
     end subroutine wfhelp_geteval
 
@@ -416,7 +578,7 @@ module mod_wannier_helper
         ! Calculate state occupation numbers
         call tetiw( kset%nkpt, kset%ntet, nst, eval, kset%tnodes, kset%wtet, kset%tvol, efermi, occ)
         do iq = 1, kset%nkpt
-          do ist = 1, nst
+          do ist = fst, lst
             occ(ist,iq) = occmax/kset%wkpt(iq)*occ(ist,iq)
           end do
         end do
@@ -430,9 +592,8 @@ module mod_wannier_helper
     ! (dependent on context)
     subroutine wfhelp_getefermi( efermi, tetra)
       use mod_opt_tetra
-
-      real(8), intent( out) :: efermi
-      type( t_set), optional, intent( in) :: tetra
+      real(8), intent(out) :: efermi
+      type(t_set), optional, intent(in) :: tetra
 
       integer :: fst, lst
       real(8), allocatable :: evalfv(:,:), occ(:,:)

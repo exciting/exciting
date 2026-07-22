@@ -60,17 +60,8 @@ Subroutine mpiresumeevecfiles
          Inquire (IoLength=Recl) vkl_, nstsv_, occsvp
          call resumefile(filetag,Recl)
 
-!
-         Call SYSTEM ("sync")
-         !If (rank==0) Then
-         !   Write (60,*) "resumed split files"
-         !   Call flushifc (60)
-         !End If
-
-         !if I am not the last process pass on the token
       End If
       call barrier
-      Call SYSTEM ("sync")
       splittfile = .False.
 
 #endif
@@ -82,7 +73,7 @@ subroutine resumefile(filetagarg,Recl)
 use modmpi
 use mod_misc
 use mod_kpoint
-use modinput
+use modinput, only: input
 
 	 Implicit None
 	 !arguments

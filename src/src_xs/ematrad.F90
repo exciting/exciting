@@ -14,7 +14,6 @@ subroutine ematrad(iq)
   use mod_muffin_tin, only: nrmtmax, nrmt
   use modinput, only: input
   use modxs, only: riaa, riloa, rilolo, ngq, gqc
-  use m_getunit
 
 ! !DESCRIPTION:
 ! This routine is used in the construction of the plane wave matrix elements.
@@ -75,20 +74,17 @@ subroutine ematrad(iq)
   if(input%xs%dbglev .gt. 1) then
 
     ! Apw-apw
-    call getunit(u11)
-    open(unit=u11, file='IRADaa'//filext, form='formatted', action='write',&
+    open(newunit=u11, file='IRADaa'//filext, form='formatted', action='write',&
       & status='replace')
     write(u11, '(a)') 'igq, ias, l1, io1, l3, io2, l2	 iraa'
     write(u11, '(a)') '-----------------------------------------------------'
     ! Lo-apw
-    call getunit(u22)
-    open(unit=u22, file='IRADalo'//filext, form='formatted', action='write',&
+    open(newunit=u22, file='IRADalo'//filext, form='formatted', action='write',&
       & status='replace')
          write(u22, '(a)') 'igq, ias, ilo, l1, l3, io, l2,	 iralo'
          write(u22, '(a)') '-----------------------------------------------------'
     ! Lo-lo
-    call getunit(u33)
-    open(unit=u33, file='IRADlolo'//filext, form='formatted', action='write',&
+    open(newunit=u33, file='IRADlolo'//filext, form='formatted', action='write',&
       & status='replace')
     write(u33, '(a)') 'igq, ias, ilo1, l1, ilo2, l3, l2,   irlolo'
     write(u33, '(a)') '-----------------------------------------------------'

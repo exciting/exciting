@@ -1,6 +1,6 @@
 !> Module for reporting memory usage in GW calculations
 module gw_memory
-  use asserts, only: assert
+#include "asserts.fpp"
   use precision, only: dp, i32, long_int
   use xyaml, only: yaml_type
 
@@ -83,7 +83,7 @@ function field_to_string( field ) result(string)
     case(field_temp_calcminm2)
       string = string_temp_calcminm2
     case default
-      call assert(.false., "undefined field")
+      CALL_ASSERT(.false., "undefined field")
   end select
 end function
 

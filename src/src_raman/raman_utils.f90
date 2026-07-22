@@ -55,7 +55,6 @@ Contains
 !
 !
    subroutine raman_readpot (istep, fnam, dph, engy, force)
-      use m_getunit
       implicit none
     ! arguments
       Character (*), Intent (In) :: fnam
@@ -75,15 +74,13 @@ Contains
       If (opened) Then
          Close (funit)
       End If
-      Call getunit (funit)
-      Open (funit, File=trim(fnam), Action='read')
+      Open (newunit=funit, File=trim(fnam), Action='read')
       read(funit, *) istep, dph, engy, force
       close (funit)
    end subroutine raman_readpot
 !
 !
    subroutine raman_writepot (istep, fnam, dph, engy, force)
-      use m_getunit
       implicit none
     ! arguments
       Character (*), Intent (In) :: fnam
@@ -92,8 +89,7 @@ Contains
     ! local variables
       integer :: funit
     !
-      call getunit (funit)
-      open (unit=funit, file=trim(fnam), status='unknown', action='write')
+      open (newunit=funit, file=trim(fnam), status='unknown', action='write')
       write (funit, '(i6,f14.6,g23.15,g21.13)') istep, dph, engy, force
       close (unit=funit)
    end subroutine raman_writepot
@@ -128,7 +124,6 @@ Contains
    ! read dielectric function from file
       use modxs
       use raman_coeff
-      use m_getunit
       use modinput
       implicit none
     ! arguments
@@ -151,8 +146,7 @@ Contains
       If (opened) Then
          Close (funit)
       End If
-      Call getunit (funit)
-      Open (funit, File=trim(fnam), Action='read')
+      Open (newunit=funit, File=trim(fnam), Action='read')
       do iw = 1, ncommentlines
          read(funit,*)
       enddo
@@ -168,7 +162,6 @@ Contains
       use modxs
       use raman_coeff
       use modinput
-      use m_getunit
       implicit none
     ! arguments
       integer, intent(in) :: imode, istep, oct1, oct2
@@ -177,8 +170,7 @@ Contains
       real (8) :: o_mega, t1
       integer :: funit, iw
  !
-      call getunit (funit)
-      open (unit=funit, file='../EPSILON_OC'//comp_ch//trim(fxt), status='unknown', action='write')
+      open (newunit=funit, file='../EPSILON_OC'//comp_ch//trim(fxt), status='unknown', action='write')
       t1 = (input%xs%energywindow%intv(2) - input%xs%energywindow%intv(1)) / dble(input%xs%energywindow%points)
       do iw = 1, nwdf
          o_mega = t1 * (iw - 1) + input%xs%energywindow%intv(1)

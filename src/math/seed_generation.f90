@@ -1,6 +1,6 @@
 !> Module generating and setting seeds for random number generation
 module seed_generation
-  use asserts, only: assert
+
   use exciting_mpi, only: mpiinfo, xmpi_bcast
   use modmpi, only: terminate
 

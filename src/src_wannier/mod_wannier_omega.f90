@@ -1,5 +1,6 @@
 module mod_wannier_omega
   use mod_wannier_variables
+  use mod_wannier_spin, only: wfspin_m
   use m_linalg
 
   implicit none
@@ -8,78 +9,78 @@ module mod_wannier_omega
   contains
 
     !=====================================================================================
-    ! initializes/updates the M matrices
+    ! initializes/updates the group diagonal M matrices
     subroutine wfomega_m
       integer :: ik, idxn
-      complex(8), allocatable :: auxmat(:,:)
+      complex(8), allocatable :: auxmat(:,:), m0_spin(:,:)
 
       if( .not. allocated( wf_m)) allocate( wf_m( wf_nwf, wf_nwf, wf_kset%nkpt, wf_n_ntot))
+
+
+      if ( wf_spin_dis ) then
+        ! spin speration used
+        ! M = U⁺^k V⁺^k M_0^kb V^k+b U^k+b
+#ifdef USEOMP
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, idxn, auxmat, m0_spin)
+#endif
+        allocate( auxmat( wf_groups( wf_group)%nst_ks, wf_groups( wf_group)%nwf),&
+                  m0_spin(wf_groups( wf_group)%nst, wf_groups( wf_group)%nst) )
+#ifdef USEOMP
+!$OMP DO COLLAPSE( 2)
+#endif
+        do ik = 1, wf_kset%nkpt
+          do idxn = 1, wf_n_ntot
+            call wfspin_m( ik, idxn, m0_spin)
+            call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                   m0_spin, wf_groups( wf_group)%nst, &
+                   wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik( idxn, ik)), wf_nst, zzero, &
+                   auxmat, wf_groups( wf_group)%nst)
+            call zgemm( 'c', 'n', wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                   wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, ik), wf_nst, &
+                   auxmat, wf_groups( wf_group)%nst, zzero, &
+                   wf_m( wf_groups( wf_group)%fwf, wf_groups( wf_group)%fwf, ik, idxn), wf_nwf)
+          end do
+        end do
+#ifdef USEOMP
+!$OMP END DO
+#endif
+        deallocate( auxmat, m0_spin )
+#ifdef USEOMP
+!$OMP END PARALLEL
+#endif
+    
+      else
+      ! default case
 
 #ifdef USEOMP
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, idxn, auxmat)
 #endif
-      allocate( auxmat(  wf_nst, wf_nwf))
+        allocate( auxmat(  wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf))
 #ifdef USEOMP
 !$OMP DO COLLAPSE( 2)
 #endif
-      do ik = 1, wf_kset%nkpt
-        do idxn = 1, wf_n_ntot 
-          call zgemm( 'n', 'n', wf_nst, wf_nwf, wf_nst, zone, &
-                 wf_m0( :, :, ik, idxn), wf_nst, &
-                 wf_transform( :, :, wf_n_ik( idxn, ik)), wf_nst, zzero, &
-                 auxmat, wf_nst)
-          call zgemm( 'c', 'n', wf_nwf, wf_nwf, wf_nst, zone, &
-                 wf_transform( :, :, ik), wf_nst, &
-                 auxmat, wf_nst, zzero, &
-                 wf_m( 1, 1, ik, idxn), wf_nwf)
+        do ik = 1, wf_kset%nkpt
+          do idxn = 1, wf_n_ntot 
+            call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                   wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, ik, idxn), wf_nst, &
+                   wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik( idxn, ik)), wf_nst, zzero, &
+                   auxmat, wf_groups( wf_group)%nst)
+            call zgemm( 'c', 'n', wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                   wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, ik), wf_nst, &
+                   auxmat, wf_groups( wf_group)%nst, zzero, &
+                   wf_m( wf_groups( wf_group)%fwf, wf_groups( wf_group)%fwf, ik, idxn), wf_nwf)
+          end do
         end do
-      end do
 #ifdef USEOMP
 !$OMP END DO
 #endif
-      deallocate( auxmat)
+        deallocate( auxmat)
 #ifdef USEOMP
 !$OMP END PARALLEL
 #endif
+      end if
       return
     end subroutine wfomega_m
-
-    !=====================================================================================
-    ! initializes/updates the group diagonal M matrices
-    subroutine wfomega_m_diag
-      integer :: ik, idxn
-      complex(8), allocatable :: auxmat(:,:)
-
-      if( .not. allocated( wf_m)) allocate( wf_m( wf_nwf, wf_nwf, wf_kset%nkpt, wf_n_ntot))
-
-#ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE( ik, idxn, auxmat)
-#endif
-      allocate( auxmat(  wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf))
-#ifdef USEOMP
-!$OMP DO COLLAPSE( 2)
-#endif
-      do ik = 1, wf_kset%nkpt
-        do idxn = 1, wf_n_ntot 
-          call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
-                 wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, ik, idxn), wf_nst, &
-                 wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik( idxn, ik)), wf_nst, zzero, &
-                 auxmat, wf_groups( wf_group)%nst)
-          call zgemm( 'c', 'n', wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
-                 wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, ik), wf_nst, &
-                 auxmat, wf_groups( wf_group)%nst, zzero, &
-                 wf_m( wf_groups( wf_group)%fwf, wf_groups( wf_group)%fwf, ik, idxn), wf_nwf)
-        end do
-      end do
-#ifdef USEOMP
-!$OMP END DO
-#endif
-      deallocate( auxmat)
-#ifdef USEOMP
-!$OMP END PARALLEL
-#endif
-      return
-    end subroutine wfomega_m_diag
 
     !=====================================================================================
     ! calculates the spread and WF centers
@@ -228,51 +229,90 @@ module mod_wannier_omega
     !=====================================================================================
     ! calculates the gradient of the spread w.r.t. the matrices U
     subroutine wfomega_gradu( ik, g, ldg)
-      use constants, only: zi 
+      use constants, only: zi
       integer, intent( in)     :: ik, ldg
       complex(8), intent( out) :: g(ldg,*)
 
       integer :: idxn, ist, jst
       real(8) :: p1, p2
       complex(8) :: z, m0, m
-      complex(8), allocatable :: auxmat(:,:)
+      complex(8), allocatable :: auxmat(:,:), m0_spin(:,:)
 
       allocate( auxmat( wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf))
       g(:,1:wf_groups( wf_group)%nwf) = zzero
-      do idxn = 1, wf_n_ntot
-        ! positive neighbor
-        call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
-               wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, ik, idxn), wf_nst, &
-               wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik( idxn, ik)), wf_nst, zzero, &
-               auxmat, wf_groups( wf_group)%nst)
-        do ist = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
-          jst = ist - wf_groups( wf_group)%fwf + 1
-          p1 = wf_phases( ist, ik)
-          p2 = wf_phases( ist, wf_n_ik( idxn, ik))
-          m = wf_m( ist, ist, ik, idxn)
-          m0 = m*exp( zi*(p1-p2))
-          z = conjg(m0) + zi*(atan2( aimag(m), dble(m)) - p1 + p2 + dot_product( wf_centers(:,ist), wf_n_vc(:,idxn)))/m0
-          z = -(4.d0/dble( wf_kset%nkpt))*wf_n_wgt( idxn)*z
-          g(:,jst) = g(:,jst) + z*auxmat(:,jst)
+      if ( wf_spin_dis ) then ! spin-disentanglement used
+        allocate( m0_spin(wf_groups(wf_group)%nst, wf_groups(wf_group)%nst) )
+        do idxn = 1, wf_n_ntot
+          ! positive neighbor
+          call wfspin_m( ik, idxn, m0_spin )
+          call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                      m0_spin, wf_groups(wf_group)%nst, &
+                      wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik( idxn, ik)), wf_nst, zzero, &
+                      auxmat, wf_groups( wf_group)%nst)
+          do ist = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
+            jst = ist - wf_groups( wf_group)%fwf + 1
+            p1 = wf_phases( ist, ik)
+            p2 = wf_phases( ist, wf_n_ik( idxn, ik))
+            m = wf_m( ist, ist, ik, idxn)
+            m0 = m*exp( zi*(p1-p2))
+            z = conjg(m0) + zi*(atan2( aimag(m), dble(m)) - p1 + p2 + dot_product( wf_centers(:,ist), wf_n_vc(:,idxn)))/m0
+            z = -(4.d0/dble( wf_kset%nkpt))*wf_n_wgt( idxn)*z
+            g(:,jst) = g(:,jst) + z*auxmat(:,jst)
+          end do
+          ! negative neighbor
+          call wfspin_m( wf_n_ik2(idxn, ik), idxn, m0_spin )
+          call zgemm( 'c', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                      m0_spin, wf_groups( wf_group)%nst, &
+                      wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik2( idxn, ik)), wf_nst, zzero, &
+                      auxmat, wf_groups( wf_group)%nst)
+          do ist = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
+            jst = ist - wf_groups( wf_group)%fwf + 1
+            p1 = wf_phases( ist, wf_n_ik2( idxn, ik))
+            p2 = wf_phases( ist, ik)
+            m = conjg( wf_m( ist, ist, wf_n_ik2( idxn, ik), idxn))
+            m0 = m*exp( zi*(p1-p2))
+            z = conjg(m0) + zi*(atan2( aimag(m), dble(m)) - p1 + p2 - dot_product( wf_centers(:,ist), wf_n_vc(:,idxn)))/m0
+            z = -(4.d0/dble( wf_kset%nkpt))*wf_n_wgt( idxn)*z
+            g(:,jst) = g(:,jst) + z*auxmat(:,jst)
+          end do
         end do
-        ! negative neighbor
-        call zgemm( 'c', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
-               wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, wf_n_ik2( idxn, ik), idxn), wf_nst, &
-               wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik2( idxn, ik)), wf_nst, zzero, &
-               auxmat, wf_groups( wf_group)%nst)
-        do ist = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
-          jst = ist - wf_groups( wf_group)%fwf + 1
-          p1 = wf_phases( ist, wf_n_ik2( idxn, ik))
-          p2 = wf_phases( ist, ik)
-          m = conjg( wf_m( ist, ist, wf_n_ik2( idxn, ik), idxn))
-          m0 = m*exp( zi*(p1-p2))
-          z = conjg(m0) + zi*(atan2( aimag(m), dble(m)) - p1 + p2 - dot_product( wf_centers(:,ist), wf_n_vc(:,idxn)))/m0
-          z = -(4.d0/dble( wf_kset%nkpt))*wf_n_wgt( idxn)*z
-          g(:,jst) = g(:,jst) + z*auxmat(:,jst)
+        deallocate( m0_spin )
+      else
+        do idxn = 1, wf_n_ntot
+          ! positive neighbor
+          call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                      wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, ik, idxn), wf_nst, &
+                      wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik( idxn, ik)), wf_nst, zzero, &
+                      auxmat, wf_groups( wf_group)%nst)
+          do ist = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
+            jst = ist - wf_groups( wf_group)%fwf + 1
+            p1 = wf_phases( ist, ik)
+            p2 = wf_phases( ist, wf_n_ik( idxn, ik))
+            m = wf_m( ist, ist, ik, idxn)
+            m0 = m*exp( zi*(p1-p2))
+            z = conjg(m0) + zi*(atan2( aimag(m), dble(m)) - p1 + p2 + dot_product( wf_centers(:,ist), wf_n_vc(:,idxn)))/m0
+            z = -(4.d0/dble( wf_kset%nkpt))*wf_n_wgt( idxn)*z
+            g(:,jst) = g(:,jst) + z*auxmat(:,jst)
+          end do
+          ! negative neighbor
+          call zgemm( 'c', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                      wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, wf_n_ik2( idxn, ik), idxn), wf_nst, &
+                      wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik2( idxn, ik)), wf_nst, zzero, &
+                      auxmat, wf_groups( wf_group)%nst)
+          do ist = wf_groups( wf_group)%fwf, wf_groups( wf_group)%lwf
+            jst = ist - wf_groups( wf_group)%fwf + 1
+            p1 = wf_phases( ist, wf_n_ik2( idxn, ik))
+            p2 = wf_phases( ist, ik)
+            m = conjg( wf_m( ist, ist, wf_n_ik2( idxn, ik), idxn))
+            m0 = m*exp( zi*(p1-p2))
+            z = conjg(m0) + zi*(atan2( aimag(m), dble(m)) - p1 + p2 - dot_product( wf_centers(:,ist), wf_n_vc(:,idxn)))/m0
+            z = -(4.d0/dble( wf_kset%nkpt))*wf_n_wgt( idxn)*z
+            g(:,jst) = g(:,jst) + z*auxmat(:,jst)
+          end do
         end do
-      end do
+      end if
       deallocate( auxmat)
-      return      
+      return
     end subroutine wfomega_gradu
 
     !=====================================================================================
@@ -283,32 +323,61 @@ module mod_wannier_omega
 
       integer :: idxn
       complex(8) :: z
-      complex(8), allocatable :: auxmat(:,:)
+      complex(8), allocatable :: auxmat(:,:), m0_spin(:,:)
 
       allocate( auxmat( wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf))
       g(:,1:wf_groups( wf_group)%nwf) = zzero
-      do idxn = 1, wf_n_ntot
-        z = cmplx( -4.d0*wf_n_wgt( idxn)/dble( wf_kset%nkpt), 0.d0, 8)
-        ! positive neighbor
-        call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
-               wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, ik, idxn), wf_nst, &
-               wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik( idxn, ik)), wf_nst, zzero, &
-               auxmat, wf_groups( wf_group)%nst)
-        call zgemm( 'n', 'c', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, z, &
-               auxmat, wf_groups( wf_group)%nst, &
-               wf_m( wf_groups( wf_group)%fwf, wf_groups( wf_group)%fwf, ik, idxn), wf_nwf, zone, &
-               g(1,1), ldg)
-        ! negative neighbor
-        call zgemm( 'c', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
-               wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, wf_n_ik2( idxn, ik), idxn), wf_nst, &
-               wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik2( idxn, ik)), wf_nst, zzero, &
-               auxmat, wf_groups( wf_group)%nst)
-        call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, z, &
-               auxmat, wf_groups( wf_group)%nst, &
-               wf_m( wf_groups( wf_group)%fwf, wf_groups( wf_group)%fwf, wf_n_ik2( idxn, ik), idxn), wf_nwf, zone, &
-               g(1,1), ldg)
-      end do
-      deallocate( auxmat)
+      if ( wf_spin_dis ) then
+        allocate( m0_spin(wf_groups(wf_group)%nst, wf_groups(wf_group)%nst) )
+        do idxn = 1, wf_n_ntot
+          z = cmplx( -4.d0*wf_n_wgt( idxn)/dble( wf_kset%nkpt), 0.d0, 8)
+          call wfspin_m( ik, idxn, m0_spin )
+          ! positive neighbor
+          call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                      m0_spin, wf_groups(wf_group)%nst, &
+                      wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik( idxn, ik)), wf_nst, zzero, &
+                      auxmat, wf_groups( wf_group)%nst)
+          call zgemm( 'n', 'c', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, z, &
+                      auxmat, wf_groups( wf_group)%nst, &
+                      wf_m( wf_groups( wf_group)%fwf, wf_groups( wf_group)%fwf, ik, idxn), wf_nwf, zone, &
+                      g(1,1), ldg)
+          ! negative neighbor
+          call wfspin_m( wf_n_ik2( idxn, ik), idxn, m0_spin )
+          call zgemm( 'c', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                      m0_spin, wf_groups(wf_group)%nst, &
+                      wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik2( idxn, ik)), wf_nst, zzero, &
+                      auxmat, wf_groups( wf_group)%nst)
+          call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, z, &
+                      auxmat, wf_groups( wf_group)%nst, &
+                      wf_m( wf_groups( wf_group)%fwf, wf_groups( wf_group)%fwf, wf_n_ik2( idxn, ik), idxn), wf_nwf, zone, &
+                      g(1,1), ldg)
+        end do
+        deallocate( m0_spin )
+      else
+        do idxn = 1, wf_n_ntot
+          z = cmplx( -4.d0*wf_n_wgt( idxn)/dble( wf_kset%nkpt), 0.d0, 8)
+          ! positive neighbor
+          call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, ik, idxn), wf_nst, &
+                wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik( idxn, ik)), wf_nst, zzero, &
+                auxmat, wf_groups( wf_group)%nst)
+          call zgemm( 'n', 'c', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, z, &
+                auxmat, wf_groups( wf_group)%nst, &
+                wf_m( wf_groups( wf_group)%fwf, wf_groups( wf_group)%fwf, ik, idxn), wf_nwf, zone, &
+                g(1,1), ldg)
+          ! negative neighbor
+          call zgemm( 'c', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nst, zone, &
+                wf_m0( wf_groups( wf_group)%fst, wf_groups( wf_group)%fst, wf_n_ik2( idxn, ik), idxn), wf_nst, &
+                wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, wf_n_ik2( idxn, ik)), wf_nst, zzero, &
+                auxmat, wf_groups( wf_group)%nst)
+          call zgemm( 'n', 'n', wf_groups( wf_group)%nst, wf_groups( wf_group)%nwf, wf_groups( wf_group)%nwf, z, &
+                auxmat, wf_groups( wf_group)%nst, &
+                wf_m( wf_groups( wf_group)%fwf, wf_groups( wf_group)%fwf, wf_n_ik2( idxn, ik), idxn), wf_nwf, zone, &
+                g(1,1), ldg)
+        
+        end do
+      end if
+      deallocate( auxmat )
       return      
     end subroutine wfomega_gradiu
 

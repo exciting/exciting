@@ -12,7 +12,6 @@ Subroutine getematrad(iqr, iq)
   use mod_APW_LO, only: lolmax, apwordmax, nlomax
   use mod_atoms, only: natmtot
   use m_genfilname
-  use m_getunit
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
 !   integer(4), iqr : Index of non-reduced q-point
@@ -56,8 +55,7 @@ Subroutine getematrad(iqr, iq)
   call genfilname(basename=trim(adjustl(ematraddir))//'/'//'EMATRAD',&
     & iq=iqr, appfilext=.true., filnam=fname)
 
-  call getunit(un)
-  open(un, file=trim(fname), form='unformatted', action='read', status='old')
+  open(newunit=un, file=trim(fname), form='unformatted', action='read', status='old')
   read(un) riaa, riloa, rilolo
   close(un)
 end subroutine getematrad

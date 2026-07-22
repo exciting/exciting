@@ -11,7 +11,6 @@ Subroutine xsestimate
       Use modinput
       Use modxs
       Use m_genfilname
-      Use m_getunit
       Use m_gndstateq
       Implicit None
       Real (8) :: d_ev (2), d_apwcmt (2), d_pmat (2), d_emat (2), d_x0 &
@@ -65,8 +64,7 @@ Subroutine xsestimate
       m_bseham = scmplx * bsehamsiz ** 2
       m_bseeigvec = scmplx * bsehamsiz * input%xs%BSE%nexc
   !write information to file
-      Call getunit (un)
-      Open (un, File='SIZES.OUT', Form='formatted', Action='write', &
+      Open (newunit=un, File='SIZES.OUT', Form='formatted', Action='write', &
      & Status='replace')
       Write (un,*)
       Write (un, '(a)') 'Relevant parameters:'

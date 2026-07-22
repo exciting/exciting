@@ -1,6 +1,7 @@
 """Parsers for exciting properties."""
 
 import os
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, Union
@@ -518,6 +519,8 @@ def parse_spintext(name: path_type) -> dict:
     """
     # parse file
     file_name = "spintext.xml"
+    if isinstance(name, Path):
+        name = str(name)
     if name.split("/")[-1] != file_name:
         name = os.path.join(name, file_name)
 
@@ -579,35 +582,52 @@ def parse_wannier_info(name: path_type) -> dict:
     """
 
     # Extract data
-    lines = []
-    data = []
-    total = []
-    start = False
     with open(name) as file:
-        for line in file:
-            if "* Wannier functions" in line:
-                start = True
-            if start:
-                lines.append(line)
-    for i, line in enumerate(lines):
-        if line.strip().startswith("1") or line.strip().startswith("5"):
-            data.extend(lines[i + j].split() for j in range(4))
-        elif line.strip().startswith("total"):
-            total.append(line.split())
+        lines = file.read()
+
+        # use regex patterns to extract #groups and #wf's per group
+        groups = {}
+        n_groups = int(re.findall(r"#groups:\s+(\d+)", lines)[0])
+        groups["n_groups"] = n_groups
+
+        groups["groups"] = []
+        for i_group, nwf_group in re.findall(
+            r"(?<=Group:)\s+(\d+)\s+-\n(?:.*\n)*?\s*#Wannier functions:\s+(\d+)", lines
+        ):
+            groups["groups"].append({"n_wf": int(nwf_group), "i_group": int(i_group)})
+
+        # find summary lines in WANNIER_INFO.OUT
+        match = re.search(r".+#\s*localization center.*?\n=*\n", lines)
+        omega_info = lines[match.end() :].splitlines()
+
+        # itereate through summary lines and extract group wf data and total data
+        i = 0
+        data = []
+        total = []
+        for group in groups["groups"]:
+            data.extend(omega_info[i + j].split() for j in range(group["n_wf"]))
+            i += group["n_wf"] + 1
+            if bool(re.match(r"[-=]", omega_info[i])):
+                i += +1
+            if omega_info[i].lstrip().startswith("total"):
+                total.append(omega_info[i].split())
+                i += 1
+            if bool(re.match(r"[-=]", omega_info[i])):
+                i += +1
+        if omega_info[i].lstrip().startswith("total"):
+            total.append(omega_info[i].split())
+        else:
+            raise ValueError(f"Expected 'total: ...' in 'WANNIER_INFO.OUT' but found '{omega_info[i]}'")
 
     # Package data into dictionary
     n_wannier = len(data)
-    localisation_center = np.empty(shape=(n_wannier, 3))
     wannier = {"n_wannier": n_wannier, "Omega": [], "Omega_I": [], "Omega_D": [], "Omega_OD": []}
 
     for i, item in enumerate(data):
-        localisation_center[i, :] = [float(x) for x in item[1:4]]
         wannier["Omega"].append(float(item[4]))
         wannier["Omega_I"].append(float(item[5]))
         wannier["Omega_D"].append(float(item[6]))
         wannier["Omega_OD"].append(float(item[7]))
-
-    wannier["localisation_center"] = localisation_center
 
     totals = {"Omega": [], "Omega_I": [], "Omega_D": [], "Omega_OD": []}
     for j, item in enumerate(total):
@@ -866,3 +886,10 @@ def parse_cube(fname: path_type) -> dict:
     output["cube_data"] = np.array(cube_data, dtype=np.double)
 
     return output
+
+
+@set_return_values
+def parse_mbd(name: path_type) -> dict:
+    """Parse the scalar MBD energy written to MBD.OUT."""
+    value = float(Path(name).read_text().strip().split()[0])
+    return {"MBD energy": value}

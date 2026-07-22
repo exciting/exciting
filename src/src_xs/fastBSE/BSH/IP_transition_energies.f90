@@ -1,7 +1,7 @@
 !> Module for setting up the transition energies from independent particle (IP) eigen energies.
 module bse_diagonal
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: mpiinfo, distribute_loop, terminate_if_false
   use modinput, only: input_type
   use exciting_mpi, only: xmpi_bcast
@@ -36,8 +36,7 @@ module bse_diagonal
 
     integer :: n_o, n_u, n_k, i_o, i_u, i_k
 
-    call assert(size(occupied_bands, dim=2) == size(unoccupied_bands, dim=2), &
-            'Occupied and unoccupied eigen energies have not the same number of k-points.')
+    CALL_ASSERT(size(occupied_bands, dim=2) == size(unoccupied_bands, dim=2),  'Occupied and unoccupied eigen energies have not the same number of k-points.')
 
 
     n_o = size(occupied_bands, dim=1)

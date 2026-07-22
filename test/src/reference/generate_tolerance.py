@@ -44,6 +44,7 @@ from src.tolerance.templates.transport import transport_tolerances
 from src.tolerance.templates.plotting import plotting_tolerances
 from src.tolerance.templates.bandstructure_dos import bandstructure_tolerances, dos_tolerances
 from src.tolerance.templates.wannier import wannier_tolerances
+from src.tolerance.templates.phonon import phonon_tolerances
 from src.runner.profile import ExcitingCalculation, get_calculation_types
 
 
@@ -151,6 +152,9 @@ def generate_tolerance_file(calculation: ExcitingCalculation, file_path: str):
 
     if calculation == ExcitingCalculation.bse_hdf5:
         tolerances = bse_hdf5_tolerances
+
+    if calculation == ExcitingCalculation.phonon:
+        tolerances = phonon_tolerances
 
     # Properties
     if calculation == ExcitingCalculation.band_structure:

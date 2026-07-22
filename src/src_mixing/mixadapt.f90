@@ -42,31 +42,29 @@ Subroutine mixadapt (iscl, beta0, betainc, betadec, n, nu, mu, beta, f, &
 ! !REVISION HISTORY:
 !   Created March 2003 (JKD)
 !   Modified, September 2008 (JKD)
+!   Modified, April 2025 (mrm)
 !EOP
 !BOC
+      use precision, only: i32, dp, long_int
       Implicit None
 ! arguments
-      Integer, Intent (In) :: iscl
-      Real (8), Intent (In) :: beta0
-      Real (8), Intent (In) :: betainc
-      Real (8), Intent (In) :: betadec
-      Integer, Intent (In) :: n
-      Real (8), Intent (Inout) :: nu (n)
-      Real (8), Intent (Inout) :: mu (n)
-      Real (8), Intent (Inout) :: beta (n)
-      Real (8), Intent (Inout) :: f (n)
-      Real (8), Intent (Out) :: d
+      Integer(i32), Intent (In) :: iscl
+      Real(dp), Intent (In) :: beta0
+      Real(dp), Intent (In) :: betainc
+      Real(dp), Intent (In) :: betadec
+      Integer(long_int), Intent (In) :: n
+      Real(dp), Intent (Inout) :: nu (n)
+      Real(dp), Intent (Inout) :: mu (n)
+      Real(dp), Intent (Inout) :: beta (n)
+      Real(dp), Intent (Inout) :: f (n)
+      Real(dp), Intent (Out) :: d
 ! local variables
-      Integer :: i
-      Real (8) :: t1
+      Integer(long_int) :: i
+      Real(dp) :: t1
       integer :: iscl_temp
-!
-      d = 0.d0
-      Do i = 1, n
-         d = d + (nu(i)-mu(i)) ** 2
-      End Do
-      d = Sqrt (d/dble(n))
-!
+
+      d = norm2(nu-mu)/sqrt(real(n,kind=dp))
+
       if (associated(input%groundstate%mgga)) then 
           iscl_temp = iscl - 1
       else 
@@ -75,22 +73,22 @@ Subroutine mixadapt (iscl, beta0, betainc, betadec, n, nu, mu, beta, f, &
 
       If (iscl_temp .Lt. 1) Then
          mu (:) = nu (:)
-         f (:) = 0.d0
+         f (:) = 0.0_dp
          beta (:) = beta0
-         d = 1.d0
+         d = 1.0_dp
          Return
       End If
       Do i = 1, n
          t1 = nu (i) - mu (i)
-         If (t1*f(i) .Gt. 0.d0) Then
+         If (t1*f(i) > 0.0_dp) Then
             beta (i) = beta (i) * betainc
-            If (beta(i) .Gt. 1.d0) beta (i) = 1.d0
+            If (beta(i) > 1.0_dp) beta (i) = 1.0_dp
          Else
             beta (i) = beta (i) * betadec
          End If
          f (i) = t1
       End Do
-      nu (:) = beta (:) * nu (:) + (1.d0-beta(:)) * mu (:)
+      nu (:) = beta (:) * nu (:) + (1.0_dp-beta(:)) * mu (:)
 !
       mu (:) = nu (:)
       Return

@@ -55,7 +55,7 @@ module os_utils_test
       integer :: ierr
       logical :: exists
 
-      ierr = make_directory(TEST_DIR, comm)
+      ierr = make_directory_pure(TEST_DIR, comm)
 
       call test_report%assert( ierr == 0, &
         'Expected: Return value 0 in `make_directory`.')

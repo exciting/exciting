@@ -3,8 +3,7 @@ module autormt
    Use errors_warnings, only: terminate_if_false
    use precision, only: dp
    use predefined_rgkmax, only: get_predefined_rgkmax
-   use asserts, only: assert
-
+#include "asserts.fpp"
    implicit none 
    private
    public :: get_initial_rmt_rgkmax, &
@@ -44,12 +43,20 @@ module autormt
          real(dp) :: rmt_is
          
          ! Label for atomic number
-         character(10) :: z_label
+         character(20) :: z_label, z_real_label
+         integer :: z_int
          
          rmt_is = get_predefined_rgkmax(spzn_is)
-         write(z_label,'(I3)') idnint(Abs(spzn_is))
-         call terminate_if_false(mpiglobal, rmt_is /= -1.0_dp ,"(Error (autormt): initial muffin-tin& 
-                                 & radius for given atomic number"// trim(z_label) // " does not exist.")
+         
+         z_int = idnint(abs(spzn_is))
+         write(z_label,'(I0)') z_int
+         write(z_real_label,'(F12.6)') abs(spzn_is)
+
+         call terminate_if_false(mpiglobal, rmt_is > 0.0_dp, &
+              "Error (autormt): No predefined initial muffin-tin radius exists for nuclear charge Z = " // &
+              trim(adjustl(z_real_label)) // " (nearest integer: " // trim(z_label) // "). " // &
+              "Predefined values are available only for integer atomic numbers 1–86. " // &
+              "For fractional or out-of-range Z, please specify the muffin-tin radius manually." )
       end function get_initial_rmt_rgkmax
 
       !> Scales the given initial muffin-tin radii in `rmt` using `fixed_rmt`.
@@ -76,10 +83,8 @@ module autormt
 
          initial_rmt_fixedrmt = rmt(idx_fixedrmt)
 
-         call assert((fixed_rmt > 0.0_dp), &
-                     message='Value for fixed rmt has to be greater than zero.')
-         call assert((idx_fixedrmt > 0) .and. (idx_fixedrmt < nspecies), &
-                     message='The species index has to be larger than zero and lower or equal to the total number of species.')
+         CALL_ASSERT((fixed_rmt > 0.0_dp),  message='Value for fixed rmt has to be greater than zero.')
+         CALL_ASSERT((idx_fixedrmt > 0) .and. (idx_fixedrmt < nspecies),  message='The species index has to be larger than zero and lower or equal to the total number of species.')
          
          scaling_factor = fixed_rmt / initial_rmt_fixedrmt 
          rmt(1:nspecies) = rmt(1:nspecies) * scaling_factor
@@ -186,8 +191,7 @@ module autormt
          integer :: is
          real(dp) :: fixed_rmt 
          
-         call assert((init_rad_version == 0) .or. (init_rad_version == 1), & 
-                     message='Error(autormt): Invalid case for initial muffin-tin radii')
+         CALL_ASSERT((init_rad_version == 0) .or. (init_rad_version == 1),  message='Error(autormt): Invalid case for initial muffin-tin radii')
 
          if (present(idx_fixedrmt)) then 
             fixed_rmt = rmt(idx_fixedrmt)

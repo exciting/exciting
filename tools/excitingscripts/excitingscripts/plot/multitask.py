@@ -1,5 +1,5 @@
-# Please, check https://www.exciting-code.org/the-python-script-plot.multitask
-# to better understand how to use this script
+"""Please, check https://www.exciting-code.org/the-python-script-plot.multitask
+to better understand how to use this script"""
 
 import matplotlib
 import matplotlib.ticker as ptk
@@ -39,6 +39,7 @@ class Option_preprocess(Enum):
     fourier_transform = 3
     add = 4
     sub = 5
+    get_eps_from_polarization = 6 # get the dielectric function using polarization and electric field
 
 #-------------------------------------------------------------------------------
 
@@ -175,6 +176,7 @@ def convert_args_to_dict(args):
         'fourier_transform': args.fourier,
         'get_efield': args.get_efield,
         'get_eps': args.get_eps,
+        'get_eps_from_polarization': args.get_eps_from_polarization,
         'output': args.o,
         'scale': args.scale,
         'add': args.add,
@@ -185,6 +187,7 @@ def convert_args_to_dict(args):
         'ylim': args.ylim,
         'semilog': args.semilog,
         'jind': args.jind,
+        'pol': args.pol,
         'nexc': args.nexc,
         'x': args.x,
         'y': args.y,
@@ -227,8 +230,8 @@ def parse_input():
 
     # Options for preprocessing
     # preprocess: it means no plot, only preparations for a future call
-    #       Options for pre-process: fourier (with wcut), get_efield, get_eps
-    #       add, sub, scale, and -o for the output
+    # Options for pre-process: fourier (with wcut), get_efield, get_eps, get_eps_from_polarization,
+    #                          add, sub, scale, and -o for the output
     parser.add_argument('--preprocess', required=False, action='store_true')
     # fourier: obtain the fast fourier transform applying a smoothing filter,
     #       with wcut as parameter for the smoothing
@@ -240,6 +243,8 @@ def parse_input():
     parser.add_argument('--get_efield', required=False, action='store_true')
     # get_eps: obtain the dielectric function, using VECTOR_POTENTIAL.OUT and CURRENT.OUT
     parser.add_argument('--get_eps', required=False, action='store_true')
+    # get_eps: obtain the dielectric function, using ELECTRIC_FIELD.OUT and POLARIZATION.OUT
+    parser.add_argument('--get_eps_from_polarization', required=False, action='store_true')
     # the next options are for the tensor components of the dielectric function
     parser.add_argument('--xx', required=False, action='store_true')
     parser.add_argument('--xy', required=False, action='store_true')
@@ -262,6 +267,8 @@ def parse_input():
     # Options for plotting
     # jind: plot the current density (this triggers the x- and y-labels)
     parser.add_argument('--jind', required=False, action='store_true')
+    # pol: plot the polarization (this triggers the x- and y-labels)
+    parser.add_argument('--pol', required=False, action='store_true')
     # --x, --y, --z: the component to be plotted (only one each time)
     parser.add_argument('--x', required=False, action='store_true')
     parser.add_argument('--y', required=False, action='store_true')
@@ -330,7 +337,7 @@ def set_implicit_options( options ):
     # Check if we need the default options for options['columns']
     if options['columns'] == []:
         # Usual cases
-        if not( options['get_eps']):
+        if not( options['get_eps'] or options['get_eps_from_polarization'] ):
             columns = [0,1]
             if options['nexc']:
                 columns = [0,2]
@@ -341,8 +348,7 @@ def set_implicit_options( options ):
             elif options['z']:
                 columns = [0,3] if not( options['get_efield'] ) else [0,6]
             options['columns'] = [columns]*len(options['files'])
-        # Special case (get_eps)
-        else:
+        elif ( options['get_eps'] ):
             # xx, xy, ..., zz: first component tells which column
             # of CURRENT.OUT is to be read; the second component,
             # the one of VECTOR_POTENTIAL.OUT
@@ -365,6 +371,29 @@ def set_implicit_options( options ):
                 options['columns'] = [[0,4],[0,3]]
             if( options['zz'] ):
                 options['columns'] = [[0,6],[0,3]]
+        elif ( options['get_eps_from_polarization'] ):
+            # xx, xy, ..., zz: first component tells which column
+            # of POLARIZATION.OUT is to be read; the second component,
+            # the one of ELECTRIC_FIELD.OUT
+            options['columns'] = [[0,1],[0,1]]
+            if( options['xx'] ):
+                options['columns'] = [[0,1],[0,1]]
+            if( options['xy'] ):
+                options['columns'] = [[0,2],[0,1]]
+            if( options['xz'] ):
+                options['columns'] = [[0,3],[0,1]]
+            if( options['yx'] ):
+                options['columns'] = [[0,1],[0,2]]
+            if( options['yy'] ):
+                options['columns'] = [[0,2],[0,2]]
+            if( options['yz'] ):
+                options['columns'] = [[0,3],[0,2]]
+            if( options['zx'] ):
+                options['columns'] = [[0,1],[0,3]]
+            if( options['zy'] ):
+                options['columns'] = [[0,2],[0,3]]
+            if( options['zz'] ):
+                options['columns'] = [[0,3],[0,3]]
 
     # Default options for options['skip_lines']
     if options['skip_lines'] == []:
@@ -387,6 +416,8 @@ def set_implicit_options( options ):
             options['ylabel'] = ['Current Density [a.u.]']
         elif options['nexc']:
             options['ylabel'] = ['$N_{exc}(t)$']
+        elif options['pol']:
+            options['ylabel'] = ['Polarization [a.u.]']
         else: 
             options['ylabel'] = ['y']
 
@@ -417,6 +448,22 @@ def preprocess( x, y, output, option_preproc=Option_preprocess.nothing, \
     if option_preproc == Option_preprocess.get_efield:
         y = numpy.multiply( numpy.gradient( y[0], x[0] ), -1./speed_light )
         x = x[0]
+    # Obtain the dielectric function using macroscopic polarization and electric field:
+    # epsilon_ij = delta_ij + 4 pi P_j(omega) / E_i(omega)
+    elif option_preproc == Option_preprocess.get_eps_from_polarization:
+        # fourier transform of E
+        w, E = fft( x[0], y[0], wcut )
+        # fourier transform of the polarization
+        _, P = fft( x[1], y[1], wcut )
+        # dielectric tensor
+        if ( diagonal_component ):
+            eps = 1 + 4*numpy.pi*numpy.divide( P, E, \
+                where=E!=0, out=numpy.zeros(E.shape,dtype=complex) )
+        else:
+            eps = 4*numpy.pi*numpy.divide( P, E, \
+                where=E!=0, out=numpy.zeros(E.shape,dtype=complex) )
+        x = w[:]
+        y = eps[:]
     # Obtain the dielectric function as described in
     # http://exciting-code.org/oxygen-pump-probe-spectroscopy
     elif option_preproc == Option_preprocess.get_eps:
@@ -517,10 +564,11 @@ def sanity_checks( options ):
     # only one preprocess option?
     is_efield = options['get_efield']
     is_eps = options['get_eps']
+    is_eps_pol = options['get_eps_from_polarization']
     is_fft = options['fourier_transform']
     is_add = options['add']
     is_sub = options['sub']
-    number_of_true_elements = sum([is_efield, is_eps, is_fft, is_add, is_sub ])
+    number_of_true_elements = sum([is_efield, is_eps, is_fft, is_add, is_sub, is_eps_pol ])
     not_ok_preproc = ( number_of_true_elements > 1 )
     error_message = 'It is not possible to perform more than one preprocessing\
         action.'
@@ -536,9 +584,11 @@ def sanity_checks( options ):
         string = 'get_efield' if is_efield else 'fourier'
         raise RuntimeError('Only one file for the preprocess option: '+ string)
     # two files for get_eps, add and sub
-    if (is_eps or is_add or is_sub) and (nfiles != 2):
+    if (is_eps or is_add or is_sub or is_eps_pol) and (nfiles != 2):
         if is_eps:
             string = 'get_eps'
+        if is_eps_pol:
+            string = 'get_eps_from_polarization'
         elif is_add:
             string = 'add'
         else:
@@ -557,13 +607,13 @@ def sanity_checks( options ):
     if( too_many_options ):
         raise RuntimeError( error_message )
 
-    # no more than one option: jind, nexc, imag_eps, real_eps?
-    options_to_check = [ options['jind'], options['nexc'], options['imag_eps'],\
+    # no more than one option: jind, pol, nexc, imag_eps, real_eps?
+    options_to_check = [ options['jind'], options['pol'], options['nexc'], options['imag_eps'],\
         options['real_eps'] ]
     too_many_options = ( sum( options_to_check ) > 1 )
     if( too_many_options ):
         raise RuntimeError('More than one option among the following ones has \
-            been required: jind, nexc, imag_eps, real_eps')
+            been required: jind, pol, nexc, imag_eps, real_eps')
 
 #-------------------------------------------------------------------------------
 def main():
@@ -587,6 +637,8 @@ def main():
             option_preproc = Option_preprocess.get_efield
         elif( args['get_eps'] ):
             option_preproc = Option_preprocess.get_eps
+        elif( args['get_eps_from_polarization'] ):
+            option_preproc = Option_preprocess.get_eps_from_polarization
         elif( args['fourier_transform'] ):
             option_preproc = Option_preprocess.fourier_transform
         elif( args['add'] ):

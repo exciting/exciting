@@ -9,7 +9,6 @@ subroutine task_eps_r
     use modxs, only: symt2
     use mod_mpi_gw
     use modmpi, only: rank, mpiglobal, distribute_loop
-    use m_getunit
     use mod_hdf5
     use mod_rpath
     use mod_bands, only: evalfv, numin, nstdf

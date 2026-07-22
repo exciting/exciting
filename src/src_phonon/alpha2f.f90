@@ -9,6 +9,7 @@
 Subroutine alpha2f
       Use modmain
       Use modinput
+      use mod_getoccsv, only: getoccsv
       Use constants, only: twopi
       Use physical_constants, only: kboltz
       Implicit None

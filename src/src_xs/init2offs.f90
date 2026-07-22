@@ -4,6 +4,7 @@
 
 subroutine init2offs(voffk, reduceq)
   use modinput
+  use m_genppts_interface, only: genppts
   use modmpi
   use mod_muffin_tin
   use mod_atoms
@@ -19,8 +20,6 @@ subroutine init2offs(voffk, reduceq)
 
   integer(4) :: iq, iv(3)
   real(8) :: boxl(3, 4), voffk_copy(3)
-
-
 
   ! Map offset to first k-parallelepiped
   call r3frac(input%structure%epslat, voffk, iv)

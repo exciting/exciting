@@ -156,6 +156,10 @@ Contains
        ! set the default values if element not present
        input%groundstate%TSvdWparameters => getstructTSvdWparameters (emptynode)
     End If
+    If ( .Not. (associated(input%groundstate%MBDparameters))) Then
+       ! set the default values if element not present
+       input%groundstate%MBDparameters => getstructMBDparameters (emptynode)
+    End If
   End Subroutine set_default_vdW_parameters
   
 End Module vdw_general_routines

@@ -8,7 +8,6 @@ subroutine task_chi0_q
     use mod_coulomb_potential
     use mod_mpi_gw
     use modmpi, only: rank, mpiglobal
-    use m_getunit
     use mod_hdf5
     use mod_rpath
     use mod_bands, only: evalfv, numin, nstdf

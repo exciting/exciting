@@ -1,6 +1,6 @@
 !> Module with the generic vector field type
 module rttddft_VectorField
-  use asserts, only: assert
+#include "asserts.fpp"
   use precision, only: dp
 
   implicit none
@@ -31,7 +31,7 @@ contains
     !> resulting enum
     integer(kind(direction)) :: this
 
-    call assert( char=='x' .or. char=='y' .or. char=='z', 'Invalid direction')
+    CALL_ASSERT( char=='x' .or. char=='y' .or. char=='z', 'Invalid direction')
 
     select case( char )
       case('x')

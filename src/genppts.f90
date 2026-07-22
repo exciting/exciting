@@ -19,7 +19,7 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
     real(8), intent(in)  :: boxl(3,4)
     integer, intent(out) :: nppt
     integer, intent(out) :: ipmap(0:ngridp(1)-1,0:ngridp(2)-1,0:ngridp(3)-1)
-    integer, intent(out) :: ivp(3,ngridp(1)*ngridp(2)*ngridp(3))
+    integer, allocatable, intent(out) :: ivp(:,:)
     real(8), intent(out) :: vpl(3,ngridp(1)*ngridp(2)*ngridp(3))
     real(8), intent(out) :: vpc(3,ngridp(1)*ngridp(2)*ngridp(3))
     real(8), intent(out) :: wppt(ngridp(1)*ngridp(2)*ngridp(3))
@@ -84,7 +84,10 @@ subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, &
       end do
     end do
 
-    if (input%groundstate%stypenumber < 0) then
+    if (allocated(ivp)) deallocate(ivp)
+    allocate(ivp(3,ngridp(1)*ngridp(2)*ngridp(3)))
+
+    if (input%groundstate%stypenumber == -1) then
       !--------------------
       ! Tetrahedron method
       !--------------------

@@ -1,6 +1,6 @@
 !> Module for generating regular meshes.
 module regular_mesh
-    use asserts, only: assert
+#include "asserts.fpp"
     use math_utils, only: mod1
     use grid_utils, only: mesh_1d
     use multi_index_conversion, only: indices_to_composite_index, composite_index_to_indices
@@ -69,9 +69,9 @@ module regular_mesh
 
       type(regular_mesh_type) :: this
 
-      call assert(all(sampling > 0), 'sampling <= 0.')
-      call assert(all(multi_index_first > 0), 'multi_index_first <= 0.')
-      call assert(all(multi_index_first <= sampling), 'multi_index_first > sampling.')
+      CALL_ASSERT(all(sampling > 0), 'sampling <= 0.')
+      CALL_ASSERT(all(multi_index_first > 0), 'multi_index_first <= 0.')
+      CALL_ASSERT(all(multi_index_first <= sampling), 'multi_index_first > sampling.')
 
       this%sampling = sampling
       this%multi_index_first = multi_index_first
@@ -112,7 +112,7 @@ module regular_mesh
 
       integer :: number_of_points, i
 
-      call assert(size(multi_indices, 1) == 3, 'size(multi_indices, 1) /= 3.')
+      CALL_ASSERT(size(multi_indices, 1) == 3, 'size(multi_indices, 1) /= 3.')
 
       number_of_points = size(multi_indices, 2)
       composite_indices = [(this%composite_index(multi_indices(:, i)), i = 1, number_of_points)]

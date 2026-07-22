@@ -13,7 +13,6 @@ Subroutine x0toasc
       Use modxs
       Use m_getx0
       Use m_putx0
-      Use m_getunit
       Use m_genfilname
       Implicit None
   ! local variables
@@ -51,8 +50,7 @@ Subroutine x0toasc
         & tord=input%xs%tddft%torddf, markfxcbse=tfxcbse, iqmt=iq, &
         & filnam=filnam)
      ! open file to write ASCI
-         Call getunit (un)
-         Open (Unit=un, File=trim(filnama), Form='formatted', Action='w&
+         Open (newunit=un, File=trim(filnama), Form='formatted', Action='w&
         &rite', Status='replace')
          noct = 1
          If (tq0) noct = 3

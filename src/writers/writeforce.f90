@@ -97,6 +97,9 @@ subroutine writeforce(fnum,verbosity)
                    Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then
                       write(fnum,'(                  T18,": ",3F14.8,"   TS-vdW force")') &
                            &  force_disp(:,ias)
+                   Else If ( input%groundstate%vdWcorrection .Eq. "MBD" ) Then
+                      write(fnum,'(                  T18,": ",3F14.8,"   MBD force")') &
+                           &  force_disp(:,ias)
                    End If
                 End If
 

@@ -11,7 +11,6 @@ Contains
 !
 !
       Subroutine dftim (iq, ik, filnam, t1, t2, t3, t4, leta)
-         Use m_getunit
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq, ik
@@ -20,8 +19,7 @@ Contains
          Real (8), Intent (In) :: t1, t2, t3, t4
     ! local variables
          Integer :: un
-         Call getunit (un)
-         Open (un, File=trim(filnam), Action='write', Form='formatted', &
+         Open (newunit=un, File=trim(filnam), Action='write', Form='formatted', &
         & Position='append')
          Write (un,*)
          Write (un, '("Timings (CPU seconds) for q-point/k-point: ", 2i&

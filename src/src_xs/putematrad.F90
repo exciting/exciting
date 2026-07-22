@@ -5,7 +5,6 @@
 subroutine putematrad(iqr, iq)
   use modxs, only: riaa, riloa, rilolo, ematraddir
   use m_genfilname
-  use m_getunit
   use modinput
 
   implicit none
@@ -21,9 +20,8 @@ subroutine putematrad(iqr, iq)
   call genfilname(basename=trim(adjustl(ematraddir))//'/'//'EMATRAD',&
     & iq=iqr, appfilext=.true., filnam=fname)
   call ematrad(iq)
-  call getunit(un)
 
-  open(un, file=trim(fname), form='unformatted', action='write', status='replace')
+  open(newunit=un, file=trim(fname), form='unformatted', action='write', status='replace')
   write(un) riaa, riloa, rilolo
   close(un)
 end subroutine putematrad

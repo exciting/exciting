@@ -8,6 +8,7 @@
 subroutine findocclims(iq, ikiq2ikp, iocc_common, iunocc_common, io0, io, iu0, iu)
 ! !USES:
   use unit_conversion, only: hartree_to_ev
+  use mod_getoccsv, only: getoccsv
   use mod_kpoint, only: nkpt, vkl
   use mod_eigenvalue_occupancy, only: nstsv, occsv, evalsv, occmax,&
                                     & efermi

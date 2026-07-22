@@ -27,8 +27,8 @@ use sirius_api, only: set_exchange_correlation_sirius, set_xc_magnetic_sirius
 implicit none
 ! local variables
 integer is,ia,ias
-integer n,nr,ir,idm,i,j
-real(8) bext(3),t1,t2,t3,t4,ta,tb
+integer n,nr,ir,idm,i
+real(8) bext(3),t1,t2,t3,t4
 ! allocatable arrays
 real(8), allocatable :: rho(:),rhoup(:),rhodn(:)
 real(8), allocatable :: gvrho(:),gvup(:),gvdn(:)

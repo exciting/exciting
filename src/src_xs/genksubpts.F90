@@ -13,7 +13,7 @@ Subroutine genksubpts ()
      Use modmain
      Use modxs
      Use modinput
-     Use m_getunit
+     Use m_genppts_interface, only: genppts
      Use m_genfilname
      Use modmpi
 ! !DESCRIPTION:
@@ -56,8 +56,7 @@ Subroutine genksubpts ()
      boxl (3, 4) = boxl (3, 4) + 1.d0
      Call genppts (.True., .False., input%xs%BSE%ngridksub, boxl,  &
   &        nksubpt, iksubmap, ivksub, vksubl, vksubc, wksubpt)
-     Call getunit (un)
-     Open (un, File='KSUBPOINTS'//trim(filext), Action='WRITE', Form='FORMATTED')
+     Open (newunit=un, File='KSUBPOINTS'//trim(filext), Action='WRITE', Form='FORMATTED')
      Write (un, '(I6, " : nksubpt; sub k-point, vksubl, wksubpt below")') nkpt
      Do iksubpt = 1, nksubpt
         Write (un, '(I6, 4G18.10, 2I8)') iksubpt, vksubl (:, iksubpt), wksubpt (iksubpt)
@@ -65,8 +64,7 @@ Subroutine genksubpts ()
      Close (un)
 
      Call genfilname (nodotpar=.True., basename='INFOXS', procs=procs, rank=rank, filnam=xsfileout)
-     Call getunit (unitout)
-     open (unit=unitout, file=xsfileout, status="unknown", action="write")
+     open (newunit=unitout, file=xsfileout, status="unknown", action="write")
      write (string,'("BSE double grid computation: subgrid generated")')
      call printline (unitout,"=")
      call printtext(unitout,"=",string)

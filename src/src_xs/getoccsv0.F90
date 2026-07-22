@@ -12,6 +12,7 @@ subroutine getoccsv0(vpl, occsvp)
   use mod_kpoint, only: nkptnr, vkl
   use mod_misc, only: task, filext
   use modxs, only: vkl0, filext0, usefilext0
+  use mod_getoccsv, only: getoccsv
 ! !INPUT/OUTPUT PARAMETERS:
 ! IN:
 ! real(8) :: vpl(3) ! k-point vector in lattice coordinates

@@ -1,8 +1,8 @@
 
-subroutine calcmwm(nstart, nend, mstart, mend, minm)
+subroutine calcmwm(ikp, jk, nstart, nend, mstart, mend, minm, offdiagonal)
     use constants, only: zone, zzero, pi
     use modgw,   only: vi, kqset, Gamma, singc1, singc2, mbsiz, &
-                       epsilon, epsh, epsw1, epsw2, mwm
+                       epsilon, epsh, epsw1, epsw2, mwm, freq, freq_selfc
     use precision, only: dp, i32
     use mod_pointer_remapping, only: remap_fortran_pointer 
     use mod_device_offload,    only: device_world
@@ -10,14 +10,23 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
     use m_memory_device,       only: allocate_device_memory, deallocate_device_memory, &
                                    bytes_double_complex, bytes_int, get_device_pointer
     use iso_c_binding, only: c_ptr, c_size_t, c_f_pointer
+    use mod_atoms, only: idxas
+    use mod_core_states, only: corind
+    use mod_bands, only: evalfv, nstse
+    use mod_corestate, only: evalcr
+    use mod_eigenvalue_occupancy, only: efermi
+    use mod_offdiagonal_selfenergy, only: add_q_omega_contrib_to_offdiagonal_selfenergy_correl_at_ik
+
 #include "offload.fpp"
 
     implicit none
 
-    ! input variables
+    integer(i32),  intent(in) :: ikp
+    integer(i32), intent(in)  :: jk
     integer(i32), intent(in) :: nstart, nend
     integer(i32), intent(in) :: mstart, mend
-    complex(dp), intent(in) :: minm(mbsiz, nstart:nend, mstart:mend)
+    complex(dp), intent(in)  :: minm(mbsiz, nstart:nend, mstart:mend)
+    logical, intent(in)      :: offdiagonal
 
     ! local variables
     integer(i32) :: iom
@@ -80,6 +89,16 @@ subroutine calcmwm(nstart, nend, mstart, mend, minm)
 #if !defined(FLANG_OPENMP_SLICE_MAP_BUG_WORKAROUND)
       OMP_OFFLOAD target update from(mwm(nstart:nend,mstart:mend,iom))
 #endif
+
+      ! Compute the contribution of the MWM product to the offdiagonal
+      ! correlation self-energy.
+      if (offdiagonal) then
+        call add_q_omega_contrib_to_offdiagonal_selfenergy_correl_at_ik( & 
+               nstart, nend, mstart, mend, nstse, evalfv, &
+               evalcr, corind, idxas, efermi, &
+               minm, wm, wkq, freq, freq_selfc, &
+               nomeg, iom, ikp, jk)
+      end if
 
     end do ! iom
  

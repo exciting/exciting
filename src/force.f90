@@ -15,6 +15,7 @@ Subroutine force(compute_ibs)
       Use modinput
       Use modmain
       Use modmpi
+      use mbd_force_module, only: MBD_force
       use sirius_init, only: sirius_options
       use sirius_api, only: get_forces_sirius
 
@@ -245,6 +246,8 @@ Subroutine force(compute_ibs)
             Call DFT_D2_force
          Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then
             Call TS_vdW_force
+         Else if ( input%groundstate%vdWcorrection .Eq. "MBD" ) then
+            call MBD_force
          End If
          Do ias = 1, natmtot
             forcetot (:, ias) = forcetot (:, ias) + force_disp (:, ias)

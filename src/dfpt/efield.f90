@@ -1,4 +1,4 @@
-!> This is the main moudle for calculating the response to an
+!> This is the main module for calculating the response to an
 !> external electric field using density-functional perturbation theory (DFPT).
 module efield
   use dfpt_variables
@@ -7,7 +7,7 @@ module efield
 
   use modmpi
   use exciting_mpi, only: xmpi_allgatherv
-  use precision, only: dp
+  use precision, only: dp, long_int
   use block_data_file, only: block_data_file_type
 
   implicit none
@@ -26,8 +26,12 @@ module efield
   real(dp), allocatable :: devalk(:,:,:), docck(:,:,:)
   !> eigenvector response at single \({\bf k}\) point
   complex(dp), allocatable :: deveck(:,:)
+  !> constant part of overlap matrix response at all \({\bf k}\) points and polarization directions
+  complex(dp), allocatable :: dSmat_const(:,:,:,:)
   !> constant part of Hamiltonian matrix response at all \({\bf k}\) points and polarization directions
   complex(dp), allocatable :: dHmat_const(:,:,:,:)
+  !> full overlap matrix response at single \({\bf k}\) point and polarization direction
+  complex(dp), allocatable :: dSmat(:,:)
   !> full Hamiltonian matrix response at single \({\bf k}\) point and polarization direction
   complex(dp), allocatable :: dHmat(:,:)
   !> density response matrix for all atoms and polarization directions
@@ -36,8 +40,12 @@ module efield
   complex(dp), allocatable :: drho_mt(:,:,:,:), drho_ir(:,:)
   !> muffin-tin and interstitial effective potential response for all polarization directions
   complex(dp), allocatable :: dpot_mt(:,:,:,:), dpot_ir(:,:)
+  !> radial integrals of overlap response times Gaunt coefficients
+  complex(dp), allocatable :: dSmat_mt_basis(:,:,:,:)
   !> radial integrals of effective potential response times Gaunt coefficients
   complex(dp), allocatable :: dHmat_mt_basis(:,:,:,:)
+  !> interstitial overlap response times characteristic function in reciprocal space
+  complex(dp), allocatable :: dolp_cfun_ig(:,:)
   !> interstitial potential response times characteristic function in reciprocal space
   complex(dp), allocatable :: dpot_cfun_ig(:,:)
   !> interstitial (scalar relativistic) kinetic energy response times characteristic function in reciprocal space
@@ -65,7 +73,7 @@ module efield
     subroutine ef_prepare( &
         info_output )
       use dfpt_eigensystem, only: dfpt_eig_ks
-      use efield_eigensystem, only: ef_eig_init, ef_eig_gen_dHmat
+      use efield_eigensystem, only: ef_eig_init, ef_eig_gen_dSHmat
 
       use constants, only: zzero, zone
       use mod_APW_LO, only: nlotot, apwordmax
@@ -106,9 +114,13 @@ module efield
       allocate( occk(nmatmax, dfpt_kset%nkpt), docck(nstfv, dfpt_kset%nkpt, 3) )
       allocate( eveck(nmatmax, nmatmax), deveck(nmatmax, nstfv) )
       allocate( apwalmk(ngkmax, apwordmax, lmmaxapw, natmtot) )
+      allocate( dSmat_const(nmatmax, nstfv, ik1:ik2, 3) )
       allocate( dHmat_const(nmatmax, nstfv, ik1:ik2, 3) )
+      allocate( dSmat(nmatmax, nstfv) )
       allocate( dHmat(nmatmax, nstfv) )
+      allocate( dSmat_mt_basis(mt_basis%n_basis_fun_max, mt_basis%n_basis_fun_max, natmtot, 3) )
       allocate( dHmat_mt_basis(mt_basis%n_basis_fun_max, mt_basis%n_basis_fun_max, natmtot, 3) )
+      allocate( dolp_cfun_ig(dfpt_Gset%ngvec, 3) )
       allocate( dpot_cfun_ig(dfpt_Gset%ngvec, 3) )
       allocate( dkin_cfun_ig(dfpt_Gset%ngvec, 3) )
       allocate( drho_mat(mt_basis%n_basis_fun_max, mt_basis%n_basis_fun_max, natmtot, 3) )
@@ -142,7 +154,7 @@ module efield
         ! read eigenvectors
         call feveck0%read( ik, eveck )
         do ip = 1, 3
-          call ef_eig_gen_dHmat( ik, dfpt_Gkset, 1, nstfv, evalk(:, ik), eveck, apwalmk, dHmat_const(:, :, ik, ip), &
+          call ef_eig_gen_dSHmat( ik, dfpt_Gkset, 1, nstfv, evalk(:, ik), eveck, apwalmk, dSmat_const(:, :, ik, ip), dHmat_const(:, :, ik, ip), &
             ip=ip )
         end do
       end do
@@ -217,14 +229,18 @@ module efield
       if( allocated( devalk ) ) deallocate( devalk )
       if( allocated( docck ) ) deallocate( docck )
       if( allocated( deveck ) ) deallocate( deveck )
+      if( allocated( dSmat_const ) ) deallocate( dSmat_const )
       if( allocated( dHmat_const ) ) deallocate( dHmat_const )
       if( allocated( dHmat ) ) deallocate( dHmat )
+      if( allocated( dSmat ) ) deallocate( dSmat )
       if( allocated( drho_mt ) ) deallocate( drho_mt )
       if( allocated( drho_ir ) ) deallocate( drho_ir )
       if( allocated( drho_mat ) ) deallocate( drho_mat )
       if( allocated( dpot_mt ) ) deallocate( dpot_mt )
       if( allocated( dpot_ir ) ) deallocate( dpot_ir )
+      if( allocated( dSmat_mt_basis ) ) deallocate( dSmat_mt_basis )
       if( allocated( dHmat_mt_basis ) ) deallocate( dHmat_mt_basis )
+      if( allocated( dolp_cfun_ig ) ) deallocate( dolp_cfun_ig )
       if( allocated( dpot_cfun_ig ) ) deallocate( dpot_cfun_ig )
       if( allocated( dkin_cfun_ig ) ) deallocate( dkin_cfun_ig )
       if( allocated( dpol ) ) deallocate( dpol )
@@ -233,7 +249,7 @@ module efield
       if( master .and. write_info ) call dfpt_io_info_finit
     end subroutine ef_finalize
 
-    !> This subroutine runs the self-consistency cycle for obataining 
+    !> This subroutine runs the self-consistency cycle for obtaining 
     !> the density and potential response for a DFPT electric field calculation.
     !>
     !> Each SCF iteration consists of:
@@ -248,9 +264,9 @@ module efield
     subroutine ef_scf( &
         info_output )
       use dfpt_density_potential, only: dfpt_rhopot_mixpack, dfpt_rhopot_drho_k, dfpt_rhopot_gen_drho_mt
-      use dfpt_eigensystem, only: dfpt_eig_prepare_dHmat
+      use dfpt_eigensystem, only: dfpt_eig_prepare_dSHmat
       use efield_density_potential, only: ef_rhopot_gen_dpot, ef_rhopot_symmetrize
-      use efield_eigensystem, only: ef_eig_gen_dHmat, ef_eig_sternheimer
+      use efield_eigensystem, only: ef_eig_gen_dSHmat, ef_eig_sternheimer
 
       use constants, only: zzero
       use mod_potential_and_density, only: pot_mt => veffmt, pot_ir => veffir
@@ -286,7 +302,7 @@ module efield
         allocate( rvmix(nmix) )
         allocate( vconv(input%groundstate%niterconvcheck) )
         call dfpt_rhopot_mixpack( drho_mt, drho_ir, dpot_mt, dpot_ir, .true., 3, nmix, rvmix )
-        call mixerifc( input%groundstate%mixernumber, nmix, rvmix, conv, mixermode )
+        call mixerifc( input%groundstate%mixernumber, int(nmix, kind=long_int), rvmix, conv, mixermode )
         conv = 1.0_dp
       end if
       ! initialize scf cycle info output
@@ -328,14 +344,19 @@ module efield
             ! read eigenvectors
             call feveck0%read( ik, eveck )
             do ip = 1, 3
-              ! generate k-independent part of Hamiltonian response
-              if( ik == ik1 ) &
-                call dfpt_eig_prepare_dHmat( pot_mt, pot_ir, dpot_mt(:, :, :, ip), dpot_ir(:, ip), dHmat_mt_basis(:, :, :, ip), dpot_cfun_ig(:, ip), dkin_cfun_ig(:, ip) )
-              ! generate full Hamiltonian response
+              ! generate k-independent part of overlap and Hamiltonian response
+              if (ik == ik1) then
+                call dfpt_eig_prepare_dSHmat( pot_mt, pot_ir, dpot_mt(:, :, :, ip), dpot_ir(:, ip), &
+                  dSmat_mt_basis(:, :, :, ip), dHmat_mt_basis(:, :, :, ip), &
+                  dolp_cfun_ig(:, ip), dpot_cfun_ig(:, ip), dkin_cfun_ig(:, ip) )
+              end if
+              ! generate full overlap and Hamiltonian response
+              dSmat = dSmat_const(:, :, ik, ip)
               dHmat = dHmat_const(:, :, ik, ip)
-              call ef_eig_gen_dHmat( ik, dfpt_Gkset, 1, nstfv, &
-                evalk(:, ik), eveck, apwalmk, dHmat, &
-                dHmat_mt_basis=dHmat_mt_basis(:, :, :, ip), dpot_cfun_ig=dpot_cfun_ig(:, ip), dkin_cfun_ig=dkin_cfun_ig(:, ip) )
+              call ef_eig_gen_dSHmat( ik, dfpt_Gkset, 1, nstfv, &
+                evalk(:, ik), eveck, apwalmk, dSmat, dHmat, &
+                dSmat_mt_basis=dSmat_mt_basis(:, :, :, ip), dHmat_mt_basis=dHmat_mt_basis(:, :, :, ip), &
+                dolp_cfun_ig=dolp_cfun_ig(:, ip), dpot_cfun_ig=dpot_cfun_ig(:, ip), dkin_cfun_ig=dkin_cfun_ig(:, ip) )
               ! solve Sternheimer equation
               call ef_eig_sternheimer( ik, dfpt_Gkset, 1, nstfv, &
                 evalk(:, ik), occk(:, ik), eveck, dHmat, &
@@ -375,7 +396,7 @@ module efield
             end do
             ! symmetrize potential response
             call ef_rhopot_symmetrize( dpot_mt, dpot_ir, nsymcrys, [(i, i=1, nsymcrys)] )
-            ! uppdate occupation response
+            ! update occupation response
             ! and write eigenvalue and occupation response to file
             do ip = 1, 3
               call find_dfermi( dfpt_kset%nkpt, dfpt_kset%wkpt, nstfv, evalk(1:nstfv, :), devalk(:, :, ip), 0.0_dp, occmax, efermi, &
@@ -414,7 +435,7 @@ module efield
         ! mixing
         if( master ) then
           call dfpt_rhopot_mixpack( drho_mt, drho_ir, dpot_mt, dpot_ir, .true., 3, nmix, rvmix )
-          call mixerifc( input%groundstate%mixernumber, nmix, rvmix, conv, mixermode )
+          call mixerifc( input%groundstate%mixernumber, int(nmix, kind=long_int), rvmix, conv, mixermode )
           do i = 1, input%groundstate%niterconvcheck - 1
             vconv(i) = vconv(i+1)
           end do
@@ -447,7 +468,7 @@ module efield
       ! deallocate mixer
       if( master ) then
         mixermode = -2
-        call mixerifc( input%groundstate%mixernumber, nmix, rvmix, conv, mixermode )
+        call mixerifc( input%groundstate%mixernumber, int(nmix, kind=long_int), rvmix, conv, mixermode )
         deallocate( rvmix, vconv )
       end if
 
@@ -475,7 +496,7 @@ module efield
       integer :: ik, ikb, ik1, ik2, ip1, ip2, i
       integer :: iknr, ikbnr, isym, nst, ivkb(3)
       real(dp) :: binv(3, 3), tmp(3, 2), t1
-      logical :: success, to_file
+      logical :: success
 
       complex(dp), allocatable :: devecknr(:,:,:), eveckbnr(:,:), deveckbnr(:,:,:)
 
@@ -567,9 +588,8 @@ module efield
       call ef_pol_symmetrize( dpol, nsymcrys, [(i, i=1, nsymcrys)] )
       ! write to file
       if( master ) then
-        to_file = .true.
-        call ph_io_write_dielten( dble( dpol ), 'EPSINF.OUT', success )
-        if( to_file ) then
+        call ph_io_write_dielten( dpol%re, 'EPSINF.OUT', success )
+        if (success) then
           call dfpt_io_info_string( 'Dielectric tensor written to file.' )
           write( *, * )
           write( *, '("Info (ef_polarization):")' )

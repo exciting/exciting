@@ -4,7 +4,7 @@ module mGGA_eigensystem
     use kinetic_energy_density_vars
     use matrix_elements
     use modmpi, only: terminate_if_false
-    use asserts, only: assert
+#include "asserts.fpp"
     use mod_Gkvector
     use mod_atoms, only: natmtot, nspecies, natoms, idxas
     use mod_muffin_tin, only: lmmaxapw, nrmt, nrmtmax
@@ -214,8 +214,8 @@ module mGGA_eigensystem
 
             ! allocate local variables
             allocate( apwalm_k(ngkmax_ptr, apwordmax, ked_lmmaxapw, natmtot), source=zzero )
-            call assert(size(mGGA_H,1) == nmatk .and. size(mGGA_H,2) == nmatk, message='Incorrect matrix size for `mGGA_H`.')
-            call assert(size(mGGA_S,1) == nmatk .and. size(mGGA_S,2) == nmatk, message='Incorrect matrix size for `mGGA_S`.')
+            CALL_ASSERT(size(mGGA_H,1) == nmatk .and. size(mGGA_H,2) == nmatk, message='Incorrect matrix size for `mGGA_H`.')
+            CALL_ASSERT(size(mGGA_S,1) == nmatk .and. size(mGGA_S,2) == nmatk, message='Incorrect matrix size for `mGGA_S`.')
             mGGA_H = zzero
             mGGA_S = zzero
 

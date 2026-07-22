@@ -69,7 +69,7 @@ contains
       character(len=*), intent(in) :: message
 
 
-      this%messages = [this%messages, trim(adjustl(message))]
+      this%messages = [character(len=message_size) :: this%messages, trim(adjustl(message))]
 
       if (.not. condition) then
          this%failures = [this%failures, this%i]

@@ -24,7 +24,7 @@ module mod_secular_equation_inversion_symmetry
   use matrix_rank, only: matrix_rank_SVD
   use general_matrix_multiplication, only: matrix_multiply
   use qr_factorization, only: qr_column_pivot
-  use asserts, only: assert
+#include "asserts.fpp"
   use modfvsystem, only: evsystem
   use generalized_hermitian_eigenproblem, only: solve_generalized_hermitian_eigenproblem
   use modfvsystem, only: deletesystem
@@ -48,7 +48,7 @@ contains
     integer(i32), intent(in) :: ik
     complex(dp), allocatable :: coeff_matrix(:,:)
 
-    call assert(allocated(lo_transformation_matrix_inv_sym), 'lo_transformation_matrix_inv_sym not allocated')
+    CALL_ASSERT(allocated(lo_transformation_matrix_inv_sym), 'lo_transformation_matrix_inv_sym not allocated')
     coeff_matrix = lo_transformation_matrix_inv_sym(:,:,ispn,ik)
   end function get_lo_transformation_matrix_inv_sym
 

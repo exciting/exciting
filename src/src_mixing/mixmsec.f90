@@ -23,24 +23,25 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
      & initmixermsec, freearraysmixermsec, noldstepsmax, &
      & noldstepsin_file, noldsteps, qmx, dmix, dmixout, TCharge, &
      & SCharge, splane, tplane, qmx_input, qtot
+      Use precision, Only: i32, long_int, dp
 !EOP
 !BOC
       Implicit None
-      Integer, Intent (In) :: iscl, n
-      Real (8), Intent (Inout) :: potential (n)! input/output potential
-      Real (8), Intent (Out) :: residualnorm ! residual norm
-	!local variables
-      Real (8), Allocatable :: S (:, :), Y (:, :), YY (:, :), &
+      Integer(i32), Intent (In) :: iscl
+      Integer(long_int), Intent(In) :: n
+      Real (dp), Intent (Inout) :: potential (n)! input/output potential
+      Real (dp), Intent (Out) :: residualnorm ! residual norm
+!local variables
+      Real (dp), Allocatable :: S (:, :), Y (:, :), YY (:, :), &
      & broydenstep (:)
-      Real (8), Parameter :: DELTA = 1e-3
+      Real (dp), Parameter :: DELTA = 1e-3_dp
       Integer :: ifail
-      Real (8) :: sreduction, dmixm
-      Real (8), External :: dnrm2
+      Real (dp) :: sreduction, dmixm
       integer :: iscl_temp
 !
 !
       noldsteps = noldstepsin_file
-      sreduction = 1.2
+      sreduction = 1.2_dp
 
       if ( associated(input%groundstate%mgga) ) then 
             iscl_temp = iscl - 1
@@ -81,24 +82,23 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
          Call rescaleYS (noldsteps, n, S, Y, potential, residual)
          Call setup_YY (iscl, n, S, Y, YY)
 !
-         dmixm = 0.1
+         dmixm = 0.1_dp
 !
 !
 !
 !
+!          Y,S:            Conventional Y and S arrays
+!          YY:             Matrix of Y*Y values
+!          residual:       -Grad(MAXMIX) at the current point (residue)
+!		   n:              Length of the variable vector
+!          noldsteps :     Total number of memory values to use
+!                          Most recent is last
+!          DMIXM:           Scaler for initial matrix
+!
+!          Output
+!          broydenstep            Multi-Secant Step
          Call MSEC1 (Y, S, YY, residual, broydenstep, n, noldstepsmax, &
         & dmixm, ifail, DELTA, noldsteps)
-		!          Y,S:            Conventional Y and S arrays
-		!          YY:             Matrix of Y*Y values
-		!          residual:       -Grad(MAXMIX) at the current point (residue)
-		!		   n:              Length of the variable vector
-		!          noldsteps :     Total number of memory values to use
-		!                          Most recent is last
-		!          DMIXM:           Scaler for initial matrix
-		!
-		!          Output
-		!          broydenstep            Multi-Secant Step
-		!call MSEC2(Y,S,YY,residual,broydenstep,n,noldstepsmax,DMIXM,IFAIL,DELTA)
 !
          If (ifail .Ne. 0) Then
             Write (*,*) ':WARNING: Inversion of Multi-Secant Matrix Fa&
@@ -114,11 +114,11 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
 !
          Deallocate (S, Y, YY, broydenstep)
 4141     Format ('REDuction and DMIX in Broyd:', 3 f10.4, E14.5)
-         residualnorm = dnrm2 (n, residual, 1)
+         residualnorm = norm2(residual)
  !after /sqrt(n) its not the residual norm anny more
  !nore is it residual mean square but thats how it is in mixadapt
  !
-         residualnorm = residualnorm / Sqrt (dble(n))
+         residualnorm = residualnorm / sqrt(real(n,kind=dp))
       End If
 !
       qtot = residualnorm

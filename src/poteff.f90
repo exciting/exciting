@@ -28,6 +28,7 @@ subroutine poteff( calc_xc )
 
   shift = input%groundstate%energyref
   dfthalf_on = associated( input%groundstate%dfthalf )
+  if( dfthalf_on ) dfthalf_on = .not. input%groundstate%dfthalf%NSCF
 
   veffmt = 0._dp
   veffir = 0._dp

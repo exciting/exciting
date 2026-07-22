@@ -2,7 +2,7 @@
 !> quantities such as Clebsch-Gordan or Gaunt coefficients.
 module wigner3j_symbol
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: sqrt_two, fourpi
 
   implicit none
@@ -39,15 +39,15 @@ module wigner3j_symbol
 
       real(dp), external :: factnm, factr
 
-      call assert( j1 >= 0, 'wigner3j: j1 is negative.')
-      call assert( j2 >= 0, 'wigner3j: j2 is negative.')
-      call assert( j3 >= 0, 'wigner3j: j3 is negative.')
-      call assert( j1 <= 50, 'wigner3j: j1 is too large (>50).')
-      call assert( j2 <= 50, 'wigner3j: j2 is too large (>50).')
-      call assert( j3 <= 50, 'wigner3j: j3 is too large (>50).')
-      call assert( abs(m1) <= j1, 'wigner3j: m1 out of range -j1 <= m1 <= j1.')
-      call assert( abs(m2) <= j2, 'wigner3j: m2 out of range -j2 <= m2 <= j2.')
-      call assert( abs(m3) <= j3, 'wigner3j: m3 out of range -j3 <= m3 <= j3.')
+      CALL_ASSERT( j1 >= 0, 'wigner3j: j1 is negative.')
+      CALL_ASSERT( j2 >= 0, 'wigner3j: j2 is negative.')
+      CALL_ASSERT( j3 >= 0, 'wigner3j: j3 is negative.')
+      CALL_ASSERT( j1 <= 50, 'wigner3j: j1 is too large (>50).')
+      CALL_ASSERT( j2 <= 50, 'wigner3j: j2 is too large (>50).')
+      CALL_ASSERT( j3 <= 50, 'wigner3j: j3 is too large (>50).')
+      CALL_ASSERT( abs(m1) <= j1, 'wigner3j: m1 out of range -j1 <= m1 <= j1.')
+      CALL_ASSERT( abs(m2) <= j2, 'wigner3j: m2 out of range -j2 <= m2 <= j2.')
+      CALL_ASSERT( abs(m3) <= j3, 'wigner3j: m3 out of range -j3 <= m3 <= j3.')
 
       if( (j1 == 0) .and. (j2 == 0) .and. (j3 == 0)) then
         wigner3j = 1._dp

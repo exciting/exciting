@@ -7,17 +7,17 @@
 !
 Module m_writesigma
       use modmpi
+      use modinput, only: input
+      use m_write_bse_header, only: generate_bse_header
       Implicit None
 Contains
 !
 !
-      Subroutine writesigma (iq, w, sigma, fn)
+      Subroutine writesigma (iq, w, sigma, fn, iop1, iop2)
          Use modxs
-         Use m_getunit
-         Use m_writevars
          Implicit None
     ! arguments
-         Integer, Intent (In) :: iq
+         Integer, Intent (In) :: iq, iop1, iop2
          Real (8), Intent (In) :: w (:)
          Complex (8), Intent (In) :: sigma (:)
          Character (*), Intent (In) :: fn
@@ -26,13 +26,14 @@ Contains
          Integer :: n1 (1), n, iw
          If (any(shape(w) .Ne. shape(sigma))) Then
             Write (unitout, '(a)') 'Error(' // thisnam // '): input arr&
-           &ays have diffenrent shape'
+           &ays have different shapes'
             Call terminate
          End If
          n1 = shape (w)
          n = n1 (1)
-         Call getunit (unit1)
-         Open (unit1, File=trim(fn), Action='write')
+         Open (newunit=unit1, File=trim(fn), Action='write')
+         write(unit1, '("# Sigma")')
+         write(unit1, '(a)') generate_bse_header(input, iq, iop1, iop2)
     ! write data to file
          write(unit1, '("#",a22,1x,a23,1x,a23)')&
            & "Frequency/(eV/hbar)", "Re(S(w))", "Im(S(w))"

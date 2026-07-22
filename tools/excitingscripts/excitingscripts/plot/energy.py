@@ -1,3 +1,14 @@
+"""Visualize energy-vs-strain curves.
+
+Located at `excitingscripts/plot/energy.py`. 
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.energy
+```
+"""
+
 import json
 import os
 import sys

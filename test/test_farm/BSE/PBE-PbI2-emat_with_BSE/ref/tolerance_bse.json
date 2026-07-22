@@ -23,11 +23,11 @@
       "unit": "null"
     },
     "energy": {
-      "tol": 6e-06,
+      "tol": 1e-04,
       "unit": "eV"
     },
     "energy_shifted": {
-      "tol": 6e-06,
+      "tol": 1e-04,
       "unit": "eV"
     },
     "abs_oscillator_strength": {

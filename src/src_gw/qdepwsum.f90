@@ -58,7 +58,7 @@ subroutine qdepwsum(iq, ik, iomstart, iomend, ndim)
         icg = n - nomax
         is  = corind(icg,1)
         ia  = corind(icg,2)
-        ic  = corind(icg,3)
+        ic  = corind(icg,6)
         ias = idxas(ia,is)
         ene = evalcr(ic,ias)
         occ = 1.0_dp

@@ -1,6 +1,6 @@
 !> Module designed for the task QPEigenvalues
 module task_QPEigenvalues
-  use asserts, only: assert
+
   use constants, only: zzero
   use exciting_mpi, only: mpiinfo
   use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
@@ -42,6 +42,8 @@ module task_QPEigenvalues
   end type
 
   public :: execute_task_QPEigenvalues
+  public :: index_CBm
+  public :: index_VBM
 
 contains
 !> Convert a string to the enum [[method_to_obtain_Fermi_level]]
@@ -61,6 +63,7 @@ end function
 
 !> Interface to the parameters defined in the input file
 subroutine parse_input( this, gw_inp, n_kpt )
+  !> QP eigenvalue task parameters to update.
   class(task_QPEigenvalues_parameters), intent(inout) :: this
   !> type with the variables given in the input file
   type(gw_type), intent(in):: gw_inp
@@ -76,6 +79,7 @@ end subroutine
 
 !> Perform sanity checks on the input parameters in the `gw` element
 subroutine task_QPEigenvalues_sanity_checks( this, gw_inp )
+  !> QP eigenvalue task parameters to check.
   class(task_QPEigenvalues_parameters), intent(in) :: this
   !> type with the variables given in the input file
   type(gw_type), intent(in) :: gw_inp
@@ -85,8 +89,15 @@ subroutine task_QPEigenvalues_sanity_checks( this, gw_inp )
 
 end subroutine
 
-!> Execute a task QPEigenvalues calculation
+!> Execute a task QPEigenvalues calculation.
+!>
+!> In explicit evGW0 split workflows, this task may run on only a subset of the
+!> irreducible k-points. Such jobs still write the local `EVALQP.OUT`, but they
+!> must not write `EVALQP_EVGW0xx.OUT` unless they cover the full irreducible
+!> k-point set and are therefore allowed to advance the outer evGW0 workflow.
 subroutine execute_task_QPEigenvalues( first_band, last_band, k_points_irreducible, file_format )
+  use self_consistent_eigenvalue_gw0, only: is_evgw0, use_evgw0_input_qp, pack_evalqp_evgw0_for_kpoints, &
+    finalize_evgw0_iteration, get_current_evgw0_output_evalqp_filename, should_write_evgw0_output_checkpoint
   !> Index of the first KS band for which vxc is evaluated
   integer(i32), intent(in) :: first_band
   !> Index of the last KS band for which vxc is evaluated
@@ -101,6 +112,7 @@ subroutine execute_task_QPEigenvalues( first_band, last_band, k_points_irreducib
   type(task_QPEigenvalues_parameters) :: input_parameters
   type(k_set) :: k_points_used
   logical :: myrank_writes_to_outputs
+  character(len=50) :: evalqp_filename
 
   myrank_writes_to_outputs = ( mpiglobal%is_root )
   call input_parameters%parse_input( input%gw, k_points_irreducible%nkpt )
@@ -144,7 +156,10 @@ subroutine execute_task_QPEigenvalues( first_band, last_band, k_points_irreducib
     deallocate( evalfv )
     allocate( evalfv, source=evalks )
 
+    if ( use_evgw0_input_qp() ) call pack_evalqp_evgw0_for_kpoints( list_kpt(i_start:i_end) )
+
     call solve_QP_equation()
+    if ( is_evgw0() ) call finalize_evgw0_iteration( evalqp )
     if( myrank_writes_to_outputs ) then 
       call write_qp_energies_text_format( list_kpt, k_points_used%vkl, k_points_used%wkpt, &
         first_band, evalks, evalqp, real( vxcnn%diag_elements, dp ), selfex, sigc, znorm )
@@ -157,28 +172,52 @@ subroutine execute_task_QPEigenvalues( first_band, last_band, k_points_irreducib
         i_CBm = index_CBm( evalks, efermi ) + first_band - 1
         E_Fermi_GW = 0.5_dp * ( maxval( evalqp(i_VBM, :) ) + minval( evalqp(i_CBm, :) ) )
       end if
+      if ( is_evgw0() ) then
+        ! Only full-coverage QPEigenvalues jobs may publish the next evGW0 checkpoint.
+        if (should_write_evgw0_output_checkpoint()) then
+          evalqp_filename = get_current_evgw0_output_evalqp_filename()
+          call putevalqp( trim(evalqp_filename), &
+            k_points_used, first_band, last_band, evalks, efermi, evalqp, E_Fermi_GW )
+        end if
+        call putevalqp( file_name_qp_energies//extension_binary_format, &
+          k_points_used, first_band, last_band, evalks, efermi, evalqp, E_Fermi_GW )
+      else
+        evalqp_filename = file_name_qp_energies//extension_binary_format
+        call putevalqp( trim(evalqp_filename), &
+          k_points_used, first_band, last_band, evalks, efermi, evalqp, E_Fermi_GW )
+      end if
       call bandstructure_analysis( 'G0W0 band structure, assuming Efermi = ' // to_char(E_Fermi_GW), &
         first_band, evalqp, E_Fermi_GW, .false., list_kpt(i_start:i_end), k_points_used%vkl )
-      call putevalqp( file_name_qp_energies//extension_binary_format, &
-        k_points_used, first_band, last_band, evalks, efermi, evalqp, E_Fermi_GW )
     end if
 
   end associate
 
 end subroutine
 
+!> Return the valence-band maximum index below the Fermi energy.
 pure integer(i32) function index_VBM( eigs, E_Fermi )
+  !> Eigenvalues to scan.
   real(dp), intent(in) :: eigs(:, :)
+  !> Fermi energy.
   real(dp), intent(in) :: E_Fermi
 
-  index_VBM = maxval( maxloc( eigs, dim = 1, mask = eigs < E_Fermi ) )
+  integer(i32) :: location(2)
+
+  location = maxloc(eigs, mask=eigs < E_Fermi)
+  index_VBM = location(1)
 end function
 
-pure integer(i32) function index_CBm( eigs, E_Fermi ) 
+!> Return the conduction-band minimum index above the Fermi energy.
+pure integer(i32) function index_CBm( eigs, E_Fermi )
+  !> Eigenvalues to scan.
   real(dp), intent(in) :: eigs(:, :)
+  !> Fermi energy.
   real(dp), intent(in) :: E_Fermi
 
-  index_CBm = minval( minloc( eigs, dim=1, mask = eigs > E_Fermi ) )
+  integer(i32) :: location(2)
+
+  location = minloc(eigs, mask=eigs > E_Fermi)
+  index_CBm = location(1)
 end function
 
 end module

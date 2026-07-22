@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file was automatically generated.
+ Linearization energies with searchE=true have been replaced by energies
+ found using findlinentype='Wigner_Seitz' method.
+ If a principal quantum number was given, linearization energies have been
+ set to energies found using the Wigner-Seitz algorithm in the first scf iteration.-->
+<spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <sp chemicalSymbol="Al" name="aluminium" z="-13.0000" mass="49184.33493">
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="28.7360" radialmeshPoints="300"/>
+    <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
+    <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
+    <atomicState n="2" l="1" kappa="1" occ="2.00000" core="false"/>
+    <atomicState n="2" l="1" kappa="2" occ="4.00000" core="false"/>
+    <atomicState n="3" l="0" kappa="1" occ="2.00000" core="false"/>
+    <atomicState n="3" l="1" kappa="1" occ="1.00000" core="false"/>
+    <basis>
+      <default type="lapw" trialEnergy="0.1500" searchE="false"/>
+      <custom type="apw" l="0" trialEnergy="0.2150" searchE="false"/>
+      <custom type="apw" l="1" trialEnergy="0.6275" searchE="false"/>
+      <custom type="lapw" l="2" trialEnergy="0.1500" searchE="false"/>
+      <custom type="lapw" l="3" trialEnergy="0.1500" searchE="false"/>
+      <custom type="lapw" l="4" trialEnergy="0.1500" searchE="false"/>
+      <custom type="lapw" l="5" trialEnergy="0.1500" searchE="false"/>
+      <custom type="lapw" l="6" trialEnergy="0.1500" searchE="false"/>
+      <custom type="lapw" l="7" trialEnergy="0.1500" searchE="false"/>
+      <custom type="lapw" l="8" trialEnergy="0.1500" searchE="false"/>
+      <lo l="0">
+        <wf matchingOrder="0" trialEnergy="0.2150" searchE="false"/>
+        <wf matchingOrder="1" trialEnergy="0.2150" searchE="false"/>
+      </lo>
+      <lo l="1">
+        <wf matchingOrder="0" trialEnergy="0.6275" searchE="false"/>
+        <wf matchingOrder="1" trialEnergy="0.6275" searchE="false"/>
+      </lo>
+      <lo l="1">
+        <wf matchingOrder="0" trialEnergy="0.6275" searchE="false"/>
+        <wf matchingOrder="1" trialEnergy="0.6275" searchE="false"/>
+        <wf matchingOrder="0" trialEnergy="-2.0924" searchE="false"/>
+      </lo>
+    </basis>
+  </sp>
+</spdb>

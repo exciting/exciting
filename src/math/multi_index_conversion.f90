@@ -12,7 +12,7 @@
 !>
 !> The routines support fortrn 1-indexing.
 module multi_index_conversion
-  use asserts, only: assert
+#include "asserts.fpp"
   use math_utils, only: mod1
 
   private
@@ -76,10 +76,10 @@ contains
 
     integer :: j
 
-    call assert(size(composite_index) == size(N), 'composite_index and N have not the same size.')
-    call assert(all(N > 0), 'Some elements of N are not greater than 0.')
-    call assert(all(composite_index <= N), 'Some elements of composite_index are greater than the corresponding elements of N.')
-    call assert(all(composite_index > 0), 'Some elements of composite_index are greater than the corresponding elements of N.')
+    CALL_ASSERT(size(composite_index) == size(N), 'composite_index and N have not the same size.')
+    CALL_ASSERT(all(N > 0), 'Some elements of N are not greater than 0.')
+    CALL_ASSERT(all(composite_index <= N), 'Some elements of composite_index are greater than the corresponding elements of N.')
+    CALL_ASSERT(all(composite_index > 0), 'Some elements of composite_index are greater than the corresponding elements of N.')
 
     indices_to_composite_index = sum([( (composite_index(j) - 1) * product(N(: j-1)), j=size(composite_index), 2, -1 )]) + composite_index(1)
   end function indices_to_composite_index
@@ -131,9 +131,9 @@ contains
 
     integer :: j, m, m_updated
 
-    call assert(index > 0, 'index <= 0.')
-    call assert(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
-    call assert(all(N > 0), 'Some N <= 0.')
+    CALL_ASSERT(index > 0, 'index <= 0.')
+    CALL_ASSERT(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
+    CALL_ASSERT(all(N > 0), 'Some N <= 0.')
 
     m = index
     do j = 1, k
@@ -154,10 +154,10 @@ contains
 
     integer :: k, j, m, m_updated
 
-    call assert(size(composite_index) == size(N), 'composite_index and N do not have the same size.')
-    call assert(index > 0, 'index <= 0.')
-    call assert(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
-    call assert(all(N > 0), 'Some N <= 0.')
+    CALL_ASSERT(size(composite_index) == size(N), 'composite_index and N do not have the same size.')
+    CALL_ASSERT(index > 0, 'index <= 0.')
+    CALL_ASSERT(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
+    CALL_ASSERT(all(N > 0), 'Some N <= 0.')
 
     k = size(composite_index)
     m = index
@@ -177,9 +177,9 @@ contains
     !> Elements of the double index
     integer, intent(out) :: i_1, i_2
 
-    call assert(index > 0, 'index <= 0.')
-    call assert(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
-    call assert(all(N > 0), 'Some N <= 0.')
+    CALL_ASSERT(index > 0, 'index <= 0.')
+    CALL_ASSERT(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
+    CALL_ASSERT(all(N > 0), 'Some N <= 0.')
 
     call calculate_inner_index(index, N(1), i_1, i_2)
   end subroutine composite_index_to_double_index
@@ -196,9 +196,9 @@ contains
 
     integer :: m
 
-    call assert(index > 0, 'index <= 0.')
-    call assert(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
-    call assert(all(N > 0), 'Some N <= 0.')
+    CALL_ASSERT(index > 0, 'index <= 0.')
+    CALL_ASSERT(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
+    CALL_ASSERT(all(N > 0), 'Some N <= 0.')
 
     m = index
     call calculate_inner_index(m, N(1), i_1, i_2)
@@ -218,9 +218,9 @@ contains
 
     integer :: m
 
-    call assert(index > 0, 'index <= 0.')
-    call assert(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
-    call assert(all(N > 0), 'Some N <= 0.')
+    CALL_ASSERT(index > 0, 'index <= 0.')
+    CALL_ASSERT(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
+    CALL_ASSERT(all(N > 0), 'Some N <= 0.')
 
     m = index
     call calculate_inner_index(m, N(1), i_1, i_2)
@@ -242,9 +242,9 @@ contains
 
     integer :: m
 
-    call assert(index > 0, 'index <= 0.')
-    call assert(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
-    call assert(all(N > 0), 'Some N <= 0.')
+    CALL_ASSERT(index > 0, 'index <= 0.')
+    CALL_ASSERT(index <= product(N), 'composite_index exceeds the maximum possible element as determined by the product of loop limits.')
+    CALL_ASSERT(all(N > 0), 'Some N <= 0.')
 
     m = index
     call calculate_inner_index(m, N(1), i_1, i_2)

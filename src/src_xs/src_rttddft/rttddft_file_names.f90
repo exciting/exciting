@@ -36,7 +36,9 @@ module rttddft_file_names
   !> Suffix used when performing single-shot ground state calculation (before RT-TDDFDT)
   character(len=*), public, parameter :: RTTDDFT_GND_sufix = RTTDDFT_suffix // GND_sufix
   !> Default name of the file where there wavefunction coefficients are printed out
-  character(len=*), public, parameter :: filename_wavefunction = 'EVECFV' 
+  character(len=*), public, parameter :: filename_wavefunction = 'EVECFV'
+  !> Default name of the file where there wavefunction coefficients are printed out
+  character(len=*), public, parameter :: filename_wavefunction_second_variation = 'EVECSV' 
   !> Descriptors name used to write wavefunctions into an output file
   character(len=*), public, parameter :: kpt_latt_name = "kpoints_lattice_coord"
   !> Suffix for file where there wavefunction coefficients \(\psi(t)\) are printed out

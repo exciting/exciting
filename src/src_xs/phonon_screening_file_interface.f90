@@ -11,7 +11,6 @@ contains
     !> from Quantum Espresso ph.x output (xxx.dyn1)
     !> xxx.dyn1 is the dynamical matrix at the Gamma point
     subroutine qe_read_eps_inf_zstar(natoms, fname, eps_infty, zstar)
-        use m_getunit, only: getunit
         use errors_warnings, only: terminate_if_false
         use modmpi, only: mpiinfo
 
@@ -48,8 +47,7 @@ contains
         ! Get number of species
         nspecies = size(natoms)
 
-        call getunit(fid)
-        open (unit=fid, file=trim(fname), status='old', action='read')
+        open (newunit=fid, file=trim(fname), status='old', action='read')
 
         ! Skip file infos
         do ilines = 1, 7
@@ -122,7 +120,6 @@ contains
     !> xxxx.eig is the dynamical matrix at the Gamma point
     subroutine qe_read_phonon(alat_qe, qvecs_in, natoms, fname, freq_ph, evec_ph_out)
 
-        use m_getunit, only: getunit
         use unit_conversion, only: hartree_to_thz
         use errors_warnings, only: terminate_if_false
         use modmpi, only: mpiinfo
@@ -187,8 +184,7 @@ contains
         allocate(qvecs_read(3, nqpoints))
         allocate (evec_ph_local(3, natmtot, n_phonon_modes, nqpoints))
 
-        call getunit(fid)
-        open (unit=fid, file=trim(fname), status='old', action='read')
+        open (newunit=fid, file=trim(fname), status='old', action='read')
 
         iq = 0
         ! Iterate over the file
@@ -253,7 +249,6 @@ contains
     !> from exciting output
     subroutine exc_read_eps_inf_zstar(natoms, fname, eps_infty, zstar)
 
-        use m_getunit, only: getunit
         use errors_warnings, only: terminate_if_false
         use modmpi, only: mpiinfo
 
@@ -291,8 +286,7 @@ contains
 
         ! Get number of species
         nspecies = size(natoms)
-        call getunit(un)
-        open (unit=un, file=trim(fname), status='old', action='read', iostat=stat)
+        open (newunit=un, file=trim(fname), status='old', action='read', iostat=stat)
         if (stat /= 0) then
             write (*, *) "Error opening file, iostat:", stat, trim(fname)
             call terminate_mpi_env(mpiglobal)
@@ -340,7 +334,6 @@ contains
     !> from exciting output of the type PHONON.OUT
     subroutine exc_read_phonon(natoms, fname, freq_ph, evec_ph_out)
 
-        use m_getunit, only: getunit
         use errors_warnings, only: terminate_if_false
         use modmpi, only: mpiinfo
 
@@ -400,8 +393,7 @@ contains
         nqpoints = size(freq_ph, dim=2)
         allocate (evec_ph_local(3, natmtot, n_phonon_modes, nqpoints))
 
-        call getunit(fid)
-        open (unit=fid, file=trim(fname), status='old', action='read', iostat=stat)
+        open (newunit=fid, file=trim(fname), status='old', action='read', iostat=stat)
         if (stat /= 0) then
             write (*, *) "Error opening file, iostat:", stat, fname
             call terminate_mpi_env(mpiglobal)

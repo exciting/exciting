@@ -38,7 +38,7 @@ def exciting_structure() -> ExcitingStructure:
         "Li": {
             "rmt": 1.2,
             "LDAplusU": {"J": 0.4, "U": 1.3, "l": -2},
-            "dfthalfparam": {"ampl": 1.2, "shell": [{"number": 2}, {"number": 3}, {"number": 4}]},
+            "dfthalfparam": {"shell": [{"number": 2}, {"number": 3}, {"number": 4}, {"ampl": 1.2}]},
         }
     }
 
@@ -236,7 +236,7 @@ ref_dict = {
             "F": {},
             "Li": {
                 "LDAplusU": {"J": 0.4, "U": 1.3, "l": -2},
-                "dfthalfparam": {"ampl": 1.2, "shell": [{"number": 2}, {"number": 3}, {"number": 4}]},
+                "dfthalfparam": {"shell": [{"number": 2}, {"number": 3}, {"number": 4}, {"ampl": 1.2}]},
                 "rmt": 1.2,
             },
         },
@@ -354,18 +354,19 @@ def test_dict_assignment(exciting_input_xml):
 
     # test assignment to list of subtrees
     li_properties = exciting_input_xml.structure.species_properties["Li"]
-    li_properties.dfthalfparam = {"cut": 0, "shell": [{"number": 1}, {"number": 2}]}
+    li_properties.dfthalfparam = {"shell": [{"number": 1}, {"number": 2}, {"cut": 0}]}
     assert hasattr(li_properties, "dfthalfparam")
     assert li_properties.dfthalfparam.name == "dfthalfparam"
-    assert li_properties.dfthalfparam.cut == 0
     assert hasattr(li_properties.dfthalfparam, "shell")
     shell = li_properties.dfthalfparam.shell
     assert isinstance(shell, list)
-    assert len(shell) == 2
+    assert len(shell) == 3
     assert shell[0].name == "shell"
     assert shell[0].number == 1
     assert shell[1].name == "shell"
     assert shell[1].number == 2
+    assert shell[2].name == "shell"
+    assert shell[2].cut == 0
 
 
 def test_input_validation(exciting_input_xml):

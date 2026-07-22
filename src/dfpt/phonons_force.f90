@@ -31,8 +31,7 @@ module phonons_force
   use m_zfftifc, only: zfftifc
 
   use precision, only: dp
-  use asserts, only: assert
-
+#include "asserts.fpp"
   implicit none
   private
 
@@ -63,13 +62,14 @@ module phonons_force
     !>
     !> The result is added to the input array!
     subroutine ph_frc_dpulay_k( ik, kset, Gkset, Gkqset, fst, lst, evalk, devalk, occk, docck, eveck, deveck, deveckf, apwalmk, apwalmkq, pat, gamma, dforce, &
-        dHmat_mt_basis, order )
+        dSmat_mt_basis, dHmat_mt_basis, order )
       use dfpt_eigensystem, only: Smat_mt_basis, Hmat_mt_basis
       use phonons_eigensystem, only: gen_dapwalm
       use matrix_elements
       use constants, only: zzero, zone
       use mod_kpointset, only: k_set, Gk_set
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
+      use modinput
       !> index of the \({\bf k}\) point
       integer, intent(in) :: ik
       !> set of \({\bf k}\) vectors
@@ -98,6 +98,8 @@ module phonons_force
       logical, intent(in) :: gamma
       !> force response
       complex(dp), intent(inout) :: dforce(3, natmtot)
+      !> radial integrals of overlap response times Gaunt coefficients
+      complex(dp), optional, intent(in) :: dSmat_mt_basis(:,:,:)
       !> radial integrals of effective potential response times Gaunt coefficients
       complex(dp), optional, intent(in) :: dHmat_mt_basis(:,:,:)
       !> perturbation order of basis functions, either `0` or `1` (default: `0`)
@@ -113,8 +115,7 @@ module phonons_force
 
       ord = 0
       if( present( order ) ) ord = order
-      call assert( any( ord == [0, 1] ), '(ph_frc_dpulay_k): &
-        `order` must be either `0` or `1`.' )
+      CALL_ASSERT( any( ord == [0, 1] ), '(ph_frc_dpulay_k):  `order` must be either `0` or `1`.' )
 
       ngk = Gkset%ngk(1, ik)
       ngkq = Gkqset%ngk(1, ik)
@@ -134,14 +135,13 @@ module phonons_force
           ias = idxas(ia, is)
           do ip = 1, 3
 
-            dSmat = zzero; dHmat = zzero
-
             ! ** contribution from wave function response
+            dSmat = zzero; dHmat = zzero
             ! get canonically perturbed matching coefficients at k
             call gen_dapwalm( ngk, Gkset%vgkc(:, :, 1, ik), pat0(:, ip), apwalmk(:, :, :, ias), dapwalmk )
             ! get canonically perturbed matching coefficients at k+q
             call gen_dapwalm( ngkq, Gkqset%vgkc(:, :, 1, ik), pat0(:, ip), apwalmkq(:, :, :, ias), dapwalmkq )
-            if( ord == 1 ) then
+            if (ord == 1) then
               ! get irrep perturbed matching coefficients at k
               call gen_dapwalm( ngk, Gkset%vgkc(:, :, 1, ik), pat(:, ias), apwalmk(:, :, :, ias), ddapwalmk )
             else
@@ -158,7 +158,7 @@ module phonons_force
                    zone, Hmat_mt_basis(:, :, ias), zone, dHmat, &
                    diagonal_only=.true., left_local_orbitals=(ord==0), right_local_orbitals=.false. )
 
-            if( ord == 1 ) then
+            if (ord == 1) then
               ! get doubly perturbed matching coefficients at k
               call gen_dapwalm( ngk, Gkset%vgkc(:, :, 1, ik), pat(:, ias), dapwalmk, ddapwalmk )
             else
@@ -177,13 +177,27 @@ module phonons_force
 
             ! sum over states
             if (ord == 1) then
-              z1 = 2 * (sum( dHmat(:, 1) * occk(fst:lst) ) - sum( evalk(fst:lst) * dSmat(:, 1) * occk(fst:lst) ))
+              z1 = 2 * sum( (dHmat(:, 1) - evalk(fst:lst) * dSmat(:, 1)) * occk(fst:lst) )
             else
               z1 = 2 * (sum( dHmat ) - sum( dSmat ))
             end if
 
             ! ** contribution from potential response
-            if( present( dHmat_mt_basis ) ) then
+            if (present( dHmat_mt_basis ) .and. present( dSmat_mt_basis )) then
+              ! overlap
+              if (input%groundstate%ValenceRelativity == 'iora*') then
+                dSmat = zzero
+                call me_mt_mat( is, ias, ngk, ngk, dapwalmk, apwalmk(:, :, :, ias), &
+                       eveck(:, fst:lst), eveck(:, fst:lst), &
+                       zone, dSmat_mt_basis(:, :, ias), zone, dSmat, &
+                       diagonal_only=.true., left_local_orbitals=.false., right_local_orbitals=.true. )
+                call me_mt_mat( is, ias, ngk, ngk, apwalmk(:, :, :, ias), dapwalmk, &
+                       eveck(:, fst:lst), eveck(:, fst:lst), &
+                       zone, dSmat_mt_basis(:, :, ias), zone, dSmat, &
+                       diagonal_only=.true., left_local_orbitals=.true., right_local_orbitals=.false. )
+                z1 = z1 - sum( evalk(fst:lst) * dSmat(:, 1) * occk(fst:lst) )
+              end if
+              ! Hamiltonian
               dHmat = zzero
               call me_mt_mat( is, ias, ngk, ngk, dapwalmk, apwalmk(:, :, :, ias), &
                      eveck(:, fst:lst), eveck(:, fst:lst), &
@@ -193,14 +207,13 @@ module phonons_force
                      eveck(:, fst:lst), eveck(:, fst:lst), &
                      zone, dHmat_mt_basis(:, :, ias), zone, dHmat, &
                      diagonal_only=.true., left_local_orbitals=.true., right_local_orbitals=.false. )
-              ! sum over states
               z1 = z1 + sum( dHmat(:, 1) * occk(fst:lst) )
             end if
 
             dforce(ip, ias) = dforce(ip, ias) + kset%wkpt(ik) * z1
 
             ! ** contribution from eigenvalue and occupation response
-            if( gamma .and. ord == 0 ) then
+            if (gamma .and. ord == 0) then
               dSmat = zzero; dHmat = zzero
               ! overlap
               call me_mt_mat( is, ias, ngk, ngk, dapwalmk, apwalmk(:, :, :, ias), &
@@ -295,6 +308,8 @@ module phonons_force
       !> perturbation order of basis functions, either `0` or `1` (default: `0`)
       integer, optional, intent(in) :: order
 
+      real(dp), parameter :: a2 = alpha**2 / 2
+
       integer :: ord, ngk, ngkq, nst
       integer :: ip, is, ia, ias, ist
       integer :: igq, i
@@ -302,13 +317,12 @@ module phonons_force
       complex(dp) :: pat0(3,3), z1
 
       complex(dp), allocatable :: dSmat(:,:), dHmat(:,:)
-      real(dp), allocatable :: kin_ir(:)
-      complex(dp), allocatable :: dkin_ir(:), dcfun0_ir(:), dcfun0_ig(:), kin_dcfun0_ig(:), dkin_dcfun0_ig(:), zfft(:)
+      real(dp), allocatable :: kin_ir(:), olp_ir(:), dolp_ir(:)
+      complex(dp), allocatable :: dkin_ir(:), dcfun0_ir(:), dcfun0_ig(:), kin_dcfun0_ig(:), olp_dcfun0_ig(:), dkin_dcfun0_ig(:), dolp_dcfun0_ig(:), zfft(:)
 
       ord = 0
       if( present( order ) ) ord = order
-      call assert( any( ord == [0, 1] ), '(ph_frc_dsurf_k): &
-        `order` must be either `0` or `1`.' )
+      CALL_ASSERT( any( ord == [0, 1] ), '(ph_frc_dsurf_k):  `order` must be either `0` or `1`.' )
 
       ngk = Gkset%ngk(1, ik)
       ngkq = Gkqset%ngk(1, ik)
@@ -319,6 +333,7 @@ module phonons_force
       allocate( kin_dcfun0_ig(ph_Gqset%ngvec) )
       allocate( zfft(dfpt_2Gset%ngrtot) )
       allocate( dSmat(fst:lst, 1), dHmat(fst:lst, 1) )
+      if (input%groundstate%ValenceRelativity == 'iora*') allocate( olp_dcfun0_ig(ph_Gqset%ngvec) )
 
       pat0 = zzero
       do ip = 1, 3
@@ -326,19 +341,31 @@ module phonons_force
       end do
 
       ! compute interstitial kinetic energy
-      if( input%groundstate%ValenceRelativity == 'none' ) then
+      if (input%groundstate%ValenceRelativity == 'none') then
         kin_ir = 0.5_dp
       else
-        kin_ir = 0.5_dp / (1.0_dp - 0.5_dp * alpha**2 * pot_ir )
+        kin_ir = 0.5_dp / (1.0_dp - a2 * pot_ir)
       end if
-      ! compute interstitial kinetic energy response
-      if( present( dpot_ir ) ) then
+      ! compute interstitial overlap
+      if (input%groundstate%ValenceRelativity == 'iora*') then
+        allocate( olp_ir(dfpt_Gset%ngrtot) )
+        olp_ir = (a2 * kin_ir) / (1.0_dp - a2 * pot_ir)
+      end if
+
+      if (present( dpot_ir )) then
+        ! compute interstitial kinetic energy response
         allocate( dkin_ir(dfpt_Gset%ngrtot) )
         allocate( dkin_dcfun0_ig(ph_Gqset%ngvec) )
-        if( input%groundstate%ValenceRelativity == 'none' ) then
+        if (input%groundstate%ValenceRelativity == 'none') then
           dkin_ir = zzero
         else
-          dkin_ir = 0.5_dp * (0.5_dp * alpha**2 * dpot_ir) / (1.0_dp - 0.5_dp * alpha**2 * pot_ir )**2
+          dkin_ir = (a2 * dpot_ir * kin_ir) / (1.0_dp - a2 * pot_ir)
+        end if
+        ! compute interstitial overlap response
+        if (input%groundstate%ValenceRelativity == 'iora*') then
+          allocate( dolp_ir(dfpt_Gset%ngrtot) )
+          allocate( dolp_dcfun0_ig(ph_Gqset%ngvec) )
+          dolp_ir = (2 * a2 * dpot_ir * olp_ir) / (1.0_dp - a2 * pot_ir)
         end if
       end if
 
@@ -352,7 +379,7 @@ module phonons_force
             ! get canonically perturbed characteristic function on G-vectors
             dcfun0_ir = zzero
             call gen_dcfun_ig( ph_2Gqset%ngvec, ph_2Gqset%gc, ph_2Gqset%vgc, is, ia, pat0(:, ip), dcfun0_ir )
-            if( ord == 1 ) then
+            if (ord == 1) then
               ! get doubly perturbed characteristic function on G+q-vectors
               do igq = 1, ph_2Gqset%ngvec
                 dcfun0_ir(igq) = -zi * dot_product( ph_2Gqset%vgc(:, igq), pat(:, ias) ) * dcfun0_ir(igq)
@@ -365,12 +392,24 @@ module phonons_force
             call zfftifc( 3, dfpt_2Gset%ngrid, 1, dcfun0_ir )
             ! multiply with kinetic energy and transform back to reciprocal space
             call me_lapwlo_ir_opig( zone, kin_ir, dfpt_Gset, dcfun0_ir, zzero, kin_dcfun0_ig, ph_Gqset )
+            ! multiply with overlap and transform back to reciprocal space
+            if (input%groundstate%ValenceRelativity == 'iora*') &
+              call me_lapwlo_ir_opig( zone, olp_ir, dfpt_Gset, dcfun0_ir, zzero, olp_dcfun0_ig, ph_Gqset )
 
             ! overlap
             call me_ir_mat( Gkqset, ik, Gkset, ik, &
                    deveckf(:, fst:lst), eveck(:, fst:lst), &
                    zone, dcfun0_ig, zone, dSmat, &
                    Gset_op=ph_Gqset, diagonal_only=.true. )
+            if (input%groundstate%ValenceRelativity == 'iora*') then
+              do i = 1, 3
+                call me_ir_mat( Gkqset, ik, Gkset, ik, &
+                       deveckf(:, fst:lst), eveck(:, fst:lst), &
+                       zone, olp_dcfun0_ig, zone, dSmat, &
+                       left_gradient=i, right_gradient=i, &
+                       Gset_op=ph_Gqset, diagonal_only=.true. )
+              end do
+            end if
             ! Hamiltonian
             do i = 1, 3
               call me_ir_mat( Gkqset, ik, Gkset, ik, &
@@ -382,17 +421,29 @@ module phonons_force
 
             ! sum over states
             if (ord == 1) then
-              z1 = sum( dHmat(:, 1) * occk(fst:lst) ) - sum( evalk(fst:lst) * dSmat(:, 1) * occk(fst:lst) )
+              z1 = sum( (dHmat(:, 1) - evalk(fst:lst) * dSmat(:, 1)) * occk(fst:lst) )
             else
               z1 = 2 * (sum( dHmat ) - sum( dSmat ))
             end if
 
             ! ** contribution from potential response
-            if( present( dpot_ir ) .and. ord == 0 ) then
-              dHmat = zzero
-              ! multiply with kinetic energy response and transform back to reciprocal space
-              call me_lapwlo_ir_opig( zone, dkin_ir, ph_Gqset, dcfun0_ir, zzero, dkin_dcfun0_ig, ph_Gqset )
+            if (present( dpot_ir ) .and. ord == 0) then
+              ! overlap
+              if (input%groundstate%ValenceRelativity == 'iora*') then
+                dSmat = zzero
+                call me_lapwlo_ir_opig( zone, dolp_ir, ph_Gqset, dcfun0_ir, zzero, dolp_dcfun0_ig, ph_Gqset )
+                do i = 1, 3
+                  call me_ir_mat( Gkset, ik, Gkset, ik, &
+                         eveck(:, fst:lst), eveck(:, fst:lst), &
+                         zone, dolp_dcfun0_ig, zone, dSmat, &
+                         left_gradient=i, right_gradient=i, &
+                         Gset_op=ph_Gqset, diagonal_only=.true. )
+                end do
+                z1 = z1 - sum( evalk(fst:lst) * dSmat(:, 1) * occk(fst:lst) )
+              end if
               ! Hamiltonian
+              dHmat = zzero
+              call me_lapwlo_ir_opig( zone, dkin_ir, ph_Gqset, dcfun0_ir, zzero, dkin_dcfun0_ig, ph_Gqset )
               do i = 1, 3
                 call me_ir_mat( Gkset, ik, Gkset, ik, &
                        eveck(:, fst:lst), eveck(:, fst:lst), &
@@ -407,13 +458,22 @@ module phonons_force
             dforce(ip, ias) = dforce(ip, ias) + kset%wkpt(ik) * conjg( z1 )
 
             ! ** contribution from eigenvalue and occupation response
-            if( gamma .and. ord == 0 ) then
+            if (gamma .and. ord == 0) then
               dSmat = zzero; dHmat = zzero
               ! overlap
               call me_ir_mat( Gkset, ik, Gkset, ik, &
                      eveck(:, fst:lst), eveck(:, fst:lst), &
                      zone, dcfun0_ig, zone, dSmat, &
                      Gset_op=ph_Gqset, diagonal_only=.true. )
+              if (input%groundstate%ValenceRelativity == 'iora*') then
+                do i = 1, 3
+                  call me_ir_mat( Gkset, ik, Gkset, ik, &
+                         eveck(:, fst:lst), eveck(:, fst:lst), &
+                         zone, olp_dcfun0_ig, zone, dSmat, &
+                         left_gradient=i, right_gradient=i, &
+                         Gset_op=ph_Gqset, diagonal_only=.true. )
+                end do
+              end if
               ! Hamiltonian
               do i = 1, 3
                 call me_ir_mat( Gkset, ik, Gkset, ik, &
@@ -436,8 +496,11 @@ module phonons_force
       end do
 
       deallocate( kin_ir, dcfun0_ir, dcfun0_ig, kin_dcfun0_ig, zfft, dSmat, dHmat )
-      if( present( dpot_ir ) ) &
-        deallocate( dkin_ir, dkin_dcfun0_ig )
+      if (present( dpot_ir )) deallocate( dkin_ir, dkin_dcfun0_ig )
+      if (input%groundstate%ValenceRelativity == 'iora*') then
+        deallocate( olp_ir, olp_dcfun0_ig )
+        if (present( dpot_ir )) deallocate( dolp_ir, dolp_dcfun0_ig )
+      end if
 
     end subroutine ph_frc_dsurf_k
 

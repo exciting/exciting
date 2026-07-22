@@ -1,7 +1,7 @@
 !> Module for writing files in the `yaml` format. 
 !> All writing has an instantanious effect on the file on the disc.
 module xyaml
-  use asserts, only: assert
+#include "asserts.fpp"
   use precision, only: sp, dp, str_64, str_256, i32, long_int
   use to_char_conversion, only: to_char
   use modmpi, only: terminate_if_false
@@ -62,10 +62,10 @@ module xyaml
       open(unit=this%file_unit, file=this%file_name, iostat=ios, action='write', position='APPEND')
 
     else
-      call assert(present(file_name), 'file_name is not given for uninitialized yaml file.')
+      CALL_ASSERT(present(file_name), 'file_name is not given for uninitialized yaml file.')
       this%file_name = trim(adjustl(file_name))
       if( present( file_unit ) ) then
-        call assert(file_unit > 0, 'file_unit < 0')
+        CALL_ASSERT(file_unit > 0, 'file_unit < 0')
         this%file_unit = file_unit
         open(unit=this%file_unit, file=this%file_name, iostat=ios)
       else
@@ -145,7 +145,7 @@ module xyaml
     type is(character(*))
       input_string = input
     class default
-      call assert(.false., 'Input type is not supported.')
+      CALL_ASSERT(.false., 'Input type is not supported.')
     end select
 
     call idention(this%file_unit, this%depth)
@@ -180,7 +180,7 @@ module xyaml
     type is(complex(dp))
       input_string = to_char(input)
     class default
-      call assert(.false., 'Input type is not supported.')
+      CALL_ASSERT(.false., 'Input type is not supported.')
     end select
 
     call idention(this%file_unit, this%depth)
@@ -205,7 +205,7 @@ module xyaml
     type is(complex(dp))
       input_string = to_char(input)
     class default
-      call assert(.false., 'Input type is not supported.')
+      CALL_ASSERT(.false., 'Input type is not supported.')
     end select
 
     call idention(this%file_unit, this%depth)

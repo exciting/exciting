@@ -11,7 +11,7 @@ subroutine writederived(iqmt, eps, nw, w)
   use m_writesigma
   use m_write_hdf5
   use m_writesumrls
-  use os_utils, only: make_directory_command
+  use os_utils, only: make_directory
 
   implicit none
 
@@ -122,11 +122,11 @@ subroutine writederived(iqmt, eps, nw, w)
        !   & nar= .not. input%xs%bse%aresbse, filnam=fnsumrules)
       end if
       epsilondir='EPSILON'
-      call system(trim(adjustl(make_directory_command(epsilondir))))
+      call make_directory(epsilondir, mpiglobal)
       lossdir='LOSS'
-      call system(trim(adjustl(make_directory_command(lossdir))))
+      call make_directory(lossdir, mpiglobal)
       sigmadir='SIGMA'
-      call system(trim(adjustl(make_directory_command(sigmadir))))
+      call make_directory(sigmadir, mpiglobal)
       
       fneps=trim(epsilondir)//'/'//trim(fneps)
       fnloss=trim(lossdir)//'/'//trim(fnloss)
@@ -139,8 +139,8 @@ subroutine writederived(iqmt, eps, nw, w)
       
       ! Write optical functions to file
       call writeeps(iqmt, o1, o2, w, eps(o1,o2,:), trim(fneps)) ! iqmt not used
-      call writeloss(iqmt, w, loss(o1, o2, :), trim(fnloss))
-      call writesigma(iqmt, w, sigma, trim(fnsigma))  ! iqmt not used
+      call writeloss(iqmt, w, loss(o1, o2, :), trim(fnloss), o1, o2)
+      call writesigma(iqmt, w, sigma, trim(fnsigma), o1, o2)  ! iqmt not used
       !call writesumrls(iqmt, sumrls, trim(fnsumrules)) ! iqmt not used
 
     ! End loop over optical components

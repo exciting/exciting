@@ -8,6 +8,7 @@
 !
 Subroutine gendmatlu
       Use modmain
+      use mod_getoccsv, only: getoccsv
       Implicit None
 ! local variables
       Integer :: ik, ispn, ist

@@ -106,7 +106,7 @@ contains
 
   !> Setup the muffin-tin basis object.
   function setup_mt_basis( rad_grid, n_rad_grid, apw_rad_fun, lo_rad_fun, lmax_basis, apword, nlorb, lorbl ) result( this )
-    use asserts
+#include "asserts.fpp"
     !> radial grids on which the radial functions are given for each species
     real(dp), intent(in) :: rad_grid(:,:)
     !> number of radial grid points for each species
@@ -140,22 +140,14 @@ contains
     lmaxlo = maxval( lorbl(1:nlomax, 1:nspecies) )
     dordmax = size( apw_rad_fun, dim=2 ) - 1
 
-    call assert( lmax_basis >= 0, &
-      'Maximum l of basis functions must not be negative.' )
-    call assert( size( n_rad_grid ) == nspecies, &
-      'Radial grids and number of radial grid points given for different number of species.' )
-    call assert( size( lo_rad_fun, dim=4 ) == natoms, &
-      'Radial APW functions and LO functions given for different number of atoms.' )
-    call assert( size( apw_rad_fun, dim=1 ) >= nradmax, &
-      'Radial APW functions not given for enough radial points.' )
-    call assert( size( lo_rad_fun, dim=1 ) >= nradmax, &
-      'Radial LO functions not given for enough radial points.' )
-    call assert( size( lo_rad_fun, dim=2 ) == dordmax + 1, &
-      'Radial derivative for APW functions and LO functions given up to different order.' )
-    call assert( size( apw_rad_fun, dim=3 ) >= apwordmax, &
-      'Radial APW functions not given for large enough linearization orders.' )
-    call assert( size( lo_rad_fun, dim=3 ) >= nlomax, &
-      'Radial LO functions not given for enough LOs.' )
+    CALL_ASSERT( lmax_basis >= 0,  'Maximum l of basis functions must not be negative.' )
+    CALL_ASSERT( size( n_rad_grid ) == nspecies,  'Radial grids and number of radial grid points given for different number of species.' )
+    CALL_ASSERT( size( lo_rad_fun, dim=4 ) == natoms,  'Radial APW functions and LO functions given for different number of atoms.' )
+    CALL_ASSERT( size( apw_rad_fun, dim=1 ) >= nradmax,  'Radial APW functions not given for enough radial points.' )
+    CALL_ASSERT( size( lo_rad_fun, dim=1 ) >= nradmax,  'Radial LO functions not given for enough radial points.' )
+    CALL_ASSERT( size( lo_rad_fun, dim=2 ) == dordmax + 1,  'Radial derivative for APW functions and LO functions given up to different order.' )
+    CALL_ASSERT( size( apw_rad_fun, dim=3 ) >= apwordmax,  'Radial APW functions not given for large enough linearization orders.' )
+    CALL_ASSERT( size( lo_rad_fun, dim=3 ) >= nlomax,  'Radial LO functions not given for enough LOs.' )
 
     call this%destroy
 
@@ -233,7 +225,7 @@ contains
   !> \[ \phi^\alpha_\lambda({\bf r}) = g^\alpha_\tilde{\lambda}(r_\alpha)\, Y_{l_\lambda m_\lambda}(\hat{\bf r}_\alpha) \]
   !> for a given index \(\tilde{\lambda}=\)`lam`, atom index \(\alpha=\)`ias` and angular momentum \(l=\)`l`.
   function get_rad_fun( this, l, is, ias, lam, radial_derivative ) result( rad_fun )
-    use asserts
+#include "asserts.fpp"
     !> `mt_basis_type` type object
     class(mt_basis_type), intent(in) :: this
     !> angular momentum \(l\)
@@ -257,18 +249,15 @@ contains
     dord = 0
     if( present( radial_derivative ) ) dord = radial_derivative
 
-    call assert( dord >= 0, &
-      'Radial derivative order must not be negative.' )
-    call assert( lam > 0 .and. lam <= this%n_rad_fun(l, is), &
-      'Index `lam` out of bounds.' )
+    CALL_ASSERT( dord >= 0,  'Radial derivative order must not be negative.' )
+    CALL_ASSERT( lam > 0 .and. lam <= this%n_rad_fun(l, is),  'Index `lam` out of bounds.' )
 
     if( allocated( rad_fun ) ) deallocate( rad_fun )
     allocate( rad_fun(this%n_rad_grid(is)) )
 
     dordmax = ubound( this%apw_rad_fun, dim=2 )
     i = this%rad_fun_to_apw_lo(lam, l, is)
-    call assert( i /= 0, &
-      'Unable to assign given combination of `l`, `is` and `lam` to either an APW or an LO radial function' )
+    CALL_ASSERT( i /= 0,  'Unable to assign given combination of `l`, `is` and `lam` to either an APW or an LO radial function' )
     if( i > 0 ) then
       rad_fun = this%apw_rad_fun(1:this%n_rad_grid(is), min(dord, dordmax), i, l, ias)
     else
@@ -318,7 +307,7 @@ contains
   !> This routine returns \(g^{\alpha,\pm}_\tilde{\lambda}(r)\) or one of its radial derivatives
   !> depending on the input value or the arguments `grad` and `radial_derivative`.
   function get_gradient_rad_fun( this, l, is, ias, lam, grad, radial_derivative ) result( rad_fun )
-    use asserts
+#include "asserts.fpp"
     !> `mt_basis_type` type object
     class(mt_basis_type), intent(in) :: this
     !> angular momentum \(l\)
@@ -346,10 +335,8 @@ contains
     dord = 0
     if( present( radial_derivative ) ) dord = radial_derivative
 
-    call assert( dord >= 0, &
-      'Radial derivative order must not be negative.' )
-    call assert( lam > 0 .and. lam <= this%n_rad_fun(l, is), &
-      'Index `lam` out of bounds.' )
+    CALL_ASSERT( dord >= 0,  'Radial derivative order must not be negative.' )
+    CALL_ASSERT( lam > 0 .and. lam <= this%n_rad_fun(l, is),  'Index `lam` out of bounds.' )
 
     if( grad == 0 ) then
       rad_fun = this%get_rad_fun( l, is, ias, lam, radial_derivative=dord )
@@ -365,8 +352,7 @@ contains
 
     dordmax = ubound( this%apw_rad_fun, dim=2 )
     i = this%rad_fun_to_apw_lo(lam, l, is)
-    call assert( i /= 0, &
-      'Unable to assign given combination of `l`, `is` and `lam` to either an APW or an LO radial function' )
+    CALL_ASSERT( i /= 0,  'Unable to assign given combination of `l`, `is` and `lam` to either an APW or an LO radial function' )
     if( i > 0 ) then
       if( grad < 0 ) then
         rad_fun = lfac * ( (l + 1) * this%apw_rad_fun(1:this%n_rad_grid(is), 0, i, l, ias) / this%rad_grid(1:this%n_rad_grid(is), is) &
@@ -453,7 +439,7 @@ contains
   !>    \sum_{\bf G+k} C^{n{\bf k}}_{\bf G+k}\, A^\alpha_{lm, \xi, {\bf G+k}} & \lambda \rightarrow \text{ (L)APW} \\
   !>    C^{n{\bf k}}_L\, \delta_{\alpha \alpha_L} & \lambda \rightarrow \text{ LO} \; . \end{cases} \]
   subroutine transform_evec( this, is, ngk, nlotot, idxlo, apwalm, evec, evec_mt, use_local_orbitals )
-    use asserts
+#include "asserts.fpp"
     use constants, only: zzero, zone
     !> `mt_basis_type` type object
     class(mt_basis_type), intent(in) :: this
@@ -486,8 +472,7 @@ contains
     adim = shape( apwalm )
     vdim = shape( evec )
 
-    call assert( vdim(1) >= ngk + nlotot, &
-      'First dimension of eigenvector array too small.' )
+    CALL_ASSERT( vdim(1) >= ngk + nlotot,  'First dimension of eigenvector array too small.' )
 
     if( allocated( evec_mt ) ) deallocate( evec_mt )
     allocate( evec_mt(this%n_basis_fun(is), vdim(2)), source=zzero )

@@ -3,6 +3,8 @@
 ! See the file COPYING for license details.
 !
 module m_putpmat
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
+  use precision, only: i32, long_int, dp
 
   implicit none
 
@@ -15,7 +17,6 @@ module m_putpmat
     ! !USES:
       use modmain
       use modmpi
-      use m_getunit
     ! !INPUT/OUTPUT PARAMETERS:
     ! IN:
     ! integer(4) :: ik
@@ -39,20 +40,20 @@ module m_putpmat
       implicit none
 
       ! arguments
-      integer, intent(in) :: ik
+      integer(i32), intent(in) :: ik
       character(*), intent(in) :: filnam
-      complex(8), intent(inout) :: pm(:, :, :)
-      integer, intent(in), optional :: tag
+      complex(dp), intent(inout) :: pm(:, :, :)
+      integer(i32), intent(in), optional :: tag
 
-      integer :: un, reclen, ikr
+      integer(i32) :: un, ikr
+      integer(long_int) :: reclen
 
 #ifdef MPI
-      integer :: iproc, mpitag, stat(mpi_status_size)
+      integer(i32) :: iproc, mpitag, stat(mpi_status_size)
 #endif
 
       ikr = ik
-      inquire(iolength=reclen) vkl(:, ik), nstsv, pm
-      call getunit(un)
+      call inquire_large( reclen, vkl(:, ik), [nstsv], pm )
 
 #ifdef MPI
       if(present(tag)) then
@@ -82,8 +83,7 @@ module m_putpmat
           end if
 #endif
           ! only master is performing i/o
-          open(unit=un, file=trim(filnam), form='unformatted',&
-            & action='write', access='direct', recl=reclen)
+          call open_direct_unformatted_large( un, trim( filnam ), "write", reclen, "unknown" )
           write(un, rec=ikr) vkl(:, ikr), nstsv, pm
           close(un) 
 

@@ -8,7 +8,6 @@ module efield_density_potential
   use m_zfftifc, only: zfftifc
 
   use precision, only: dp
-  use asserts, only: assert
 
   implicit none
   private

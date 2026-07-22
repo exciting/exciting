@@ -72,7 +72,7 @@ subroutine calcselfc_freqconv_cd(ikp,iq,mdim)
             icg = ie2-nstse
             is = corind(icg,1)
             ia = corind(icg,2)
-            ic = corind(icg,3)
+            ic = corind(icg,6)
             ias = idxas(ia,is)
             enk = evalcr(ic,ias) - efermi
           end if ! val/cor

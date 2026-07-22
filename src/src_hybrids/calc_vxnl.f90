@@ -16,6 +16,7 @@ subroutine calc_vxnl()
     use mod_hybrids, only: vxnl, exnl, vnlmat
     use mod_coulomb_potential, only: barc
     use mod_APW_LO, only: apwordmax
+    use mod_get_eigenvectors_times_matchingcoefficients, only: get_eigenvectors_times_matchingcoefficients
     use mod_muffin_tin, only: lmmaxapw
     use mod_eigensystem, only: nmatmax
     use mod_eigenvalue_occupancy, only: efermi, nstfv, occsv
@@ -170,8 +171,8 @@ subroutine calc_vxnl()
           eveckp = conjg(eveck)
           ! k vector
           call getevecfv(kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), eveck)
-          call expand_evec(ik,'t')
-          call expand_evec(jk,'c')
+          call get_eigenvectors_times_matchingcoefficients(ik, 't', eveck, eveckalm)
+          call get_eigenvectors_times_matchingcoefficients(jk, 'c', eveckp, eveckpalm)
           
           OMP_OFFLOAD target update to(eveckalm, eveckpalm, eveck, eveckp)
 

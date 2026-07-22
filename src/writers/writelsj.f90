@@ -11,6 +11,7 @@ Subroutine writelsj
       Use modinput
       Use Fox_wxml
       use mod_gen_lo, only: genlofr
+      use mod_getoccsv, only: getoccsv
       Implicit None
 ! !DESCRIPTION
 ! local variables

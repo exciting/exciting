@@ -1,5 +1,5 @@
 module linear_algebra_3d
-  use asserts, only: assert
+
   use precision, only: dp
   use constants, only: pi
   use math_utils, only: all_zero
@@ -10,8 +10,7 @@ module linear_algebra_3d
   public :: determinant_3d, &
             cross_product, &
             inverse_3d, &
-            triple_product
-
+            triple_product          
   !> Calculate the determinant of a matrix \( \mathbf{A} \).
   interface determinant_3d
     module procedure :: determinant_3d_real_dp, determinant_3d_integer

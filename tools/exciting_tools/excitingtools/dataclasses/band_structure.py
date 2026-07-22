@@ -91,7 +91,9 @@ class BandData:
         valence_max_energies = np.empty(len(self.k_points))
 
         for k in range(len(self.k_points)):
-            valence_max_energies[k] = np.amax(self.bands[k][self.bands[k] <= self.e_fermi])
+            valence_max_energies[k] = np.amax(
+                self.bands[k][self.bands[k] <= self.e_fermi], initial=np.amin(self.bands[k])
+            )
 
         vbm_energy = np.amax(valence_max_energies)
         ik_vbm = np.argmax(valence_max_energies)

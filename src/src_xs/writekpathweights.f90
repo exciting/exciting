@@ -10,6 +10,7 @@ subroutine writekpathweights
   use mod_wannier_interpolate, only: wfint_init, wfint_eval, wfint_bandmap, &
    & wfint_matchksgw_linreal
   use, intrinsic :: iso_fortran_env, only: wp => real64
+  use os_utils, only: make_directory
 
   implicit none
 
@@ -62,10 +63,7 @@ subroutine writekpathweights
 
     ! Make output directory
     exckpathdir='KPATHEXC'
-
-    syscommand = 'test ! -e '//trim(adjustl(exckpathdir))&
-      & //' && mkdir -p '//trim(adjustl(exckpathdir))
-    call system(trim(adjustl(syscommand)))
+    call make_directory(exckpathdir, mpiglobal)
 
     ! Write out excitonic weights on grid?
     fwritegridweights = input%xs%writekpathweights%printgridweights
@@ -414,7 +412,6 @@ subroutine writekpathweights
     end subroutine genweights
 
     subroutine writeweights()
-      use m_getunit
       use m_genfilname
       use m_write_hdf5
 
@@ -444,9 +441,7 @@ subroutine writekpathweights
         & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
         & nar= .not. input%xs%bse%aresbse, filnam=fname)
 
-      call getunit(un)
-
-      open(unit=un, file=trim(fname), form='formatted', action='write')
+      open(newunit=un, file=trim(fname), form='formatted', action='write')
 
       write(un,'("#",1x,"BSE excitonic weights")')
       write(un,'("#")')
@@ -612,7 +607,6 @@ subroutine writekpathweights
     end subroutine map_inputdata
 
     subroutine writekpathplot()
-      use m_getunit
       use m_genfilname
       use modxs, only:escale
 
@@ -642,9 +636,7 @@ subroutine writekpathweights
       ib2=brange_(2)
       nsteps=brange_(3)
 
-      call getunit(un)
-
-      open(unit=un, file=trim(fname), form='formatted', action='write')
+      open(newunit=un, file=trim(fname), form='formatted', action='write')
       write(un, '("#",1x,"Bandstructure with excitonic weights")')
       write(un, '("#",1x,"escale:",f12.6)') escale
       write(un, '("#")')

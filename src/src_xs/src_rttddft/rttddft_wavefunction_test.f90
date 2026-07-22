@@ -35,18 +35,14 @@ contains
     character(len=*), parameter :: module_tested = 'rttddft_Wavefunction'
 
     ! Initialize test object
-    call test_report%init( mpiglobal)
+    call test_report%init( mpiglobal )
 
     ! Run and assert tests
     call test_obtain_occupations( test_report )
     call test_obtain_number_excitations( mpiglobal, test_report )
 
     ! report results
-    if ( present( kill_on_failure ) ) then
-      call test_report%report( module_tested, kill_on_failure )
-    else
-      call test_report%report( module_tested )
-    end if
+    call test_report%report( module_tested, kill_on_failure )
 
     ! Finalise test object
     call test_report%finalise()
@@ -179,7 +175,7 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! Test case: LAPWlo basis with frozen states and no excited states
     test_counter = test_counter + 1
-    psi%active(:, :, :) = psi%groundstate(:, psi%first_active(): psi%n_occupied(), :)
+    psi%active(:, :, :) = psi%groundstate_lapwlo(:, psi%first_active(): psi%n_occupied(), :)
     call psi%obtain_number_excitations( S, mpiglobal, n_exc, n_gs )
     n_exc_ref = 0._dp; n_gs_ref = sum(occ_gnd(:, 1))
     call test_asserts( test_counter )

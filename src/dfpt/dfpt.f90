@@ -26,9 +26,9 @@ module dfpt
     !> according to the input file and starts the execution of these tasks.
     subroutine dfpt_launcher
       use phonons
-      use phonons_variables, only: ph_var_init, ph_parts_per_rank
+      use phonons_variables, only: ph_var_init, ph_var_free, ph_parts_per_rank
       use efield
-      use efield_variables, only: ef_var_init
+      use efield_variables, only: ef_var_init, ef_var_free
 
       use os_utils, only: path_exists
       use modmpi
@@ -177,6 +177,9 @@ module dfpt
         call ef_finalize( delete_files=input%phonons%delete_eigensystem_response )
       end if
 
+      ! delete global DFPT electric field variables
+      call ef_var_free
+
 ! -------END EFIELD RESPONSE---------------------------------------------------
 
 ! -------START PHONON RESPONSE-------------------------------------------------
@@ -247,6 +250,9 @@ module dfpt
           any( task_list == 'phonons_polarization' ) ) &
         call ph_finalize
 
+      ! delete global phonon variables
+      call ph_var_free
+
 ! -------END PHONON RESPONSE---------------------------------------------------
 
       ! close and delete files EVALK0.TMP and EVECK0.TMP
@@ -280,7 +286,7 @@ module dfpt
     !> This subroutine executes preparative tasks that are common to all 
     !> DFPT calculations.
     !>
-    !> This inculdes the calculation of all unperturbed Kohn-Sham eigenstates
+    !> This includes the calculation of all unperturbed Kohn-Sham eigenstates
     !> at the (reduced) set of electronic wavevectors \({\bf k}\). These are 
     !> written to the temporary binary files `EVALK0.TMP` and `EVECK0.TMP` 
     !> which are automatically deleted at the end of the calculation.

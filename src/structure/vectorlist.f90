@@ -1,7 +1,7 @@
 ! Created by  on 22/09/2022.
 
 module dynamic_indices
-  use asserts, only: assert
+#include "asserts.fpp"
   use iso_c_binding, only: c_ptr
 
   implicit none
@@ -35,7 +35,7 @@ module dynamic_indices
     integer, intent(in) :: unrolled_indices(:)
     integer, intent(in) :: n_per_col(:)
 
-    call assert(size(unrolled_indices) == sum(n_per_col), 'size(unrolled_indices) /= sum(n_per_col).')
+    CALL_ASSERT(size(unrolled_indices) == sum(n_per_col), 'size(unrolled_indices) /= sum(n_per_col).')
 
     this%unrolled_indices = unrolled_indices
     this%n_per_col = n_per_col
@@ -55,8 +55,8 @@ module dynamic_indices
     this%n_per_col = n_per_col
     this%n_indices = sum(this%n_per_col)
 
-    call assert(size(index_matrix, 2) == this%n_cols, 'size(index_matrix, 2) /= size(n_per_col).')
-    call assert(size(index_matrix, 1) == maxval(n_per_col), 'size(index_matrix, 1) /= maxval(n_per_col).')
+    CALL_ASSERT(size(index_matrix, 2) == this%n_cols, 'size(index_matrix, 2) /= size(n_per_col).')
+    CALL_ASSERT(size(index_matrix, 1) == maxval(n_per_col), 'size(index_matrix, 1) /= maxval(n_per_col).')
 
     allocate(this%unrolled_indices(this%n_indices))
 
@@ -80,8 +80,8 @@ module dynamic_indices
 
     integer :: lower_limit, upper_limit
 
-    call assert(col_index >= 1, 'col_index < 1.')
-    call assert(col_index <= this%n_cols, 'col_index > this%n_cols.')
+    CALL_ASSERT(col_index >= 1, 'col_index < 1.')
+    CALL_ASSERT(col_index <= this%n_cols, 'col_index > this%n_cols.')
 
     call unrolled_col_limits(this, col_index, lower_limit, upper_limit)
 
@@ -95,11 +95,11 @@ module dynamic_indices
 
     integer :: unrolled_index
 
-    call assert(col_index >= 1, 'col_index < 1.')
-    call assert(col_index <= this%n_cols, 'col_index > this%n_cols.')
+    CALL_ASSERT(col_index >= 1, 'col_index < 1.')
+    CALL_ASSERT(col_index <= this%n_cols, 'col_index > this%n_cols.')
 
-    call assert(row_index >= 1, 'row_index < 1.')
-    call assert(row_index <= this%n_per_col(col_index), 'row_index > this%n_per_col(col_index).')
+    CALL_ASSERT(row_index >= 1, 'row_index < 1.')
+    CALL_ASSERT(row_index <= this%n_per_col(col_index), 'row_index > this%n_per_col(col_index).')
 
     unrolled_index = sum(this%n_per_col(: col_index - 1)) + row_index
 
@@ -113,11 +113,11 @@ module dynamic_indices
 
     integer, allocatable :: unrolled_indices(:)
 
-    call assert(col_index >= 1, 'col_index < 1.')
-    call assert(col_index <= this%n_cols, 'col_index > this%n_cols.')
+    CALL_ASSERT(col_index >= 1, 'col_index < 1.')
+    CALL_ASSERT(col_index <= this%n_cols, 'col_index > this%n_cols.')
 
-    call assert(all(row_indizes >= 1), 'For some elements: row_index < 1.')
-    call assert(all(row_indizes <= this%n_per_col(col_index)), 'For some elements: row_index > this%n_per_col(col_index).')
+    CALL_ASSERT(all(row_indizes >= 1), 'For some elements: row_index < 1.')
+    CALL_ASSERT(all(row_indizes <= this%n_per_col(col_index)), 'For some elements: row_index > this%n_per_col(col_index).')
 
     unrolled_indices = spread(sum(this%n_per_col(: col_index - 1)), 1, size(row_indizes)) + row_indizes
 
@@ -129,8 +129,8 @@ module dynamic_indices
     integer, intent(in) :: col_index 
     integer, intent(out) :: lower_limit, upper_limit
 
-    call assert(col_index >= 1, 'col_index < 1.')
-    call assert(col_index <= this%n_cols, 'col_index > this%n_cols.')
+    CALL_ASSERT(col_index >= 1, 'col_index < 1.')
+    CALL_ASSERT(col_index <= this%n_cols, 'col_index > this%n_cols.')
 
     if(col_index == 1) then
       lower_limit = 1

@@ -22,7 +22,7 @@ contains
 subroutine terminate_if_false( mpiglobal, consistent, error_message )
    use modmpi, only: mpiinfo
    !> mpi environment
-   type(mpiinfo), intent(inout) :: mpiglobal
+   type(mpiinfo), intent(in) :: mpiglobal
    !> logical condition to be tested
    logical, intent(in) :: consistent
    !> Error message to be printed out
@@ -37,7 +37,7 @@ end subroutine
 subroutine terminate_if_true( mpiglobal, consistent, error_message )
    use modmpi, only: mpiinfo
    !> mpi environment
-   type(mpiinfo), intent(inout) :: mpiglobal
+   type(mpiinfo), intent(in) :: mpiglobal
    !> logical condition to be tested
    logical, intent(in) :: consistent
    !> Error message to be printed out

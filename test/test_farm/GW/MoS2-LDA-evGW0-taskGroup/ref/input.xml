@@ -1,0 +1,87 @@
+<input>
+ 
+  <title>MoS2</title>
+ 
+  <structure speciespath="./" cartesian="true">
+    <crystal>
+      <basevect>   0.00000000         6.020289060       0.00000000</basevect>
+      <basevect>   5.213723260        3.010144530       0.00000000</basevect>
+      <basevect>   0.00000000         0.00000000       20.00000000</basevect>
+    </crystal>
+    <species speciesfile="Mo.xml" rmt="2.3000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+    </species>
+    <species speciesfile="S.xml" rmt="2.0500">
+      <atom coord="3.4758155100      6.0202890600      2.9529984232"/>
+      <atom coord="3.4758155100      6.0202890600     -2.9529984232"/>
+    </species>
+  </structure>
+ 
+  <groundstate 
+      do="fromscratch"
+      useDensityMatrix="false"
+      xctype="LDA_PW"
+      ngridk="2 1 1"
+      epsengy="1.0d-8"
+      gmaxvr="10"
+      rgkmax="4"
+      lmaxvr="5"
+      lmaxmat="5"
+      lmaxapw="5"
+      nempty="10"
+      radialgridtype="cubic-2"
+      outputlevel="high">
+  </groundstate>
+
+  <gw
+      taskname="taskGroup"
+      skipgnd="false"
+      enforceDegeneracy="false"
+      ngridq="2 1 1"
+      nempty="10" 
+      GBatchCount="22" 
+      mblksiz="5"
+      qdepw="sum" 
+      ibgw="1"
+      nbgw="0">
+      <taskGroup outputFormat="binary">
+        <Coulomb>
+          <qpoints qi="1" qf="-1"/>
+        </Coulomb>
+        <epsilon>
+          <qpoints qi="1" qf="-1"/>
+        </epsilon>
+        <invertEpsilon>
+          <qpoints qi="1" qf="-1"/>
+        </invertEpsilon>
+        <sigmac>
+          <kpoints ki="1" kf="-1"/>
+        </sigmac>
+        <sigmax>
+          <kpoints ki="1" kf="-1"/>
+        </sigmax>
+        <vxc>
+          <kpoints ki="1" kf="-1"/>
+        </vxc>
+        <QPEigenvalues FermiLevel="from_QP_Eigenvalues">
+          <kpoints ki="1" kf="-1"/>
+        </QPEigenvalues>
+      </taskGroup>
+      <evGW0 maxIterations="2" tolerance="0.0d0" do="fromscratch"/>
+      <selfenergy method="ac" eqpsolver="0"/>
+      <mixbasis 
+          epsmb="1d-3"
+          gmb="0.8d0"
+          lmaxmb="2">
+      </mixbasis>
+      <barecoul
+          pwm="0.5d0"
+          basis="pw"
+          barcevtol="0.5d0"
+          cutofftype="2d">
+      </barecoul>
+      <freqgrid
+          nomeg="4" eta="1.d-3" fconv="imfreq" 
+          fgrid="gauleg2" freqmax="1.0d0" freqmin="0.0d0"/>
+   </gw>
+</input>

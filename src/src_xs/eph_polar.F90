@@ -3,7 +3,6 @@ subroutine eph_polar(nw, w, head)
     use modmain, only: natmtot, natoms, nspecies, idxas, omega, spmass
     use constants, only: zi
     use constants, only: fourpi
-    use m_getunit
     implicit none
     integer(4), intent(in)    :: nw
     complex(8), intent(in)    :: w(nw)
@@ -26,8 +25,7 @@ subroutine eph_polar(nw, w, head)
     zborn(:,:,:) = 0.d0
 
     fname = 'BORN.OUT'
-    call getunit(fid)
-    open(unit=fid, file=trim(fname), status='old', action='read')
+    open(newunit=fid, file=trim(fname), status='old', action='read')
     read(fid,*) ! skip comment
     do is = 1, nspecies
         do ia = 1, natoms(is)
@@ -50,8 +48,7 @@ subroutine eph_polar(nw, w, head)
     phevec(:,:,:) = 0.d0
 
     fname = 'PHONON.OUT'
-    call getunit(fid)
-    open(unit=fid, file=trim(fname), status='old', action='read')
+    open(newunit=fid, file=trim(fname), status='old', action='read')
     read(fid,*) ! q-point info
     read(fid,*) ! skip empty line
 

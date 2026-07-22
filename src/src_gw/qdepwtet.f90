@@ -130,7 +130,7 @@ subroutine qdepwtet(iq, iomstart, iomend, ndim)
             icg = ie1 - nomax
             is  = corind(icg,1)
             ia  = corind(icg,2)
-            ic  = corind(icg,3)
+            ic  = corind(icg,6)
             ias = idxas(ia,is)
             eval_pair(1,1:kqset%nkpt) = evalcr(ic,ias)
             emaxb = maxval(eval_pair(2,:))

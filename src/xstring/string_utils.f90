@@ -4,7 +4,7 @@ module string_utils
   implicit none
 
   private
-  public :: split, validate_filename
+  public :: split, validate_filename, append_line
 
   contains
 
@@ -62,6 +62,19 @@ module string_utils
     validate_filename = (body_is_valid .and. ending_is_valid)
   end function validate_filename
 
+  !> concatenate two strings and put a new line in between
+  subroutine append_line(str, text)
+
+    character(:), allocatable, intent(inout) :: str
+    character(*), intent(in) :: text
+
+    if (.not. allocated(str) .or. len(str) == 0) then
+        str = trim(text)
+    else
+        str = trim(str) // new_line('a') // trim(text)
+    end if
+
+end subroutine append_line
 
 
 end module string_utils

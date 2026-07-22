@@ -7,7 +7,7 @@ module matrix_contraction
   use precision,  only: dp
   use constants,  only: zone, zzero
   use xlapack,    only: matrix_multiply
-  use asserts,    only: assert
+#include "asserts.fpp"
   implicit none
 
   interface contract_A_and_C_with_B
@@ -40,10 +40,10 @@ contains
     K = size(B, 1)             ! B is (K x K)
     N = size(C, 2)             ! C is (2K x N)
 
-    call assert(size(A,1) == 2*K, "size(A,1) /= 2*K")
-    call assert(size(B,2) == K,   "B must be KxK")
-    call assert(size(C,1) == 2*K, "size(C,1) /= 2*K")
-    call assert(size(X,1)==M .and. size(X,2)==N, "X must be (M x N)")
+    CALL_ASSERT(size(A,1) == 2*K, "size(A,1) /= 2*K")
+    CALL_ASSERT(size(B,2) == K,   "B must be KxK")
+    CALL_ASSERT(size(C,1) == 2*K, "size(C,1) /= 2*K")
+    CALL_ASSERT(size(X,1)==M .and. size(X,2)==N, "X must be (M x N)")
 
     ! set prefactors
     factor_a_local = zone

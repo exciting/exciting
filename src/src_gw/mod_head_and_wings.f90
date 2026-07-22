@@ -78,7 +78,7 @@ contains
                         is   = corind(icg,1)
                         ia   = corind(icg,2)
                         ias  = idxas(ia,is)
-                        ic   = corind(icg,3)
+                        ic   = corind(icg,6)
                         edif = evalfv(ie2,ikp) - evalcr(ic,ias)
                         if (abs(edif) > tol) then
                             pnm = pmatcv(icg,ie2,iop)*conjg(pmatcv(icg,ie2,jop))
@@ -208,7 +208,7 @@ contains
                         icg = ie1 - nomax
                         is  = corind(icg,1)
                         ia  = corind(icg,2)
-                        ic  = corind(icg,3)
+                        ic  = corind(icg,6)
                         ias = idxas(ia,is)
                         edif = evalcr(ic,ias) - evalfv(ie2,ikp)
                         pm1(ie1,ie2,iop) = merge(pmatcv(icg,ie2,iop)/edif, zzero, abs(edif) > 1.0e-6_dp)

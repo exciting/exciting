@@ -3,7 +3,7 @@
 !--------------------------------------------!
 
 module mod_coulomb_potential
-    use asserts, only: assert
+#include "asserts.fpp"
     use constants, only: pi, twopi, fourpi, real_zero
     use gw_io, only: write_to_file, read_from_file, build_file_name
     use mod_lattice, only: avec
@@ -544,8 +544,8 @@ contains
       character(len=max_length) :: file_name
       integer(i32) :: idx
 
-      call assert( allocated(vmat), 'vmat must be allocated')
-      call assert( allocated(barcev), 'barcev must be allocated')
+      CALL_ASSERT( allocated(vmat), 'vmat must be allocated')
+      CALL_ASSERT( allocated(barcev), 'barcev must be allocated')
       call build_file_name( basename_barc, iq, file_name )
       idx = index_of_first_element_above_threshold( barcev, threshold )
       call write_to_file( file_name, barcev(idx:), vmat(:, idx:), file_format )

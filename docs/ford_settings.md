@@ -40,12 +40,12 @@ src_dir: ../src/
          ../src/xgrid/
          ../src/xhdf5/
          ../src/xhdf5/hdf5_wrappers/ 
-	       ../src/svlo
          ../src/isdf
          ../src/src_xs/fastBSE/
          ../src/src_xs/fastBSE/BSH/
          ../src/src_xs/fastBSE/utils/
          ../src/kinetic_energy_density
+         ../src/src_mixing
          ../src/src_sym
 
 [//]: # "Note, ford commands can not be separated by whitelines."  

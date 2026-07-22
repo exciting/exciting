@@ -1,0 +1,57 @@
+<input>
+  <title>SiC Wannier</title>
+  <structure autormt="true" speciespath=".">
+    <crystal scale="8.239205906996132">
+      <basevect>0.0   0.5   0.5</basevect>
+      <basevect>0.5   0.0   0.5</basevect>
+      <basevect>0.5   0.5   0.0</basevect>
+    </crystal>
+    <species chemicalSymbol="Si" speciesfile="Si.xml">
+      <atom coord="0.00000000000000 0.00000000000000 0.00000000000000"/>
+    </species>
+    <species chemicalSymbol="C" speciesfile="C.xml">
+      <atom coord="0.25000000000000 0.25000000000000 0.25000000000000"/>
+    </species>
+  </structure>
+  <groundstate 
+      do="fromscratch" 
+      ngridk="4 4 4" 
+      rgkmax="8"
+      ValenceRelativity="iora*" 
+      xctype="GGA_PBE" 
+      gmaxvr="12" 
+      lmaxvr="8" 
+      lmaxmat="8"
+      lmaxapw="8"
+      swidth="0.003675"
+      nempty="10"
+      radialgridtype="cubic-2">
+		  <spin spinorb="true"> </spin>
+	</groundstate>
+   <properties> 
+     <wannier do="fromscratch" fermizero="false">
+       <group 
+         fst="1"
+         lst="8"
+         epsmax="1d-8"
+         maxitmax="20000"    
+         />
+       <group
+         method="disFull"
+         innerwindow="0.32426 0.57426"
+         outerwindow="0.32426 0.87426"
+         epsmax="1d-8"
+         neighcells="true"
+         maxitmax="30000"
+         maxitopf="1500"
+         />
+     </wannier>
+     <dos
+       wannier="true"
+       ngridkint="20 20 20"
+       inttype="tetra"
+       winddos="-0.27574 0.92426"
+       nwdos="300"
+       />
+   </properties>
+</input>

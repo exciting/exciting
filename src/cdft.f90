@@ -1,7 +1,7 @@
 !> Module for constrained DFT (CDFT) calculations
 !> Created Oct 2024 (Ronaldo)
 module cdft
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: real_one, real_zero, zzero
   use math_utils, only: all_close
   use mod_mpi_env, only: mpiinfo
@@ -21,7 +21,9 @@ module cdft
             set_overlap_times_psi_gs, &
             set_status_to_finished_CDFT, &
             set_status_to_running_CDFT, &
-            update_occupations_with_the_maximum_overlap_method
+            update_occupations_with_the_maximum_overlap_method, &
+            cdft_gs_run_request, &
+            gs_run_before_CDFT, scf, single_shot, skip
 
   !> Type that encapsulates the occupations in a CDFT calculation that have changed w.r.t. a DFT calculation
   type, public :: Occupations
@@ -61,6 +63,12 @@ module cdft
     procedure :: sanity_check => ExcitonCoefficients_sanity_check
     procedure :: get_norm => ExcitonCoefficients_get_normalization
   end type
+
+  !> Enum with the requested GS run in CDFT calculation
+  enum, bind(C)
+    enumerator :: gs_run_before_CDFT
+    enumerator :: single_shot, scf, skip
+  end enum
 
   !> Enum with the status of a CDFT calculation
   enum, bind(C)
@@ -125,6 +133,7 @@ pure logical function cdft_is_on( cdft_input ) result( is_on )
   class(cdft_input_keys), intent(in) :: cdft_input
   is_on = ( ( cdft_input%on ) .and. ( status == running_CDFT ) )
 end function
+
 
 !> Returns `.true.`, when the maximum overlap method is employed
 pure logical function cdft_maximum_overlap_method(this) result(check)
@@ -203,10 +212,19 @@ subroutine cdft_sanity_checks( this, input_gs )
   !> Elements and attributes of groundstate defined in the input file
   type(groundstate_type), intent(in) :: input_gs
 
-  character(len=*), parameter :: compatible_solver = "Lapack"
+  character(len=*), parameter :: partially_compatible_solver = "Davidson"
+  character(len=*), parameter :: procedure_name = "cdft_sanity_checks"
+  character(len=*), parameter :: warning_header = "Warning(" // procedure_name // "): "
 
-  call terminate_if_false( trim( input_gs%solver%type ) == compatible_solver, &
-    "Constrained DFT currently only implemented for solver " // compatible_solver )
+  if ( trim( input_gs%solver%type ) == partially_compatible_solver ) then
+    if ( this%is_maximum_overlap_method_required() ) then
+      call terminate_if_false( input_gs%solver%constructHS, &
+        "Constrained DFT can only be used with " // partially_compatible_solver // " solver with constructHS = true" )
+      if ( this%is_maximum_overlap_method_required() ) call warning( warning_header // "Constrained DFT with &
+        maximum-overlap method is not yet fully supported when using the " // partially_compatible_solver // " solver. &
+        Please treat the results with caution." )
+    end if
+  end if
   call terminate_if_false( associated(input_gs%constrainedDFT%occupationChanges) .or. this%use_external_file, &
     "Constrained DFT must have the element occupationChanges or use an external file")
 end subroutine
@@ -217,7 +235,7 @@ subroutine Occupations_allocate_arrays( this, n )
   !> Size of arrays
   integer(i32), intent(in) :: n
 
-  call assert( n>0, "n must be positive" )
+  CALL_ASSERT( n>0, "n must be positive" )
   allocate( this%i_kpoint(n), this%i_state(n), this%occ_factor(n) )
 end subroutine
 
@@ -283,8 +301,8 @@ subroutine Occupations_set_attributes( occ, kpoint_indexes, state_indexes, occ_f
 
   n_coeffs = size( kpoint_indexes )
 
-  call assert( n_coeffs == size( state_indexes ), "state_indexes must have n_coeffs elements")
-  call assert( n_coeffs == size( occ_factor ), "occ_factor must have n_coeffs elements")
+  CALL_ASSERT( n_coeffs == size( state_indexes ), "state_indexes must have n_coeffs elements")
+  CALL_ASSERT( n_coeffs == size( occ_factor ), "occ_factor must have n_coeffs elements")
   
   occ%i_kpoint = kpoint_indexes
   occ%i_state = state_indexes
@@ -307,9 +325,9 @@ subroutine ExcitonCoefficients_set_attributes( exc_coeff, kpoint_indexes, valenc
 
   n_coeffs = size( kpoint_indexes )
 
-  call assert( n_coeffs == size( valence_indexes ), "valence_indexes must have n_coeffs elements")
-  call assert( n_coeffs == size( conduction_indexes ), "conduction_indexes must have n_coeffs elements")
-  call assert( n_coeffs == size( coeffs ), "coeffs must have n_coeffs elements")
+  CALL_ASSERT( n_coeffs == size( valence_indexes ), "valence_indexes must have n_coeffs elements")
+  CALL_ASSERT( n_coeffs == size( conduction_indexes ), "conduction_indexes must have n_coeffs elements")
+  CALL_ASSERT( n_coeffs == size( coeffs ), "coeffs must have n_coeffs elements")
   
   exc_coeff%i_kpoint = kpoint_indexes
   exc_coeff%i_vb = valence_indexes
@@ -386,7 +404,7 @@ subroutine set_overlap_times_psi_gs( ik, S )
   integer(i32) :: n
 
   n = size( S , 1 )
-  call assert( size( evecfv_gs, 1 ) >= n, "S is not compatible with evecfv_gs" )
+  CALL_ASSERT( size( evecfv_gs, 1 ) >= n, "S is not compatible with evecfv_gs" )
   call hermitian_matrix_multiply(S, evecfv_gs(1:n, :, ik), prod(1:n, :, ik))
 end subroutine
 
@@ -505,8 +523,8 @@ subroutine update_occupations_with_the_maximum_overlap_method( psi, occupation_f
 
   first_k = lbound( prod, 3 ) 
   n_states = size( psi, 2 )
-  call assert( size(occupation_factors, 1) == n_states, "occupation_factors must have n_states elements along 1st dim")
-  call assert( size(psi, 3) == size(occupation_factors, 2), "occupation_factors and psi have incompatible size")
+  CALL_ASSERT( size(occupation_factors, 1) == n_states, "occupation_factors must have n_states elements along 1st dim")
+  CALL_ASSERT( size(psi, 3) == size(occupation_factors, 2), "occupation_factors and psi have incompatible size")
   allocate( projection(n_states, n_states), occ_save(n_states), search(n_states) )
   do ik = 1, size( psi, 3 )
     call matrix_multiply( prod(:, :, ik+first_k-1), psi(:, :, ik), projection, 'C', 'N' )
@@ -530,5 +548,23 @@ pure subroutine change_occupations( index_vb, index_cb, delta, occ )
   occ(index_vb) = occ(index_vb) - delta
   occ(index_cb) = occ(index_cb) + delta
 end subroutine
+
+!> Given a string, get the corresponding [[gs_run_before_CDFT]]
+function cdft_gs_run_request( string ) result(r)
+  !> String containing the pre-cDFT GS run request
+  character(len=*), intent(in) :: string
+  integer(kind( gs_run_before_CDFT )) :: r
+
+  select case ( trim( string ) )
+    case ("singleShot")
+      r = single_shot
+    case ("scf")
+      r = scf
+    case ("skip")
+      r = skip
+    case default
+      CALL_ASSERT( .false., "Unrecognized cdft_gs_run_request" )
+  end select
+end function
 
 end module

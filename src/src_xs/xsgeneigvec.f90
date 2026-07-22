@@ -125,9 +125,8 @@ subroutine xsgeneigvec(qi, qf, nqpts, vql, qvkloff, tscr, tmqmt)
         write(unitout, '("Info(", a, "): Q-point ", i4,&
         &  " has the same k-grid offset as the Q=0 qmt point, skipping GS calculation.")')&
         &  thisname, iq
-    end if
-    call printline(unitout, "-")
-      cycle
+      end if
+      call printline(unitout, "-")
     else
       call printline(unitout, "-")
     end if

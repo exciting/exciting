@@ -1,6 +1,5 @@
 module mod_rhoir
-
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: real_zero, zzero
   use m_zfftifc, only: zfftifc
   use mod_eigenvalue_occupancy, only: nstfv, nstsv
@@ -82,14 +81,12 @@ contains
   
     num_of_basis_functions_sv = get_num_of_basis_functions_sv()
     if ( input%groundstate%tevecsv ) then
-      call assert( present( evecsv ), 'evecsv not present' )
-      num_of_states = size( evecsv, 2 )
-    else
-      num_of_states = size( evecfv, 2 )
+      CALL_ASSERT( present( evecsv ), 'evecsv not present' )
     end if
+    num_of_states = size( occupations )
 
     if ( associated( input%groundstate%spin ) ) then
-      call assert( present( magir ), 'magir not present' )
+      CALL_ASSERT( present( magir ), 'magir not present' )
       magir_k = real_zero
       if ( ncmag ) then
         nsd = 4

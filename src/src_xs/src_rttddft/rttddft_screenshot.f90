@@ -1,18 +1,9 @@
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-! Copyright (C) Exciting Code, SOL group. 2020
-
-! History
-! Created by Ronaldo Rodrigues Pela, July 2019
-! Improved documentation: July 2021 (Ronaldo)
-! Reference: https://doi.org/10.1088/2516-1075/ac0c26
-
-!> Module to manage "screenshots" of desired properties during a RT-TDDFT
-!> propagation
+!> Module to manage "screenshots" of desired properties during a RT-TDDFT propagation
 module rttddft_screenshot
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: real_zero, zzero
   use exciting_mpi, only: mpiinfo, xmpi_gatherv
+  use modmpi, only: terminate_if_false
   use precision, only: dp, i32
   use rttddft_Hamiltonian, only: hamiltonian_set
   use rttddft_input, only: screenshot_keys
@@ -22,8 +13,8 @@ module rttddft_screenshot
                         out_proj => write_projection_coefficients
   use rttddft_Overlap, only: overlap_set
   use rttddft_Wavefunction, only: obtain_occupations, obtain_projection_coefficients, wavefunction_set
+  use to_char_conversion, only: to_char
   use xlapack, only: solve_generalized_hermitian_eigenproblem
-
 
   implicit none
 
@@ -75,7 +66,11 @@ contains
         if ( psi%has_frozen() ) complete_filled_set(:, 1: psi%n_frozen() , :) = psi%frozen
 
         ! Project the current WFs onto the ground-state ones
-        call obtain_projection_coefficients( psi%groundstate, overlap%array, complete_filled_set, proj_time )
+        if( overlap%is_identity() ) then
+          proj_time = complete_filled_set
+        else
+          call obtain_projection_coefficients( psi%groundstate_lapwlo, overlap%array, complete_filled_set, proj_time )
+        end if
         if( p%on ) then
           ! Send results to root rank, storing in the buffer
           call xmpi_gatherv( mpi_env, proj_time, proj_buffer )
@@ -114,9 +109,9 @@ contains
         if( it == 0 ) then
           call out_dens( it, rho_MT, rho_I, delta_rho=.false., plot3d=plot3d, my_rank_writes=my_rank_writes )
         else
-          call assert( present(rho_MT_0) .and. present(rho_interstitial_0), "arguments must be present")
-          call assert( all( shape(rho_MT) == shape(rho_MT_0) ), "rho_MT and rho_MT_0 must have same shape" )
-          call assert( size(rho_I) == size(rho_I0), "rho_interstitial and rho_interstitial_0 must have same size" )
+          CALL_ASSERT( present(rho_MT_0) .and. present(rho_interstitial_0), "arguments must be present")
+          CALL_ASSERT( all( shape(rho_MT) == shape(rho_MT_0) ), "rho_MT and rho_MT_0 must have same shape" )
+          CALL_ASSERT( size(rho_I) == size(rho_I0), "rho_interstitial and rho_interstitial_0 must have same size" )
           call out_dens( it, rho_MT-rho_MT_0, rho_I-rho_I0, delta_rho=.true., plot3d=plot3d, my_rank_writes=my_rank_writes )
         end if
       end associate
@@ -145,6 +140,8 @@ contains
     complex(dp), allocatable :: H_copy(:, :), S_copy(:, :)
 
     m = size( H, 1 )
+    call terminate_if_false( minval( dimensions ) >= n_eigenvalues, "error(screenshot): Impossible to obtain " // &
+      to_char( n_eigenvalues ) // " eigenvalues: min(dim(Hamiltonian)) is " // to_char( minval( dimensions ) ) )
     do ik = 1, size( H, 3 )
       dim = dimensions(ik)
       n = merge( dim, n_eigenvalues, n_eigenvalues <= 0 )

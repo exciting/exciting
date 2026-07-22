@@ -148,11 +148,11 @@ module mod_symmetry
       real(dp), intent(inout) :: f(:)
       !> number of G-vectors to consider in the expansion
       integer(i32), intent(in) :: ng
-      !> integer(i32) components of G-vectors the function is defined on
+      !> integer components of G-vectors the function is defined on
       integer(i32), intent(in) :: ivg(:,:)
-      !> range of integer(i32) components of G-vectors
+      !> range of integer components of G-vectors
       integer(i32), intent(in) :: intgv(3,2)
-      !> map from integer(i32) components of G-vector to its index in the list
+      !> map from integer components of G-vector to its index in the list
       integer(i32), intent(in) :: ivgig(intgv(1,1):intgv(1,2),intgv(2,1):intgv(2,2),intgv(3,1):intgv(3,2))
       !> map from G-vector list to FFT grid
       integer(i32), intent(in) :: igfft(:)
@@ -209,7 +209,7 @@ module mod_symmetry
       complex(dp), intent(in) :: zfig1(:)
       !> number of G-vectors in the expansion of the function 1
       integer(i32), intent(in) :: ng
-      !> integer(i32) components of G-vectors function 1 is defined on
+      !> integer components of G-vectors function 1 is defined on
       integer(i32), intent(in) :: ivg1(:,:)
       !> map from G-vector list to FFT grid for function 1
       !> (not referenced if `fft1=.false.`)
@@ -219,9 +219,9 @@ module mod_symmetry
       logical, intent(in) :: fft1
       !> function 2 to which the result is added
       complex(dp), intent(inout) :: zfig2(:)
-      !> range of integer(i32) components of G-vectors for function 2
+      !> range of integer components of G-vectors for function 2
       integer(i32), intent(in) :: intgv2(3,2)
-      !> map from integer(i32) components of G-vector to 
+      !> map from integer components of G-vector to 
       !> its index in the list for function 2
       integer(i32), intent(in) :: ivgig2(intgv2(1,1):intgv2(1,2),intgv2(2,1):intgv2(2,2),intgv2(3,1):intgv2(3,2))
       !> map from G-vector list to FFT grid for function 2
@@ -246,7 +246,7 @@ module mod_symmetry
       do ig = 1, ng
         igf = ig
         if( fft1) igf = igfft1(ig)
-        ! apply inverse rotation to G+p from the left and save integer(i32) part
+        ! apply inverse rotation to G+p from the left and save integer part
         ivg(1) = irotl(1,1)*ivg1(1,ig) + irotl(2,1)*ivg1(2,ig) + irotl(3,1)*ivg1(3,ig) + shift(1)
         ivg(2) = irotl(1,2)*ivg1(1,ig) + irotl(2,2)*ivg1(2,ig) + irotl(3,2)*ivg1(3,ig) + shift(2)
         ivg(3) = irotl(1,3)*ivg1(1,ig) + irotl(2,3)*ivg1(2,ig) + irotl(3,3)*ivg1(3,ig) + shift(3)
@@ -268,7 +268,7 @@ module mod_symmetry
     !> Points \({\bf p}\) and \({\bf p}'\) are symmetry equivalent, if there is
     !> a rotation \({\bf R}\) such that
     !> \[ {\bf R}({\bf p} + {\bf G}) = {\bf p}' \;, \]
-    !> where \({\bf G}\) is an integer(i32) vector.
+    !> where \({\bf G}\) is an integer vector.
     pure subroutine find_equivalent_wavevectors( &
         dim, point, pointlist, npt, rotations, nrot, &
         equiv_point_idx, rotation_idx, &
@@ -290,7 +290,7 @@ module mod_symmetry
       integer(i32), allocatable, intent(out) :: equiv_point_idx(:)
       !> list of rotations that rotate quivalent point into target point
       integer(i32), allocatable, intent(out) :: rotation_idx(:)
-      !> list of integer(i32) integer(i32) vectors \({\bf G}\)
+      !> list of integer vectors \({\bf G}\)
       integer(i32), allocatable, optional, intent(out) :: integer_vectors(:, :)
       !> tolerance for two points beeing equivalent (default: `1e-12`)
       real(dp), optional, intent(in) :: tolerance
@@ -327,7 +327,7 @@ module mod_symmetry
         do ipt = 1, npt
           diff =  rot_point - pointlist(:, ipt)
           idiff = nint( diff )
-          ! check if points differ by an integer(i32) vector
+          ! check if points differ by an integer vector
           if( any( abs( diff - idiff ) > tol ) ) cycle
           ! check if the equivalent point is already mapped
           if( unique .and. any(tmp(:,1) == ipt )) cycle

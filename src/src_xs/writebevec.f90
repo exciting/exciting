@@ -2,7 +2,6 @@ Subroutine writebevec
       Use modmain
       Use modmpi
       Use modxs
-      Use m_getunit
       Implicit None
 
       Real (8), Allocatable :: beval (:)
@@ -32,8 +31,7 @@ Subroutine writebevec
          write(*,*)
          stop
        else
-         Call getunit (un)
-         open(un,File='EXCCOEFF.bin', Action='READ',Form='UNFORMATTED', IOstat=iostat)
+         open(newunit=un,File='EXCCOEFF.bin', Action='READ',Form='UNFORMATTED', IOstat=iostat)
          if ( (iostat.ne.0) .and. (rank==0) ) then
            write(*,*) iostat
            write(*,'("Error(bse): error reading EXCCOEFF.bin")')
@@ -79,9 +77,8 @@ Subroutine writebevec
 
       !write ASCII output of Abs(BSE eigenvector)^2 
       Do s1 = ex_min2, ex_max2
-      Call getunit (un)
       Write (lambda, '("_LAMBDA",i4.4)') s1
-      Open (Unit=un, File=trim('BEVEC'//trim(lambda)//'.OUT'), Form='formatted', Action='write')
+      Open (newunit=un, File=trim('BEVEC'//trim(lambda)//'.OUT'), Form='formatted', Action='write')
             Do iknr = 1, nkptnr
                Do iv = 1, nrnst1
                   Do ic = 1, nrnst3
@@ -105,9 +102,8 @@ Subroutine writebevec
 
       !write ASCII output of sum of Abs(BSE eigenvector)^2 over all k-points     
       Do s1 = ex_min2, ex_max2
-      Call getunit (un)
       Write (lambda, '("_LAMBDA",i4.4)') s1
-      Open (Unit=un, File=trim('BEVEC_KSUM'//trim(lambda)//'.OUT'), Form='formatted', Action='write')
+      Open (newunit=un, File=trim('BEVEC_KSUM'//trim(lambda)//'.OUT'), Form='formatted', Action='write')
          Do iv = 1, nrnst1
              Do ic = 1, nrnst3
                 bevec_ksum=0
@@ -132,9 +128,8 @@ Subroutine writebevec
 ! din: New output file for the bandstructure to be able to post-process it
 !---------------------------------------------------------------------------
       do s1 = ex_min2, ex_max2
-        call getunit(un)
         write(lambda, '("exciton_evec_",i4.4,".dat")') s1
-        open(Unit=un, File=trim(lambda), Form='Formatted', Action='Write')
+        open(newunit=un, File=trim(lambda), Form='Formatted', Action='Write')
         ! nkpt total, Nv, iv0, Nc, ic0
         write(un,*) "# ", nkptnr, &
         &                 nrnst1, sta1,  &

@@ -1,6 +1,6 @@
 !> Routines for packing / unpacking functions for mixing
 module mixer_pack
-  use precision, only: dp
+  use precision, only: dp, i32, long_int
 
   implicit none
   private
@@ -25,17 +25,17 @@ module mixer_pack
       !> muffin-tin function
       real(dp), intent(in) :: fmt(:,:,:)
       !> maximum l for muffin-tin expansion
-      integer, intent(in) :: lmax
+      integer(i32), intent(in) :: lmax
       !> radial step for muffin-tin expansion
-      integer, intent(in) :: rstep
+      integer(i32), intent(in) :: rstep
       !> interstitial function
       real(dp), intent(in) :: fir(:)
       !> number of points in 1D array
-      integer, intent(inout) :: n
+      integer(long_int), intent(inout) :: n
       !> function packed to real 1D array
       real(dp), intent(out) :: f1d(*)
 
-      integer :: is, ia, ias, ir, lm, lmmax
+      integer(i32) :: is, ia, ias, ir, lm, lmmax
 
       lmmax = (lmax + 1)**2
 
@@ -64,17 +64,17 @@ module mixer_pack
       !> muffin-tin function
       complex(dp), intent(in) :: fmt(:,:,:)
       !> maximum l for muffin-tin expansion
-      integer, intent(in) :: lmax
+      integer(i32), intent(in) :: lmax
       !> radial step for muffin-tin expansion
-      integer, intent(in) :: rstep
+      integer(i32), intent(in) :: rstep
       !> interstitial function
       complex(dp), intent(in) :: fir(:)
       !> number of points in 1D array
-      integer, intent(inout) :: n
+      integer(long_int), intent(inout) :: n
       !> function packed to real 1D array
       real(dp), intent(out) :: f1d(*)
 
-      integer :: is, ia, ias, ir, lm, lmmax
+      integer(i32) :: is, ia, ias, ir, lm, lmmax
 
       lmmax = (lmax + 1)**2
 
@@ -105,17 +105,17 @@ module mixer_pack
       !> muffin-tin function
       real(dp), intent(out) :: fmt(:,:,:)
       !> maximum l for muffin-tin expansion
-      integer, intent(in) :: lmax
+      integer(i32), intent(in) :: lmax
       !> radial step for muffin-tin expansion
-      integer, intent(in) :: rstep
+      integer(i32), intent(in) :: rstep
       !> interstitial function
       real(dp), intent(out) :: fir(:)
       !> number of points in 1D array
-      integer, intent(inout) :: n
+      integer(long_int), intent(inout) :: n
       !> function packed to real 1D array
       real(dp), intent(in) :: f1d(*)
 
-      integer :: is, ia, ias, ir, lm, lmmax
+      integer(i32) :: is, ia, ias, ir, lm, lmmax
 
       lmmax = (lmax + 1)**2
 
@@ -144,17 +144,17 @@ module mixer_pack
       !> muffin-tin function
       complex(dp), intent(out) :: fmt(:,:,:)
       !> maximum l for muffin-tin expansion
-      integer, intent(in) :: lmax
+      integer(i32), intent(in) :: lmax
       !> radial step for muffin-tin expansion
-      integer, intent(in) :: rstep
+      integer(i32), intent(in) :: rstep
       !> interstitial function
       complex(dp), intent(out) :: fir(:)
       !> number of points in 1D array
-      integer, intent(inout) :: n
+      integer(long_int), intent(inout) :: n
       !> function packed to real 1D array
       real(dp), intent(in) :: f1d(*)
 
-      integer :: is, ia, ias, ir, lm, lmmax
+      integer(i32) :: is, ia, ias, ir, lm, lmmax
 
       lmmax = (lmax + 1)**2
 

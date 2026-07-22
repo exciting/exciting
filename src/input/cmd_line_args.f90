@@ -58,7 +58,7 @@ contains
       !> Instance of command line options
       class(cmd_line_args_type), intent(inout) :: this
       !> Mpi environment
-      type(mpiinfo), intent(inout) :: mpi_env
+      type(mpiinfo), intent(in) :: mpi_env
 
       !> Command line argument, defined by the whitespace delimiter
       character(len=100) :: arg
@@ -130,7 +130,7 @@ contains
    !
    function get_unit_tests_string(mpi_env) result(unit_tests_str)
       !> MPI environment
-      type(mpiinfo), intent(inout) :: mpi_env
+      type(mpiinfo), intent(in) :: mpi_env
 
       !> Command line string argument, defined by whitespace delimiters
       character(len=100) :: arg

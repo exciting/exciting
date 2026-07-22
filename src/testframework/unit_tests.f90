@@ -79,7 +79,7 @@ contains
       !> String containing all unit tests to run
       character(len=*), intent(in) :: unit_tests_str
       !> MPI environment
-      type(mpiinfo), intent(inout) :: mpi_env
+      type(mpiinfo), intent(in) :: mpi_env
 
       !> Delimiter for unit test names in unit_tests_str
       character(len=1), parameter :: delimiter = ","
@@ -107,7 +107,7 @@ contains
       !> Unit test name
       character(len=*), intent(in) :: test_name
       !> MPI environment
-      type(mpiinfo), intent(inout) :: mpi_env
+      type(mpiinfo), intent(in) :: mpi_env
 
       select case (test_name)
       case ('all')

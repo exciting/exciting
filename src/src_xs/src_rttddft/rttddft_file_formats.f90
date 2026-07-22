@@ -1,6 +1,5 @@
 module rttddft_file_formats
-  use asserts, only: assert
-
+#include "asserts.fpp"
   implicit none
 
   private
@@ -33,7 +32,7 @@ contains
   subroutine file_handler_assert_consistency( this )
     class( file_handler ), intent(in) :: this
 
-    call assert( allocated( this%file_name ), "string file_name must be allocated" )
-    call assert( allocated( this%path ), "string path must be allocated" )
+    CALL_ASSERT( allocated( this%file_name ), "string file_name must be allocated" )
+    CALL_ASSERT( allocated( this%path ), "string path must be allocated" )
   end subroutine
 end module

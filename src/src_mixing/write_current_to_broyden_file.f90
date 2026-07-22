@@ -6,22 +6,26 @@
 Subroutine write_current_to_broyden_file (n, iscl, potential, residual)
       Use modmixermsec, Only: record_of_last_iter, noldstepsmax, &
      & noldstepsin_file
+      use mod_large_io, only: inquire_large, open_direct_unformatted_large
       use mod_misc, only: scrpath
+      use precision, only: i32, dp, long_int, str_256
+
       Implicit None
-      Integer, Intent (In) :: n, iscl
-      Real (8), Intent (In) :: potential (n), residual (n)
-      Integer :: reclength
-      Character (256), External :: outfilenamestring
-      Character (256) :: filetag
+      Integer(long_int), Intent (In) :: n
+      Integer(i32), Intent (In) :: iscl
+      Real (dp), Intent (In) :: potential (n), residual (n)
+      Integer(long_int) :: reclength
+      integer(i32) :: io_unit
+      Character (str_256), External :: outfilenamestring
+      Character (str_256) :: filetag
       filetag = "BROYDEN"
       record_of_last_iter = Mod (record_of_last_iter, noldstepsmax) + 1
-      Inquire (IoLength=reclength) potential, residual
-!
-!      Open (23, File=outfilenamestring(filetag, 1), Access="DIRECT", &
-      Open (23, File=trim(scrpath)//"BROYDEN.OUT", Access="DIRECT", &
-     & Recl=reclength, Form='UNFORMATTED')
-      Write (23, Rec=record_of_last_iter) potential, residual
-      Close (23)
+      
+      call inquire_large( reclength, potential, residual )
+      call open_direct_unformatted_large( io_unit, trim( scrpath ) // "BROYDEN.OUT", "write", reclength, "unknown" )
+      write( io_unit, rec = record_of_last_iter ) potential, residual
+      close( io_unit )
+
       noldstepsin_file = noldstepsin_file + 1
       noldstepsin_file = Min (noldstepsin_file, noldstepsmax)
 End Subroutine

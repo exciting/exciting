@@ -121,6 +121,7 @@ def get_structure_optimizations_properties(run_dir: str, key: str) -> List[Dict]
     :return: list of dictionaries containing properties.
     """
     # Define the path to the INFO.OUT file
+    run_dir = run_dir.strip('/')
     info_path = join(run_dir, "INFO.OUT")
 
     data = []

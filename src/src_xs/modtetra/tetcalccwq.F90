@@ -15,7 +15,6 @@ Subroutine tetcalccwq (iq)
       Use modmpi
       Use m_genwgrid
       Use m_puttetcw
-      Use m_getunit
       Use m_filedel
       Use m_genfilname
       Implicit None
@@ -86,10 +85,9 @@ Subroutine tetcalccwq (iq)
      & input%xs%tddft%acont, 0.d0, w_cmplx=w)
       wreal (:) = dble (w(wi:wf))
       If (wreal(1) .Lt. epstetra) wreal (1) = epstetra
-      Call getunit (un)
       Inquire (IoLength=Recl) cwt2, cwat2, cwsurft2
   ! open temporary file for writing
-      Open (un, File=trim(filnamt), Form='unformatted', Action='write', &
+      Open (newunit=un, File=trim(filnamt), Form='unformatted', Action='write', &
      & Status='replace', Access='direct', Recl=Recl)
   ! calculate weights
       Do iw = 1, nwdfp
@@ -121,7 +119,7 @@ Subroutine tetcalccwq (iq)
       Allocate (cwsurf(nwdfp, nst1, nst2))
       Allocate (cwsurft1(nwdfp), cwt1(nwdfp), cwat1(nwdfp))
   ! open temporary file for reading
-      Open (un, File=trim(filnamt), Form='unformatted', Action='read', &
+      Open (newunit=un, File=trim(filnamt), Form='unformatted', Action='read', &
      & Status='old', Access='direct', Recl=Recl)
       irec = 0
       Do ik = 1, nkpt

@@ -14,6 +14,7 @@ Subroutine init1
 ! !USES:
       Use modinput
       Use modmain
+      use m_genppts_interface, only: genppts
       Use modmpi, only: terminate
       use wigner3j_symbol, only: gaunt_yry
 
@@ -58,6 +59,7 @@ Subroutine init1
       ! +/-1 for sign of spin-dependent term
       real (8) :: sign
       Integer :: num_of_basis_functions_sv
+
       Integer, allocatable ::  num_lattice_harmonics(:,:)
       Real (8), allocatable :: lattice_harmonics_coeffs (:,:,:,:)
       Complex (8), allocatable :: coeff_matrix(:,:), lo_transformation_matrix_inv_sym(:,:,:,:), gnt_kyy(:,:,:,:)

@@ -3,6 +3,8 @@
 ! See the file COPYING for license details.
 !
 module m_putx0
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
+  use precision, only: i32, long_int, dp
 
   implicit none
 
@@ -16,7 +18,6 @@ module m_putx0
       use modmpi
       use modmain
       use modxs
-      use m_getunit
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! logical :: tp0 ! Flag if iq is the q=0 q-point
@@ -41,15 +42,16 @@ module m_putx0
       implicit none
 
       ! Arguments
-      logical, intent(in) :: tp0
-      integer, intent(in) :: iq, iw
+      logical(i32), intent(in) :: tp0
+      integer(i32), intent(in) :: iq, iw
       character(*), intent(in) :: filnam, filxt
-      complex(8), intent(in) :: ch0(:, :)
-      complex(8), intent(in), optional :: ch0wg(:, :, :), ch0hd(:, :)
+      complex(dp), intent(in) :: ch0(:, :)
+      complex(dp), intent(in), optional :: ch0wg(:, :, :), ch0hd(:, :)
 
       ! Local variables
       character(*), parameter :: thisnam = 'putx0'
-      integer :: un, reclen
+      integer(i32) :: un
+      integer(long_int) :: reclen
 
       ! q=0 but head or wings missing
       if(tp0 .and. (.not. present(ch0wg) .or.  .not. present(ch0wg))) then
@@ -57,18 +59,15 @@ module m_putx0
         call terminate
       end if
 
-      call getunit(un)
       if(tp0) then
         ! i/o record length
-        inquire(iolength=reclen) ngq(iq), vql(:, iq), ch0, ch0wg, ch0hd
-        open(unit=un, file=trim(filnam)//trim(filxt), form='unformatted',&
-          & action='write', access='direct', recl=reclen)
+        call inquire_large( reclen, [ngq(iq)], vql(:, iq), ch0, ch0wg, ch0hd )
+        call open_direct_unformatted_large( un, trim(filnam)//trim(filxt), "write", reclen, "unknown" )
         write(un, rec=iw) ngq(iq), vql(:, iq), ch0, ch0wg, ch0hd
       else
         ! i/o record length
-        inquire(iolength=reclen) ngq(iq), vql(:, iq), ch0
-        open(unit=un, file=trim(filnam)//trim(filxt), form='unformatted',&
-          & action='write', access='direct', recl=reclen)
+        call inquire_large( reclen, [ngq(iq)], vql(:, iq), ch0 )
+        call open_direct_unformatted_large( un, trim(filnam)//trim(filxt), "write", reclen, "unknown" )
         write(un, rec=iw) ngq(iq), vql(:, iq), ch0
       end if
 

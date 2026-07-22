@@ -6,6 +6,7 @@ module m_ematqk
   use mod_ematptr
   use constants, only: pi, fourpi, zzero, zone, zil, zi
   use m_zfftifc, only: zfftifc
+  use, intrinsic :: iso_fortran_env, only: output_unit
   ! use lapack_f95_interfaces
 
   implicit none
@@ -41,10 +42,12 @@ module m_ematqk
       use m_getapwcmt
       use m_getlocmt
       use m_putemat
-      use m_getunit
       use m_genfilname
       use m_getgrst, only: getevecfv1, getevecfv0
       use mod_spin, only: nspnfv
+      use m_status_report, only: status_report_t
+      use mod_omp_utils, only: omp_thread_num, omp_num_threads
+
 #ifdef USEOMP
       use omp_lib
 #endif
@@ -93,6 +96,7 @@ module m_ematqk
       integer :: i
       logical :: shiftcheck
       logical, intent(in) :: issvlo
+      type(status_report_t) :: status_report
 
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
@@ -298,15 +302,22 @@ module m_ematqk
       ! Zero matrix elements array
       emat(:, :, :) = zzero
 
-      whichthread=0
-
       ! Loop over G+q vectors
       cpugntlocal=0.0_dp
       cpumtlocal=0.0_dp
 
 #ifdef USEOMP
-    !$omp parallel default(shared) private(igq, integrals, cpu00, cpu01, whichthread)
+    !$omp parallel default(shared) private(igq, integrals, cpu00, cpu01, whichthread, status_report)
 #endif
+      whichthread = omp_thread_num()
+
+      call status_report%init( &
+        nreports=input%xs%BSE%BSEKernelFineStatusReports, &
+        niter=(ngq(iq) + omp_num_threads() - 1) / omp_num_threads(), &
+        calling_loop_name="ematqk_gq", &
+        out_unit=output_unit, &
+        start_time=cpu0)
+
       ! Allocate radial integrals
       allocate(integrals(apwmaxsize+lomaxsize, apwmaxsize+lomaxsize, natmtot))
 #ifdef USEOMP
@@ -326,12 +337,13 @@ module m_ematqk
         call timesec(cpu00)
 
         if(whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
+        call status_report%update()
       end do ! igq
 #ifdef USEOMP
     !$omp end do
 #endif
-      deallocate(integrals)        
-
+      call status_report%delete()
+      deallocate(integrals)
 #ifdef USEOMP
     !$omp end parallel
 #endif
@@ -353,9 +365,17 @@ module m_ematqk
       mm: if(input%xs%pwmat.eq.'mm') then
         ! Matrix-matrix multiplication
 #ifdef USEOMP
-    !$omp parallel default(shared) private(igq, xihir, cpu00, cpu01, whichthread)
-        whichthread=omp_get_thread_num()
-#endif 
+    !$omp parallel default(shared) private(igq, xihir, cpu00, cpu01, whichthread, status_report)
+#endif
+        whichthread = omp_thread_num()
+
+        call status_report%init( &
+          nreports=input%xs%BSE%BSEKernelFineStatusReports, &
+          niter=(ngq(iq) + omp_num_threads() - 1) / omp_num_threads(), &
+          calling_loop_name="ematqk_gq", &
+          out_unit=output_unit, &
+          start_time=cpu0)
+
         allocate(xihir(n0, n))
 #ifdef USEOMP
     !$omp do
@@ -384,10 +404,12 @@ module m_ematqk
           if(whichthread.eq.0) cpumirres = cpumirres + cpu00 - cpu01
           call timesec(cpu01)
           if(whichthread.eq.0) cpudbg = cpudbg + cpu01 - cpu00
+          call status_report%update()
         end do ! Igq
 #ifdef USEOMP
     !$omp end do
 #endif
+        call status_report%delete()
         deallocate(xihir)
 #ifdef USEOMP
     !$omp end parallel
@@ -625,15 +647,15 @@ module m_ematqk
       use m_getapwcmt
       use m_getlocmt
       use m_putemat
-      use m_getunit
       use m_genfilname
       use mod_spin, only: nspnfv
       use mod_eigensystem, only: nmatmax_ptr
       use m_getgrst, only: getevecfv1, getevecfv0, getevecsv0, &
         & getevecsv1, match0, match1
       use mod_eigenvalue_occupancy, only: nstsv
+      use m_status_report, only: status_report_t
+      use mod_omp_utils, only: omp_thread_num, omp_num_threads
 
-      
 #ifdef USEOMP
       use omp_lib
 #endif
@@ -675,6 +697,7 @@ module m_ematqk
       real(dp), parameter :: epslat = 1.0d-6
       integer (4):: inter1, inter2, inter3, inter4
       integer :: i
+      type(status_report_t) :: status_report
 
       ! If task 330 is 'writeemat'
       if(task .eq. 330) then
@@ -752,16 +775,22 @@ module m_ematqk
       ! Zero matrix elements array
       emat(:, :, :) = zzero
 
-      whichthread=0
-
       ! Loop over G+q vectors
       cpugntlocal=0.0_dp
       cpumtlocal=0.0_dp
        
 #ifdef USEOMP
-    !$omp parallel default(shared) private(igq, cpu00, cpu01, whichthread,integral)
-    whichthread=omp_get_thread_num()
+    !$omp parallel default(shared) private(igq, cpu00, cpu01, whichthread, integral, status_report)
 #endif
+      whichthread = omp_thread_num()
+
+      call status_report%init( &
+        nreports=input%xs%BSE%BSEKernelFineStatusReports, &
+        niter=(ngq(iq) + omp_num_threads() - 1) / omp_num_threads(), &
+        calling_loop_name="ematqk_gq", &
+        out_unit=output_unit, &
+        start_time=cpu0)
+
       ! Allocation of radial integrals
       if (flag .eq. 'oo') then
         allocate(integral(input%xs%lmaxemat+1,nxas,nxas,1,1))
@@ -805,10 +834,14 @@ module m_ematqk
           call timesec (cpu00)
           if (whichthread.eq.0) cpumt = cpumt + cpu00 - cpu01
         end if
+        call status_report%update()
       end do ! igq
 #ifdef USEOMP
     !$omp end do
+#endif
+    call status_report%delete()
     deallocate(integral)
+#ifdef USEOMP
     !$omp end parallel
 #endif
 
@@ -1030,7 +1063,6 @@ module m_ematqk
                            & m1map, m2map, m3map,&
                            & l1shape, l2shape, l3shape,&
                            & m1shape, m2shape, m3shape
-      use m_getunit
 
       implicit none
 
@@ -1070,23 +1102,19 @@ module m_ematqk
       ! Debug output
       if(input%xs%dbglev .gt. 2) then
         ! Apw-apw
-        call getunit(u1)
-        open(unit=u1, file='IRADGAUNTaa'//filext, form='formatted', action='write', status='replace')
+        open(newunit=u1, file='IRADGAUNTaa'//filext, form='formatted', action='write', status='replace')
         write(u1, '(a)') 'igq, ias, lm1, io1, lm3, io2,   intrgaa'
         write(u1, '(a)') '------------------------------------------------------'
         ! Apw-lo
-        call getunit(u2)
-        open(unit=u2, file='IRADGAUNTalo'//filext, form='formatted', action='write', status='replace')
+        open(newunit=u2, file='IRADGAUNTalo'//filext, form='formatted', action='write', status='replace')
         write(u2, '(a)') 'igq, ias, m3, ilo, lm1, io,     intrgalo'
         write(u2, '(a)') '------------------------------------------------------'
         ! Lo-apw
-        call getunit(u3)
-        open(unit=u3, file='IRADGAUNTloa'//filext, form='formatted', action='write', status='replace')
+        open(newunit=u3, file='IRADGAUNTloa'//filext, form='formatted', action='write', status='replace')
         write(u3, '(a)') 'igq, ias, m1, ilo, lm3, io,     intrgloa'
         write(u3, '(a)') '------------------------------------------------------'
         ! Lo-lo
-        call getunit(u4)
-        open(unit=u4, file='IRADGAUNTlolo'//filext, form='formatted', action='write', status='replace')
+        open(newunit=u4, file='IRADGAUNTlolo'//filext, form='formatted', action='write', status='replace')
         write(u4, '(a)') 'igq, ias, m1, ilo1, m3, ilo2,   intrglolo'
         write(u4, '(a)') '------------------------------------------------------'
       end if
@@ -1812,7 +1840,6 @@ module m_ematqk
         use mod_APW_LO, only: apwordmax
         use m_getgrst, only: wavefmt1, getevecsv1, wavefmtsv1
         use mod_misc, only: filext
-        !Use m_getunit 
         !Use modxas
         ! !INPUT/OUTPUT PARAMETERS:
         !   iq       : q-point position (in,integer)
@@ -2195,7 +2222,6 @@ module m_ematqk
         Use modinput, only: input
         Use modxs, only: sfacgq, bcbs, xsgntou, xsgntousv, ylmgq
         use modxas, only: nxas 
-        !Use m_getunit 
         !Use modxas
         ! !INPUT/OUTPUT PARAMETERS:
         !   iq       : q-point position (in,integer)
@@ -2282,7 +2308,6 @@ module m_ematqk
         Use modmain
         Use modinput
         Use modxs
-        Use m_getunit 
         Use modxas
         Implicit none
         Integer, Intent (In) :: iq, ik, igq

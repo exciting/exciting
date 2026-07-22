@@ -2,7 +2,7 @@
 !> Module for the base class of a regular grid. Any implementation of a new regular grid type can extend this
 !> class.
 module regular_grid
-  use asserts, only: assert
+#include "asserts.fpp"
   use precision, only: dp
   use math_utils, only: mod1, all_close, fractional_part, integer_part
   use grid_utils, only: mesh_1d
@@ -81,10 +81,10 @@ module regular_grid
     tol_local = default_tolerance
     if (present(tol)) tol_local = tol
 
-    call assert(all(sampling > 0), 'sampling <= 0.')
-    call assert(all(multi_index_first > 0), 'multi_index_first <= 0.')
-    call assert(all(multi_index_first <= sampling), 'multi_index_first > sampling.')
-    call assert(tol_local >= 0._dp, 'tol < 0._dp.')
+    CALL_ASSERT(all(sampling > 0), 'sampling <= 0.')
+    CALL_ASSERT(all(multi_index_first > 0), 'multi_index_first <= 0.')
+    CALL_ASSERT(all(multi_index_first <= sampling), 'multi_index_first > sampling.')
+    CALL_ASSERT(tol_local >= 0._dp, 'tol < 0._dp.')
 
     this%sampling =  sampling
     this%multi_index_first = multi_index_first
@@ -119,7 +119,7 @@ module regular_grid
 
     integer :: n_coordinates, i
 
-    call assert(size(coordinate_array, 1) == 3, 'size(coordinate_array, 1) /= 3.')
+    CALL_ASSERT(size(coordinate_array, 1) == 3, 'size(coordinate_array, 1) /= 3.')
 
     n_coordinates = size(coordinate_array, 2)
 
@@ -158,7 +158,7 @@ module regular_grid
 
     integer :: number_of_points, i
 
-    call assert(size(multi_indices, 1) == 3, 'size(multi_indices, 1) /= 3')
+    CALL_ASSERT(size(multi_indices, 1) == 3, 'size(multi_indices, 1) /= 3')
 
     number_of_points = size(multi_indices, 2)
     allocate(coordinate_array(3, number_of_points))
@@ -237,7 +237,7 @@ module regular_grid
 
     real(dp) :: coordinate_local(3)
 
-    call assert(this%is_on_grid(coordinate), 'coordinate is not on grid.')
+    CALL_ASSERT(this%is_on_grid(coordinate), 'coordinate is not on grid.')
 
     coordinate_local = matmul(inverse_3d(this%volume_element), coordinate) - this%offset
     multi_index = idnint(coordinate_local) + 1
@@ -254,7 +254,7 @@ module regular_grid
 
     integer :: number_of_points, i
 
-    call assert(size(coordinate_array, 1) == 3, 'size(coordinate_array, 1) /= 3.')
+    CALL_ASSERT(size(coordinate_array, 1) == 3, 'size(coordinate_array, 1) /= 3.')
 
     number_of_points = size(coordinate_array, 2)
     allocate(multi_indices(3, number_of_points))
@@ -280,7 +280,7 @@ module regular_grid
     integer :: multi_index(3)
     real(dp) :: coordinate_local(3)
 
-    !call assert(this%is_on_grid(coordinate), 'coordinate is not on grid.')
+    !CALL_ASSERT(this%is_on_grid(coordinate), 'coordinate is not on grid.')
     if (.not. this%is_on_grid(coordinate)) then
       composite_index = -1
       return 
@@ -306,7 +306,7 @@ module regular_grid
 
     integer :: number_of_points, i
 
-    call assert(size(coordinate_array, 1) == 3, 'size(coordinate_array, 1) /= 3.')
+    CALL_ASSERT(size(coordinate_array, 1) == 3, 'size(coordinate_array, 1) /= 3.')
 
     number_of_points = size(coordinate_array, 2)
     allocate(composite_indices(number_of_points))

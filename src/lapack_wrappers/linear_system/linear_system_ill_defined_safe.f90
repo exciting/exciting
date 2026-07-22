@@ -2,7 +2,7 @@
 !>    \[ A * x = y \]
 !> where `A` is a hermitian positive definite matrix
 module linear_system_ill_defined_safe
-  use asserts, only: assert
+
   use modmpi, only: terminate_if_false
   use lapack_f95_interfaces, only: zgelsd
   use lapack_workspaces, only: lapack_workspace_complex_dp_t

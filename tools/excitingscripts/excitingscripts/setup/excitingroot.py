@@ -1,7 +1,20 @@
+"""Replace placeholder "$EXCITINGROOT" in **input.xml** files by actual path.
+
+Located at `excitingscripts/setup/excitingroot.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.setup.excitingroot
+```
+"""
+
 import os
 from argparse import ArgumentParser 
 
-def set_exciting_root(input_file: str, output_file: str, excitingroot=os.getenv("EXCITINGROOT")) -> None:
+def set_exciting_root(input_file: str, 
+                      output_file: str, 
+                      excitingroot=os.getenv("EXCITINGROOT")) -> None:
     """Replace all instances of the string '$EXCITINGROOT' in the file given by `input_file`
     and write to `output_file`.
 
@@ -41,9 +54,16 @@ def main() -> None:
                     dest = "outfile",
                     help = "name of the output file")
 
+    parser.add_argument("--path", "-p",
+                    type = str,
+                    nargs = 1,
+                    default = [os.getenv("EXCITINGROOT")],
+                    dest = "path",
+                    help = "Path (excitingroot)")
+
     args = parser.parse_args()
 
-    set_exciting_root(args.infile[0], args.outfile[0])
+    set_exciting_root(args.infile[0], args.outfile[0], excitingroot=args.path[0])
 
 if __name__ == "__main__":
     main()

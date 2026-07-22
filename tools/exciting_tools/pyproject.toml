@@ -1,7 +1,7 @@
 [project]
 name = "excitingtools"
 description = "Utilities for aiding in the construction of exciting inputs and the postprocessing exciting outputs."
-version = "1.8.5"
+version = "1.9.0"
 authors = [
     {name = "Alexander Buccheri", email = "alexander.buccheri@mpsd.mpg.de"},
     {name = "Fabian Peschel", email = "peschelf@physik.hu-berlin.de"}
@@ -20,7 +20,7 @@ dependencies = [
 dev = [
     "pytest",
     "ase>=3.20.0",
-    "ruff==0.12.12",
+    "ruff==0.15.12",
 ]
 schemaparsing = ["xmlschema"]
 h5_parsing = ["h5py"]
@@ -32,8 +32,9 @@ repository = "https://github.com/exciting/excitingtools"
 
 [build-system]
 requires = [
-    "setuptools >= 35.0.2",
-    "setuptools_scm >= 2.0.0, <3"
+    "setuptools>=65.5.0",
+    "wheel",
+    "setuptools_scm>=7.1.0"
 ]
 build-backend = "setuptools.build_meta"
 

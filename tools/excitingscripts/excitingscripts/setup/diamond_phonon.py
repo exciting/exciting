@@ -70,7 +70,7 @@ def point_specific_setup(
         assert (
             4 < displacement_points <= 99
         ), f"Number of displacements must be in range of 5 to 99, but is {displacement_points}"
-        assert displacement_points % 2 == 1, f"Number of displacements must be odd."
+        assert displacement_points % 2 == 1, "Number of displacements must be odd."
 
         input_obj = ExcitingInputXML.from_xml(input_file)
         structure = input_obj.structure

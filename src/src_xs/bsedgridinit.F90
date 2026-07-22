@@ -16,7 +16,6 @@ Subroutine bsedgridinit ()
      Use m_gndstateq
      Use modmpi
      Use m_genfilname
-     Use m_getunit
      Implicit None
      Character (77) :: string
 ! !DESCRIPTION:
@@ -40,8 +39,7 @@ Subroutine bsedgridinit ()
 !    call init1
 
      Call genfilname (nodotpar=.True., basename='INFOXS', procs=procs, rank=rank, filnam=xsfileout)
-     Call getunit (unitout)
-     open (unit=unitout, file=xsfileout, status="unknown", action="write", position="append")
+     open (newunit=unitout, file=xsfileout, status="unknown", action="write", position="append")
      write (string,'("Sub grid point ",i3," with offset ",3f7.3)') iksubpt, vksubl(:, iksubpt)+vkloff_xs_b(:)
      call printline (unitout,"=")
      call printtext (unitout,"=",string)

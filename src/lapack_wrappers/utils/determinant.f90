@@ -1,6 +1,6 @@
 !> Calculate the determinant with different methods.
 module determinant
-  use asserts, only: assert
+#include "asserts.fpp"
   use precision, only: dp
   use constants, only: zone
   use math_utils, only: is_square
@@ -50,7 +50,7 @@ module determinant
     logical, allocatable :: diff_S(:), diff_T(:)
     real(dp), allocatable :: A(:, :)
 
-    call assert(is_square(A_input), 'A_input is not a square matrix.')
+    CALL_ASSERT(is_square(A_input), 'A_input is not a square matrix.')
     n = size(A_input, dim=1)
 
     if (matrix_rank_SVD(A_input) < n) then
@@ -105,7 +105,7 @@ module determinant
     logical, allocatable :: diff_S(:), diff_T(:)
     complex(dp), allocatable :: A(:, :)
 
-    call assert(is_square(A_input), 'A_input is not a square matrix.')
+    CALL_ASSERT(is_square(A_input), 'A_input is not a square matrix.')
     n = size(A_input, dim=1)
 
     if (matrix_rank_SVD(A_input) < n) then

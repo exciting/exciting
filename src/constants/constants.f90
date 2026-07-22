@@ -4,37 +4,37 @@
 
 !> Exciting-specific constants
 module constants
-  use precision, only: dp 
+  use precision, only: dp, i32
   use iso_c_binding
 
   implicit none
   private  
 
   !> Pi 
-  Real(8), Public, Parameter :: pi = 3.1415926535897932385d0
+  real(dp), public, parameter :: pi = 3.1415926535897932385_dp
   !> 2 * Pi
-  Real(8), Public, Parameter :: twopi = 6.2831853071795864769d0
+  real(dp), public, parameter :: twopi = 6.2831853071795864769_dp
   !> 4 * Pi 
-  Real(8), Public, Parameter :: fourpi = 12.566370614359172954d0
+  real(dp), public, parameter :: fourpi = 12.566370614359172954_dp
 
   !> Square root of two. 
-  Real(8), Public, Parameter :: sqrt_two = 1.4142135623730950488d0
+  real(dp), public, parameter :: sqrt_two = 1.4142135623730950488_dp
 
   ! Complex initialisation constants
   !> Complex zero
-  Complex (8), Public, Parameter :: zzero = (0.d0, 0.d0)
+  complex(dp), public, parameter :: zzero = (0._dp, 0._dp)
   !> Complex half 
-  Complex (8), Public, Parameter :: zhalf = (0.5d0, 0.d0)
+  complex(dp), public, parameter :: zhalf = (0.5_dp, 0._dp)
   !> Complex one
-  Complex (8), Public, Parameter :: zone = (1.d0, 0.d0)
+  complex(dp), public, parameter :: zone = (1._dp, 0._dp)
   !> Complex i 
-  Complex (8), Public, Parameter :: zi = (0.d0, 1.d0)
+  complex(dp), public, parameter :: zi = (0._dp, 1._dp)
 
   ! Real initialisation constants
   !> Real zero
-  Real (dp), Public, Parameter :: real_zero = 0._dp
+  real(dp), public, parameter :: real_zero = 0._dp
   !> Real one
-  Real (dp), Public, Parameter :: real_one = 1._dp
+  real(dp), public, parameter :: real_one = 1._dp
 
     
   ! TODO(Alex). Issue #24. Replace maxatoms and maxspecies with values from input
@@ -42,17 +42,17 @@ module constants
   !> Maximum number of different species handled by Exciting. 
   !> This is likely an upper bound originally defined in a legacy version of the code
   !> which was and is used for declaring static arrays
-  Integer, Public, Parameter :: maxspecies = 8 
+  integer(i32), public, parameter :: maxspecies = 8
   !> Maximum number of atoms per species. 
   !> Upper bound for static array declaration. See mod_atoms.F90, for example 
-  Integer, Public, Parameter :: maxatoms = 200 
+  integer(i32), public, parameter :: maxatoms = 250
   !> Maximum number of linear augmented plane waves per species
   !> Easy recursive algorithms for generating spherical harmonics are stable up to ~ 50
   !> Upper bound for static array declaration. See mod_APW_LO.F90, for example 
-  Integer, Public, Parameter :: maxlapw = 50 
+  integer(i32), public, parameter :: maxlapw = 50 
 
   !> Kronecker delta matrix 
-  Integer, Public, Parameter :: krondelta (3, 3) = &
+  integer(i32), public, parameter :: krondelta (3, 3) = &
       reshape ( (/ 1, 0, 0, & 
                    0, 1, 0, &
                    0, 0, 1  /), (/ 3, 3 /))
@@ -82,18 +82,18 @@ module constants
     
   !> Pauli spin matrices
   ! Note, no nice constructor for 3D arrays 
-  complex(8), public :: sigmat (2, 2, 3)
-  data sigmat / (0.d0, 0.d0), (1.d0, 0.d0), (1.d0, 0.d0), (0.d0, &
-  & 0.d0), (0.d0, 0.d0), (0.d0, 1.d0), (0.d0,-1.d0), (0.d0, 0.d0), &
-  & (1.d0, 0.d0), (0.d0, 0.d0), (0.d0, 0.d0), (-1.d0, 0.d0) /   
+  complex(dp), public :: sigmat (2, 2, 3)
+  data sigmat / (0._dp, 0._dp), (1._dp, 0._dp), (1._dp, 0._dp), (0._dp, &
+  & 0._dp), (0._dp, 0._dp), (0._dp, 1._dp), (0._dp,-1._dp), (0._dp, 0._dp), &
+  & (1._dp, 0._dp), (0._dp, 0._dp), (0._dp, 0._dp), (-1._dp, 0._dp) /   
 
   ! TODO(Alex) This should be moved. Should be with other spherical harmonics  
   !> spherical harmonic for l=m=0. 
-  real(8), public, parameter :: y00 = 0.28209479177387814347d0  
+  real(dp), public, parameter :: y00 = 0.28209479177387814347_dp  
 
   ! TODO(Alex) This should be moved. Not initialised with values and not parameter, hence not a constant 
   !> array of i**l values
-  complex(8), public, allocatable :: zil (:)
+  complex(dp), public, allocatable :: zil (:)
 
   !> Set of lower case alphabetic strings.
   character(*), public, parameter :: lower_case_alphabet_set = 'abcdefghijklmnopqrstuvwxyz'

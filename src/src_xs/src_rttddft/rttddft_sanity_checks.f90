@@ -1,17 +1,19 @@
 !> This module handles checks of the user-provided input for the RT module. The calculations are 
 !> terminated, if the input is inconsistent or incompatible with the current version of the code.
 module rttddft_sanity_checks
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: real_zero
   use exciting_mpi, only: xmpi_allgatherv
   use general_find_vbm_cbm, only: find_vbm_cbm
+  use math_utils, only: all_zero
   use mod_mpi_env, only: mpiinfo
-  use modinput, only: input_type
+  use modinput, only: input_type, isspinspiral
   use modmpi, only: terminate, terminate_if_false
   use physical_constants, only: c
   use precision, only: dp, i32, sp
   use rttddft_electric_field, only: Electric_Field
   use rttddft_VectorPotential, only: Vector_Potential
+  use rttddft_Wavefunction, only: wavefunction_set
   use rttddft_Wavefunction, only: wavefunction_set
   use to_char_conversion, only: to_char
   use vector_multiplication, only: norm
@@ -40,15 +42,39 @@ contains
     type(input_type), intent(in) :: inp
 
     integer(i32) :: i
-    character(len=*), parameter :: procedure_name = "check_rttddft_input"
-    character(len=*), parameter :: warning_header = "Warning(" // procedure_name // "): "
     
     call terminate_if_false( .not. inp%groundstate%solver%packedmatrixstorage, &
       & 'RT-TDDFT does not work with matrices stored in a packed form.' )
 
-    ! Consistency check: check if no spin polarized calculations are requested.
-    call terminate_if_false( .not. inp%groundstate%tevecsv, &
-      & 'Only spin unpolarised calculations are possible with RT-TDDFT now.' )
+    ! Consistency check for spin-polarized calculations
+    if( inp%groundstate%tevecsv .or. associated( inp%groundstate%spin ) ) then
+      call terminate_if_false( trim( inp%xs%realTimeTDDFT%fieldCoupling ) == "velocityGauge", &
+        "Only velocity gauge is currently available for spin-polarised calculations." )
+      call terminate_if_false( trim( inp%xs%realTimeTDDFT%basis ) == "unperturbedKS", &
+        "Only unperturbedKS is currently available for spin-polarised calculations." )
+      if( isspinspiral() ) call terminate( "RT-TDDFT not implemented for spin-spiral calculations." )
+      call terminate_if_false( inp%xs%realTimeTDDFT%numberOfFrozenStates == 0, &
+        "No state freezing currently possible for spin-polarised calculations." )
+      call terminate_if_false( inp%groundstate%spin%realspace, &
+        "RT-TDDFT only implemented for realspace spin-polarised calculations." )
+      call terminate_if_false( all_zero( inp%groundstate%spin%bfieldc ), &
+        "RT-TDDFT only implemented when bfieldc is zero." )
+      call terminate_if_false( associated(inp%xs%realTimeTDDFT%spinPropagation), &
+        "spin Propagation must be present for spin-polarized calculations." )
+      ! all checks for SOC
+      if( inp%xs%realTimeTDDFT%spinPropagation%SOCGaugeCorrections ) &
+        call terminate( "SOC gauge corrections not yet implemented." )
+      if( associated( inp%groundstate%spin ) ) then
+        if( inp%groundstate%spin%spinorb ) then 
+          if( .not. inp%xs%realTimeTDDFT%spinPropagation%updateSOC ) then
+            call warn( "updateSOC=false may lead to inaccurate results." )
+          else
+            if( .not. inp%xs%realTimeTDDFT%spinPropagation%SOCGaugeCorrections ) &
+              call warn( "SOCgaugeCorrections=false may lead to unphysical results, as it breaks gauge invariance." )
+          end if
+        end if
+      end if
+    end if
     ! iora*
     if( trim(inp%groundstate%ValenceRelativity) == "iora*" ) call terminate( &
       & 'RT-TDDFT not implemented for ValenceRelativity="iora*"'   )
@@ -75,7 +101,6 @@ contains
       call terminate_if_false( trim( inp%xs%realTimeTDDFT%laser%fieldType ) == "total", &
         "Berry-phase coupling is currently available only with total field given" )
     else
-      call terminate_if_false( inp%xs%scissor < eps_scissor, "Scissor correction is not implemented for velocity gauge field coupling" )
       call terminate_if_false( associated( inp%xs%realTimeTDDFT%pmat ), &
       & 'Element <pmat> in <realTimeTDDFT> not found' )
     end if
@@ -105,16 +130,27 @@ contains
       associate( kick_array => inp%xs%realTimeTDDFT%laser%kickarray )
         do i = 1, size( kick_array )
           if ( abs( kick_array(i)%kick%width ) < eps_kick_width ) &
-            call warning( warning_header // 'electric field is ill-defined at time ' // &
-            to_char( real( kick_array(i)%kick%t0, sp) ) // ' for the kick number ' // to_char( i ) )
+            call warn( 'electric field is ill-defined at time ' // &
+              to_char( real( kick_array(i)%kick%t0, sp) ) // ' for the kick number ' // to_char( i ) )
         end do
       end associate
     end if
 
     if ( inp%xs%realTimeTDDFT%numberOfFrozenStates > 0 .and. trim( inp%xs%realTimeTDDFT%fieldCoupling ) == "velocityGauge"  ) then
-      if ( .not. inp%xs%realTimeTDDFT%subtractJ0 ) call warning( warning_header // &
-        'it is recommended to set subtractJ0="true" with velocity gauge if frozen states are present.'  )
+      if ( .not. inp%xs%realTimeTDDFT%orthogonalizeAgainstFrozen ) call warn( &
+        'It is strongly recommended to set orthogonalizeAgainstFrozen="true" with velocity gauge if frozen states are present.' )
+      if ( .not. inp%xs%realTimeTDDFT%subtractJ0 ) call warn( &
+        'It is recommended to set subtractJ0="true" with velocity gauge if frozen states are present.'  )
     end if
+
+    contains
+      subroutine warn( message )
+        character(len=*), intent(in) :: message
+        character(len=*), parameter :: procedure_name = "check_rttddft_input"
+        character(len=*), parameter :: warning_header = "Warning(" // procedure_name // "): "
+
+        call wrapper( warning_header, message )
+      end subroutine
 
   end subroutine
 
@@ -122,7 +158,7 @@ contains
   subroutine check_rttddft_setup( mpi_env, time_step, initial_ks_energies, use_berry_phase, &
     vec_pot, t_start, t_end, lattice_vectors, psi, scissor )
     !> MPI environment
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Time evolution step
     real(dp), intent(in) :: time_step
     !> Initial KS energies array (n_ks_states, n_kpt_current_rank)
@@ -147,8 +183,6 @@ contains
       e_field_max_magnitude
     type(Electric_Field) :: e_aux
     integer(i32) :: i, j
-    character(len=*), parameter :: procedure_name = "check_rttddft_setup"
-    character(len=*), parameter :: warning_header = "Warning(" // procedure_name // "): "
 
     call get_energy_gap( mpi_env, initial_ks_energies, psi%occupations, energy_gap )
     if ( scissor > eps_scissor ) call terminate_if_false( energy_gap > eps_energy_gap, &
@@ -169,8 +203,7 @@ contains
       end do
     end do
 
-    if ( all( e_field_max_lattice < eps_e_field ) ) call warning( warning_header // &
-      "external field amplitude is zero." )
+    if ( all( e_field_max_lattice < eps_e_field ) ) call warn( "external field amplitude is zero." )
 
     if ( use_berry_phase ) then
       call terminate_if_false( energy_gap > eps_energy_gap, " &
@@ -182,7 +215,7 @@ contains
 
         e_field_critical(i) = energy_gap / ( real( psi%kset%ngridk(i), dp ) * &
           sqrt( dot_product( lattice_vectors(:, i), lattice_vectors(:, i) ) ) )
-        if ( e_field_max_lattice(i) > e_field_critical(i) ) call warning( warning_header // &
+        if ( e_field_max_lattice(i) > e_field_critical(i) ) call warn( &
           'field strength ' // to_char( real( e_field_max_lattice(i), sp) ) // ' in lattice direction ' &
           // to_char(i) // ' exceeds the estimated largest reasonable value of ' &
           // to_char( real( e_field_critical(i), sp) ) // ', see Zener &
@@ -190,22 +223,30 @@ contains
       end do
     end if
     
-    if ( e_field_max_magnitude > e_field_extremely_high ) call warning( warning_header //  &
+    if ( e_field_max_magnitude > e_field_extremely_high ) call warn( &
       'field strength magnitude corresponds to extremely high laser intensity of ' &
       // to_char( real( e_field_squared_au_to_intensity_wcm2 * e_field_max_magnitude**2, sp) ) // ' W/cm^2.' )
 
     t_step_critical = t_step_scale / &
     ( maxval( initial_ks_energies ) - minval( initial_ks_energies ) )
-    if ( time_step > t_step_critical ) call warning( warning_header // &
+    if ( time_step > t_step_critical ) call warn( &
       'time step ' // to_char( real( time_step, sp ) ) // ' exceeds the roughly-estimated &
       largest reasonable value of ' // to_char( real( t_step_critical, sp) ) // '.' )
 
+    contains
+      subroutine warn( message )
+        character(len=*), intent(in) :: message
+        character(len=*), parameter :: procedure_name = "check_rttddft_setup"
+        character(len=*), parameter :: warning_header = "Warning(" // procedure_name // "): "
+
+        call wrapper( warning_header, message )
+      end subroutine
   end subroutine
 
   !> (private) Get the energy gap using the KS energies and occupations array
   subroutine get_energy_gap( mpi_env, ks_energies, occupations, energy_gap )
     !> MPI environment
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Initial KS energies array (n_ks_states, n_kpt_this_proc)
     real(dp), contiguous, intent(in) :: ks_energies(:, :)
     !> State occupations array (n_ks_states, n_kpt_this_proc)
@@ -216,8 +257,7 @@ contains
     real(dp), allocatable :: cb_min_all_ranks(:), vb_max_all_ranks(:)
     integer(i32) :: vbm_band_ind, cbm_band_ind, vbm_kpt_ind, cbm_kpt_ind, gap_min_kpt_ind
     
-    call assert( all( shape( ks_energies ) == shape( occupations ) ), "Incompatible energies &
-      and occupations arrays provided to get_energy_gap." )
+    CALL_ASSERT( all( shape( ks_energies ) == shape( occupations ) ), "Incompatible energies  and occupations arrays provided to get_energy_gap." )
     
     call find_vbm_cbm( 1, size( ks_energies, 1 ), size( ks_energies, 2 ), occupations, &
       ks_energies, vbm_band_ind, cbm_band_ind, vbm_kpt_ind, cbm_kpt_ind, gap_min_kpt_ind )
@@ -231,4 +271,11 @@ contains
     energy_gap = max( 0._dp, minval( cb_min_all_ranks ) - maxval( vb_max_all_ranks ) )
   end subroutine
 
+  !> (private) Wrapper for calling warning
+  subroutine wrapper( warning_header, message )
+    character(len=*), intent(in) :: warning_header
+    character(len=*), intent(in) :: message
+
+    call warning( warning_header // message )
+  end subroutine
 end module

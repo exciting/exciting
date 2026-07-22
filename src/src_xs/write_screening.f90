@@ -21,7 +21,7 @@
 module write_screening
 
     use constants, only: zzero
-    use precision, only: i32, dp
+    use precision, only: i32, dp, long_int
     use modmpi, only: mpiinfo, distribute_loop, terminate_mpi_env, terminate_if_false
     use os_utils, only: join_paths
     use grid_utils, only: mesh_1d
@@ -89,7 +89,7 @@ contains
         !> Path in the HDF5 file to write in.
         character(*), intent(in) :: h5path
         !> MPI environment.
-        type(mpiinfo), intent(inout) :: mpi_env
+        type(mpiinfo), intent(in) :: mpi_env
 
         !> Defines if DM or screened Coulomb interaction should be written
         character(*), intent(in) :: task
@@ -208,7 +208,7 @@ contains
         !> Body of reduced DM for reduced q-vectors
         complex(dp), intent(in) :: eps_body(:, :, :)
         !> MPI environment.
-        type(mpiinfo), intent(inout) :: mpi_env
+        type(mpiinfo), intent(in) :: mpi_env
 
         !> Running index reduced q-vectors
         integer(i32) :: iq
@@ -360,7 +360,7 @@ contains
         !> Path in the HDF5 file to write in.
         character(*), intent(in) :: h5path
         !> MPI environment.
-        type(mpiinfo), intent(inout) :: mpi_env
+        type(mpiinfo), intent(in) :: mpi_env
 
         !> Running index reduced q-vectors
         integer(i32) :: iq
@@ -377,7 +377,7 @@ contains
         !> Map between (G+q)-vectors of reduced and non-reduced q-grid
         integer(i32), allocatable :: igqmap(:)
         !> Phasefactors for dielectric matrixls 
-        complex(8), allocatable :: phasefactors(:, :)
+        complex(dp), allocatable :: phasefactors(:, :)
         !> Checks if non-trivial phase appears at least for one (G,Gp) component
         logical :: tphf
         !> Screened Coulomb interaction (W_GG'(q)) for all reduced q-vectors
@@ -407,9 +407,10 @@ contains
         ! HDF5 variables
         character(:), allocatable :: group
 
-        integer :: first, last 
-        integer, allocatable :: q_list(:)
+        integer(i32) :: first, last 
+        integer(i32), allocatable :: q_list(:)
         type(xhdf5_type) :: h5
+        integer(long_int) :: large_gather_size
 
         call abort_if_not_hdf5(mpi_env, 'Error(write_screened_coulomb_interaction): exciting is not linked to HDF5. Thus, this task has no effect.')
 
@@ -429,7 +430,8 @@ contains
         end do
 
         ! Communicate array-parts wrt. reduced q-grid
-        call xmpi_allgatherv( mpiglobal, w, g_q%ngkmax**2 * (last - first + 1) )
+        large_gather_size = int( g_q%ngkmax, kind = long_int) * g_q%ngkmax * (last - first + 1)
+        call xmpi_allgatherv( mpiglobal, w, large_gather_size )
 
         ! Find results for finite non-reduced q-vectors
         
@@ -485,7 +487,7 @@ contains
     !> Read the screened coulomb interaction from an hdf5 file.
     subroutine read_screened_coulomb_hdf5(mpi_env, h5file, h5path, w, q, G_plus_q, n_G_per_q, ngridq)
         !> MPI environment
-        type(mpiinfo), intent(inout) :: mpi_env
+        type(mpiinfo), intent(in) :: mpi_env
         !> Name of the HDF5 file
         type(xhdf5_type), intent(inout) :: h5file
         !> Name of the group in the HDF5 file
@@ -584,7 +586,7 @@ contains
         !> Body of dielectric matrix at all q-vectors
         complex(dp), allocatable, intent(out)  :: eps_body(:, :, :)
         !> MPI environment.
-        type(mpiinfo), intent(inout) :: mpi_env
+        type(mpiinfo), intent(in) :: mpi_env
 
         !> Number of q-vectors
         integer(i32) :: n_qvecs

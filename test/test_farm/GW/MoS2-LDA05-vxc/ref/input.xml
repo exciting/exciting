@@ -1,0 +1,72 @@
+<input>
+ 
+  <title>MoS2</title>
+ 
+  <structure speciespath="./" cartesian="true">
+    <crystal>
+      <basevect>   0.00000000         6.020289060       0.00000000</basevect>
+      <basevect>   5.213723260        3.010144530       0.00000000</basevect>
+      <basevect>   0.00000000         0.00000000       20.00000000</basevect>
+    </crystal>
+    <species speciesfile="Mo.xml" rmt="2.3000">
+      <atom coord="0.0000000000      0.0000000000      0.0000000000"/>
+      <dfthalfparam>
+        <shell cut="2.5" ampl="1.00" exponent="8" number="-1" ionization="0.5" />
+      </dfthalfparam>
+    </species>
+    <species speciesfile="S.xml" rmt="2.0500">
+      <atom coord="3.4758155100      6.0202890600      2.9529984232"/>
+      <atom coord="3.4758155100      6.0202890600     -2.9529984232"/>
+      <dfthalfparam>
+        <shell cut="3.7" ampl="1.00" exponent="8" number="0" ionization="0.5" />
+      </dfthalfparam>
+    </species>
+  </structure>
+ 
+  <groundstate 
+      do="fromscratch"
+      useDensityMatrix="false"
+      xctype="LDA_PW"
+      ngridk="2 1 1"
+      epsengy="1.0d-8"
+      gmaxvr="10"
+      rgkmax="4"
+      lmaxvr="5"
+      lmaxmat="5"
+      lmaxapw="5"
+      nempty="10"
+      radialgridtype="cubic-2"
+      outputlevel="high">
+      <dfthalf />
+  </groundstate>
+
+  <gw
+      taskname="taskGroup"
+      skipgnd="false"
+      ngridq="2 1 1"
+      nempty="10"
+      qdepw="sum"
+      ibgw="1"
+      nbgw="20">
+      <taskGroup outputFormat="text">
+        <vxc>
+          <kpoints ki="2" kf="2"/>
+        </vxc>
+      </taskGroup>      
+      <mixbasis 
+          epsmb="1d-3"
+          gmb="0.8d0"
+          lmaxmb="2">
+      </mixbasis>
+      <barecoul
+          pwm="0.5d0"
+          basis="pw"
+          barcevtol="0.5d0"
+          cutofftype="2d">
+      </barecoul>
+      <freqgrid
+          nomeg="4" eta="1.d-3" fconv="imfreq" 
+          fgrid="gauleg2" freqmax="1.0d0" freqmin="0.0d0"/>
+   </gw>
+</input>
+

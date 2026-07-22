@@ -1,0 +1,14 @@
+{
+  "SGI_Q1.OUT": {
+    "OverlapMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "BARC_Q1.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }
+}

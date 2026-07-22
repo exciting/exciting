@@ -4,6 +4,7 @@ subroutine boltzequ
     use modinput
     use modmpi
     use modxs, only: symt2
+    use mod_getoccsv, only: getoccsv
     implicit none
 ! local variables
     integer :: l, a, b, ncomp, condcomp(2,9)

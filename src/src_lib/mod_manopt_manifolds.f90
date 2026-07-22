@@ -340,8 +340,8 @@ module mod_manopt_manifolds
           select type( y)
             type is( real_matrix)
 #ifdef USEOMP
-!$omp parallel default( shared) private( ik, i, rk) reduction(+:r)
-!$omp do
+!!$omp parallel default( shared) private( ik, i, rk) reduction(+:r) !found issues with this omp statement, commented out for now
+!!$omp do
 #endif
               do ik = 1, M%KX
                 rk = 0.d0
@@ -351,16 +351,16 @@ module mod_manopt_manifolds
                 r = r + rk
               end do
 #ifdef USEOMP
-!$omp end do
-!$omp end parallel
+!!$omp end do
+!!$omp end parallel
 #endif
           end select
         type is( complex_matrix)
           select type( y)
             type is( complex_matrix)
 #ifdef USEOMP
-!$omp parallel default( shared) private( ik, i, rk) reduction(+:r)
-!$omp do
+!!$omp parallel default( shared) private( ik, i, rk) reduction(+:r)
+!!$omp do
 #endif
               do ik = 1, M%KX
                 rk = 0.d0
@@ -370,8 +370,8 @@ module mod_manopt_manifolds
                 r = r + rk
               end do
 #ifdef USEOMP
-!$omp end do
-!$omp end parallel
+!!$omp end do
+!!$omp end parallel
 #endif
           end select
       end select

@@ -9,7 +9,7 @@ import yaml
 
 from excitingtools.utils.dict_utils import delete_nested_key
 
-from ..exciting_settings.constants import keys_to_remove, Defaults, RunProperties, ExcitingRunProperties, main_output
+from ..exciting_settings.constants import keys_to_remove, Defaults, RunProperties, ExcitingRunProperties, get_main_output_file_name
 from ..io.file_system import create_run_dir, copy_calculation_inputs, flatten_directory
 from ..io.parsers import read_output_file, get_compiler_type
 from ..io.yaml_configuration import Group
@@ -20,6 +20,18 @@ from ..tester.report import TestResults, SummariseTests
 from ..runner.set_tests import TestLists
 from ..runner.profile import Compiler
 from .execute import execute_job
+
+
+def get_test_main_output_file_name(method: str, output_files: List[str]) -> str:
+    """Return the file used to determine whether a test completed.
+
+    Property tests can legitimately skip the ground-state run and therefore not
+    write ``INFO.OUT``. In that case, use the first requested output file.
+    """
+    main_output = get_main_output_file_name(method)
+    if method.lower() == "properties" and main_output not in output_files:
+        return output_files[0]
+    return main_output
 
 
 def remove_untested_keys(data: dict, full_file_name: str, keys_to_remove: dict) -> dict:
@@ -117,9 +129,10 @@ def execute_and_compare_single_test(test_dir: str,
     :param just_tolerances: Tolerances without units.
     :return TestResults test_results: Test case results.
     """
-    run_success, err_mess, timing = execute_job(calculation, my_env=my_env)
+    run_success, out_mess, err_mess, timing = execute_job(calculation, my_env=my_env)
+    additional_output = calculation.get_additional_output()
 
-    test_results = TestResults(test_dir, run_success, err_mess, timing)
+    test_results = TestResults(test_dir, run_success, out_mess, err_mess, timing, additional_output)
 
     flatten_directory(calculation.run_dir)
 
@@ -172,17 +185,18 @@ def run_single_test(test_dir,
 
     exe_str = input_options['executable'] + ' ' + cmd_line_args
 
+    ref_dir = os.path.join(test_dir, settings.ref_dir)
+    run_dir = os.path.join(test_dir, settings.run_dir)
+    tolerances_without_units, output_files = get_json_tolerances(ref_dir,
+                                                                 test_properties['files_under_test'])
     # Repackage properties common to a calculation
     # One could also define a calculation instance per test case, and just pass that
     # to `execute_and_compare_single_test`
     calculation = ExcitingRunProperties(exe_str.strip(),
                                         settings.max_time,
-                                        ref_dir=os.path.join(test_dir, settings.ref_dir),
-                                        run_dir=os.path.join(test_dir, settings.run_dir),
-                                        main_output=main_output(method))
-
-    tolerances_without_units, output_files = get_json_tolerances(calculation.ref_dir,
-                                                                 test_properties['files_under_test'])
+                                        ref_dir=ref_dir,
+                                        run_dir=run_dir,
+                                        main_output=get_test_main_output_file_name(method, output_files))
     n_repeats = get_number_of_repeats(method, test_name, repeated_tests)
     create_run_dir(test_dir, settings.run_dir)
     copy_calculation_inputs(calculation.ref_dir, calculation.run_dir, test_properties['inputs'])

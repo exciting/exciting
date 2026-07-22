@@ -1,0 +1,81 @@
+<input>
+        <title>C</title>
+        <structure speciespath="./">
+                <crystal scale="6.7407">
+                        <basevect>0.0 0.5 0.5 </basevect>
+                        <basevect>0.5 0.0 0.5 </basevect>
+                        <basevect>0.5 0.5 0.0 </basevect>
+                </crystal>
+                <species speciesfile="C.xml" rmt="1.4">
+                        <atom coord="0.00 0.00 0.00"/>
+                        <atom coord="0.25 0.25 0.25"/>
+                </species>
+        </structure>
+        <groundstate 
+                rgkmax="8.0"
+                lmaxapw="10"
+                lmaxmat="10"
+                lmaxvr="10"
+                gmaxvr="15.0"
+                epschg="1d-6"
+		mixer="msec"
+		ngridk="2 2 2"
+                frozencore="false"
+                xctype="LDA_PW">
+        </groundstate>
+        <gw 
+                taskname="taskGroup"
+                ngridq="2 2 2"
+		nempty="100"
+		qdepw="sum"
+                >
+                <selfconsistency type="QSGW" eps="2.5d-4"/>
+                <taskGroup outputFormat="text">
+                        <Coulomb>
+                        <qpoints qi="1" qf="-1"/>
+                        </Coulomb>
+                        <sigmax offdiagonal="false">
+                        <kpoints ki="1" kf="-1"/>
+                        </sigmax>
+                        <epsilon usingIrreducibleWedge="true">
+                        <qpoints qi="1" qf="-1"/>
+                        </epsilon>
+                        <invertEpsilon usingIrreducibleWedge="true">
+                        <qpoints qi="1" qf="-1"/>
+                        </invertEpsilon>
+                        <irreducibleMapping>
+                        <qpoints qi="1" qf="-1"/>
+                        </irreducibleMapping>
+                        <sigmac offdiagonal="false">
+                        <kpoints ki="1" kf="-1"/>
+                        </sigmac>
+                        <optimizedVxc offdiagonal="false">
+                        <kpoints ki="1" kf="-1"/>
+                        </optimizedVxc>
+                        <vxc>
+                        <kpoints ki="1" kf="-1"/>
+                        </vxc>
+                        <QPEigenvalues>
+                        <kpoints ki="1" kf="-1"/>
+                        </QPEigenvalues>
+                        <prepareNextSelfconsistentIteration/>
+                </taskGroup>
+                <mixbasis 
+                        lmaxmb="3"
+                        epsmb="1.d-4"
+                        gmb="1.d0">
+                </mixbasis>
+                <freqgrid 
+                        nomeg="16"
+                        freqmax="1.0">
+                </freqgrid>
+                <barecoul 
+                        barcevtol="0.10"
+                ></barecoul>
+                <selfenergy 
+                        actype="pade"
+                        singularity="mpb">
+                </selfenergy>
+        </gw>
+</input>
+

@@ -5,6 +5,8 @@ or text which is used in the parser pattern-matching, will break the parser.
 A much better format for this file would be YAML.
 """
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -252,6 +254,15 @@ def test_parse_g0w0_band_structure_info(si_2_gw_info_out_mock, zro2_gw_info_out_
     assert gw_output == g0w0_ref, "Expect parsed G0W0 band structure info to match the reference for indirect gap"
 
 
+def test_parse_absent_g0w0_band_structure_info(zro2_gw_info_out_mock: MockFile) -> None:
+    """Test missing `G0W0 band structure` sections are skipped quietly."""
+    partial_gw_info = zro2_gw_info_out_mock.string.replace("G0W0 band structure", "G0W0 bs removed", 1)
+
+    output = parse_band_structure_info(partial_gw_info, "gw")
+
+    assert output == {}, "Expect absent G0W0 band structure sections to return an empty dictionary"
+
+
 def test_parse_gw_info(zro2_gw_info_out_mock):
     """Test parsing of the whole GW_INFO.OUT"""
 
@@ -335,6 +346,19 @@ def test_parse_gw_info(zro2_gw_info_out_mock):
     output["frequency_grid"].pop("frequencies_weights")
 
     assert output == ref, "Output from parse_gw_info does not agree with reference dictionary"
+
+
+def test_parse_gw_info_without_g0w0_band_structure(zro2_gw_info_out_mock: MockFile, tmp_path: Path) -> None:
+    """Test parsing partial GW_INFO.OUT files without `G0W0 band structure` sections."""
+    partial_gw_info = zro2_gw_info_out_mock.string.replace("G0W0 band structure", "G0W0 bs removed", 1)
+    file = tmp_path / _file_name
+    file.write_text(partial_gw_info)
+
+    output = parse_gw_info(file)
+
+    assert output["g0w0_band_structure_summary"] == {}, (
+        "Expect missing G0W0 band structure sections to produce an empty summary dictionary"
+    )
 
 
 def test_parse_gw_timings(zro2_gw_info_out_mock):

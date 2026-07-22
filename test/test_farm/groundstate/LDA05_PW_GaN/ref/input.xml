@@ -1,0 +1,35 @@
+<input>
+  <title>Zinc-blende GaN: LDA-1/2</title>
+  <structure speciespath="./">
+    <crystal scale="8.5038">
+      <basevect> 0.0     0.5     0.5 </basevect>
+      <basevect> 0.5     0.0     0.5 </basevect>
+      <basevect> 0.5     0.5     0.0 </basevect>
+    </crystal>
+    <species speciesfile="Ga.xml" rmt="2.0" >
+      <atom coord="0.00 0.00 0.00"/>
+      <dfthalfparam>
+        <shell number="-2" ionization="0.5" cut="1.2" ampl="1" exponent="8"/>
+      </dfthalfparam>
+    </species>
+    <species speciesfile="N.xml" rmt="1.5" >
+      <atom coord="0.25 0.25 0.25"/>
+      <dfthalfparam>
+        <shell number="0" ionization="0.5" cut="2.9" ampl="1" exponent="8"/>
+      </dfthalfparam>
+    </species>
+  </structure>
+  <groundstate
+    ngridk="6 6 6"
+    xctype="LDA_PW"
+    maxscl="40"
+    rgkmax="7"
+    gmaxvr="14"
+    epsengy="1d-6"
+    do="fromscratch"
+    outputlevel="high"
+    radialgridtype="cubic">
+    <dfthalf printVSfile="true"/>
+  </groundstate>
+
+</input>

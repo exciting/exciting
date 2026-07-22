@@ -2,13 +2,12 @@
 !> It contains the subroutine `coordinate_rttddft_calculation`, which manages
 !> a RT-TDDFT calculation.
 module rttddft_main
-  use asserts, only: assert
+
   use constants, only: zi, real_zero, zzero
   use matrix_elements, only: me_finit
   use MD, only: force, MD_input_keys, trajectory
   use MD_io, only: MD_out
   use mod_atoms, only: natmtot, natoms, nspecies, atposc, idxas
-  use mod_charge_and_moment, only: chgval
   use mod_kpointset, only: G_set, Gk_set, k_set
   use mod_lattice, only: avec, omega
   use mod_mpi_env, only: mpiinfo
@@ -41,7 +40,7 @@ module rttddft_main
     MD_evaluate_charge_val => evaluate_charge_val
   use rttddft_Overlap, only: overlap_set
   use rttddft_Polarization, only: Polarization
-  use rttddft_pmat, only: obtain_pmat_LAPWLOBasis
+  use rttddft_pmat, only: pmat_set
   use rttddft_potential, only: update_potential
   use rttddft_sanity_checks, only: check_rttddft_input, check_rttddft_setup
   use rttddft_screenshot, only: screenshot
@@ -78,15 +77,12 @@ contains
     complex(dp), allocatable :: berry_coupling_term(:, :, :)
     type(overlap_set) :: overlap
     type(hamiltonian_set) :: H
+    type(pmat_set) :: pmat
     ! Matching coefficients of the (L)APWs: (ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt)
     complex(dp), allocatable :: apwalm(:, :, :, :, :)
-    ! Momentum matrix elements 
-    complex(dp), allocatable :: pmat(:, :, :, :), pmatmt(:, :, :, :, :)
     ! Electron density (lmmaxvr, nrmtmax, natmtot) and (ngrtot)
     real(dp), allocatable :: rhomt_frozen(:, :, :), rhomt_init(:, :, :), &
       rhoir_frozen(:), rhoir_init(:)
-    ! KS-LAPW+lo transition matrix (nmatmax, nstfv, first_kpt : last_kpt)
-    complex(dp), allocatable :: ks_lapwlo_transition_matrix(:, :, :)
     ! Planewave matrix elements between neighbouring k points
     complex(dp), allocatable :: pws_for_berry_phase(:, :, :, :, :)
     ! Indices of the neighbouring k points
@@ -114,7 +110,7 @@ contains
     type(G_set) :: Gset
     complex(dp), allocatable :: td_overlap_det(:, :)
 
-    real(dp) :: time, timei, timef, time_aux, timeiter, dt, tol
+    real(dp) :: active_charge, time, timei, timef, time_aux, timeiter, dt, tol
     real(dp), allocatable :: n_exc(:), n_gs(:), prev_phases(:, :)
     real(dp), parameter :: tol_default = 1e-10_dp
     type(MD_out) :: MD_outputs
@@ -173,9 +169,10 @@ contains
     end if
     
     call initialize_rttddft( rt, propagator, vec_pot, a_tot_save, molecular_dynamics, &
-      psi, overlap, H, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, &
-      Gkset, Gset, ks_lapwlo_transition_matrix, pws_for_berry_phase, k_ptrs, &
-      td_overlap_det, berry_coupling_term, prev_phases, e_field, e_field_save, j_para_spurious, p_vec_init )
+      psi, overlap, H, pmat, apwalm, rhomt_frozen, rhoir_frozen, &
+      Gkset, Gset, pws_for_berry_phase, k_ptrs, &
+      td_overlap_det, berry_coupling_term, prev_phases, e_field, e_field_save, j_para_spurious, p_vec_init, active_charge )
+    
     call check_rttddft_setup( mpi_env_k, propagator%time_step(), H%initial_eigenvalues, rt%use_berry_phase(), &
       vec_pot, time, rt%t_end, avec, psi, rt%scissor_shift )
     
@@ -192,12 +189,12 @@ contains
         call update_exciting_globals_for_new_ions_positions( first_kpt, apwalm )
         call initialize_me( Gset )
         if( molecular_dynamics%update_overlap .or. molecular_dynamics%update_pmat ) then
-          if( molecular_dynamics%update_pmat ) &
-            call obtain_pmat_LAPWLOBasis( first_kpt, rt%pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
+          if( molecular_dynamics%update_pmat ) call pmat%calculate(first_kpt, apwalm)
           if( molecular_dynamics%update_overlap ) call overlap%calculate( apwalm, Gkset, &
-            p_MT=pmatmt, a_tot=vec_pot%a_tot, mathcalH=H%mathcalH, mathcalB=mathcalB )
+            p_MT=pmat%MT, a_tot=vec_pot%a_tot, mathcalH=H%mathcalH, mathcalB=mathcalB )
           if( propagator%extrapolation_needed() ) call H%copy_H_t()
-          call H%calculate( lmax_potential, apwalm, Gkset, a_tot=vec_pot%a_tot, obtain_mathcalH=.true. )
+          call H%calculate( lmax_potential, apwalm, Gkset, &
+            psi%groundstate_lapwlo, a_tot=vec_pot%a_tot, obtain_mathcalH=.true. )
           call H%add_external_coupling( vec_pot%a_tot, overlap, pmat )
         end if
       end if
@@ -206,7 +203,7 @@ contains
     call j_ind%set_spurious( j_para_spurious )
     if( rt%restart_previous_calculation() .and. rt%use_velocity_gauge() ) then
       call j_ind%evaluate_paramagnetic( psi, pmat, mpi_env_k )
-      call j_ind%evaluate_diamagnetic( chgval/Omega, vec_pot%a_tot )
+      call j_ind%evaluate_diamagnetic( active_charge / Omega, vec_pot%a_tot )
     end if
 
     ! Allocate variables to be stored and printed only after rt_input%n_print steps
@@ -235,7 +232,7 @@ contains
     ! Total energy
     if ( rt%calculate_total_energy .and. rt%do_from_scratch() ) then
       if ( psi%has_frozen() ) call update_density( psi, 0, &
-        .false., rt%l_rad_step, rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix )
+        .false., rt%l_rad_step, rhomt_frozen, rhoir_frozen )
       call potcoul()
       call potxc()
       call etotstore(1)%calculate( H, psi, mpi_env_k )
@@ -251,7 +248,7 @@ contains
     if ( rt%screenshots%on ) then
       if ( rt%screenshots%density%on ) then
         call update_density( psi, 0, rt%normalize_WF, rt%l_rad_step, &
-          rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix, dens_case = ground_state )
+          rhomt_frozen, rhoir_frozen, dens_case = ground_state )
         rhomt_init = rhomt
         rhoir_init = rhoir
       end if
@@ -294,6 +291,7 @@ contains
       end if
       call propagator%evolve( list_of_H_minus_dt=H%H_t_minus_dt%array, list_of_H_0=H%H_t%array, &
         list_of_S=overlap%array, psi=psi%active, dims=H%dims )
+      if ( rt%orthogonalize_against_frozen ) call psi%orthogonalize_against_frozen( overlap )
       if ( rt%normalize_WF ) call psi%normalize( overlap )
       if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%wavefunction )
 
@@ -317,7 +315,7 @@ contains
 
       ! DENSITY
       if ( density_needed ) call update_density( psi, it, rt%normalize_WF, &
-        rt%l_rad_step, rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix, rt%printTimings, timing%t_RTTDDFT%dens )
+        rt%l_rad_step, rhomt_frozen, rhoir_frozen, rt%printTimings, timing%t_RTTDDFT%dens )
       
       ! KS-POTENTIAL
       if ( .not. rt%eeInteraction%use_ipa() ) call update_potential( rt%printTimings, timing%t_RTTDDFT%pot, rt%eeInteraction%coulomb_only() )
@@ -330,7 +328,7 @@ contains
       end if
       a_tot_save = vec_pot%a_tot
       
-      call update_a_ind_and_p_vec( time, dt, j_ind_save, j_ind%paramagnetic, vec_pot, p_vec_prev )
+      call update_a_ind_and_p_vec( time, dt, j_ind_save, j_ind%paramagnetic, vec_pot, p_vec_prev, active_charge )
       if ( rt%use_velocity_gauge() ) p_vec = p_vec_prev
       call vec_pot%evaluate_a_tot( time )
       if( molecular_dynamics%on ) then
@@ -343,13 +341,13 @@ contains
 
       if( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%vector_potential )
 
-      if ( rt%use_velocity_gauge() ) call j_ind%evaluate_diamagnetic( chgval/Omega, vec_pot%a_tot )
+      if ( rt%use_velocity_gauge() ) call j_ind%evaluate_diamagnetic( active_charge / Omega, vec_pot%a_tot )
       if ( rt%predictor_corrector%on .and. ( .not. vec_pot%is_solver_euler() ) ) j_ind_save = j_ind
 
       ! HAMILTONIAN
       if( propagator%extrapolation_needed() ) call H%copy_H_t()
-      call H%calculate( lmax_potential, apwalm, Gkset, ks_lapwlo_transition_matrix, &
-        rt%printTimings, timing%t_RTTDDFT%ham )
+      call H%calculate( lmax_potential, apwalm, Gkset, psi%groundstate_lapwlo, &
+        psi%groundstate_second_variation, rt%printTimings, timing%t_RTTDDFT%ham )
       if ( rt%use_velocity_gauge() ) then
         call H%add_external_coupling( vec_pot%a_tot, overlap, pmat )
       else
@@ -360,10 +358,9 @@ contains
         if ( rt%printTimings%general() ) call timesec( timei )
         call loop_predictor_corrector( it, time, rt, first_kpt, psi, overlap, &
           H, apwalm, pmat, a_ind_save, a_tot_save, p_vec_save, j_ind_save, &
-          j_para_spurious, propagator, vec_pot, p_vec, j_ind, mpi_env_k, &
+          propagator, vec_pot, p_vec, j_ind, mpi_env_k, &
           pred_corr_reached_max_steps, lmax_potential, Gkset, pws_for_berry_phase, &
-          k_ptrs, td_overlap_det, berry_coupling_term, ks_lapwlo_transition_matrix, &
-          rhomt_frozen, rhoir_frozen )
+          k_ptrs, td_overlap_det, berry_coupling_term, rhomt_frozen, rhoir_frozen, active_charge )
         if ( pred_corr_reached_max_steps .and. my_rank_writes_to_output ) &
           call warning( 'Problems with convergence (PredCorr), time: ' //  to_char(time) )
         if ( rt%printTimings%general() ) call timesec_RTTDDFT( timei, timing%t_RTTDDFT%pred_corr )
@@ -399,14 +396,14 @@ contains
           if( molecular_dynamics%update_overlap .or. molecular_dynamics%update_pmat ) then
               if( molecular_dynamics%update_pmat ) then
                 if( rt%printTimings%detailed() ) call timesec( time_aux )
-                call obtain_pmat_LAPWLOBasis( first_kpt, rt%pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
+                call pmat%calculate( first_kpt, apwalm )
                 if( rt%printTimings%detailed() ) call timesec_RTTDDFT( time_aux, timing%t_Ehrenfest%pmat )
               end if
             if( propagator%extrapolation_needed() ) call H%copy_H_t()
             call initialize_me( Gset )
-            if ( molecular_dynamics%update_overlap ) call overlap%calculate( apwalm, Gkset, pmatmt, vec_pot%a_tot, &
+            if ( molecular_dynamics%update_overlap ) call overlap%calculate( apwalm, Gkset, pmat%MT, vec_pot%a_tot, &
               timing%t_Ehrenfest%overlap, mathcalH=H%mathcalH, mathcalB=mathcalB )
-            call H%calculate( lmax_potential, apwalm, Gkset, printTimings=rt%printTimings, &
+            call H%calculate( lmax_potential, apwalm, Gkset, psi%groundstate_lapwlo, printTimings=rt%printTimings, &
               t_ham=timing%t_RTTDDFT%ham, a_tot=vec_pot%a_tot, obtain_mathcalH=.true., t_MD=timing%t_Ehrenfest )
             call H%add_external_coupling( vec_pot%a_tot, overlap, pmat )
           end if
@@ -592,10 +589,10 @@ contains
   
   !> Loop used in the predictor-corrector method
   subroutine loop_predictor_corrector( it, time, rt, first_kpt, psi, overlap, H, apwalm, pmat, &
-    a_ind_t_minus_dt, a_tot_t_minus_dt, p_vec_t_minus_dt, j_t_minus_dt, j_para_spurious,&
+    a_ind_t_minus_dt, a_tot_t_minus_dt, p_vec_t_minus_dt, j_t_minus_dt, &
     propagator, a_t, p_vec, j_t, mpi_env, max_steps_reached, lmax_potential, Gkset, &
-    pws_for_berry_phase, k_ptrs, td_overlap_det, berry_coupling_term, ks_lapwlo_transition_matrix, &
-    rhomt_frozen, rhoir_frozen )
+    pws_for_berry_phase, k_ptrs, td_overlap_det, berry_coupling_term, &
+    rhomt_frozen, rhoir_frozen, active_charge )
     !> current iteration number in the RT-TDDFT loop
     integer(i32), intent(in) :: it
     !> time \( t \)
@@ -612,8 +609,8 @@ contains
     class(hamiltonian_set), intent(inout) :: H
     !> Matching coefficients of the (L)APWs
     complex(dp), contiguous, intent(in) :: apwalm(:, :, :, :, :)
-    !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
-    complex(dp), contiguous, intent(inout) :: pmat(:, :, :, :)
+    !> Momentum matrix elements
+    class(pmat_set), intent(in) :: pmat
     !> `a_ind` at time \( t-\Delta t\) 
     class(Vector_Potential_Field), intent(in) :: a_ind_t_minus_dt
     !> `a_tot` at time \( t-\Delta t\) 
@@ -622,8 +619,6 @@ contains
     type(Polarization), intent(in) :: p_vec_t_minus_dt
     !> Current density at time \( t-\Delta t\) 
     class(Current_Density), intent(in) :: j_t_minus_dt
-    !> Spurious paramagnetic current density (obtained at \(t=0\))
-    class(Current_Density_Field), intent(in) :: j_para_spurious
     !> Propagator
     class(propagator_type), intent(in) :: propagator
     !> Structure with the vector potential
@@ -648,12 +643,12 @@ contains
     complex(dp), contiguous, intent(out) :: td_overlap_det(:, :)
     !> Field coupling with the external field constructed with dynamical Berry phase approach
     complex(dp), contiguous, intent(out) :: berry_coupling_term(:, :, :)
-    ! KS-LAPW+lo transition matrix (nmatmax, nstfv, first_kpt : last_kpt)
-    complex(dp), contiguous, optional, intent(in) :: ks_lapwlo_transition_matrix(:, :, :)
     !> Frozen part of the muffin-tin density (lmmaxvr, nrmtmax, natmtot)
     real(dp), contiguous, optional, intent(in) :: rhomt_frozen(:, :, :)
     !> Frozen part of the IR density (ngrtot)
     real(dp), contiguous, optional, intent(in) :: rhoir_frozen(:)
+    !> Total charge of active electrons
+    real(dp), intent(in) :: active_charge
 
     integer(i32) :: i, last_kpt
     real(dp) :: err, dt
@@ -683,7 +678,7 @@ contains
 
       ! DENSITY
       call update_density( psi, it, rt%normalize_WF, rt%l_rad_step, &
-        rhomt_frozen, rhoir_frozen, ks_lapwlo_transition_matrix )
+        rhomt_frozen, rhoir_frozen )
       ! KS-POTENTIAL
       call update_potential( coulomb_only = rt%eeInteraction%coulomb_only() )
 
@@ -693,18 +688,18 @@ contains
         if( a_t%is_external_field_given() ) then
           call a_t%set_a_tot_a_ind( a_tot_t_minus_dt, a_ind_t_minus_dt )
           p_vec = p_vec_t_minus_dt
-          call update_a_ind_and_p_vec( time, dt, j_t_minus_dt, j_t%paramagnetic, a_t, p_vec )
+          call update_a_ind_and_p_vec( time, dt, j_t_minus_dt, j_t%paramagnetic, a_t, p_vec, active_charge )
           call a_t%evaluate_a_tot( time )
         end if
 
         ! INDUCED CURRENT
         ! Update the paramagnetic component of the induced current density
-        call j_t%evaluate_diamagnetic( chgval/Omega, a_t%a_tot )
+        call j_t%evaluate_diamagnetic( active_charge / Omega, a_t%a_tot )
       end if
 
       ! HAMILTONIAN
       ham_predcorr = H%H_t%array
-      call H%calculate( lmax_potential, apwalm, Gkset, ks_lapwlo_transition_matrix )
+      call H%calculate( lmax_potential, apwalm, Gkset, psi%groundstate_lapwlo )
       if ( rt%use_velocity_gauge() ) then
         call H%add_external_coupling( a_t%a_tot, overlap, pmat )
       else

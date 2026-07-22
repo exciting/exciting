@@ -218,15 +218,13 @@ subroutine macro_polarization( pol, mode)
 
   contains
     subroutine put( pol)
-      use m_getunit
       use mod_misc, only: filext
       real(8), intent( in) :: pol(3,3)
       
       integer :: un
 
       if( mpiglobal%rank == 0) then
-        call getunit( un)
-        open( un, file='POLARIZATION'//trim( filext), action='write', form='formatted')
+        open( newunit=un, file='POLARIZATION'//trim( filext), action='write', form='formatted')
         write( un, '("# macroscopic polarization in cartesian directions")')
         write( un, '("# the results are the shortest possible vectors obtained by subtracting multiple polarization quanta")')
         write( un, '("# total polarization")')
@@ -243,7 +241,6 @@ subroutine macro_polarization( pol, mode)
     end subroutine
 
     subroutine get( pol)
-      use m_getunit
       use mod_misc, only: filext
       real(8), intent( out) :: pol(3,3)
       
@@ -261,8 +258,7 @@ subroutine macro_polarization( pol, mode)
         end if
         call terminate
       end if
-      call getunit( un)
-      open( un, file=trim( fname), status='old', form='formatted')
+      open( newunit=un, file=trim( fname), status='old', form='formatted')
       l = 0
       do
         read( un, '(a)', iostat=i) buf

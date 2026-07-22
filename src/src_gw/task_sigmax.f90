@@ -1,7 +1,8 @@
 !> Module for the task sigmax
 module task_sigmax
-  use asserts, only: assert 
+#include "asserts.fpp"
   use constants, only: zzero
+  use calculate_exchange_self_energy, only: calcselfx
   use exciting_mpi, only: mpiinfo, xmpi_gather
   use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage, write_to_gwinfo_parallelization_info, &
     write_to_gwinfo_progress_bar, write_to_gwinfo_table_with_index_map, &
@@ -17,6 +18,8 @@ module task_sigmax
     mpi_sum_array, pack_parallelization_indexes, unpack_parallelization_indexes
   use mod_product_basis, only: read_sgi_from_file, mpwipw
   use mod_selfenergy, only: selfex, write_selfex_single_kpoint
+  use mod_offdiagonal_selfenergy, only: init_offdiagonal_selfenergy_exchange, delete_offdiagonal_selfenergy, &
+                                        mpi_reduce_offdiagonal_selfenergy_exchange, write_offdiagonal_selfenergy_exchange
   use precision, only: dp, i32
   use to_char_conversion, only: to_char
 #include "offload.fpp"
@@ -34,6 +37,9 @@ module task_sigmax
     type(kpoints_sets) :: k_points
     !> Number of MPI Domains to split over k-points
     integer(i32) :: n_MPI_Domains_kpoints
+    !> Flag determining if the offdiagonal terms of the exchange
+    !> self-energy are computed
+    logical :: offdiagonal
   contains
     procedure :: parse_input, sanity_checks
   end type
@@ -51,6 +57,7 @@ subroutine parse_input( this, gw_inp, n_kpt )
   call this%sanity_checks( gw_inp )
   call this%k_points%parse_input( gw_inp%taskGroup%sigmax%kpointsarray, n_kpt )
   this%n_MPI_Domains_kpoints = gw_inp%taskGroup%sigmax%MPIDomainsKpoints
+  this%offdiagonal = gw_inp%taskGroup%sigmax%offdiagonal 
 
 end subroutine
 
@@ -62,6 +69,8 @@ subroutine sanity_checks( this, gw_inp )
 
   call terminate_if_false( associated(gw_inp%taskGroup%sigmax), &
     'Element sigmax must be present when executing '//'"'//task_name//'"' )
+  call terminate_if_false(gw_inp%taskGroup%sigmax%MPIDomainsKpoints > 0, &
+    'MPIDomainsKpoints must be positive when executing "' // task_name // '"')
 
 end subroutine
 
@@ -87,7 +96,7 @@ subroutine execute_task_sigmax( first_band, last_band, n_kpoints_max, qpoints, f
   type(mpi_domain) :: mpi_kpoints
   type(indexes_parallelization) :: q_points
 
-  call assert( size( qpoints, 1 ) == 3, 'qpoints must have size 3 along 1st dimension' )
+  CALL_ASSERT( size( qpoints, 1 ) == 3, 'qpoints must have size 3 along 1st dimension' )
   
   rank_to_write = mpiglobal%root
   myrank_writes_GWINFO = ( mpiglobal%rank == rank_to_write )
@@ -116,6 +125,8 @@ subroutine execute_task_sigmax( first_band, last_band, n_kpoints_max, qpoints, f
     end if
     if( allocated(selfex) ) deallocate( selfex )
     allocate( selfex(first_band:last_band, ik:ik ), source=zzero )
+    if (input_parameters%offdiagonal) call init_offdiagonal_selfenergy_exchange(ik, ik)
+
     t_acc = 0.0_dp
     call timesec(tf)
     do iq = q_points%my_first, q_points%my_last
@@ -124,7 +135,7 @@ subroutine execute_task_sigmax( first_band, last_band, n_kpoints_max, qpoints, f
       call read_sgi_from_file( iq, file_format )
       call calcmpwipw( iq )
       Gamma = gammapoint( qpoints(:, iq), tol=tolerance_zero_vector )
-      call calcselfx( iq, ik, ik )
+      call calcselfx( iq, ik, ik, input_parameters%offdiagonal )
       call timesec(tf)
       if( myrank_writes_GWINFO ) then
         t_acc = t_acc + (tf-ti)
@@ -132,8 +143,12 @@ subroutine execute_task_sigmax( first_band, last_band, n_kpoints_max, qpoints, f
       end if
     end do
     call mpi_sum_array( selfex, mpi_kpoints%mpi_environment, all_reduce=.false. )
+    if (input_parameters%offdiagonal) call mpi_reduce_offdiagonal_selfenergy_exchange(mpi_kpoints%mpi_environment)
+
     if( myrank_writes_SIGMAX ) call write_selfex_single_kpoint( ik, file_format )
+    if( myrank_writes_SIGMAX .and. input_parameters%offdiagonal) call write_offdiagonal_selfenergy_exchange( ik, file_format )
     if( myrank_writes_GWINFO ) call write_to_gwinfo( '' )
+    if (input_parameters%offdiagonal) call delete_offdiagonal_selfenergy()
   end do
   
   ! Clean global variables

@@ -3,8 +3,8 @@
 ! See the file COPYING for license details.
 !
 module m_getpmat
-
-      implicit none
+    use mod_large_io, only: inquire_large, open_direct_unformatted_large
+    implicit none
 
   contains
 
@@ -17,7 +17,7 @@ module m_getpmat
       use modinput
       use modxs
       use modmpi
-      use m_getunit
+      use precision, only: i32, long_int, dp
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer :: ik           ! k point index
@@ -40,21 +40,22 @@ module m_getpmat
       implicit none
 
       ! Arguments
-      integer, intent(in) :: ik, i1, f1, i2, f2
-      real(8), intent(in) :: vklt(:, :)
-      logical, intent(in) :: tarec
+      integer(i32), intent(in) :: ik, i1, f1, i2, f2
+      real(dp), intent(in) :: vklt(:, :)
+      logical(i32), intent(in) :: tarec
       character(*), intent(in) :: filnam
-      complex(8), intent(out) :: pm(:, :, :)
+      complex(dp), intent(out) :: pm(:, :, :)
 
       ! Local variables
       character(*), parameter :: thisnam = 'getpmat'
-      integer :: reclen, un, ikr, nstsv_, ierror
-      real(8) :: vkl_ (3)
-      logical :: existent
-      complex(8), allocatable :: pmt(:, :, :)
+      integer(i32) :: un, ikr, nstsv_, ierror
+      integer(long_int) :: reclen
+      real(dp) :: vkl_ (3)
+      logical(i32) :: existent
+      complex(dp), allocatable :: pmt(:, :, :)
 
       ! Functions
-      real(8), external :: r3dist
+      real(dp), external :: r3dist
 
       ! Check if file exists
       inquire(file=trim(filnam), exist=existent)
@@ -115,10 +116,8 @@ module m_getpmat
       !------------------------!
 
       ! Read saved vkl and nstsv values from file 
-      call getunit(un)
-      inquire(iolength=reclen) vkl_, nstsv_
-      open(unit=un, file=trim(filnam), form='unformatted',&
-       & action='read', access='direct', recl=reclen)
+      call inquire_large( reclen, vkl_, [nstsv_] )
+      call open_direct_unformatted_large( un, trim( filnam ), "read", reclen, "old" )
       read(un, rec=1) vkl_, nstsv_
       close(un)
 
@@ -144,11 +143,9 @@ module m_getpmat
       ! Allocate local arrays
       allocate(pmt(3, nstsv_, nstsv_))
 
-      call getunit(un)
       ! I/o record length
-      inquire(iolength=reclen) vkl_, nstsv_, pmt
-      open(unit=un, file=trim(filnam), form='unformatted',&
-        & action='read', access='direct', recl=reclen)
+      call inquire_large( reclen, vkl_, [nstsv_], pmt )
+      call open_direct_unformatted_large( un, trim( filnam ), "read", reclen, "old" )
       ! Read from file
       read(un, rec=ikr) vkl_, nstsv_, pmt
       close(un)
@@ -175,126 +172,122 @@ module m_getpmat
     end subroutine getpmat
     !EOC
        
-    Subroutine getpmatxas (ik, vklt, i1, f1, i2, f2, tarec, filnam, pm)
-         Use modmain
-         Use modinput
-         Use modxs
-         Use modmpi
-         Use m_getunit
-         Use modxas, only : ncg
-         Implicit None
+    subroutine getpmatxas (ik, vklt, i1, f1, i2, f2, tarec, filnam, pm)
+         use modmain
+         use modinput
+         use modxs
+         use modmpi
+         use modxas, only : ncg
+         use precision, only: i32, long_int, dp
+         implicit None
     ! arguments
-         Integer, Intent (In) :: ik, i1, f1, i2, f2
-         Real (8), Intent (In) :: vklt (:, :)
-         Logical, intent(in) :: tarec
-         Character (*), intent(in) :: filnam
-         Complex (8), Intent (Out) :: pm (:, :, :)
+         integer(i32), intent(in) :: ik, i1, f1, i2, f2
+         real(dp), intent (in) :: vklt (:, :)
+         logical(i32), intent(in) :: tarec
+         character(*), intent(in) :: filnam
+         complex(dp), intent (out) :: pm (:, :, :)
     ! local variables
-         Character (*), Parameter :: thisnam = 'getpmat'
-         Integer :: recl, un, ikr, nstsv_, err
-         Real (8) :: vkl_ (3)
-         Logical :: existent
-         Complex (8), Allocatable :: pmt (:, :, :)
+         character (*), parameter :: thisnam = 'getpmat'
+         integer(long_int) :: recl
+         integer(i32) :: un, ikr, nstsv_, err
+         real(dp) :: vkl_ (3)
+         logical(i32) :: existent
+         complex(dp), allocatable :: pmt (:, :, :)
     ! functions
-         Real (8), External :: r3dist
+         real(dp), external :: r3dist
     ! check if file exists
-         Inquire (File=trim(filnam), Exist=existent)
-         If ( .Not. existent) Then
-            Write (unitout, '(a)') 'Error(' // thisnam // '): file does&
+         inquire (File=trim(filnam), Exist=existent)
+         if ( .Not. existent) then
+            write (unitout, '(a)') 'Error(' // thisnam // '): file does&
            & not exist: ' // trim (filnam)
-            Call terminate
-         End If
+            call terminate
+         end If
     ! record position for k-point
          ikr = ik
-         If ( .Not. tarec) Call getridx(nkpt, ik, ikr)
+         if ( .Not. tarec) call getridx(nkpt, ik, ikr)
          err = 0
     ! check band range
-         If ((i1 .Lt. 1) .Or. (i1 .Gt. ncg) .Or. (f1 .Lt. 1) .Or. (f1 &
+         if ((i1 .Lt. 1) .Or. (i1 .Gt. ncg) .Or. (f1 .Lt. 1) .Or. (f1 &
         & .Gt. ncg) .Or. (i2 .Lt. 1) .Or. (i2 .Gt. nstsv) .Or. (f2 &
         & .Lt. 1) .Or. (f2 .Gt. nstsv) .Or. (i1 .Gt. f1) .Or. (i2 .Gt. &
-        & f2)) Then
-            Write (unitout,*)
-            Write (unitout, '("Error(", a, "): inconsistent limits for &
+        & f2)) then
+            write (unitout,*)
+            write (unitout, '("Error(", a, "): inconsistent limits for &
            &states:")') thisnam
-            Write (unitout, '(" limits (lo/hi) : ", 2(2i6, 2x))') i1, &
+            write (unitout, '(" limits (lo/hi) : ", 2(2i6, 2x))') i1, &
            & f1, i2, f2
-            Write (unitout, '(" maximum value  : ", 2(i6, x))') ncg,nstsv
-            Write (unitout,*)
-            Call flushifc (unitout)
+            write (unitout, '(" maximum value  : ", 2(i6, x))') ncg,nstsv
+            write (unitout,*)
+            call flushifc (unitout)
             err = err + 1
-         End If
-         If ((size(pm, 2) .Ne. (f1-i1+1)) .Or. (size(pm, 3) .Ne. &
+         end if
+         if ((size(pm, 2) .Ne. (f1-i1+1)) .Or. (size(pm, 3) .Ne. &
         & (f2-i2+1))) Then
-            Write (unitout,*)
-            Write (unitout, '("Error(", a, "): output array does not ma&
+            write (unitout,*)
+            write (unitout, '("Error(", a, "): output array does not ma&
            &tch for states:")') thisnam
-            Write (unitout, '(" limits		     : ", 2(2i6, 2x))') i1, f1, &
+            write (unitout, '(" limits		     : ", 2(2i6, 2x))') i1, f1, &
            & i2, f2
-            Write (unitout, '(" requested number of states : ", 2i6)') &
+            write (unitout, '(" requested number of states : ", 2i6)') &
            & f1 - i1 + 1, f2 - i2 + 1
-            Write (unitout, '(" array sizes		     : ", 2i6)') size (pm, &
+            write (unitout, '(" array sizes		     : ", 2i6)') size (pm, &
            & 2), size (pm, 3)
-            Write (unitout,*)
-            Call flushifc (unitout)
+            write (unitout,*)
+            call flushifc (unitout)
             err = err + 1
-         End If
-         If (err .Gt. 0) Call terminate
+         end if
+         if (err .Gt. 0) Call terminate
     !------------------------!
     !     get parameters     !
     !------------------------!
-         Inquire (IoLength=Recl) vkl_, nstsv_
-         Call getunit (un)
-         Open (Unit=un, File=trim(filnam), Form='unformatted', Action='&
-        &read', Access='direct', Recl=Recl)
-         Read (un, Rec=1) vkl_, nstsv_
-         Close (un)
+         call inquire_large( Recl, vkl_, [nstsv_] )
+         call open_direct_unformatted_large( un, trim( filnam ), "read", Recl, "old" )
+         read (un, Rec=1) vkl_, nstsv_
+         close (un)
          err = 0
     ! check if all states can be read from file
-         If ((f1 .Gt. ncg) .Or. (f2 .Gt. nstsv_)) Then
-            Write (unitout,*)
-            Write (unitout, '("Error(", a, "): requested states out of &
+         if ((f1 .Gt. ncg) .Or. (f2 .Gt. nstsv_)) Then
+            write (unitout,*)
+            write (unitout, '("Error(", a, "): requested states out of &
            &range for k-point ", I8)') thisnam, ik
-            Write (unitout, '(" limits	  : ", 2(2I6, 2x))') i1, f1, i2, &
+            write (unitout, '(" limits	  : ", 2(2I6, 2x))') i1, f1, i2, &
            & f2
-            Write (unitout, '(" cutoff from file: ", I8)') nstsv_
-            Write (unitout, '(" filename	  : ", a )') trim (filnam)
-            Write (unitout,*)
-            Call flushifc (unitout)
+            write (unitout, '(" cutoff from file: ", I8)') nstsv_
+            write (unitout, '(" filename	  : ", a )') trim (filnam)
+            write (unitout,*)
+            call flushifc (unitout)
             err = err + 1
-         End If
-         If (err .Gt. 0) Call terminate
+         end if
+         if (err .Gt. 0) Call terminate
     !------------------!
     !     get data     !
     !------------------!
     ! allocate local arrays
-         Allocate (pmt(3, ncg, nstsv_))
-    ! I/O record length
-         Inquire (IoLength=Recl) vkl_, nstsv_, pmt
-                  
-         Call getunit (un)
-         Open (Unit=un, File=trim(filnam), Form='unformatted', Action='&
-        &read', Access='direct', Recl=Recl)
+         allocate (pmt(3, ncg, nstsv_))
+    ! I/O record length                  
+         call inquire_large( Recl, vkl_, [nstsv_], pmt )
+         call open_direct_unformatted_large( un, trim( filnam ), "read", Recl, "old" )
     ! read from file
-         Read (un, Rec=ikr) vkl_, nstsv_, pmt
-         Close (un)
+         read (un, Rec=ikr) vkl_, nstsv_, pmt
+         close (un)
     ! check k-point
-         If (r3dist(vkl_, vklt(:, ik)) .Gt. input%structure%epslat) &
-        & Then
-            Write (unitout,*)
-            Write (unitout, '(a)') 'Error(' // thisnam // '): differrin&
+         if (r3dist(vkl_, vklt(:, ik)) .Gt. input%structure%epslat) &
+        & then
+            write (unitout,*)
+            write (unitout, '(a)') 'Error(' // thisnam // '): differrin&
            &g parameters for matrix elements (current/file): '
-            Write (unitout, '(a, i6)') ' k-point index  :', ik
-            Write (unitout, '(a, i6)') ' record position:', ikr
-            Write (unitout, '(a, 3f12.6, a, 3f12.6)') ' vkl		 :', vklt &
+            write (unitout, '(a, i6)') ' k-point index  :', ik
+            write (unitout, '(a, i6)') ' record position:', ikr
+            write (unitout, '(a, 3f12.6, a, 3f12.6)') ' vkl		 :', vklt &
            & (:, ik), ', ', vkl_
-            Write (unitout, '(" filename	  : ", a )') trim (filnam)
-            Write (unitout,*)
-            Call flushifc (unitout)
-            Call terminate
-         End If
+            write (unitout, '(" filename	  : ", a )') trim (filnam)
+            write (unitout,*)
+            call flushifc (unitout)
+            call terminate
+         end If
     ! retrieve data within cutoffs
          pm (:, :, :) = pmt (:, i1:f1, i2:f2)
-         Deallocate (pmt)
-      End Subroutine getpmatxas
+         deallocate (pmt)
+      end subroutine getpmatxas
    
 end module m_getpmat

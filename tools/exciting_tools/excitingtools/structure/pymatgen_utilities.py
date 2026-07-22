@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Union
 
 import numpy as np
 from pymatgen.core import Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from excitingtools import ExcitingStructure
 from excitingtools.constants.units import angstrom_to_bohr, bohr_to_angstrom
@@ -50,3 +51,14 @@ def pymatgen_to_exciting_structure(structure: Structure) -> ExcitingStructure:
     positions = structure.frac_coords
     atoms = [{"species": atom, "position": positions[i]} for i, atom in enumerate(species)]
     return ExcitingStructure(atoms, lattice)
+
+
+def get_num_irreducible_k_points(structure: Union[ExcitingStructure, Structure], mesh: tuple[int, int, int]) -> int:
+    """Get the number of irreducible k-points.
+
+    :param structure: pymatgen Structure object or exciting structure object.
+    :param mesh: k-point mesh.
+    :return: number of irreducible k-points.
+    """
+    pymatgen_struct = structure if isinstance(structure, Structure) else exciting_structure_to_pymatgen(structure)
+    return len(SpacegroupAnalyzer(pymatgen_struct).get_ir_reciprocal_mesh(mesh))

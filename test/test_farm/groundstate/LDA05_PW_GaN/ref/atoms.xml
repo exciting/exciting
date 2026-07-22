@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atomlist>
+  <Hamiltonian RelativityModel="dirac" xctype="3"/>
+  <atom chemicalSymbol="Ga" species="Ga.xml">
+    <NumericalSetup TotalNumberOfGridPoints="848" NumberOfMTGridPoints="350" GridType="cubic" rmin="1.000000000000e-5" rmt="2.000000000000e0" rmax="2.858919495538e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-375.460802505"/>
+      <state n="2" l="0" kappa="1" energy="-46.6366922903"/>
+      <state n="2" l="1" kappa="1" energy="-41.3702272974"/>
+      <state n="2" l="1" kappa="2" energy="-40.3563383147"/>
+      <state n="3" l="0" kappa="1" energy="-5.73942434140"/>
+      <state n="3" l="1" kappa="1" energy="-4.03488630487"/>
+      <state n="3" l="1" kappa="2" energy="-3.89992742443"/>
+      <state n="3" l="2" kappa="2" energy="-1.02954038958"/>
+      <state n="3" l="2" kappa="3" energy="-1.01188496520"/>
+      <state n="4" l="0" kappa="1" energy="-0.515260591538"/>
+      <state n="4" l="1" kappa="1" energy="-0.248478378940"/>
+    </spectrum>
+  </atom>
+  <atom chemicalSymbol="N" species="N.xml">
+    <NumericalSetup TotalNumberOfGridPoints="582" NumberOfMTGridPoints="250" GridType="cubic" rmin="1.000000000000e-5" rmt="1.500000000000e0" rmax="1.905543851852e1"/>
+    <spectrum>
+      <state n="1" l="0" kappa="1" energy="-14.3058060377"/>
+      <state n="2" l="0" kappa="1" energy="-0.916322605460"/>
+      <state n="2" l="1" kappa="1" energy="-0.499665827181"/>
+      <state n="2" l="1" kappa="2" energy="-0.498868844285"/>
+    </spectrum>
+  </atom>
+</atomlist>

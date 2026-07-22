@@ -54,11 +54,6 @@ Subroutine gencore
          Do ia = 1, natoms (is)
             If ( .Not. done(ia)) Then
                ias = idxas (ia, is)
-               if (associated(input%groundstate%mgga)) then 
-                  vr(1:nrmt(is)) = veffmt_gga(1, 1:nrmt(is), ias) * y00
-               else 
-                  vr (1:nrmt(is)) = veffmt (1, 1:nrmt(is), ias) * y00
-               end if 
                If (input%groundstate%frozencore) Then
 ! use atomic potential for the frozen core approximation
                   vr (1:nrmt(is)) = spvr (1:nrmt(is), is)

@@ -118,7 +118,7 @@ def test_attributes_successful(successful_test_dir):
     Test the attributes of class TestResults, for a successful test case.
     """
     gs_files = ['INFO.OUT', 'evalcore.xml', 'geometry.xml', 'eigval.xml', 'atoms.xml']
-    test_results = ExTestResults(successful_test_dir, completed=True, err_msg="", timing=0.0)
+    test_results = ExTestResults(successful_test_dir, completed=True, out_mess="", err_msg="", timing=0.0)
     test_results_dict = get_test_results(successful_test_dir, gs_files)
     test_results.set_results(test_results_dict)
 
@@ -136,7 +136,7 @@ def test_print_successful(successful_test_dir):
     Test TestResults print() method on a successful test case.
     """
     gs_files = ['INFO.OUT', 'evalcore.xml', 'geometry.xml', 'eigval.xml', 'atoms.xml']
-    test_results = ExTestResults(successful_test_dir, completed=True, err_msg="", timing=0.0)
+    test_results = ExTestResults(successful_test_dir, completed=True, out_mess="", err_msg="", timing=0.0)
     test_results_dict = get_test_results(successful_test_dir, gs_files)
 
     for name, file_results in test_results_dict.items():
@@ -178,7 +178,7 @@ def test_attributes_erroneous_scalars(failing_scalars_test_dir):
         message = "If not ErrorFinder, file_results returns Failure => " + name + " missing"
         assert isinstance(file_results, ErrorFinder), message
 
-    test_results = ExTestResults(failing_scalars_test_dir, completed=True, err_msg="", timing=0.0)
+    test_results = ExTestResults(failing_scalars_test_dir, completed=True, out_mess="", err_msg="", timing=0.0)
     test_results.set_results(test_results_dict)
 
     assert os.path.basename(test_results.test_name) == "LDA_VWN-He_failing_scalars", "Base test name"
@@ -201,7 +201,7 @@ def test_print_erroneous_scalars(failing_scalars_test_dir):
         message = "If not ErrorFinder, file_results returns Failure => " + name + " missing"
         assert isinstance(file_results, ErrorFinder), message
 
-    test_results = ExTestResults(failing_scalars_test_dir, completed=True, err_msg="", timing=0.0)
+    test_results = ExTestResults(failing_scalars_test_dir, completed=True, out_mess="", err_msg="", timing=0.0)
     test_results.set_results(test_results_dict)
 
     @redirect_stdout
@@ -254,7 +254,7 @@ def test_attributes_failing_array(failing_arrays1d2d_test_dir):
         message = "If not ErrorFinder, file_results returns Failure => " + name + " missing"
         assert isinstance(file_results, ErrorFinder), message
 
-    test_results = ExTestResults(failing_arrays1d2d_test_dir, completed=True, err_msg="", timing=0.0)
+    test_results = ExTestResults(failing_arrays1d2d_test_dir, completed=True, out_mess="", err_msg="", timing=0.0)
     test_results.set_results(test_results_dict)
 
     assert os.path.basename(test_results.test_name) == "GW_ZrO2_failing_arrays", "Base test name"
@@ -276,7 +276,7 @@ def test_print_failing_array(failing_arrays1d2d_test_dir):
         message = "If not ErrorFinder, file_results returns Failure => " + name + " missing"
         assert isinstance(file_results, ErrorFinder), message
 
-    test_results = ExTestResults(failing_arrays1d2d_test_dir, completed=True, err_msg="", timing=0.0)
+    test_results = ExTestResults(failing_arrays1d2d_test_dir, completed=True, out_mess="", err_msg="", timing=0.0)
     test_results.set_results(test_results_dict)
 
     @redirect_stdout
@@ -325,7 +325,7 @@ def test_attributes_missing_files(missing_files_test_dir):
     missing_files = ['INFO.OUT', 'atoms.xml', 'geometry.xml']
     test_results_dict = get_test_results(missing_files_test_dir, gs_files)
 
-    test_results = ExTestResults(missing_files_test_dir, completed=True, err_msg="", timing=0.0)
+    test_results = ExTestResults(missing_files_test_dir, completed=True, out_mess="", err_msg="", timing=0.0)
     test_results.set_results(test_results_dict)
 
     assert os.path.basename(test_results.test_name) == "LDA_VWN-He_missing_files", "Base test name"
@@ -341,7 +341,7 @@ def test_print_missing_file(missing_files_test_dir):
     Test TestResults print() method when a file is missing
     """
     gs_files = ['INFO.OUT', 'evalcore.xml', 'geometry.xml', 'eigval.xml', 'atoms.xml']
-    test_results = ExTestResults(missing_files_test_dir, completed=True, err_msg="", timing=0.0)
+    test_results = ExTestResults(missing_files_test_dir, completed=True, out_mess="", err_msg="", timing=0.0)
     test_results_dict = get_test_results(missing_files_test_dir, gs_files)
 
     test_results.set_results(test_results_dict)

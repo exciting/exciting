@@ -2,7 +2,7 @@
 module kinetic_energy_density_mt
     use kinetic_energy_density_vars
     use mod_atoms, only: nspecies, natoms, idxas, natmtot         
-    use asserts, only: assert
+#include "asserts.fpp"
     use precision, only: dp
     use constants, only: zzero, zone
     use mod_APW_LO, only: nlotot, nlorb
@@ -56,7 +56,7 @@ module kinetic_energy_density_mt
         ! In the spin polarised case, calculate: ked_magmt
         ked_mat_alpha_min_beta = ked_mat_alpha - ked_mat_beta
         if (ncmag) then
-            call assert( present(ked_mat_ab), message='if ncmag=true the array ked_mat_ab needs to be given.')
+            CALL_ASSERT( present(ked_mat_ab), message='if ncmag=true the array ked_mat_ab needs to be given.')
             ! noncollinear case
             call gen_ked_or_ked_magmt(zone, ked_mat_alpha_min_beta, zzero, ked_magmt(:, :, :, 3))
             call gen_ked_or_ked_magmt(cmplx(2.0, 0.0, dp), ked_mat_ab, zzero, ked_magmt(:, :, :, 1))
@@ -358,7 +358,7 @@ module kinetic_energy_density_mt
 
                     ! Calculate ked_mat_ab
                     if (ncmag) then
-                        call assert( present(ked_mat_ab), "ked_mat_ab needs to be given.")
+                        CALL_ASSERT( present(ked_mat_ab), "ked_mat_ab needs to be given.")
                         ked_mat_ab_temp = zzero
                         call matrix_multiply(wfalpha, wfbeta2(1:ked_mt_basis%n_basis_fun_max, 1:nstsv), ked_mat_ab_temp(:, :), 'n', 'c')
                         ked_mat_ab(:, :, ias) = ked_mat_ab(:, :, ias) + ked_mat_ab_temp(:, :)
@@ -441,7 +441,7 @@ module kinetic_energy_density_mt
         allocate( wf(ked_mt_basis%n_basis_fun(is), nstsv), source = zzero )
         allocate( ked_mat_temp(ked_mt_basis%n_basis_fun(is), ked_mt_basis%n_basis_fun(is)), source = zzero)
 
-        call assert(size(evecsv_k,1) == nstfv, message='Dim 1 of second-variational eigenvector has to be equal to nstfv.')
+        CALL_ASSERT(size(evecsv_k,1) == nstfv, message='Dim 1 of second-variational eigenvector has to be equal to nstfv.')
         
         allocate( wgt(nstsv) )
         wgt = [(ked_kset%wkpt(ik)*occsvk(i), i=1, nstsv)]

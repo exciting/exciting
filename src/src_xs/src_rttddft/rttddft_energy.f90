@@ -61,7 +61,7 @@
 !> </li>
 !> </ol>
 module rttddft_Energy
-  use asserts, only: assert
+
   use constants, only: real_zero
   use exciting_mpi, only: mpiinfo, xmpi_allreduce
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply

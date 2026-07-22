@@ -1,0 +1,22 @@
+{
+  "BARC_Q1.OUT": {
+    "CoulombMatrix": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  },
+  "coulomb_vertex_q0001.test": {
+    "iq": {
+      "tol": 0,
+      "unit": "null"
+    },
+      "shape": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "coulomb_vertex": {
+      "tol": 1e-6,
+      "unit": "null"
+    }
+  }
+}

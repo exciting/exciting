@@ -55,7 +55,7 @@ module xhdf5_error_handling
   subroutine abort_if_not_hdf5(mpi_env, message)
     use modmpi, only: mpiinfo, terminate_mpi_env, mpiglobal
     !> MPI environment to terminate.
-    type(mpiinfo), intent(inout), optional :: mpi_env
+    type(mpiinfo), intent(in), optional :: mpi_env
     !> Message to print to the terminal
     character(*), intent(in), optional :: message
 

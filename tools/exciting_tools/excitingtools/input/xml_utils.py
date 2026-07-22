@@ -48,7 +48,7 @@ def line_reformatter(input_str: str) -> str:
     :param str input_str: Input string, opened and closed with an XML element.
     :return str reformatted_str: Reformatted form of input_str
     """
-    full_tag = input_str.split(" ")[0]
+    full_tag = input_str.split(" ", maxsplit=1)[0]
     tag = full_tag.strip()
     number_of_tag_indents = len(full_tag) - len(tag)
 

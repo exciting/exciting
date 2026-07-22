@@ -1,0 +1,24 @@
+{
+  "WANNIER_INFO.OUT": {
+    "n_wannier": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "Omega": {
+      "tol": 0.0001,
+      "unit": "null"
+    },
+    "Omega_I": {
+      "tol": 0.0001,
+      "unit": "null"
+    },
+    "Omega_D": {
+      "tol": 0.0001,
+      "unit": "null"
+    },
+    "Omega_OD": {
+      "tol": 0.0001,
+      "unit": "null"
+    }
+  }
+}

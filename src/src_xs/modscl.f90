@@ -4,7 +4,8 @@ module modscl
 
   implicit none
 
-#define BLOCKSIZE 64
+  integer(i32), parameter :: BLOCKSIZE = 64
+  integer(i32), parameter :: comm_undefined = -1
 
   type blacsinfo
     ! Underlying MPI communicator
@@ -27,7 +28,7 @@ module modscl
     integer(4) :: ierr
   end type
 
-  type(blacsinfo), target :: bi2d, bi1d, bi0d
+  type(blacsinfo), target :: bi2d, bi0d
   type(blacsinfo), pointer :: bicurrent
 
   ! Distributed complex matrix type
@@ -114,11 +115,11 @@ module modscl
       else
         nprocs = mpicom%procs
       end if
-      if(nprocs < 1) then 
-        write(*,'("Error(setupblacs): np < 1: ",i3)') nprocs
+      if(nprocs < 1) then
+        write(*,'("Error(setupblacs): np < 1: ",i0)') nprocs
         call terminate
       else if(nprocs > mpicom%procs) then
-        write(*,'("Error(setupblacs): np > mpiprocs: ",2i4)') nprocs, mpicom%procs
+        write(*,'("Error(setupblacs): np > mpiprocs: ",2i0)') nprocs, mpicom%procs
         call terminate
       end if
 
@@ -128,7 +129,7 @@ module modscl
 
         ! Make 2D process grid with row major ordering of the ranks
         case('2D','2d','grid','Grid','GRID')
-          ! Make square'ish porcess grid out of nporcs processes
+          ! Make square'ish process grid out of nprocs processes
           npcols = int(sqrt(dble(nprocs)))
           nprows = nprocs/npcols
           nprocs2d = npcols*nprows
@@ -211,6 +212,19 @@ module modscl
             & process grid. Ctxt(",i12,") MPIcom(",i12,") MPIrank(",i4,")")')&
             & ictxt, mpicom%comm, mpicom%rank
           deallocate(usermap)
+
+        ! process which is not on the grid, dummy variables only
+        case('xxx')
+          ictxt = comm_undefined
+          nprocs = -1
+          nprows = -1
+          npcols = -1
+          ! -1 to guarantee that isactive will be false
+          ! all following code should be guarded with that
+          myprow = -1
+          mypcol = -1
+          mblck = 1
+          nblck = 1
 
         case default
 
@@ -374,7 +388,7 @@ module modscl
         if(present(rblck)) self%mblck = min(rblck, self%nrows)
         if(present(cblck)) self%nblck = min(cblck, self%ncols)
 
-        ! Get number of locas rows and columns (are negative on non-participating ranks)
+        ! Get number of local rows and columns (are negative on non-participating ranks)
         self%nrows_loc = numroc(self%nrows, self%mblck, binfo%myprow, 0, binfo%nprows)
         self%ncols_loc = numroc(self%ncols, self%nblck, binfo%mypcol, 0, binfo%npcols)
 

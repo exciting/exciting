@@ -1,6 +1,6 @@
 !> Module that manages the overlap matrix in RT-TDDFT
 module rttddft_Overlap
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: y00, zi, zone, zzero
   use math_utils, only: all_zero
   use matrix_elements, only: me_mt_alloc, me_mt_prepare, me_mt_mat, me_ir_mat
@@ -55,7 +55,7 @@ contains
   subroutine overlap_set_assert_is_identity( this )
     class(overlap_set), intent(in) :: this
 
-    call assert( this%is_identity(), "Overlap matrix is not identity" )
+    CALL_ASSERT( this%is_identity(), "Overlap matrix is not identity" )
   end subroutine
 
   pure elemental logical function overlap_set_is_identity( this )
@@ -147,8 +147,12 @@ contains
     shift = first_kpt - 1
 
     ! Check optional arguments
-    if( present( mathcalH ) ) call assert( present(a_tot), 'a_tot must be present' )
-    if( present( mathcalH ) .or. present( mathcalB ) ) call assert( present(p_MT), 'p_MT must be present' )
+    if( present( mathcalH ) ) then
+      CALL_ASSERT( present(a_tot), 'a_tot must be present' )
+    end if
+    if( present( mathcalH ) .or. present( mathcalB ) ) then
+      CALL_ASSERT( present(p_MT), 'p_MT must be present' )
+    end if
     if( present( t_overlap ) ) call timesec( ti ) 
 
     call me_mt_alloc( mt_part )
@@ -214,10 +218,13 @@ contains
     integer(i32) :: i, is, ia, ias, n_planewaves
     complex(dp), allocatable :: tmp(:, :)
 
-    call assert( size( overlap_ik, 1 ) == size( overlap_ik, 2), "overlap_ik must be a square matrix" )
-    if ( present( mathcalB_ik ) .or. present( mathcalH_ik ) ) call assert( present(p_MT_ik), &
-      'p_MT_ik must be present' )
-    if ( present( mathcalH_ik ) ) call assert( present(a_tot), 'a_tot must be passed as argument when calculate_mathcalH is .True.' )
+    CALL_ASSERT( size( overlap_ik, 1 ) == size( overlap_ik, 2), "overlap_ik must be a square matrix" )
+    if ( present( mathcalB_ik ) .or. present( mathcalH_ik ) ) then
+      CALL_ASSERT( present(p_MT_ik),  'p_MT_ik must be present' )
+    end if
+    if ( present( mathcalH_ik ) ) then
+      CALL_ASSERT( present(a_tot), 'a_tot must be passed as argument when calculate_mathcalH is .True.' )
+    end if
     if ( present( mathcalH_ik ) ) mathcalH_ik(:, :, :, :) = zzero
     if ( present( mathcalB_ik ) ) mathcalB_ik(:, :, :, :) = -zi*p_MT_ik
 
@@ -275,11 +282,11 @@ contains
 
     integer(i32) :: i, i_cart
     associate( m => size(overlap_ik_ias, 1) )
-      call assert( size(overlap_ik_ias, 2) == m, "overlap_ik_ias must be square" )
-      call assert( size(gplusk_cart, 1) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
-      call assert( size(gplusk_cart, 2) >= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
-      call assert( all(shape(mathcalB_ik_ias) == [m, m, n_cartesian]), "mathcalB_ik_ias must have shape [m, m, n_cartesian]" )
-      call assert( n_pw <= m, "n_pw must be <= m" )
+      CALL_ASSERT( size(overlap_ik_ias, 2) == m, "overlap_ik_ias must be square" )
+      CALL_ASSERT( size(gplusk_cart, 1) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
+      CALL_ASSERT( size(gplusk_cart, 2) >= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
+      CALL_ASSERT( all(shape(mathcalB_ik_ias) == [m, m, n_cartesian]), "mathcalB_ik_ias must have shape [m, m, n_cartesian]" )
+      CALL_ASSERT( n_pw <= m, "n_pw must be <= m" )
       do i_cart = 1, n_cartesian
         do i = 1, n_pw
           mathcalB_ik_ias(1:m, i, i_cart) = mathcalB_ik_ias(1:m, i, i_cart) + &
@@ -310,12 +317,12 @@ contains
     fact = dot_product( a_tot, a_tot ) / (2._dp * c**2)
     a_scaled = a_tot / c
     associate( m => size(overlap_ik_ias, 1) )
-      call assert( size(overlap_ik_ias, 2) == m, "overlap_ik_ias must be square" )
-      call assert( size(gplusk_cart, 1) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
-      call assert( size(gplusk_cart, 2) >= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
-      call assert( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "mathcalH_ik_ias must have shape [m, m, n_cartesian]" )
-      call assert( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "p_MT_ias_ik must have shape [m, m, n_cartesian]" )
-      call assert( n_pw <= m, "n_pw must be <= m" )
+      CALL_ASSERT( size(overlap_ik_ias, 2) == m, "overlap_ik_ias must be square" )
+      CALL_ASSERT( size(gplusk_cart, 1) == n_cartesian, "gplusk_cart must have n_cartesian elements along 1st dim" )
+      CALL_ASSERT( size(gplusk_cart, 2) >= n_pw, "gplusk_cart must at least n_pw elements along 2nd dim" )
+      CALL_ASSERT( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "mathcalH_ik_ias must have shape [m, m, n_cartesian]" )
+      CALL_ASSERT( all(shape(mathcalH_ik_ias) == [m, m, n_cartesian]), "p_MT_ias_ik must have shape [m, m, n_cartesian]" )
+      CALL_ASSERT( n_pw <= m, "n_pw must be <= m" )
       do i_cart = 1, n_cartesian
         do i = 1, n_pw
           do j = 1, n_pw

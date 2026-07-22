@@ -3,7 +3,7 @@ module eph_phonons
   use eph_variables
 
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi
   use matrix_fourier_interpolation, only: mfi_type
   use block_data_file, only: block_data_file_type
@@ -17,13 +17,15 @@ module eph_phonons
   complex(dp), allocatable, public :: eph_ph_evec_q(:,:,:)
   !> object for matrix Fourier interpolation on phonon \({\bf q}\)-grid
   type(mfi_type), public :: eph_ph_mfi
+  !> apply minimal distance interpolation for phonons
+  logical, public :: eph_ph_mindist = .true.
   !> phonon dynamical matrices in real space atomic gauge, \(\mathcal{D}_{\kappa\alpha,\lambda\beta}({\bf R})\), 
   !> (interatomic force constants IFCs)
   complex(dp), allocatable :: eph_ph_DR(:,:,:)
   !> name for binary file to save dynamical matrices in real space atomic gauge for later access
   character(*), parameter :: eph_ph_DR_filename = "EPH_DR.OUT"
 
-  public :: eph_ph_free, eph_ph_setup_interpolation, eph_ph_interpolate
+  public :: eph_ph_free, eph_ph_setup_interpolation, eph_ph_interpolate, eph_ph_set_default_frequency_grid
 
 contains
 
@@ -100,6 +102,7 @@ contains
           sumrule=input%phonons%sumrule, &
           elphbolt_compatible=input%eph%elphbolt )
       end if
+      eph_ph_mindist = input%eph%mindistph
       ! write D_a(R) to file
       call DR_file%open( mpiglobal )
       do ir = 1, eph_ph_mfi%nr
@@ -125,6 +128,7 @@ contains
     if (allocated(Dq)) deallocate( Dq )
 
     ! write spatial localization to file
+    call barrier( mpicom=mpiglobal )
     if (mpiglobal%rank == 0 .and. write_loc) then
       open( newunit=un, file='eph_ph_loc.dat', action='write', form='formatted', iostat=stat )
       call terminate_if_false( stat == 0, '(eph_ph_setup_interpolation) &
@@ -174,7 +178,7 @@ contains
     !> MPI communicator (default: global MPI communicator)
     type(mpiinfo), optional, intent(inout) :: mpicomm
 
-    integer :: nq, iq, iq1, iq2, nmode, mrng(2), irank, jrank
+    integer :: nq, iq, iq1, iq2, nmode, mrng(2), irank
     type(mpiinfo) :: mpi
 
     integer, allocatable :: mrng_list(:,:), iq_range(:,:), ix_range(:,:)
@@ -190,12 +194,11 @@ contains
     nmode = mrng(2) - mrng(1) + 1
     nq = size( vql, dim=2 )
 
-    call assert( size( vql, dim=1 ) == 3, &
-      '`vql` must be a set of vectors of length 3.' )
+    CALL_ASSERT( size( vql, dim=1 ) == 3,  '`vql` must be a set of vectors of length 3.' )
 
     ! communicate information on mode distribution
-    allocate( mrng_list(2, mpi%procs) )
-    mrng_list = 0; mrng_list(:, mpi%rank+1) = mrng
+    allocate( mrng_list(3, 0:mpi%procs-1) )
+    mrng_list = 0; mrng_list(:, mpi%rank) = [mrng, mrng(2)-mrng(1)+1]
     call xmpi_allreduce( mrng_list, mpi )
 
     ! distribute q among processes
@@ -212,11 +215,11 @@ contains
     ! interpolate dynamical matrix
     if (eph_polar) then
       call ph_util_interpolate( iq2-iq1+1, vql(:, iq1:iq2), eph_ph_mfi, eph_ph_DR, dynmat, & 
-        dielten=eph_dielten, borncharge=eph_borncharge, minimal_distances=.true., &
+        dielten=eph_dielten, borncharge=eph_borncharge, minimal_distances=eph_ph_mindist, &
         elphbolt_compatible=input%eph%elphbolt )
     else
       call ph_util_interpolate( iq2-iq1+1, vql(:, iq1:iq2), eph_ph_mfi, eph_ph_DR, dynmat, &
-        minimal_distances=.true., &
+        minimal_distances=eph_ph_mindist, &
         elphbolt_compatible=input%eph%elphbolt ) 
     end if
 
@@ -232,25 +235,40 @@ contains
 
     ! distribute results
 #ifdef MPI
-    do jrank = 0, mpi%procs-1
-      if (mpi%rank == jrank) then
-        do irank = 0, mpi%procs-1
-          if (irank == jrank) cycle
-          do iq = iq_range(1, irank+1), iq_range(2, irank+1)
-            call MPI_Recv( phfreq(:, iq), nmode, MPI_DOUBLE, irank, irank*nq+iq, MPI_COMM(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
-            call MPI_Recv( phevec(:, :, iq), nmode*3*natmtot, MPI_DOUBLE_COMPLEX, irank, (mpi%procs+irank)*nq+iq, MPI_COMM(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
-          end do
-        end do
-      else
-        do iq = iq1, iq2
-          evec = dynmat(mrng_list(1, jrank+1):mrng_list(2, jrank+1), :, iq-iq1+1)
-          call MPI_Send( eval(mrng_list(1, jrank+1), iq), size( evec, dim=1 ), MPI_DOUBLE, jrank, mpi%rank*nq+iq, MPI_COMM(mpi%comm), mpi%ierr )
-          call MPI_Send( evec, size( evec ), MPI_DOUBLE_COMPLEX, jrank, (mpi%procs+mpi%rank)*nq+iq, MPI_COMM(mpi%comm), mpi%ierr )
-        end do
-      end if
-    end do 
+    do irank = 0, mpi%procs-1
+      if (irank == mpi%rank) cycle
+      do iq = iq1, iq2
+        evec = dynmat(:, mrng_list(1, irank):mrng_list(2, irank), iq-iq1+1)
+        call MPI_Send( eval(mrng_list(1, irank), iq), mrng_list(3, irank), MPI_DOUBLE, irank, mpi%rank*nq+iq, MPI_COMM(mpi%comm), mpi%ierr )
+        call MPI_Send( evec, size( evec ), MPI_DOUBLE_COMPLEX, irank, (mpi%procs+mpi%rank)*nq+iq, MPI_COMM(mpi%comm), mpi%ierr )
+      end do
+    end do
+    do irank = 0, mpi%procs-1
+      if (irank == mpi%rank) cycle
+      do iq = iq_range(1, irank+1), iq_range(2, irank+1)
+        call MPI_Recv( phfreq(:, iq), nmode, MPI_DOUBLE, irank, irank*nq+iq, MPI_COMM(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+        call MPI_Recv( phevec(:, :, iq), nmode*3*natmtot, MPI_DOUBLE_COMPLEX, irank, (mpi%procs+irank)*nq+iq, MPI_COMM(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+      end do
+    end do
 #endif
     deallocate( dynmat, eval, evec, mrng_list, iq_range, ix_range )
   end subroutine eph_ph_interpolate
+  !-------------------------------------------------------------------------------- 
+
+  !================================================================================ 
+  ! AUXILIARY PROCEDURES
+  !
+  !> Set default parameters for frequency grid used for phonon energies.
+  pure subroutine eph_ph_set_default_frequency_grid( fgrid )
+    use modinput, only: freq_grid_type
+    !> frequency grid object
+    type(freq_grid_type), intent(out) :: fgrid
+  
+    fgrid%type = 'density'          ! density based sampling
+    fgrid%numpoints = 500           ! number of sampling points
+    fgrid%range = [1e-4_dp, maxval(eph_ph_energy_q)+1e-3_dp]
+    fgrid%padding = 0.0_dp          ! padding to add at both ends of range
+    fgrid%lorentzwidth = 0.0002_dp  ! width of Lorentzian density
+  end subroutine eph_ph_set_default_frequency_grid
   !-------------------------------------------------------------------------------- 
 end module eph_phonons

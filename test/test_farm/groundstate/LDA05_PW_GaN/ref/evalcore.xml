@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evalcore>
+  <species is="1" chemicalSymbol="Ga">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-3.747234672370e2"/>
+      <state ist="2" n="2" l="0" k="1" eigenvalue="-4.593901747095e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-4.066387446192e1"/>
+      <state ist="4" n="2" l="1" k="2" eigenvalue="-3.965094786013e1"/>
+      <state ist="5" n="3" l="0" k="1" eigenvalue="-5.130703464579e0"/>
+      <state ist="6" n="3" l="1" k="1" eigenvalue="-3.423642608118e0"/>
+      <state ist="7" n="3" l="1" k="2" eigenvalue="-3.289133897211e0"/>
+    </atom>
+  </species>
+  <species is="2" chemicalSymbol="N">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-1.352742868774e1"/>
+    </atom>
+  </species>
+</evalcore>

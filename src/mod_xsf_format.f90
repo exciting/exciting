@@ -1,6 +1,6 @@
 
 module mod_xsf_format
-  use asserts, only: assert
+#include "asserts.fpp"
   use mod_rgrid, only: rgrid
   use modinput, only: input
   use modmain, only : natmtot, nspecies, natoms, atposc, spzn
@@ -177,7 +177,7 @@ contains
     !> Output name
     character(len = *), intent(in) :: file_name
     
-    call assert( size(function_rgrid) == grid%npt, "function_rgrid must have grid%npt elements" )
+    CALL_ASSERT( size(function_rgrid) == grid%npt, "function_rgrid must have grid%npt elements" )
     call write_structure_xsf( file_name )
     call write_3d_xsf( file_name, label, grid%boxl(1 : 4, :), grid%ngrid, grid%npt, function_rgrid )
   end subroutine

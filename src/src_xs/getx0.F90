@@ -14,19 +14,21 @@ Contains
          Use modmain
          use modmpi
          Use modxs
-         Use m_getunit
+         use mod_large_io, only: inquire_large, open_direct_unformatted_large
+         use precision, only: dp, i32, long_int
          Implicit None
     ! arguments
          Logical, Intent (In) :: tp0
-         Integer, Intent (In) :: iq, iw
+         integer(i32), Intent (In) :: iq, iw
          Character (*), Intent (In) :: filnam, filxt
-         Complex (8), Intent (Out) :: ch0 (:, :)
-         Complex (8), Intent (Out), Optional :: ch0wg (:, :, :), ch0hd &
+         complex(dp), Intent (Out) :: ch0 (:, :)
+         complex(dp), Intent (Out), Optional :: ch0wg (:, :, :), ch0hd &
         & (:, :)
     ! local variables
          Character (*), Parameter :: thisnam = 'getx0'
-         Integer :: recl, un, ngq_
-         Real (8) :: vql_ (3)
+         integer(i32) :: un, ngq_
+         integer(long_int) :: recl
+         real(dp) :: vql_ (3)
          Logical :: existent
     ! check if file exists
          Inquire (File=trim(filnam)//trim(filxt), Exist=existent)
@@ -42,18 +44,14 @@ Contains
            &or wings missing'
             Call terminate
          End If
-         Call getunit (un)
     ! I/O record length
          If (tp0) Then
-            Inquire (IoLength=Recl) ngq (iq), vql (:, iq), ch0, ch0wg, &
-           & ch0hd
-            Open (Unit=un, File=trim(filnam)//trim(filxt), Form='unform&
-           &atted', Action='read', Access='direct', Recl=Recl)
+            call inquire_large( recl, [ngq(iq)], vql(:, iq), ch0, ch0wg, ch0hd )
+            call open_direct_unformatted_large( un, trim(filnam)//trim(filxt), "read", recl, "old" )
             Read (un, Rec=iw) ngq_, vql_, ch0, ch0wg, ch0hd
          Else
-            Inquire (IoLength=Recl) ngq (iq), vql (:, iq), ch0
-            Open (Unit=un, File=trim(filnam)//trim(filxt), Form='unform&
-           &atted', Action='read', Access='direct', Recl=Recl)
+            call inquire_large( recl, [ngq(iq)], vql(:, iq), ch0 )
+            call open_direct_unformatted_large( un, trim(filnam)//trim(filxt), "read", recl, "old" )
             Read (un, Rec=iw) ngq_, vql_, ch0
          End If
          Close (un)

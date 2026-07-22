@@ -4,7 +4,8 @@
 ! See the file COPYING for license details.
 
 Subroutine propertylauncher
-      use bandstructure, only: bandstr
+      use bandstructure, only: bandstr, bandstr_fourintp
+      use mbd_energy_module, only: MBD_energy
       Use inputdom
       Use mod_hdf5, only: fhdf5, hdf5_initialize, hdf5_create_file, hdf5_finalize
       Use modinput
@@ -12,11 +13,13 @@ Subroutine propertylauncher
       Use modmpi, Only: rank
       Use spintexture, Only: calculate_spintexture
       use xhdf5, only: xhdf5_type
+      use mod_selfconsistent_gw, only: is_gw_selfconsistent_flavour, qsgw
       
       Implicit None
       
       integer :: l, a, b, c, i
-      integer:: k 
+      integer:: k
+      logical :: fourier 
 
       call delete_warnings
 
@@ -100,6 +103,15 @@ Subroutine propertylauncher
             Call init0
          End If
          Call DFT_D2_energy
+      End If
+
+      If (associated(input%properties%MBD)) Then
+         If ( input%groundstate%do .Eq. "skip" ) Then
+            Call init0
+            Call init1
+            Call readstate
+         End If
+         Call MBD_energy
       End If
 
       If (associated(input%properties%elfplot)) Then
@@ -246,11 +258,17 @@ Subroutine propertylauncher
       End If
 
       If (associated(input%properties%bandstructure)) Then
+         fourier = is_gw_selfconsistent_flavour(qsgw) .or. &
+                   input%properties%bandstructure%fourier
          call rereadinput
-         if( .not. input%properties%bandstructure%wannier) then
+         if( .not. input%properties%bandstructure%wannier .and. &
+             .not. fourier) then
            ! tasks are: 20, 21
            task = 20
-           Call bandstr
+           Call bandstr()
+         else if (fourier .and. .not. &
+                  input%properties%bandstructure%wannier) then
+           call bandstr_fourintp() 
          end if
       End If
 

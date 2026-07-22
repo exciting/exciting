@@ -19,6 +19,7 @@ Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
       use mod_atoms, only: nspecies, natoms, idxas, spr, natmtot
       use mod_muffin_tin, only: rmt, nrmt, idxlm, lmmaxapw
       use mod_Gkvector, only: ngkmax_ptr
+      use modmpi, only: terminate
       !Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
@@ -171,6 +172,7 @@ Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
                   Write (*, '(" and atom ", I4)') ia
                   Write (*, '(" ZGESV returned INFO = ", I8)') info
                   Write (*,*)
+                  call terminate("Error(match)")
        ! stop
                End If
                i = 0

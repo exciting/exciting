@@ -1,0 +1,50 @@
+{
+  "DYN_Q??.OUT": {
+    "species": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "atom": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "polarisation": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "dynmat_real": {
+      "tol": 1e-06,
+      "unit": "null"
+    },
+    "dynmat_imag": {
+      "tol": 1e-06,
+      "unit": "null"
+    }
+  },
+  "PHONON.OUT": {
+    "q_vector": {
+      "tol": 1e-06,
+      "unit": "null"
+    },
+    "mode_index": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "frequency": {
+      "tol": 1e-06,
+      "unit": "Hartree"
+    },
+    "species": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "atom": {
+      "tol": 0,
+      "unit": "null"
+    },
+    "polarisation": {
+      "tol": 0,
+      "unit": "null"
+    }
+  }
+}

@@ -42,6 +42,7 @@ Subroutine init0
                             set_periodic_function_ptr_sirius
       Use modsym, only: spainvsym, inv_sym_no_translation
       Use mod_secular_equation_inversion_symmetry,only: check_usage_of_inversion_symmetry_solver
+      use allatoms, only: calculate_allatoms
 
       Implicit None
 
@@ -51,14 +52,12 @@ Subroutine init0
 
       integer :: rows_per_kpt, cols_per_kpt
       integer :: mpi_grid(2)
-      integer :: ierr
 
       !> Bare mpi communicator for k-points
       integer :: comm_k
       !> Bare mpi communicator for bands.
       !> This will only be set when using sirius
       integer :: comm_band
-      real(8) :: mb, ylmg_mb, sfacg_mb
       !> Command line arguments
       type(cmd_line_args_type) :: args
 
@@ -410,7 +409,7 @@ Subroutine init0
       If (init0symonly) Go To 10
 #endif
 ! solve the Kohn-Sham-Dirac equations for all atoms
-      Call allatoms(1)
+      Call calculate_allatoms(1)
 ! allocate core state eigenvalue array and set to default
       If (allocated(evalcr)) deallocate (evalcr)
       Allocate (evalcr(spnstmax, natmtot))

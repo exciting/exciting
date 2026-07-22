@@ -6,6 +6,7 @@ module calculate_correlation_self_energy
   use mod_eigensystem, only: nmatmax
   use mod_eigenvalue_occupancy, only: nstfv
   use mod_expand_products, only: expand_products_generic, split_interval
+  use mod_get_eigenvectors_times_matchingcoefficients, only: get_eigenvectors_times_matchingcoefficients
   use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
   use mod_mpi_gw, only : indexes_parallelization
   use mod_misc_gw, only: Gamma
@@ -30,7 +31,7 @@ module calculate_correlation_self_energy
 contains
 !> Obtain the correlation part of the self energy for the given k-points, 
 !> evaluating the one term (of a sum) corresponding to a given q-point
-subroutine calcselfc( iq, indexes )
+subroutine calcselfc( iq, indexes, offdiagonal )
     
 #include "offload.fpp"
 
@@ -38,6 +39,8 @@ subroutine calcselfc( iq, indexes )
     integer(i32), intent(in) :: iq
     !> Set of indexes (k-points, bands) used to calculate sigmac
     type(sigmac_indexes), intent(in) :: indexes
+    !> Compute the offdiagonal terms of the self-energy
+    logical, optional, intent(in) :: offdiagonal
     
     ! local
     integer(i32) :: ik, ikp, jk, ie1, iom
@@ -47,8 +50,16 @@ subroutine calcselfc( iq, indexes )
     real(dp) :: tstart, tend
     complex(dp), allocatable :: evec_aux(:, :)
     logical :: only_core_states_in_my_rank
+    logical :: offdiagonal_local
 
     call timesec(tstart)
+
+    ! Set the local value for offdiagonal    
+    if (present(offdiagonal)) then
+      offdiagonal_local = offdiagonal
+    else
+      offdiagonal_local = .false.
+    end if
 
     ! Update data
     OMP_OFFLOAD target update to(epsilon) 
@@ -106,9 +117,9 @@ subroutine calcselfc( iq, indexes )
       call get_evec_gw( kqset%vkl(:,ik), Gkqset%vgkl(:,:,:,ik), evec_aux )
       eveck = evec_aux(:, ibgw_including_degeneracy:nbgw_including_degeneracy)
 
-      call expand_evec(ik, 't')
+      call get_eigenvectors_times_matchingcoefficients(ik, 't', eveck, eveckalm)
       if( .not. only_core_states_in_my_rank ) then 
-        call expand_evec(jk, 'c')
+        call get_eigenvectors_times_matchingcoefficients(jk, 'c', eveckp, eveckpalm)
         OMP_OFFLOAD target update to(eveckp, eveckpalm)
       end if
       OMP_OFFLOAD target update to(eveck, eveckalm)
@@ -135,7 +146,7 @@ subroutine calcselfc( iq, indexes )
         !================================================================
         ! Calculate weight(q)*Sum_ij{M^i*W^c_{ij}(k,q;\omega)*conjg(M^j)}
         !================================================================
-        call calcmwm(ibgw_including_degeneracy, nbgw_including_degeneracy, mstart, mend, minmmat)
+        call calcmwm(ikp, jk, ibgw_including_degeneracy, nbgw_including_degeneracy, mstart, mend, minmmat, offdiagonal_local)
 
         OMP_OFFLOAD end target data ! minmmat 
         deallocate(minmmat)

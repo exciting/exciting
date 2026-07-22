@@ -1,6 +1,6 @@
 !> Module designed for the task vxc
 module task_vxc
-  use asserts, only: assert
+#include "asserts.fpp"
   use exciting_mpi, only: mpiinfo
   use gw_info, only: write_to_gwinfo_boxmessage
   use mod_kqpts, only: kpoints_sets
@@ -29,6 +29,7 @@ module task_vxc
 contains
 !> Interface to the parameters defined in the input file
 subroutine parse_input( this, gw_inp, n_kpt )
+  !> VXC task parameters to update.
   class(task_vxc_parameters), intent(inout) :: this
   !> type with the variables given in the input file
   type(gw_type), intent(in):: gw_inp
@@ -43,6 +44,7 @@ end subroutine
 
 !> Perform sanity checks on the input parameters in the `gw` element
 subroutine sanity_checks( this, gw_inp )
+  !> VXC task parameters to check.
   class(task_vxc_parameters), intent(in) :: this
   !> type with the variables given in the input file
   type(gw_type), intent(in) :: gw_inp
@@ -71,11 +73,10 @@ subroutine execute_task_vxc( first_band, last_band, kpt_latt_coord, file_format,
   logical :: my_rank_writes_outputs
 
   ! kpt_latt_coord should have 3 coordinates for each k-point
-  call assert( size( kpt_latt_coord, 1 ) == 3, &
-    'Size of kpt_latt_coord along 1st dim. must be = 3')
+  CALL_ASSERT( size( kpt_latt_coord, 1 ) == 3,  'Size of kpt_latt_coord along 1st dim. must be = 3')
   ! first_band, last_band should fit in the range [ibgw_including_degeneracy, nbgw_including_degeneracy]
-  call assert( first_band >= ibgw_including_degeneracy, 'first_band must be >= ibgw_including_degeneracy' )
-  call assert( last_band <= nbgw_including_degeneracy, 'last_band must be >= nbgw_including_degeneracy' )
+  CALL_ASSERT( first_band >= ibgw_including_degeneracy, 'first_band must be >= ibgw_including_degeneracy' )
+  CALL_ASSERT( last_band <= nbgw_including_degeneracy, 'last_band must be >= nbgw_including_degeneracy' )
 
   n_kpoints_max = size( kpt_latt_coord, 2 )
   call input_parameters%parse_input( input%gw, n_kpoints_max )

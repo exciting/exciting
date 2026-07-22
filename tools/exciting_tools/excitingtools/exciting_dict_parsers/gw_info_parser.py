@@ -296,6 +296,8 @@ def parse_band_structure_info(file_string: str, bs_type: str) -> dict:
 
     This routine assumes that the KS band structure info will ALWAYS appear
     before the GW band structure info.
+    If the requested band-structure section is absent, an empty dictionary is
+    returned.
 
     Two situations can occur.
 
@@ -314,17 +316,22 @@ def parse_band_structure_info(file_string: str, bs_type: str) -> dict:
 
     :param str bs_type: Band structure type to parse. Either 'ks' or 'gw'
     :param str file_string: Input string
-    :return dict k_data: Matched data
+    :return dict k_data: Matched data, or an empty dictionary if the requested
+        section is not present
     """
     if bs_type == "ks":
         # Parse first instance of each key, exploiting that Kohn-Sham band structure
         # comes before G0W0 band structure. This ASSUMES fixed structure to the file
-        pass
+        ks_header = "Kohn-Sham band structure"
+        if ks_header not in file_string:
+            return {}
 
     elif bs_type == "gw":
         # Find G0W0 band structure in the file, then start parsing from there
         gw_header = "G0W0 band structure"
         index = file_string.find(gw_header)
+        if index < 0:
+            return {}
         file_string = file_string[index:]
 
     else:

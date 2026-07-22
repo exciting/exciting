@@ -5,18 +5,16 @@ module bsemain
   use modinput, only: input, input_type
   use constants, only: zone, zi, zzero, pi
   use unit_conversion, only: hartree_to_ev
-  use mod_eigenvalue_occupancy, only: evalsv, nstsv
+  use mod_eigenvalue_occupancy, only: nstsv
   use mod_kpoint, only: nkptnr
   ! MPI and BLACS/ScaLAPACK
   use modmpi
   use modscl
   ! XS
   use mod_xsgrids
-  use modxs, only: vkl0, occsv0, evalsv0, unitout, iqmtgamma
+  use modxs, only: occsv0, evalsv0, unitout, iqmtgamma
   ! BSE
   use modbse
-  ! Spectrum
-  use mod_symmetry, only: nsymcrys
   ! Interface modules
   use m_putgetbsemat
   use m_genwgrid
@@ -38,23 +36,9 @@ module bsemain
   implicit none
 
   private
-  public bse, set_distribute
+  public bse
 
   contains
-  !> Set flag to determine if the BSH should be distributed.
-  !> If built with ScaLAPAKCK return [[input%xs%bse%distribute]], else
-  !> return `.false.`.
-  logical function set_distribute(input)
-     !> Input file container
-     type(input_type), intent(inout) :: input
-
-#ifdef SCAL
-     set_distribute = input%xs%bse%distribute
-#else
-     set_distribute = .false.
-#endif
-    end function
-
   !> Solves the Bethe-Salpeter equation(BSE). The BSE is treated as equivalent
   !> effective eigenvalue problem(thanks to the spectral theorem that can
   !> be applied to the original BSE in the case of a statically screened Coulomb
@@ -134,7 +118,6 @@ module bsemain
     real(8) :: bsegap
     real(8) :: v1, v2, en1, en2
     integer(4) :: i1, i2, iex1, iex2, nreq
-    integer(4) :: nsymcrys_save
     logical :: efind
 
     ! Distributed arrays
@@ -160,9 +143,9 @@ module bsemain
     ! Include coupling terms
     fcoup = input%xs%bse%coupling
 
-    ! Distribute Hamilton matrix if ScaLapack is used
-    ! and distribution is desired
-    fdist = set_distribute(input)
+    ! Distribute Hamilton matrix if distribution is desired
+    ! (and a distributed solver is available, was checked in select_bse_solver)
+    fdist = input%xs%bse%bsesolver /= 'lapack'
 
     if(associated(input%gw)) then
       ! If scissor correction is presented, one should nullify it
@@ -192,14 +175,6 @@ module bsemain
     call setranges_modxs(iqmt)
     !---------------------------------------------------------------------------!
 
-    if(fdist) then
-      ! Use all ranks on mpiglobal
-      call select_transitions(iqmt, serial=.false.)
-    else
-      ! Use all current rank only
-      call select_transitions(iqmt, serial=.true.)
-    end if
-
     !---------------------------------------------------------------------------!
     ! On top of GW
     !---------------------------------------------------------------------------!
@@ -208,48 +183,48 @@ module bsemain
     !          not done on EVALQP.OUT
     ! WARNING: Only works for Qmt=0, in this case vkl0 = vkl
     !
-    if(associated(input%gw) .and. iqmt==1) then
+    ! The QP energies themselves are read by select_transitions below, which
+    ! re-reads the KS eigenvalues and then replaces evalsv/evalsv0 by the
+    ! quasi-particle energies. Here we only have to save the KS eigenvalues of
+    ! the k-grid beforehand, since they are needed later on to renormalize PMAT
+    ! (see m_setup_dmat).
+    ! NOTE: getevalqp *adds* the interpolated QP correction to its input array,
+    !       so it has to be applied to the KS eigenvalues exactly once. Reading
+    !       the QP energies here as well would shift them a second time.
+    if(associated(input%gw)) then
+
+      if(iqmt /= 1) then
+        if(bicurrent%isroot) then
+          write(*,'("Error(",a,"):&
+           & BSE+GW only supported for 0 momentum transfer.")') trim(thisname)
+        end if
+        call terminate
+      end if
 
       ! Save KS eigenvalues of the k-grid to use them later for renormalizing PMAT
       if(allocated(eval0)) deallocate(eval0)
       allocate(eval0(nstsv, nkptnr))
       eval0=evalsv0
 
-      ! Read QP Fermi energies and eigenvalues from file
-      ! NOTE: QP evals are shifted by -efermi-eferqp with respect to KS evals
-      ! NOTE: getevalqp sets mod_symmetry::nsymcrys to 1
-      ! NOTE: getevalqp needs the KS eigenvalues as input
-      if( wfbse_usegwwannier()) then
-        call wfbse_init
-        call wfbse_ordereval
-        evalsv = wfbse_eval
-      else
-        nsymcrys_save = nsymcrys
-        !call checkevalqp('EVALQP.OUT', nkptnr, vkl0, evalsv)
-        call getevalqp('EVALQP.OUT', nkptnr, vkl0, evalsv)
-        nsymcrys = nsymcrys_save
-      end if
+    end if
+    !---------------------------------------------------------------------------!
 
-      ! Set k and k'=k grid eigenvalues to QP energies
-      evalsv0=evalsv
+    if(fdist) then
+      ! Use all ranks on mpiglobal
+      call select_transitions(iqmt, serial=.false.)
+    else
+      ! Use all current rank only
+      call select_transitions(iqmt, serial=.true.)
+    end if
 
+    if(associated(input%gw)) then
       write(unitout,'("Info(",a,"):&
         & Quasi particle energies are read from EVALQP.OUT")') trim(thisname)
       if( wfbse_usegwwannier()) then
         write(unitout,'("Info(",a,"):&
           & Wannier interpolation was employed.")') trim(thisname)
       end if
-
-    else if(associated(input%gw) .and. iqmt /= 1) then
-
-      if(bicurrent%isroot) then
-        write(*,'("Error(",a,"):&
-         & BSE+GW only supported for 0 momentum transfer.")') trim(thisname)
-      end if
-      call terminate
-
     end if
-    !---------------------------------------------------------------------------!
 
     !---------------------------------------------------------------------------!
     ! Setup participating transitions and index maps
@@ -327,7 +302,7 @@ module bsemain
           ramscale=3.0d0
         end if
 
-        write(unitout, '("  Distributing matrix to ",i3," processes")') bicurrent%nprocs
+        write(unitout, '("  Distributing matrix to ",i0," processes")') bicurrent%nprocs
         write(unitout, '("  Local matrix shape ",i6," x",i6)')&
           & dham%nrows_loc, dham%ncols_loc
 
@@ -338,6 +313,7 @@ module bsemain
         write(unitout,*)
         !------------------------------------------------------------------------!
         call printline(unitout, '-')
+        call flushifc(unitout)
         !------------------------------------------------------------------------!
         ! Assemble Hamiltonian matrix
         !------------------------------------------------------------------------!
@@ -369,23 +345,28 @@ module bsemain
           write(unitout, '("Info(",a,"):&
             & Diagonalizing RR Hamiltonian (TDA)")') trim(thisname)
         end if
-#ifdef SCAL
-        if(fdist) then
-#ifdef _ELPA_
-        write(unitout, '("Info(",a,"):&
-          & Invoking ELPA eigensolver")') trim(thisname)
-#else
-        write(unitout, '("Info(",a,"):&
-          & Invoking scalapack routine PZHEEVX")') trim(thisname)
-#endif
-        else
-          write(unitout, '("Info(",a,"):&
+
+        select case( input%xs%bse%bsesolver )
+          case( 'elpa1StageSolver' )
+            write(unitout, '("Info(",a,"):&
+            & Invoking ELPA 1Stage eigensolver")') trim(thisname)
+          case( 'elpa2StageSolver' )
+            write(unitout, '("Info(",a,"):&
+            & Invoking ELPA 2Stage eigensolver")') trim(thisname)
+          case( 'scalapackPzheevx' )
+            write(unitout, '("Info(",a,"):&
+            & Invoking scalapack routine PZHEEVX")') trim(thisname)
+          case( 'scalapackPzheevd' )
+            write(unitout, '("Info(",a,"):&
+            & Invoking scalapack routine PZHEEVD")') trim(thisname)
+          case( 'lapack' )
+            write(unitout, '("Info(",a,"):&
             & Invoking Lapack routine ZHEEVR")') trim(thisname)
-        end if
-#else
-        write(unitout, '("Info(",a,"):&
-          & Invoking Lapack routine ZHEEVR")') trim(thisname)
-#endif
+          case default
+            call terminate('Error(bse): Unknown bsesolver.&
+                    & This is most likely an implementation error.')
+        end select
+        call flushifc(unitout)
 
         ! Eigenvectors are distributed
         ! must be NxN because ScaLapack solver expects it so
@@ -422,8 +403,7 @@ module bsemain
           end if
 
           call dhesolver(dham, exeval, bicurrent, dexevec,&
-           & v1=v1, v2=v2, found=nexc,&
-           & eecs=input%xs%bse%eecs)
+           & v1=v1, v2=v2, found=nexc)
 
         ! Find the nexc lowest solutions
         else
@@ -436,8 +416,7 @@ module bsemain
           i1 = 1
 
           call dhesolver(dham, exeval, bicurrent, dexevec,&
-           & i1=i1, i2=i2, found=nexc,&
-           & eecs=input%xs%bse%eecs)
+           & i1=i1, i2=i2, found=nexc)
 
         end if
 
@@ -605,6 +584,7 @@ module bsemain
 
     ! IP or not if
     end if
+    call flushifc(unitout)
 
     ! Note: The following allocation is only needed for processes that are not
     !       on the process grid and serves the only purpose that the debugger
@@ -639,8 +619,7 @@ module bsemain
       end if
 
       if(bicurrent%isroot) then
-        ! Write excition energies and oscillator strengths to
-        ! text file.
+        ! Write excition energies and oscillator strengths to text file.
         write(unitout,*)
         call printline(unitout, '-')
         write(unitout, '("Info(",a,"):&
@@ -650,36 +629,9 @@ module bsemain
 
       end if
 
-      ! Allocate arrays used in spectrum construction
-      if(bicurrent%isroot) then
-        allocate(symspectr(3,3,nw))
-      end if
-
-      ! Only process root gets an acctual output for symspectr
-      call makespectrum_dist(iqmt, nexc, nk_bse, exeval, oscsr, symspectr, bicurrent)
-
-      ! Only root writes derived outputs
-      if(bicurrent%isroot) then
-
-        ! Allocate arrays used in spectrum construction
-        allocate(w(nw))
-        ! Generate an evenly spaced frequency grid
-        call genwgrid(nw, input%xs%energywindow%intv,&
-          & input%xs%tddft%acont, 0.d0, w_real=w)
-
-        ! Generate and write derived optical quantities
-        call writederived(iqmt, symspectr, nw, w)
-
-      end if
-
       ! Clean up
       deallocate(exeval, oscsr)
       if(associated(input%gw)) deallocate(eval0)
-
-      if(bicurrent%isroot) then
-        deallocate(w)
-        deallocate(symspectr)
-      end if
 
       ! MPI
       ! Ranks that are on the BLACS grid signal that they are done

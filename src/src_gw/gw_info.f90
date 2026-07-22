@@ -1,5 +1,5 @@
 module gw_info
-  use asserts, only: assert
+#include "asserts.fpp"
   use gw_io, only: open_file, file_format_text
   use mod_mpi_gw, only: indexes_parallelization
   use precision, only: dp, i32, str_64, str_128
@@ -82,7 +82,7 @@ subroutine write_to_gwinfo_progress( string )
     case( progress_write_epsilon )
       call write_to_gwinfo('*** Writing dielectric matrix into file')
     case default
-      call assert(.false., 'Unknown option in write_to_gwinfo_progress')
+      CALL_ASSERT(.false., 'Unknown option in write_to_gwinfo_progress')
   end select
 
 end subroutine
@@ -104,8 +104,8 @@ subroutine write_to_gwinfo_progress_bar( time_spent, fraction, identation_level 
   character(len=1), parameter :: identation_char = '*'
 
   identation_string = repeat( identation_char, identation_multiplier*identation_level )
-  call assert( fraction >= 0 .and. fraction <= 1, message='fraction must be a real number between 0 and 1')
-  call assert( identation_level >= 0, 'identation_level must be positive' )
+  CALL_ASSERT( fraction >= 0 .and. fraction <= 1, message='fraction must be a real number between 0 and 1')
+  CALL_ASSERT( identation_level >= 0, 'identation_level must be positive' )
   write( string, format_str ) identation_string // ' completing ', 100*fraction, '%. Time: ', time_spent, &
     ' (sec). Estimated total time:', time_spent/fraction, ' (sec)'
   call write_to_gwinfo( trim(string) )
@@ -128,8 +128,8 @@ subroutine write_to_gwinfo_table_with_index_map( index_map, symbols, names )
   character(len=*), parameter :: format_int = '(2I' // spacing // ')'
   character(len=*), parameter :: format_str = '(2A' // spacing // ')'
 
-  call assert( size( symbols ) == 2, 'Array symbols must have size 2' )
-  call assert( size( names ) == 2, 'Array names must have size 2' )
+  CALL_ASSERT( size( symbols ) == 2, 'Array symbols must have size 2' )
+  CALL_ASSERT( size( names ) == 2, 'Array names must have size 2' )
 
   n = size( index_map )
   call write_to_gwinfo( '*** Table with index map' )
@@ -170,9 +170,9 @@ subroutine write_to_gwinfo_parallelization_info( ranks, sets, symbols, names )
 
   m = size( symbols, 1 )
   n = size( ranks )
-  call assert( size(sets, 1) == m, 'sets must have m components along 1st dim'  )
-  call assert( size(sets, 2) == n, 'sets must have n components along 2nd dim' ) 
-  call assert( size(names, 1) == m, 'names and symbols must have same size'  )
+  CALL_ASSERT( size(sets, 1) == m, 'sets must have m components along 1st dim'  )
+  CALL_ASSERT( size(sets, 2) == n, 'sets must have n components along 2nd dim' ) 
+  CALL_ASSERT( size(names, 1) == m, 'names and symbols must have same size'  )
   
   call write_to_gwinfo('')
   call write_to_gwinfo('*** Parallelization')

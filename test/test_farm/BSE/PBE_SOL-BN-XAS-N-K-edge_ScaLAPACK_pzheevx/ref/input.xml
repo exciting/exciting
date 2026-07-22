@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<input>
+	<title>Cubic boron nitride </title>
+	<structure speciespath="." autormt="true">
+		<crystal scale="6.83136">
+			<basevect>0.5 0.0 0.5</basevect>
+			<basevect>0.0 0.5 0.5</basevect>
+			<basevect>0.5 0.5 0.0</basevect>
+		</crystal>
+		<species speciesfile="B.xml">
+			<atom coord="0.0 0.0 0.0"> </atom>
+		</species>
+		<species speciesfile="N.xml">
+			<atom coord="0.25 0.25 0.25"> </atom>
+		</species>
+	</structure>
+	<groundstate
+	   ngridk="4 4 4"
+	   xctype="GGA_PBE_SOL"
+	   gmaxvr="14.0">
+	</groundstate>
+	<xs
+	   xstype="BSE"
+	   ngridk="2 2 2"
+	   vkloff="0.05 0.15 0.25"
+	   ngridq="2 2 2"
+	   nempty="30"
+	   gqmax="3.0"
+	   broad="0.018"
+	   tevout="true">
+		<screening screentype="full" nempty="100"> </screening>
+		<BSE
+		   xas="true"
+		   xasspecies="2"
+		   xasatom="1"
+		   xasedge="K"
+		   bsesolver="scalapackPzheevx"
+		   bsetype="singlet"
+		   nstlxas="1 15">
+		</BSE>
+		<qpointset>
+			<qpoint>0.0 0.0 0.0</qpoint>
+		</qpointset>
+		<energywindow intv="13.4 16.5" points="500"> </energywindow>
+		<BseTypeSet>
+			<type name="IP"/>
+			<type name="RPA"/>
+			<type name="singlet"/>
+			<type name="triplet"/>
+		</BseTypeSet>
+	</xs>
+</input>

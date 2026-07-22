@@ -14,7 +14,7 @@
 !> among all available processe.
 module phonons_parallelization
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi
 
   implicit none
@@ -102,6 +102,7 @@ module phonons_parallelization
       use mod_kpointset, only: k_set, generate_k_vectors, delete_k_vectors
       use mod_symmetry, only: maxsymcrys, nsymcrys, lsplsymc
       use mod_atoms, only: natmtot
+      use exciting_mpi, only: xmpi_comm_split
       use modinput
       !> set of \({\bf q}\) points
       type(k_set), intent(in) :: qset
@@ -128,8 +129,7 @@ module phonons_parallelization
       
       integer, allocatable :: pidx(:), piq(:), pirrep(:), pnkpt(:), pdirrep(:), pload(:)
 
-      call assert( minppp <= numprocs, &
-        'Minimal number of processes per part `minppp` must not be greater than number of processes `numprocs`.' )
+      CALL_ASSERT( minppp <= numprocs,  'Minimal number of processes per part `minppp` must not be greater than number of processes `numprocs`.' )
 
       ! allocate temporary arrays for parts information
       allocate( pidx(   3*natmtot*qset%nkpt), source=0 )
@@ -234,22 +234,19 @@ module phonons_parallelization
         call barrier
         i = MPI_UNDEFINED
         if( parts(ip)%is_my_rank( mpiglobal%rank ) ) i = k
-        call MPI_comm_split( mpiglobal%comm, i, mpiglobal%rank, j, mpiglobal%ierr )
-        call set_mpi( parts(ip)%mpi, j )
+        call xmpi_comm_split( mpiglobal, parts(ip)%mpi, i, mpiglobal%rank )
         ! communicator with all procs working on the first k-point in this part
         k = 1
         call barrier
         i = MPI_UNDEFINED
         if( (k >= parts(ip)%first_k_of_rank( mpiglobal%rank )) .and. (k <= parts(ip)%last_k_of_rank( mpiglobal%rank )) ) i = k
-        call MPI_comm_split( mpiglobal%comm, i, mpiglobal%rank, j, mpiglobal%ierr )
-        call set_mpi( parts(ip)%mpik, j )
+        call xmpi_comm_split( mpiglobal, parts(ip)%mpik, i, mpiglobal%rank )
         ! communicators with all procs working on the same irrep members in this part
         do k = 1, pdirrep(ip)
           call barrier
           i = MPI_UNDEFINED
           if( (k >= parts(ip)%first_d_of_rank( mpiglobal%rank )) .and. (k <= parts(ip)%last_d_of_rank( mpiglobal%rank )) ) i = k
-          call MPI_comm_split( mpiglobal%comm, i, mpiglobal%rank, j, mpiglobal%ierr )
-          call set_mpi( parts(ip)%mpid(k), j )
+          call xmpi_comm_split( mpiglobal, parts(ip)%mpid(k), i, mpiglobal%rank )
         end do
       end do
 #endif

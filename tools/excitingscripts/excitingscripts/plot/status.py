@@ -128,7 +128,7 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    plot_status(args.run_directory)
+    plot_status(args.run_directory[0])
 
     if args.show:
         plt.show()

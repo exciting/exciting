@@ -229,7 +229,7 @@ if(NOT CPUBACKEND)
 
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fPIC -fiopenmp -fopenmp-targets=spir64 -qmkl=parallel -fsycl")
       set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fopenmp-targets=spir64=\"-fp-model=precise\" -fsycl -fpp -free")
-      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ax -fPIC -fiopenmp -fopenmp-targets=spir64 -qmkl=parallel -fsycl")
+      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fPIC -fiopenmp -fopenmp-targets=spir64 -qmkl=parallel -fsycl")
       set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fopenmp-targets=spir64=\"-fp-model=precise\" -fsycl -fpp -free")
 
       set(devacc_link_libs "${MKL_LIBRARIES}")

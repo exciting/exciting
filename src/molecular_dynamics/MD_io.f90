@@ -1,5 +1,5 @@
 module MD_io
-  use asserts, only: assert
+#include "asserts.fpp"
   use exciting_mpi, only: mpiinfo
   use file_utils, only: add_default_extension, copy_text_file, read_last_and_penultimate_lines_from_file
   use math_utils, only: all_zero
@@ -153,9 +153,9 @@ module MD_io
 
     n = size( this%positions_velocities_forces, 1 )
     call nuclei_motion%assert_consistency( )
-    call assert( size(nuclei_motion%velocities, 2) == n, 'velocities must have n elements' )
-    call assert( size(forces%total, 1) == 3, 'atom_forces must have 3 coordinates' )
-    call assert( size(forces%total, 2) == n, 'atom_forces must have n elements' )
+    CALL_ASSERT( size(nuclei_motion%velocities, 2) == n, 'velocities must have n elements' )
+    CALL_ASSERT( size(forces%total, 1) == 3, 'atom_forces must have 3 coordinates' )
+    CALL_ASSERT( size(forces%total, 2) == n, 'atom_forces must have n elements' )
     
     do i = 1, n
       format_string = '('//trim(format_time)// &
@@ -293,7 +293,7 @@ module MD_io
         call write_array_hdf5( handler%file_name, handler%path, filename_trajectory // "-" // add_default_extension("nuclei_velocities"), &
           nuclei_motion%velocities, mpi_env, serial_access=.true. )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
   end subroutine
 

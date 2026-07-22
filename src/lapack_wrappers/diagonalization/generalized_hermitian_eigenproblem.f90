@@ -3,7 +3,7 @@
 !> DSYGVX and ZHEGVX
 module generalized_hermitian_eigenproblem
   use precision, only: dp, i32
-  use asserts, only: assert
+#include "asserts.fpp"
   use xstring, only: to_char, newline
   use modmpi, only: terminate_if_false
   use math_utils, only: is_hermitian, is_positive_definite
@@ -164,9 +164,9 @@ contains
 
     n = size(A, dim=1)
     call assert_char_int_arguments( itype, jobz, range, uplo )
-    call assert(is_hermitian(A), 'Matrix A is not hermitian')
-    call assert(is_positive_definite(B), 'Matrix B is not positive definite')
-    call assert(size(B, dim=1) == n, 'Matrix B dimensions do not match matrix A.')
+    CALL_ASSERT(is_hermitian(A), 'Matrix A is not hermitian')
+    CALL_ASSERT(is_positive_definite(B), 'Matrix B is not positive definite')
+    CALL_ASSERT(size(B, dim=1) == n, 'Matrix B dimensions do not match matrix A.')
 
     ldz = size(eigenvectors, dim=1)
 
@@ -235,9 +235,9 @@ contains
 
     n = size(A, dim=1)
     call assert_char_int_arguments( itype, jobz, range, uplo )
-    call assert(is_hermitian(A), 'Matrix A is not hermitian')
-    call assert(is_positive_definite(B), 'Matrix B is not positive definite')
-    call assert(size(B, dim=1) == n, 'Matrix B dimensions do not match matrix A.')
+    CALL_ASSERT(is_hermitian(A), 'Matrix A is not hermitian')
+    CALL_ASSERT(is_positive_definite(B), 'Matrix B is not positive definite')
+    CALL_ASSERT(size(B, dim=1) == n, 'Matrix B dimensions do not match matrix A.')
 
     ldz = size(eigenvectors, dim=1)
 
@@ -252,7 +252,7 @@ contains
        lwork = -1; allocate(work(1))
        call zhegvx(itype, jobz, range, uplo, n, A, n, B, n, vl, vu, il, iu, abstol, m, eigenvalues, eigenvectors, ldz, &
             work, lwork, rwork, iwork, ifail, info)
-       call terminate_if_false(info == 0, 'dsygvx work space query failed.')
+       call terminate_if_false(info == 0, 'zhegvx work space query failed.')
        lwork = work(1); deallocate(work)
     end if
 
@@ -276,10 +276,10 @@ contains
     !> See description in [[dsygvx_wrapper]]
     character(len=1), intent(in) :: uplo
 
-    call assert(any(itype == allowed_itype), 'itype is not one of the allowed characters (1, 2, 3).')
-    call assert(any(jobz == allowed_jobz), 'jobz is not one of the allowed characters ("N", "V").')
-    call assert(any(range == allowed_range), 'range is not one of the allowed characters ("A", "V", "I").')
-    call assert(any(uplo == allowed_uplo), 'uplo is not one of the allowed characters ("U", "L").')
+    CALL_ASSERT(any(itype == allowed_itype), 'itype is not one of the allowed characters (1, 2, 3).')
+    CALL_ASSERT(any(jobz == allowed_jobz), 'jobz is not one of the allowed characters ("N", "V").')
+    CALL_ASSERT(any(range == allowed_range), 'range is not one of the allowed characters ("A", "V", "I").')
+    CALL_ASSERT(any(uplo == allowed_uplo), 'uplo is not one of the allowed characters ("U", "L").')
   end subroutine
 
   !> (private) Terminate if `info` is not equal to zero (which means that the diagonalization failed)

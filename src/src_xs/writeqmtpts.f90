@@ -5,7 +5,6 @@
 subroutine writeqmtpts
 ! !USES:
   use modxs, only: nqmt, vqlmt, totalqcmt, vqcmt, ivgmt, vgcmt
-  use m_getunit
   use m_genfilname
 ! !DESCRIPTION:
 !   Writes the momentum transfer ${\bf Q}$-points
@@ -21,10 +20,9 @@ subroutine writeqmtpts
   integer :: iqmt, un
   character(256) :: filnam
 
-  call getunit(un)
   Call genfilname(basename='QMTPOINTS', appfilext=.True., filnam=filnam)
 
-  open(un, file=trim(filnam), action='WRITE', form='FORMATTED')
+  open(newunit=un, file=trim(filnam), action='WRITE', form='FORMATTED')
   write(un, '("# Momentum transfer vectors from qpointlist element.")')
   write(un, '("# Momentum transfer Qmt = Gmt + qmt, where qmt is in the unit cell.")')
   write(un, '("#")')

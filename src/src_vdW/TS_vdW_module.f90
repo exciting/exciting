@@ -1,4 +1,6 @@
 Module TS_vdW_module
+  use precision, only: dp
+
   Implicit none
 !  Real(8), Parameter :: s6=1d0
 !  Real(8), Parameter :: sr6=0.94d0
@@ -6,9 +8,9 @@ Module TS_vdW_module
 !  Real(8), Parameter :: cutoff=95d0
   Integer :: current_atom, current_species
   Integer :: num_of_atoms_in_sphere_hirshfeld
-  Real(8), Allocatable :: list_of_positions_hirshfeld(:,:) ! cartesian coordinates of all atoms within a sphere with radius r  
+  Real(dp), Allocatable :: list_of_positions_hirshfeld(:,:) ! cartesian coordinates of all atoms within a sphere with radius r
   Integer, Allocatable :: list_of_species_hirshfeld(:)     ! corresponding list of species (index of species as found in modinput)   
-  Real(8), Allocatable :: C6ab(:,:), R0_eff_ab(:,:)
+  Real(dp), Allocatable :: C6ab(:,:), R0_eff_ab(:,:)
 
 Contains
 
@@ -19,14 +21,14 @@ Contains
     Implicit None
 !    Real(8), Intent(out) :: C6ab(:,:), R0_eff_ab(:,:)
     Integer :: nsph, nr
-    Real(8) :: I_numerator, I_denominator
-    Real(8) :: V_ratio
-    Real(8) :: max_sprmax
-    Real(8) :: C6_free(nspecies), alpha_free_is(nspecies)
+    Real(dp) :: I_numerator, I_denominator
+    Real(dp) :: V_ratio
+    Real(dp) :: max_sprmax
+    Real(dp) :: C6_free(nspecies), alpha_free_is(nspecies)
     Integer :: is, iat, jat
-    Real(8) :: R0_free(nspecies)
-    Real(8) :: C6_eff(natmtot), alpha_free_idxas(natmtot), R0_eff(natmtot)
-    Real(8) :: e_TS_vdW
+    Real(dp) :: R0_free(nspecies)
+    Real(dp) :: C6_eff(natmtot), alpha_free_idxas(natmtot), R0_eff(natmtot)
+    Real(dp) :: e_TS_vdW
     max_sprmax = maxval(sprmax)
 
     Do is = 1, nspecies
@@ -68,16 +70,16 @@ Contains
     Use modinput
     Implicit None
     Integer, Intent(in) :: np
-    Real(8), Intent(in) :: vpc(:,:)
-    Real(8) :: integrand_numerator(np)
+    Real(dp), Intent(in) :: vpc(:,:)
+    Real(dp) :: integrand_numerator(np)
     Integer :: lmax
-    Real(8) :: inv_basevect(3,3)
+    Real(dp) :: inv_basevect(3,3)
     Integer :: ip
-    Real(8) :: rvec(3), r, r_array(np)
-    Real(8) :: vpc_buffer(3,np)
+    Real(dp) :: rvec(3), r, r_array(np)
+    Real(dp) :: vpc_buffer(3,np)
     Integer :: bookkeeping(np)
-    Real(8), Allocatable :: vpl(:,:), vpc_reduced(:,:)
-    Real(8), Allocatable :: rho(:)
+    Real(dp), Allocatable :: vpl(:,:), vpc_reduced(:,:)
+    Real(dp), Allocatable :: rho(:)
     Integer :: count_in
     lmax=input%groundstate%lmaxvr
     r_array(:) = 0.
@@ -120,11 +122,11 @@ Contains
     !    Use mod_atoms, Only: atposc
     Implicit None
     Integer, Intent(in) :: np
-    Real(8), Intent(in) :: vpc(:,:)
-    Real(8) :: integrand_denominator(np)
+    Real(dp), Intent(in) :: vpc(:,:)
+    Real(dp) :: integrand_denominator(np)
     Integer :: ip
     !    Real(8) :: rvec(3), r, r3
-    Real(8) :: r, r3
+    Real(dp) :: r, r3
 
     Do ip=1,np
        !       rvec(:)=atposc(:, current_atom, current_species)-vpc(:, ip)
@@ -142,22 +144,23 @@ Contains
     Implicit None
     Interface
        Function integrand(vpc,n)
+         import dp
          Integer, Intent(in) :: n
-         Real(8), Intent(in) :: vpc(:,:)
-         Real(8) :: integrand(n)
+         Real(dp), Intent(in) :: vpc(:,:)
+         Real(dp) :: integrand(n)
        End Function integrand
     End Interface
-    Real(8) :: sph_int
-    Real(8), Intent(in) :: vorigin(3)
-    Real(8), Intent(in) :: rm   ! "midpoint" of the radial integration interval
+    Real(dp) :: sph_int
+    Real(dp), Intent(in) :: vorigin(3)
+    Real(dp), Intent(in) :: rm   ! "midpoint" of the radial integration interval
     Integer, Intent(in) :: nsph ! number of Lebedev grid points, possible numbers are: 1, 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3740, 3890, 4334, 4802, 5294, 5810
     Integer, Intent(in) :: nr   ! number of radial grid points 
     Integer :: ntot
     Integer :: ir, icount, jcount
     Integer :: idxmin, idxmax, idxmodulo
-    Real(8) :: pi, r, rmin, G, wr, f
-    Real(8), allocatable :: v_unitsph(:,:), vpc(:,:)
-    Real(8), allocatable :: wsph(:), x(:), fp(:)
+    Real(dp) :: pi, r, rmin, G, wr, f
+    Real(dp), allocatable :: v_unitsph(:,:), vpc(:,:)
+    Real(dp), allocatable :: wsph(:), x(:), fp(:)
 
     pi=atan(1.)*4
     ntot=nsph*nr
@@ -219,11 +222,11 @@ Contains
   Function hirshfeldweightdenominator(vpc, np)
     Use mod_atoms, Only: sprmax
     Implicit None
-    Real(8), Intent(in) :: vpc(:,:)
+    Real(dp), Intent(in) :: vpc(:,:)
     Integer, Intent(in) :: np
-    Real(8) :: hirshfeldweightdenominator(np)
+    Real(dp) :: hirshfeldweightdenominator(np)
     Integer :: ip, icount
-    Real(8) :: rvec(3), r, sprmax_
+    Real(dp) :: rvec(3), r, sprmax_
     hirshfeldweightdenominator(:)=0d0
     sprmax_ = sprmax(current_species)
     Do ip=1,np !MPI ???
@@ -237,44 +240,62 @@ Contains
   End Function Hirshfeldweightdenominator
 
 
+  !> Interpolate the spherical free-atom electron density for one species.
+  !>
+  !> The interpolation uses the radial mesh interval centered on \(r\). Outside
+  !> the species muffin-tin radius, the free-atom density is zero.
   Function nfree(r,is)
     Use modinput
     Use mod_atoms, Only: spnr, spr, sprho, sprmax
     Implicit None
-    Real(8), Intent(in) :: r  ! distance
-    Integer, Intent(in) :: is ! species
-    Real(8) :: nfree
-    Integer :: np2, ir, ir0, i, j
-    Real(8) :: r_
-    Real (8), Allocatable :: ya (:), c (:)
-    Real (8) :: polynom
+    !> Radial distance from the nucleus.
+    Real(dp), Intent(in) :: r
+    !> Species index.
+    Integer, Intent(in) :: is
+    Real(dp) :: nfree
+    Integer :: np2, ir, ir0, i, j, ir_low, ir_high, ir_mid
+    Real(dp) :: r_
+    Real(dp), Allocatable :: ya (:), c (:)
+    Real(dp) :: polynom
     External polynom
-    Allocate (ya(input%groundstate%nprad),&
-         c(input%groundstate%nprad))
-    If (r .Gt. sprmax(is)) Then
-       nfree=0.
-    Else
+    nfree = 0.0d0
+    if (r <= sprmax(is)) then
+       Allocate (ya(input%groundstate%nprad),&
+            c(input%groundstate%nprad))
+
        np2 = input%groundstate%nprad / 2
-       Do ir = 1, spnr(is)
-          If (spr(ir, is) .Ge. r) Then
-             If (ir .Le. np2) Then
-                ir0 = 1
-             Else If (ir .Gt. spnr(is)-np2) Then !or just nfree=0. ?
-                ir0 = spnr(is) - &
-                     &     input%groundstate%nprad + 1
-             Else
-                ir0 = ir - np2
-             End If
-             r_ = Max (r, spr(1, is))
-             Do j = 1, input%groundstate%nprad
-                i = ir0 + j - 1
-                ya(j) = sprho(i,is)
-             End Do
-             nfree = polynom(0, input%groundstate%nprad, spr(ir0, is), ya, c, r_)
-             Exit
-          End If
-       End Do
-    End If
+
+       ir_low  = 1
+       ir_high = spnr(is)
+
+       do while (ir_low < ir_high)
+          ir_mid = (ir_low + ir_high) / 2
+          if (spr(ir_mid,is) < r) then
+             ir_low = ir_mid + 1
+          else
+             ir_high = ir_mid
+          end if
+       end do
+
+       ir = ir_low
+
+       if (ir <= np2) then
+          ir0 = 1
+       else if (ir > spnr(is) - np2) then
+          ir0 = spnr(is) - input%groundstate%nprad + 1
+       else
+          ir0 = ir - np2
+       end if
+
+       r_ = max(r, spr(1,is))
+
+       do j = 1, input%groundstate%nprad
+          i = ir0 + j - 1
+          ya(j) = sprho(i,is)
+       end do
+
+       nfree = polynom(0, input%groundstate%nprad, spr(ir0,is), ya, c, r_)
+    end if
   End Function nfree
 
   Subroutine atoms_in_ambit(r_max, center_c, list_of_positions, list_of_species, num_of_atoms_in_sphere)
@@ -282,22 +303,22 @@ Contains
     Use mod_atoms, Only: natmtot, nspecies, natoms, atposc
     Use modinput
     Implicit none
-    Real(8), Intent(in) :: r_max                                ! radius (Bohr)
-    Real(8), Intent(in) :: center_c(3)                          ! cartesian coordinates of center
-    Real(8), Allocatable, Intent(out) :: list_of_positions(:,:) ! cartesian coordinates of all atoms within a sphere with radius r
+    Real(dp), Intent(in) :: r_max                                ! radius (Bohr)
+    Real(dp), Intent(in) :: center_c(3)                          ! cartesian coordinates of center
+    Real(dp), Allocatable, Intent(out) :: list_of_positions(:,:) ! cartesian coordinates of all atoms within a sphere with radius r
     Integer, Allocatable, Intent(out) :: list_of_species(:)     ! corresponding list of species (index of species as found in modinput)
     Integer, Intent(out) :: num_of_atoms_in_sphere
-    Real(8), Allocatable :: list_of_positions_extended(:,:)
+    Real(dp), Allocatable :: list_of_positions_extended(:,:)
     Integer, Allocatable :: list_of_species_extended(:)
     Integer :: latticerepetition(3)
     Integer :: max_num_of_atoms
     Integer :: icount
     Integer :: is, ia, tau_a, tau_b, tau_c
     Integer :: center_l_integer(3)
-    Real(8) :: tau_coeff(3)
-    Real(8) :: inv_basevect(3,3)
-    Real(8) :: center_l(3), center_c_equivalent(3), tau(3), center_c_integer(3)
-    Real(8) :: rvec(3), r
+    Real(dp) :: tau_coeff(3)
+    Real(dp) :: inv_basevect(3,3)
+    Real(dp) :: center_l(3), center_c_equivalent(3), tau(3), center_c_integer(3)
+    Real(dp) :: rvec(3), r
     Call getlatticerepetition(latticerepetition,r_max)
     max_num_of_atoms = natmtot
     Do icount=1,3
@@ -347,7 +368,7 @@ Contains
 
   subroutine get_free_atom_vdw_param(nucleus, C6, alpha, R0)
     implicit none
-    real*8 :: nucleus, C6,alpha, R0
+    real(dp) :: nucleus, C6,alpha, R0
 
     if (nucleus.eq.1.) then ! H
        alpha=4.500000

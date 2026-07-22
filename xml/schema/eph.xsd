@@ -18,6 +18,8 @@
 
       <xs:all>
 
+<!-- ******************************************************************************** -->
+<!-- ELECTRON-PHONON MATRIX ELEMENTS -->
         <xs:element ex:importance="essential" ex:unit="" name="ephmat" maxOccurs="1" minOccurs="0">
           <xs:annotation>
             <xs:documentation>
@@ -48,11 +50,32 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="hilo" type="xs:boolean" default="true">
+              <xs:annotation>
+                <xs:documentation>
+                  Compute effective high and low (hilo) energy matrix elements for self-energy calculation.
+                  They are used to approximate the contributions to the self-energy from bands outside the
+                  Wannierized part of the bandstructure.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
             
+            <xs:attribute ex:importance="experimental" ex:unit="" name="debye_waller" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Compute matrix elements used in operator formulation of the Debye-Waller self-energy.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+      
           </xs:complexType>
 
         </xs:element>
+<!-- ................................................................................ -->
 
+<!-- ******************************************************************************** -->
+<!-- ELECTRON ENERGY INTERPOLATION -->
         <xs:element ex:importance="expert" ex:unit="" name="el_interpolation" maxOccurs="1" minOccurs="0">
           <xs:annotation>
             <xs:documentation>
@@ -79,7 +102,10 @@
           </xs:complexType>
 
         </xs:element>
+<!-- ................................................................................ -->
 
+<!-- ******************************************************************************** -->
+<!-- PHONON FREQUENCY INTERPOLATION -->
         <xs:element ex:importance="expert" ex:unit="" name="ph_interpolation" maxOccurs="1" minOccurs="0">
           <xs:annotation>
             <xs:documentation>
@@ -106,7 +132,10 @@
           </xs:complexType>
 
         </xs:element>
+<!-- ................................................................................ -->
 
+<!-- ******************************************************************************** -->
+<!-- EPH MATRIX INTERPOLATION -->
         <xs:element ex:importance="expert" ex:unit="" name="eph_interpolation" maxOccurs="1" minOccurs="0">
           <xs:annotation>
             <xs:documentation>
@@ -153,22 +182,6 @@
               </xs:annotation>
             </xs:attribute>
 
-            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsdegel" type="fortrandouble" default="1d-4">
-              <xs:annotation>
-                <xs:documentation>
-                  Maximum difference between electron energies to be considered degenerate.
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
-            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsdegph" type="fortrandouble" default="1d-5">
-              <xs:annotation>
-                <xs:documentation>
-                  Maximum difference between phonon energies to be considered degenerate.
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-
             <xs:attribute ex:importance="expert" ex:unit="" name="include_polar" type="xs:boolean" default="true">
               <xs:annotation>
                 <xs:documentation>
@@ -180,7 +193,10 @@
           </xs:complexType>
 
         </xs:element>
+<!-- ................................................................................ -->
 
+<!-- ******************************************************************************** -->
+<!-- ELECTRON SELF-ENERGY -->
         <xs:element ex:importance="expert" ex:unit="" name="el_self_energy" maxOccurs="1" minOccurs="0">
           <xs:annotation>
             <xs:documentation>
@@ -216,10 +232,10 @@
                       </xs:annotation>
                     </xs:element>
                   </xs:all>
-                  <xs:attribute ex:importance="expert" ex:unit="" name="directory" type="xs:string" default=".">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="directory" type="xs:string" default="auto">
                     <xs:annotation>
                       <xs:documentation>
-                        Name of directory to save human-readable output in.
+                        Name of directory to save human-readable output in. If 'auto', the name will be generated automatically from the used calculation parameters.
                       </xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
@@ -233,6 +249,19 @@
                       <xs:restriction base="xs:string">
                         <xs:enumeration value="spline"/>
                         <xs:enumeration value="linear"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                  <xs:attribute ex:importance="expert" ex:unit="" name="format" default="text">
+                    <xs:annotation>
+                      <xs:documentation>
+                        Output format. Choose from plain <pre>text</pre> or <pre>json</pre>.
+                      </xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:enumeration value="text"/>
+                        <xs:enumeration value="json"/>
                       </xs:restriction>
                     </xs:simpleType>
                   </xs:attribute>
@@ -305,14 +334,240 @@
               </xs:annotation>
             </xs:attribute>
 
+            <xs:attribute ex:importance="expert" ex:unit="" name="nfreqperband" type="xs:integer" default="20">
+              <xs:annotation>
+                <xs:documentation>
+                  Number of frequency points per band. May be overwritten, if element <pre>freq_grid</pre> is present.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" type="xs:integer" ex:unit="" name="eqpsolver" default="1">
+              <xs:annotation>
+                <xs:documentation>
+                  Schemes to solve the quasiparticle (non-linear) equation:
+                  <list>
+                    <li>0 - on-the-mass-shell approximation</li>
+                    <li>1 - real perturbative</li>
+                    <li>2 - complex perturbative</li>
+                    <li>3 - iterative</li>
+                  </list>
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
           </xs:complexType>
 
         </xs:element>
+<!-- ................................................................................ -->
 
+<!-- ******************************************************************************** -->
+<!-- ELECTRON-PHONON COUPLING STRENGTH -->
+        <xs:element ex:importance="expert" ex:unit="" name="coupling_strength" maxOccurs="1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>
+              Settings for calculation of EPH coupling strength.
+            </xs:documentation>
+          </xs:annotation>
+
+          <xs:complexType>
+
+            <xs:all>
+
+               <xs:element ex:importance="expert" ex:unit="" ref="freq_grid" minOccurs="0" maxOccurs="1">
+                 <xs:annotation>
+                   <xs:documentation>
+                     Frequency grid on which integrated coupling strength is computed.
+                   </xs:documentation>
+                 </xs:annotation>
+               </xs:element>
+
+            </xs:all>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="particle" default="phonon">
+              <xs:annotation>
+                <xs:documentation>
+                  Decides if the coupling strength is computed electron/hole or phonon resolved.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="electron"/>
+                  <xs:enumeration value="phonon"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="essential" ex:unit="" name="do" default="fromscratch">
+              <xs:annotation>
+                <xs:documentation>
+                  Decides if the coupling strength is (re)computed from scratch or if the calculation is skipped.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="fromscratch"/>
+                  <xs:enumeration value="skip"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="quasielastic" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Use quasielastic approximation, i.e., don't distinguish between phonon absorption and emission.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+      
+            <xs:attribute ex:importance="expert" ex:unit="" name="integrated" type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation>
+                  Calculated coupling strength integrated over BZ.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="format" default="text">
+              <xs:annotation>
+                <xs:documentation>
+                  Output format. Choose from plain <pre>text</pre> or <pre>json</pre>.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="text"/>
+                  <xs:enumeration value="json"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="nfreqint" type="xs:integer" default="1000">
+              <xs:annotation>
+                <xs:documentation>
+                  Number of electron/phonon frequencies for integrated coupling strength.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="nfreqa2F" type="xs:integer" default="300">
+              <xs:annotation>
+                <xs:documentation>
+                  Number of phonon frequencies for integration of Eliashberg function.
+                  (Applies to <pre>particle='electron'</pre> only.)
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="energy" type="fortrandouble" default="0.0">
+              <xs:annotation>
+                <xs:documentation>
+                  Electron energy at which phonon coupling strength is evaluated. Relative to Fermi energy.
+                  (Applies to <pre>particle='phonon'</pre> only.)
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="cm^-3" name="doping" type="fortrandouble" default="0.0">
+              <xs:annotation>
+                <xs:documentation>
+                  Doping concentration (in 1/cm^3) for which phonon coupling strength is evaluated.
+                  Positive for electron/donor doping. Negative for hole/acceptor doping.
+                  Outrules attribute <pre>energy</pre>.
+                  (Applies to <pre>particle='phonon'</pre> only.)
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="parmode" default="points">
+              <xs:annotation>
+                <xs:documentation>
+                  Parallelization mode. 
+                  <pre>points</pre> for parallelization of target points (higher efficiency).
+                  <pre>bands</pre> for parallelization of electron and phonon bands (lower memory).
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="points"/>
+                  <xs:enumeration value="bands"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+      
+            <!-- k-grid -->
+            <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple" default="2 2 2">
+              <xs:annotation>
+                <xs:documentation>
+                  <inlinemath>{\mathbf k}</inlinemath>-point grid used for Brillouin zone integration over electron momentum.
+                  No effect if <pre>integrated='false'</pre> and <pre>particle='electron'</pre>.
+                  <pre>target</pre> is used as <inlinemath>{\mathbf k}</inlinemath>-point set instead.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="vkloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+              <xs:annotation>
+                <xs:documentation>
+                  The <inlinemath>{\mathbf k}</inlinemath>-point offset vector for integration grid in lattice coordinates.
+                  It is recommended to shift the grid, if <pre>particle='phonon'</pre>.
+                  No effect if <pre>integrated='false'</pre> and <pre>particle='electron'</pre>.
+                  <pre>target</pre> is used as <inlinemath>{\mathbf k}</inlinemath>-point set instead.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="reducek" type="xs:boolean" default="true">
+              <xs:annotation>
+                <xs:documentation>
+	          Flag to specify whether the <inlinemath>{\mathbf k}</inlinemath>-point integration grid is reduced using symmetry operations.
+                  No effect if <pre>integrated='false'</pre> and <pre>particle='electron'</pre>.
+                  <pre>target</pre> is used as <inlinemath>{\mathbf k}</inlinemath>-point set instead.
+	        </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <!-- q-grid -->
+            <xs:attribute ex:importance="essential" ex:unit="" name="ngridq" type="integertriple" default="2 2 2">
+              <xs:annotation>
+                <xs:documentation>
+                  <inlinemath>{\mathbf q}</inlinemath>-point grid used for Brillouin zone integration over phonon momentum.
+                  No effect if <pre>integrated='false'</pre> and <pre>particle='phonon'</pre>.
+                  <pre>target</pre> is used as <inlinemath>{\mathbf q}</inlinemath>-point set instead.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" name="vqloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+              <xs:annotation>
+                <xs:documentation>
+                  The <inlinemath>{\mathbf q}</inlinemath>-point offset vector for integration grid in lattice coordinates.
+                  It is recommended to shift the grid, if <pre>particle='electron'</pre>.
+                  No effect if <pre>integrated='false'</pre> and <pre>particle='phonon'</pre>.
+                  <pre>target</pre> is used as <inlinemath>{\mathbf q}</inlinemath>-point set instead.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="true">
+              <xs:annotation>
+                <xs:documentation>
+	          Flag to specify whether the <inlinemath>{\mathbf q}</inlinemath>-point integration grid is reduced using symmetry operations.
+                  No effect if <pre>integrated='false'</pre> and <pre>particle='phonon'</pre>.
+                  <pre>target</pre> is used as <inlinemath>{\mathbf q}</inlinemath>-point set instead.
+	        </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+          </xs:complexType>
+
+        </xs:element>
+<!-- ................................................................................ -->
+
+<!-- ******************************************************************************** -->
+<!-- TARGET WAVE VECTORS -->
         <xs:element ex:importance="essential" ex:unit="" name="target" maxOccurs="1" minOccurs="0">
           <xs:annotation>
-            <xs:documentation>Set of reciprocal space points <inlinemath>{\mathbf p}</inlinemath> for target quantities. 
+            <xs:documentation>
+              Set of reciprocal space points <inlinemath>{\mathbf p}</inlinemath> for target quantities. 
               The meaning (electron or phonon wavevector) varies depending on the context. Can be a regular grid or a 1D path.
+              If not present, the original <inlinemath>{\mathbf k}</inlinemath>- or <inlinemath>{\mathbf q}</inlinemath>-grid will be used.
             </xs:documentation>
           </xs:annotation>
 
@@ -361,6 +616,8 @@
 
       </xs:all>
 
+<!-- ******************************************************************************** -->
+<!-- GENERAL SETTINGS -->
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="efermi" type="fortrandouble" default="0.0">
         <xs:annotation>
           <xs:documentation>
@@ -400,6 +657,38 @@
         </xs:annotation>
       </xs:attribute>
       
+      <xs:attribute ex:importance="expert" ex:unit="" name="mindistel" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation>
+            Apply minimal distance interpolation for electrons. This is more expensive but also more accurate for coarse support k-grids. Check effect before by running <pre>el_interpolation</pre>.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      
+      <xs:attribute ex:importance="expert" ex:unit="" name="mindistph" type="xs:boolean" default="true">
+        <xs:annotation>
+          <xs:documentation>
+            Apply minimal distance interpolation for phonons. This is more expensive but also more accurate for coarse support q-grids. Check effect before by running <pre>ph_interpolation</pre>.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+        
+      <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsdegel" type="fortrandouble" default="1d-4">
+        <xs:annotation>
+          <xs:documentation>
+            Maximum difference between electron energies to be considered degenerate.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsdegph" type="fortrandouble" default="1d-5">
+        <xs:annotation>
+          <xs:documentation>
+            Maximum difference between phonon energies to be considered degenerate.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
       <xs:attribute ex:importance="expert" ex:unit="" name="elphbolt" type="xs:boolean" default="false">
         <xs:annotation>
           <xs:documentation>
@@ -407,10 +696,8 @@
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+<!-- ................................................................................ -->
         
-      <!--xs:all>
-      </xs:all-->
-
     </xs:complexType>
   </xs:element>
 </xs:schema>

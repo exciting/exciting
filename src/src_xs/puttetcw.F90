@@ -15,7 +15,6 @@ Contains
          Use modmain
          Use modxs
          Use modmpi
-         Use m_getunit
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq, ik, i1, i2, n1, n2
@@ -51,8 +50,7 @@ Contains
     ! I/O record length
          Inquire (IoLength=Recl) vql (:, iq), vkl (:, ik), nstsv, n1, &
         & n2, cw, cwa, cwsurf
-         Call getunit (un)
-         Open (Unit=un, File=trim(filnam), Form='unformatted', Action='&
+         Open (newunit=un, File=trim(filnam), Form='unformatted', Action='&
         &write', Access='direct', Recl=Recl)
          Write (un, Rec=irec) vql (:, iq), vkl (:, ik), nstsv, n1, n2, &
         & cw, cwa, cwsurf

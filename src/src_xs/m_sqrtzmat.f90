@@ -66,23 +66,16 @@ module m_sqrtzmat
 
     end subroutine sqrtzmat_hepd
 
-    subroutine sqrtdzmat_hepd(hepdmat, binfo, eecs)
+    subroutine sqrtdzmat_hepd(hepdmat, binfo)
 
       type(dzmat), intent(inout) :: hepdmat
       type(blacsinfo), intent(in) :: binfo
-      integer(4), intent(in), optional :: eecs
 
-      integer(4) :: m, n, i, j, jg, clustersize
+      integer(4) :: m, n, i, j, jg
       type(dzmat) :: evecs
       real(8), allocatable :: evals(:)
 
       character(*), parameter :: thisname = "sqrtdzmat_hepd"
-      
-      if(present(eecs)) then
-        clustersize = eecs
-      else
-        clustersize = 3
-      end if
 
       if(hepdmat%isdistributed .eqv. .false.) then
         call sqrtzmat_hepd(hepdmat%za)
@@ -116,7 +109,7 @@ module m_sqrtzmat
 
       ! Diagonalize hermitian matrix
       call new_dzmat(evecs, m, n, binfo, hepdmat%mblck, hepdmat%nblck)
-      call dhesolver(hepdmat, evals, binfo, evec=evecs, eecs=clustersize)
+      call dhesolver(hepdmat, evals, binfo, evec=evecs)
 
       !if(binfo%isroot) then 
       !  write(*,'("Info(",a,"): Passed diagonalizaion")') trim(thisname)

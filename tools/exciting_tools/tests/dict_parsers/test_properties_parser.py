@@ -1,6 +1,6 @@
 import numpy as np
 
-from excitingtools.exciting_dict_parsers.properties_parser import parse_charge_density
+from excitingtools.exciting_dict_parsers.properties_parser import parse_charge_density, parse_mbd
 
 # Most of the values have been removed to shorten the test
 RHO1_xml = """<?xml version="1.0" encoding="UTF-8"?>
@@ -37,3 +37,9 @@ def test_parse_charge_density():
         ]
     )
     assert np.allclose(rho1, ref, atol=1.0e-8)
+
+
+def test_parse_mbd(tmp_path):
+    file = tmp_path / "MBD.OUT"
+    file.write_text("      -0.12345678\n")
+    assert parse_mbd(file) == {"MBD energy": -0.12345678}

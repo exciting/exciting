@@ -64,7 +64,7 @@
 
 module scrcoul_low_dim
     use precision, only: dp
-    use asserts, only: assert
+#include "asserts.fpp"
     implicit none
     private
     public :: apply_2d_limit, set_singc12
@@ -86,9 +86,9 @@ contains
         integer :: mbsiz
 
         mbsiz = size(inverse_epsilon_body, 1)
-        call assert(size(inverse_epsilon_body, 2) == mbsiz, 'inverse_epsilon_body must be a square matrix')
-        call assert(size(wing1, 1) == mbsiz, 'wing1 must have size mbsiz along 1st dim.')
-        call assert(size(wing1, 2) == 3, 'wing1 must have size 3 along 2nd dim.')
+        CALL_ASSERT(size(inverse_epsilon_body, 2) == mbsiz, 'inverse_epsilon_body must be a square matrix')
+        CALL_ASSERT(size(wing1, 1) == mbsiz, 'wing1 must have size mbsiz along 1st dim.')
+        CALL_ASSERT(size(wing1, 2) == 3, 'wing1 must have size 3 along 2nd dim.')
 
         allocate (amu(mbsiz, 3))
         call matrix_multiply(inverse_epsilon_body, wing1, amu)
@@ -112,9 +112,9 @@ contains
         integer :: mbsiz
 
         mbsiz = size(inverse_epsilon_body, 1)
-        call assert(size(inverse_epsilon_body, 2) == mbsiz, 'inverse_epsilon_body must be a square matrix')
-        call assert(size(wing2, 1) == mbsiz, 'wing2 must have size mbsiz along 1st dim.')
-        call assert(size(wing2, 2) == 3, 'wing2 must have size 3 along 2nd dim.')
+        CALL_ASSERT(size(inverse_epsilon_body, 2) == mbsiz, 'inverse_epsilon_body must be a square matrix')
+        CALL_ASSERT(size(wing2, 1) == mbsiz, 'wing2 must have size mbsiz along 1st dim.')
+        CALL_ASSERT(size(wing2, 2) == 3, 'wing2 must have size 3 along 2nd dim.')
 
         allocate (bmu(mbsiz, 3))
         call matrix_multiply(inverse_epsilon_body, wing2, bmu, 't', 'n')
@@ -138,9 +138,9 @@ contains
         integer :: mbsiz
 
         mbsiz = size(wing2, 1)
-        call assert(size(wing2, 2) == 3, 'wing2 must have size 3 along 2nd dim.')
-        call assert(size(amu, 1) == mbsiz, 'amu must have size mbsiz along 1st dim.')
-        call assert(size(amu, 2) == 3, 'amu must have size 3 along 2nd dim.')
+        CALL_ASSERT(size(wing2, 2) == 3, 'wing2 must have size 3 along 2nd dim.')
+        CALL_ASSERT(size(amu, 1) == mbsiz, 'amu must have size mbsiz along 1st dim.')
+        CALL_ASSERT(size(amu, 2) == 3, 'amu must have size 3 along 2nd dim.')
 
         call matrix_multiply(wing2, amu, a, 't', 'n')
         a = -a - head

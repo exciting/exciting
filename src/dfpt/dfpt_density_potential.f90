@@ -5,7 +5,7 @@ module dfpt_density_potential
   use dfpt_variables
 
   use precision, only: dp, long_int
-  use asserts, only: assert
+
   use modmpi, only: mpiglobal, terminate_if_false
   use mod_kpointset, only: G_set
   use m_zfftifc, only: zfftifc
@@ -139,7 +139,7 @@ module dfpt_density_potential
 
       ! **** response of Coulomb potential
       if( vcoul ) then
-        ! ** initialize auxilliary variables
+        ! ** initialize auxiliary variables
         allocate( rho_mt_mp(dfpt_lmmaxvr, natmtot), source=zzero )
         allocate( rho_i_mp(dfpt_lmmaxvr, natmtot), source=zzero )
         allocate( drho_surf(dfpt_lmmaxvr, natmtot), source=zzero )
@@ -211,14 +211,14 @@ module dfpt_density_potential
           end do
         end do
 
-        ! delete auxilliary variables
+        ! delete auxiliary variables
         deallocate( rho_mt_mp, rho_i_mp, drho_surf, zfir, rl )
       end if
 
       ! **** response of exchange-correlation potential
       if( vxc ) then
         ! ** muffin-tin contribution
-        ! initialize auxilliary variables
+        ! initialize auxiliary variables
         allocate( rfmt(dfpt_lmmaxvr, nrmtmax, 4) )
         allocate( zfmt(dfpt_lmmaxvr, nrmtmax) )
         do is = 1, nspecies
@@ -429,8 +429,8 @@ module dfpt_density_potential
           ias = idxas(ia, is)
           drhotmp = zzero
 
-!$omp parallel default( shared ) private( l1, l2, m1, m2, lm1, lm2, lm3, lam1, lam2, idx1, idx2, f1, f2, z1, i ) reduction( +:drhotmp )
-!$omp do collapse(2)
+!!$omp parallel default( shared ) private( l1, l2, m1, m2, lm1, lm2, lm3, lam1, lam2, idx1, idx2, f1, f2, z1, i ) reduction( +:drhotmp )
+!!$omp do collapse(2)
           do l1 = 0, dfpt_lmaxapw
             do l2 = 0, dfpt_lmaxapw
 
@@ -462,8 +462,8 @@ module dfpt_density_potential
             
             end do
           end do
-!$omp end do
-!$omp end parallel
+!!$omp end do
+!!$omp end parallel
           
           drho_mt(:, :, ias) = transpose( drhotmp )
 
@@ -598,7 +598,7 @@ module dfpt_density_potential
           xctype_libxc(2) = XC_GGA_C_PBE
         case( 21 )   ! GGA revised PBE, Zhang-Yang
           xctype_libxc(1) = XC_GGA_X_PBE_R
-          xctype_libxc(1) = XC_GGA_C_PBE
+          xctype_libxc(2) = XC_GGA_C_PBE
         case( 22 )   ! GGA PBEsol
           xctype_libxc(1) = XC_GGA_X_PBE_SOL
           xctype_libxc(2) = XC_GGA_C_PBE_SOL

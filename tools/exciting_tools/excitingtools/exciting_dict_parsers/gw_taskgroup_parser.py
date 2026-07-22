@@ -289,3 +289,42 @@ def parse_sigmax(file_name: path_type) -> Dict[str, NDArray[np.complex128]]:
     :return: parsed data as dictionary
     """
     return {"sigmax": __parse_file_with_vector(file_name)}
+
+
+def parse_coulomb_vertex(file_name: path_type) -> Dict[str, Union[int, Tuple[int, ...], float]]:
+    """Parser for coulomb_vertex_q*.test files.
+
+    This file contains a metadata header describing the Coulomb vertex array:
+      - iq: index of the q-point
+      - shape: dimensions of the array (three integers)
+      - coulomb_vertex: Frobenius norm of coulomb vertex
+
+    :param file_name: name of the file
+    :return: parsed data as dictionary with keys "iq", "shape", "coulomb_vertex"
+    """
+    data: Dict[str, Union[int, Tuple[int, ...], float]] = {}
+    with open(file_name) as file:
+        for line in file:
+            if "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip()
+            if key == "iq":
+                data["iq"] = int(value)
+            elif key == "shape":
+                data["shape"] = tuple(int(x) for x in value.split())
+            elif key == "coulomb_vertex":
+                data["coulomb_vertex"] = parse_real_str(value)
+    return data
+
+
+def parse_optimized_vxc(file_name: path_type) -> Dict[str, NDArray[np.complex128]]:
+    """Parser for the files OPTIMIZED_VXC_K*.OUT, where * is an integer
+    These files contain the optimized exchange-correlation potential computed
+    from the self-energy.
+
+    :param file_name: name of the file
+    :return: parsed data as dictionary
+    """
+    return {"optimized_potential_matrix": __parse_file_with_matrix(file_name)}

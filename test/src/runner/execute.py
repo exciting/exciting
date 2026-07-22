@@ -31,7 +31,7 @@ def set_job_environment(threads: dict):
     return my_env
 
 
-def execute_job(job: RunProperties, my_env=None) -> Tuple[bool, str, float]:
+def execute_job(job: RunProperties, my_env=None) -> Tuple[bool, str, str, float]:
     """Executes a calculation and checks if it was successful.
 
     :param job: Run properties.
@@ -42,13 +42,13 @@ def execute_job(job: RunProperties, my_env=None) -> Tuple[bool, str, float]:
     if my_env is None:
         my_env = os.environ.copy()
 
-    terminated_cleanly, err_mess, run_time = execute(job.run_dir, job.executable_cmd, job.max_time, my_env)
+    terminated_cleanly, out_mess, err_mess, run_time = execute(job.run_dir, job.executable_cmd, job.max_time, my_env)
     run_success = job.calculation_completed(terminated_cleanly)
 
-    return run_success, err_mess, run_time
+    return run_success, out_mess, err_mess, run_time
 
 
-def execute(path, execution_str: str, max_time: int, my_env) -> Tuple[bool, str, float]:
+def execute(path, execution_str: str, max_time: int, my_env) -> Tuple[bool, str, str, float]:
     """Executes a calculation run and checks if it terminated cleanly.
 
     :param path: Run directory.
@@ -56,20 +56,25 @@ def execute(path, execution_str: str, max_time: int, my_env) -> Tuple[bool, str,
     `binary.exe` or `mpirun -np NP binary.exe`.
     :param max_time: Maximum time in seconds after which the calculation is considered to have timed out.
     :param my_env: Shell environment instance.
-    :return (terminated_cleanly, err_mess, run_time): Successful calculation, stdout and run time.
+    :return (terminated_cleanly, out_mess, err_mess, run_time): Successful calculation, stdout, stderr, and run time.
     """
     t_start = time.time()
 
     process = Popen(execution_str.split(), cwd=path, stdout=PIPE, stderr=PIPE, env=my_env)
 
     try:
-        err_mess = process.communicate(timeout=max_time)[0]
+        out_mess, err_mess = process.communicate(timeout=max_time)
+        out_mess = out_mess.decode("utf-8")
+        err_mess = err_mess.decode("utf-8")
     except TimeoutExpired:
         process.kill()
-        err_mess = 'Time expired.'
+        out_mess = ""
+        err_mess = "Time expired."
 
     process.wait()
     terminated_cleanly = process.returncode == 0
+    if not terminated_cleanly:
+        print(f"Execution gave return code {process.returncode}")
     t_end = time.time()
 
-    return terminated_cleanly, err_mess, t_end - t_start
+    return terminated_cleanly, out_mess, err_mess, t_end - t_start

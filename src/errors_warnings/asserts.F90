@@ -50,9 +50,7 @@ contains
     !> will kill execution following the stack trace, whereas GCC 
     !> allows it to continue. 
     !>
-    !> If not compiled in USE_ASSERT (debug) mode, the compiler should
-    !> optimise by removing the routine, which will be empty.
-    !>
+    !> If not compiled in USE_ASSERT (debug) mode, the routine should not be called.
     subroutine assert_true(logical_condition, message)
         !> Condition to test
         logical, intent(in) :: logical_condition
@@ -66,6 +64,10 @@ contains
             call trace_back()
             call terminate()
         end if
+#else
+        write (error_unit, '(/,1x,a)') 'assert_true should not be called in release mode'
+        call trace_back()
+        call terminate()
 #endif
     end subroutine assert_true
 

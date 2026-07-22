@@ -26,6 +26,7 @@ module gw_scf
    use mkl_service, only: mkl_get_max_threads
 #endif
    use modmpi, only: mpiinfo
+   use mod_eigensystem, only: releasesingular
    use cmd_line_args, only: null_solver_threads, cmd_line_args_type
 
    implicit none
@@ -40,7 +41,7 @@ contains
    !> Intel reference, as a [tiny URL](tinyurl.com/2p8f478s).
    function set_gs_solver_threads(mpiglobal) result(gs_solver_threads)
       !> Instance of the MPI env
-      type(mpiinfo), intent(inout) :: mpiglobal
+      type(mpiinfo), intent(in) :: mpiglobal
       !> Ground state solver threads
       integer :: gs_solver_threads
       !> Command-line arguments
@@ -77,7 +78,12 @@ contains
       call mkl_set_num_threads(gs_mkl_threads)
       call mkl_set_dynamic(0)
 
+      ! making sure then nonSCF groundstate run with a larger number of k-points does not crash
+      ! if Davidson eigensolver is used 
+      call releasesingular
       call scf_cycle(verbosity)
+      call releasesingular
+
 
       ! Perform the GW linear algebra with all available threads
       call mkl_set_num_threads(max_mkl_threads)
@@ -93,7 +99,7 @@ contains
    !> Inform the user that the command-line argument will be unused, if provided.
    function set_gs_solver_threads(mpiglobal) result(gs_solver_threads)
       !> Instance of the MPI env
-      type(mpiinfo), intent(inout) :: mpiglobal
+      type(mpiinfo), intent(in) :: mpiglobal
       !> Ground state solver threads
       integer :: gs_solver_threads
       !> Command-line arguments

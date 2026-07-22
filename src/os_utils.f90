@@ -1,11 +1,12 @@
 !> Module with utility functions for simple os commands.
 module os_utils
   use modmpi
+  use exciting_mpi, only: xmpi_bcast
 
   implicit none
   private
 
-  public :: system_cmd, &
+  public :: system_cmd, make_directory_pure, &
             make_directory_command, remove_directory_command, &
             make_directory, remove_directory, &
             path_exists, join_paths
@@ -20,8 +21,7 @@ contains
 
     character(:), allocatable :: command
 
-    command = 'test ! -e '//trim(adjustl(directory_name))//&
-                &' && mkdir '//trim(adjustl(directory_name))
+    command = 'mkdir -p '//trim(adjustl(directory_name))
   end function make_directory_command
 
   !> Removes a directory from the run directory (only if the directory
@@ -49,7 +49,7 @@ contains
   end function system_cmd
 
   !> create new directory (if not yet existent)
-  function make_directory(dir, comm) result(ierr)
+  function make_directory_pure(dir, comm) result(ierr)
     !> name of / relative path to directory
     character(*), intent(in) :: dir
     !> MPI communicator
@@ -57,13 +57,30 @@ contains
     !> system specific error code, 0 on success
     integer :: ierr
 
-    ierr = system_cmd('mkdir -p '//trim(adjustl(dir)))
+    if(comm%is_root) then 
+      ierr = system_cmd(make_directory_command(dir))
+    end if 
 
-#ifdef MPI
-    call MPI_Allreduce( MPI_IN_PLACE, ierr, 1, MPI_INT, MPI_MAX, comm%comm, comm%ierr )
+    call xmpi_bcast( comm, ierr )
     comm%ierr = ierr
-#endif
-  end function make_directory
+  end function make_directory_pure
+
+  !> create new directory (if not yet existent)
+  !> check the return code
+  subroutine make_directory(dir, comm)
+    !> name of / relative path to directory
+    character(*), intent(in) :: dir
+    !> MPI communicator
+    type(mpiinfo), intent(in) :: comm
+    !> system specific error code, 0 on success
+    integer :: ierr
+
+    if(comm%is_root) then
+      ierr = system_cmd(make_directory_command(dir))
+      call terminate_if_false(ierr == 0, 'Creating directory ' // dir // ' failed.')
+    end if
+
+  end subroutine make_directory
 
   !> remove directory (and all of its content)
   function remove_directory(dir, comm) result(ierr)

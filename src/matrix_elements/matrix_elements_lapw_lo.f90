@@ -11,7 +11,7 @@
 !> See [[matrix_elements(module)]] for usage and further documentation.
 module matrix_elements_lapw_lo
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zzero, zone
   use modmpi
   use muffin_tin_basis, only: mt_basis_type, generate_non_zero_clebsch_gordan
@@ -236,18 +236,14 @@ module matrix_elements_lapw_lo
       if( alpha == zzero ) return
 
       ! sanity checks
-      call assert( surface_integral >= 0 .and. surface_integral <= 3, &
-        'Invalid value for `surface_integral` argument. Allowed values are 0, 1, 2, or 3.' )
-      call assert( left_gradient >= 0 .and. left_gradient <= 3, &
-        'Invalid value for `left_gradient`. Allowed values are 0, 1, 2, or 3.' )
-      call assert( right_gradient >= 0 .and. right_gradient <= 3, &
-        'Invalid value for `left_gradient`. Allowed values are 0, 1, 2, or 3.' )
+      CALL_ASSERT( surface_integral >= 0 .and. surface_integral <= 3,  'Invalid value for `surface_integral` argument. Allowed values are 0, 1, 2, or 3.' )
+      CALL_ASSERT( left_gradient >= 0 .and. left_gradient <= 3,  'Invalid value for `left_gradient`. Allowed values are 0, 1, 2, or 3.' )
+      CALL_ASSERT( right_gradient >= 0 .and. right_gradient <= 3,  'Invalid value for `left_gradient`. Allowed values are 0, 1, 2, or 3.' )
       select type( rfun )
         type is( real(dp) )
         type is( complex(dp) )
         class default
-          call assert( .false., &
-            'Argument `rfun` must be of type `double real` or `double complex`.' )
+          CALL_ASSERT( .false.,  'Argument `rfun` must be of type `double real` or `double complex`.' )
       end select
 
       ! set maximum l
@@ -386,20 +382,14 @@ module matrix_elements_lapw_lo
         type is( real(dp) )
         type is( complex(dp) )
         class default
-          call assert( .false., &
-            'Argument `rfun` must be of type `double real` or `double complex`.' )
+          CALL_ASSERT( .false.,  'Argument `rfun` must be of type `double real` or `double complex`.' )
       end select
 
-      call assert( left_radial_derivative >= 0, &
-        'Argument `left_radial_derivative` must not be negative.' )
-      call assert( right_radial_derivative >= 0, &
-        'Argument `right_radial_derivative` must not be negative.' )
-      call assert( abs( left_gradient ) <= 1, &
-        'Argument `left_gradient` must be either -1, 0, or 1.' )
-      call assert( abs( right_gradient ) <= 1, &
-        'Argument `right_gradient` must be either -1, 0, or 1.' )
-      call assert( surface_integral >= 0 .and. surface_integral <= 3, &
-        'Argument `surface_integral` must be either 0, 1, 2, or 3.' )
+      CALL_ASSERT( left_radial_derivative >= 0,  'Argument `left_radial_derivative` must not be negative.' )
+      CALL_ASSERT( right_radial_derivative >= 0,  'Argument `right_radial_derivative` must not be negative.' )
+      CALL_ASSERT( abs( left_gradient ) <= 1,  'Argument `left_gradient` must be either -1, 0, or 1.' )
+      CALL_ASSERT( abs( right_gradient ) <= 1,  'Argument `right_gradient` must be either -1, 0, or 1.' )
+      CALL_ASSERT( surface_integral >= 0 .and. surface_integral <= 3,  'Argument `surface_integral` must be either 0, 1, 2, or 3.' )
 
       lmmax = (lmax_op + 1)**2
 
@@ -454,7 +444,7 @@ module matrix_elements_lapw_lo
       contains
         function integrate_real( f1, f2, rfun ) result( res )
           real(dp), intent(in) :: f1(:), f2(:)
-          class(*), intent(in)  :: rfun(:,:)
+          class(*), intent(in) :: rfun(:,:)
           real(dp) :: res
 
           select type( rfun )
@@ -475,7 +465,7 @@ module matrix_elements_lapw_lo
 
         function integrate_complex( f1, f2, rfun ) result( res )
           real(dp), intent(in) :: f1(:), f2(:)
-          class(*), intent(in)  :: rfun(:,:)
+          class(*), intent(in) :: rfun(:,:)
           complex(dp) :: res
 
           real(dp) :: int1, int2
@@ -484,12 +474,12 @@ module matrix_elements_lapw_lo
             type is( complex(dp) )
               if( surface_integral == 0 ) then
                 do ir = 1, nr
-                  fr(ir) = f1(ir) * dble( rfun(lm3, ir) ) * f2(ir) * r2(ir)
+                  fr(ir) = f1(ir) * rfun(lm3, ir)%re * f2(ir) * r2(ir)
                 end do
                 call fderiv( -1, nr, basis%rad_grid(:, is), fr, gf, cf )
                 int1 = gf(nr)
                 do ir = 1, nr
-                  fr(ir) = f1(ir) * aimag( rfun(lm3, ir) ) * f2(ir) * r2(ir)
+                  fr(ir) = f1(ir) * rfun(lm3, ir)%im * f2(ir) * r2(ir)
                 end do
                 call fderiv( -1, nr, basis%rad_grid(:, is), fr, gf, cf )
                 int2 = gf(nr)
@@ -556,12 +546,10 @@ module matrix_elements_lapw_lo
         type is( real(dp) )
         type is( complex(dp) )
         class default
-          call assert( .false., &
-            'Argument `ri` must be of type `double real` or `double complex`.' )
+          CALL_ASSERT( .false.,  'Argument `ri` must be of type `double real` or `double complex`.' )
       end select
 
-      call assert( surface_integral >= 0 .and. surface_integral <= 3, &
-        'Argument `surface_integral` must be either 0, 1, 2, or 3.' )
+      CALL_ASSERT( surface_integral >= 0 .and. surface_integral <= 3,  'Argument `surface_integral` must be either 0, 1, 2, or 3.' )
 
       lmmax = (lmax_op + 1)**2
 
@@ -832,8 +820,7 @@ module matrix_elements_lapw_lo
         type is( real(dp) )
         type is( complex(dp) )
         class default
-          call assert( .false., &
-            'Argument `rignt` must be of type `double real` or `double complex`.' )
+          CALL_ASSERT( .false.,  'Argument `rignt` must be of type `double real` or `double complex`.' )
       end select
 
       diag = .false.; if( present( diagonal_only ) ) diag = diagonal_only
@@ -846,18 +833,15 @@ module matrix_elements_lapw_lo
 
       n1 = ngp1 + nlotot
       if( present( left_evec ) ) then
-        call assert( dimv1(1) >= n1, &
-          'First dimension of left eigenvector too small.' )
+        CALL_ASSERT( dimv1(1) >= n1,  'First dimension of left eigenvector too small.' )
         n1 = dimv1(2)
       end if
       n2 = ngp2 + nlotot
       if( present( right_evec ) ) then
-        call assert( dimv2(1) >= n2, &
-          'First dimension of right eigenvector too small.' )
+        CALL_ASSERT( dimv2(1) >= n2,  'First dimension of right eigenvector too small.' )
         n2 = dimv2(2)
       end if
-      call assert( dimm(1) >= n1 .and. (diag .or. dimm(2) >= n2), &
-        'Dimensions of output matrix too small.' )
+      CALL_ASSERT( dimm(1) >= n1 .and. (diag .or. dimm(2) >= n2),  'Dimensions of output matrix too small.' )
 
       allocate( auxmat(basis%n_basis_fun(is), n2) )
 
@@ -957,12 +941,9 @@ module matrix_elements_lapw_lo
       complex(dp), allocatable :: zfft(:), zfft2(:)
 
       ! check array sizes
-      call assert( size( opir ) == Gset_op%ngrtot, '(me_lapwlo_ir_opig) &
-        Array `opir` must have size `Gset_op%ngrtot`.' )
-      call assert( size( fir ) == Gset2%ngrtot, '(me_lapwlo_ir_opig) &
-        Array `fir` must have size `Gset2%ngrtot`.' )
-      call assert( size( opig ) == Gset_prod%ngvec, '(me_lapwlo_ir_opig) &
-        Array `opig` must have size `Gset_prod%ngvec`.' )
+      CALL_ASSERT( size( opir ) == Gset_op%ngrtot, '(me_lapwlo_ir_opig)  Array `opir` must have size `Gset_op%ngrtot`.' )
+      CALL_ASSERT( size( fir ) == Gset2%ngrtot, '(me_lapwlo_ir_opig)  Array `fir` must have size `Gset2%ngrtot`.' )
+      CALL_ASSERT( size( opig ) == Gset_prod%ngvec, '(me_lapwlo_ir_opig)  Array `opig` must have size `Gset_prod%ngvec`.' )
 
       ! check prefactors
       if( beta == zzero ) then
@@ -976,16 +957,14 @@ module matrix_elements_lapw_lo
         type is( real(dp) )
         type is( complex(dp) )
         class default
-          call assert( .false., &
-            'Argument `opir` must be of type `double real` or `double complex`.' )
+          CALL_ASSERT( .false.,  'Argument `opir` must be of type `double real` or `double complex`.' )
       end select
 
       select type( fir )
         type is( real(dp) )
         type is( complex(dp) )
         class default
-          call assert( .false., &
-            'Argument `fir` must be of type `double real` or `double complex`.' )
+          CALL_ASSERT( .false.,  'Argument `fir` must be of type `double real` or `double complex`.' )
       end select
 
       if( 2*Gset_op%gmaxvr > Gset2%gmaxvr + 1e-16_dp ) then
@@ -1199,25 +1178,20 @@ module matrix_elements_lapw_lo
       if( present( left_evec ) ) dimv1 = shape( left_evec )
       if( present( right_evec ) ) dimv2 = shape( right_evec )
 
-      call assert( lgrad >= 0 .and. lgrad <= 3, &
-        'Argument `left_gradient` must be either 0, 1, 2, or 3.' )
-      call assert( rgrad >= 0 .and. rgrad <= 3, &
-        'Argument `right_gradient` must be either 0, 1, 2, or 3.' )
+      CALL_ASSERT( lgrad >= 0 .and. lgrad <= 3,  'Argument `left_gradient` must be either 0, 1, 2, or 3.' )
+      CALL_ASSERT( rgrad >= 0 .and. rgrad <= 3,  'Argument `right_gradient` must be either 0, 1, 2, or 3.' )
 
       n1 = ngp1
       if( present( left_evec ) ) then
-        call assert( dimv1(1) >= n1, &
-          'First dimension of left eigenvector too small.' )
+        CALL_ASSERT( dimv1(1) >= n1,  'First dimension of left eigenvector too small.' )
         n1 = dimv1(2)
       end if
       n2 = ngp2
       if( present( right_evec ) ) then
-        call assert( dimv2(1) >= n2, &
-          'First dimension of right eigenvector too small.' )
+        CALL_ASSERT( dimv2(1) >= n2,  'First dimension of right eigenvector too small.' )
         n2 = dimv2(2)
       end if
-      call assert( dimm(1) >= n1 .and. (diag .or. dimm(2) >= n2), &
-        'Dimension of output matrix too small.' )
+      CALL_ASSERT( dimm(1) >= n1 .and. (diag .or. dimm(2) >= n2),  'Dimension of output matrix too small.' )
 
       if( nr1 ) then
         allocate( igpig1, source=Gpset1%igknrig(:, 1, ip1) )

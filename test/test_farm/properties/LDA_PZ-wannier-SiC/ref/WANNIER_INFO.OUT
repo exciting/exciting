@@ -31,12 +31,12 @@
 ********************************************************************************
  
  calculate plane-wave matrix-elements...
-     duration (seconds):                         0.9
+     duration (seconds):                         0.8
      #k-points:                                   64
      #neighbors per k-point:                       4
  
  calculate projection overlap matrices...
-     duration (seconds):                         0.8
+     duration (seconds):                         0.5
      #k-points:                                   64
      #states:                                     11
      #projection functions:                       72
@@ -65,21 +65,21 @@
  highest band:                              4
  #bands involved:                           4
  #Wannier functions:                        4
- #projection functions:                     8
+ #projection functions (nc):               20
  method:                               opfmax
  
  calculate improved optimized projection functions (iOPF)...
      duration (seconds):                         0.1
-     iterations:                                  23
+     iterations:                                  34
      gradient cutoff:                   0.100000E-01
-     norm of gradient:                  0.574365E-02
-     Omega:                                14.439483
+     norm of gradient:                  0.936304E-02
+     Omega:                                14.394584
  
  minimize localization functional Omega...
-     duration (seconds):                         2.4
-     iterations:                                 439
+     duration (seconds):                         0.4
+     iterations:                                 170
      gradient cutoff:                   0.100000E-09
-     norm of gradient:                  0.996933E-10
+     norm of gradient:                  0.864885E-10
      Omega:                                14.391740
      reduction:                                   0%
  
@@ -100,61 +100,61 @@
  min/max bands outer window:           4/   7
  
  calculate improved optimized projection functions (iOPF)...
-     duration (seconds):                         0.2
-     iterations:                                  50
+     duration (seconds):                         0.1
+     iterations:                                  52
      gradient cutoff:                   0.100000E-01
-     norm of gradient:                  0.902554E-02
-     Omega:                                26.920253
+     norm of gradient:                  0.823791E-02
+     Omega:                                26.930378
  
  disentangle optimal subspace...
      duration (seconds):                         0.0
-     iterations:                                  24
+     iterations:                                  29
      convergence cutoff:                0.100000E-03
-     norm of gradient:                  0.980271E-04
-     Omega_I before:                       34.587381
+     norm of gradient:                  0.677873E-04
+     Omega_I before:                       34.600828
      Omega_I after:                        31.302275
-     reduction:                                   9%
+     reduction:                                  10%
  
  calculate improved optimized projection functions (iOPF)...
-     duration (seconds):                         0.4
-     iterations:                                 117
+     duration (seconds):                         0.3
+     iterations:                                 129
      gradient cutoff:                   0.100000E-01
-     norm of gradient:                  0.948248E-02
-     Omega:                                34.860333
+     norm of gradient:                  0.895042E-02
+     Omega:                                34.860853
  
  minimize localization functional Omega...
-     duration (seconds):                         0.4
-     iterations:                                 107
+     duration (seconds):                         0.3
+     iterations:                                 116
      gradient cutoff:                   0.100000E-09
-     norm of gradient:                  0.996151E-10
+     norm of gradient:                  0.902357E-10
      Omega:                                34.609602
      reduction:                                   1%
  
  
 --------------------------------------------------------------------------------
-- total duration (seconds):                 5.8                                -
+- total duration (seconds):                 2.6                                -
 --------------------------------------------------------------------------------
  
 ********************************************************************************
 * Wannier functions                                                            *
 ********************************************************************************
  
-   #             localization center (lattice)           Omega      Omega_I      Omega_D     Omega_OD
+   #    localization center (lattice)        Omega   Omega_I   Omega_D  Omega_OD
 ================================================================================
-   1        0.162196     0.162196     0.162196        3.597935     3.072271     0.003724     0.521939
-   2        0.162196     0.513412     0.162196        3.597935     3.072272     0.003724     0.521939
-   3        0.162196     0.162196     0.513412        3.597934     3.072271     0.003724     0.521939
-   4        0.513412     0.162196     0.162196        3.597936     3.072272     0.003724     0.521939
+   1       0.1622    0.1622   -0.4866       3.5979    3.0723    0.0037    0.5219
+   2       0.1622    0.1622    0.1622       3.5979    3.0723    0.0037    0.5219
+   3      -0.4866    0.1622    0.1622       3.5979    3.0723    0.0037    0.5219
+   4       0.1622   -0.4866    0.1622       3.5979    3.0723    0.0037    0.5219
 --------------------------------------------------------------------------------
-                                           total:    14.391740    12.289086     0.014896     2.087758
+                                  total:   14.3917   12.2891    0.0149    2.0878
 --------------------------------------------------------------------------------
-   5       -0.096946     0.290839    -0.096946        8.652398     7.861733     0.052724     0.737941
-   6       -0.096946    -0.096946    -0.096946        8.652402     7.861737     0.052724     0.737941
-   7        0.290839    -0.096946    -0.096946        8.652396     7.861732     0.052724     0.737941
-   8       -0.096946    -0.096946     0.290839        8.652406     7.861740     0.052724     0.737941
+   5      -0.0969   -0.0969    0.2908       8.6524    7.8617    0.0527    0.7379
+   6      -0.0969    0.2908   -0.0969       8.6524    7.8617    0.0527    0.7379
+   7      -0.0969   -0.0969   -0.0969       8.6524    7.8617    0.0527    0.7379
+   8       0.2908   -0.0969   -0.0969       8.6524    7.8617    0.0527    0.7379
 --------------------------------------------------------------------------------
-                                           total:    34.609602    31.446943     0.210895     2.951764
+                                  total:   34.6096   31.4469    0.2109    2.9518
 ================================================================================
-                                           total:    49.001342    43.736028     0.225791     5.039522
-                                         average:     6.125168     5.467004     0.028224     0.629940
+                                  total:   49.0013   43.7360    0.2258    5.0395
+                                average:    6.1252    5.4670    0.0282    0.6299
  

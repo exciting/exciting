@@ -2,7 +2,6 @@ module m_setup_dmat
   use modmpi
   use modscl
   use modinput
-  use m_getunit
   use m_getpmat
   use mod_xsgrids
   use constants, only: zzero, zone, zi 

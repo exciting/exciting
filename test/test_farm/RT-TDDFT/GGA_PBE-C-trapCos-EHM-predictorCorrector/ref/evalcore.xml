@@ -2,10 +2,10 @@
 <evalcore>
   <species is="1" chemicalSymbol="C">
     <atom ia="1">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-9.323054284167e0"/>
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-9.323054284199e0"/>
     </atom>
     <atom ia="2">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-9.323040707198e0"/>
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-9.323040707168e0"/>
     </atom>
   </species>
 </evalcore>

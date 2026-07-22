@@ -1,7 +1,6 @@
 subroutine cpFileToNodes(filnam)
     Use modmain
     Use modmpi
-    Use m_getunit
     implicit none
     ! interface
     Character (*), Intent (In) :: filnam
@@ -11,7 +10,6 @@ subroutine cpFileToNodes(filnam)
     character,allocatable :: buffer(:)
     integer::nstsv_,ik,un,finrank,finprocs, filesize,chunk,chunksize
     real(8)::vkl_(3)
-    Call getunit (un)
     if(firstinnode)then
     Call mpi_comm_rank (firstinnode_comm, finrank, ierr)
     call mpi_comm_size(firstinnode_comm, finprocs, ierr)
@@ -28,10 +26,10 @@ subroutine cpFileToNodes(filnam)
     call  MPI_BCAST(filesize, 1, MPI_INTEGER, 0, firstinnode_comm, ierr)
     write(*,*)"after.."
     if(rank.eq. 0)then
-        Open (Unit=un, File=trim(filnam), Form='unformatted', &
+        Open (newunit=un, File=trim(filnam), Form='unformatted', &
         Action='read', Access='direct', Recl=chunksize/4)
     else
-        Open (Unit=un, File=trim(filnam), Form='unformatted', &
+        Open (newunit=un, File=trim(filnam), Form='unformatted', &
         Action='write', Access='direct', Recl=chunksize/4)
     endif
 

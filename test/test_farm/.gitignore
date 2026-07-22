@@ -1,6 +1,0 @@
-# run is designated as the output directory for each application test
-# in test_farm/<test-name>/run
-run/
-
-# Report returned by the test suite
-report.xml

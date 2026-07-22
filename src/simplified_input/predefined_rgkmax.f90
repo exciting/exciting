@@ -1,7 +1,5 @@
 module predefined_rgkmax
     use precision, only: dp
-    use modmpi, only: mpiglobal
-    use errors_warnings, only: terminate_if_false
 
     implicit none 
     private
@@ -9,19 +7,20 @@ module predefined_rgkmax
 
     contains
         
-    !> Returns a predefined rgkmax value for a given atomic number.
-    !> These rgkmax values have been obtained by studying the convergence of total energies for elemental solids as reported in
-    !> Carbogno, Christian, et al. "Numerical quality control for DFT-based materials databases." npj Computational Materials 8.1 (2022): 1-8. 
+    !> Returns a predefined rgkmax value for a given (physical) atomic number \(Z\).
+    !> These rgkmax values have been obtained by studying the convergence of
+    !> total energies for elemental solids as reported in Carbogno, Christian, et al.
+    !> "Numerical quality control for DFT-based materials databases."
+    !> npj Computational Materials 8.1 (2022): 1-8. 
     !> Applying these rgkmax values to elemental solids should yield a precision of about 0.1 meV/atom in total energy
     !> (Assuming all other numerical parameters allow this kind of precision).
-    function get_predefined_rgkmax(spzn) result(rgkmax)
-        !> Atomic number   
+    !> For invalid/out-of-range/non-integer inputs, returns \(-1.0\).
+    pure function get_predefined_rgkmax(spzn) result(rgkmax)
+        !> Nuclear charge in units of electron charge (-1). Physical atoms have \(Z=-spzn\in\mathbb{N}\).
         real(dp), intent(in) :: spzn
         !> Returned rgkmax value 
         real(dp) :: rgkmax
 
-        ! Label for atomic number
-        character(10) :: z_label
 
         !> Number of total rgkmax values 
         integer, parameter :: n_initial_rgkmax = 86 
@@ -113,13 +112,20 @@ module predefined_rgkmax
             13.579543_dp, & ! Po, 84
             -1.0_dp, & ! At, 85
             12.273924_dp] ! Rn, 86
-        
-        write(z_label,'(I3)') idnint(Abs(spzn))
-        call terminate_if_false(mpiglobal, ((idnint(Abs(spzn)) .gt. 0) .and. (idnint(Abs(spzn)) .le.  n_initial_rgkmax)),&
-                                & "Error: Out of bounds (predefined_rgkmax): for given atomic number "// trim(z_label) // " no &
-                                & predefined rgkmax value exists.")
-        
-        rgkmax = initial_rgkmax_params(idnint(Abs(spzn)))
+
+        integer :: z
+        real(dp) :: az
+        real(dp), parameter :: tol = 1.0e-8_dp
+
+        rgkmax = -1.0_dp
+
+        az = abs(spzn)
+        z  = idnint(az)
+
+        if (z < 1 .or. z > n_initial_rgkmax) return
+        if (abs(az - real(z, dp)) > tol)     return
+
+        rgkmax = initial_rgkmax_params(z)
 
     end function get_predefined_rgkmax
 

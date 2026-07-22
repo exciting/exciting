@@ -1,3 +1,14 @@
+"""Add DOS and band structure element to given input file by getting the band path from the input structure.
+
+Located at `excitingscripts/setup/dos_band_structure.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.setup.dos_band_structure
+```
+"""
+
 import os
 import pathlib
 from argparse import ArgumentParser

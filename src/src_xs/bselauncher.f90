@@ -7,7 +7,9 @@ subroutine bselauncher
   use modscl
   use modxs, only: unitout
   use modinput, only: input, input_type
+  use modbse, only: select_bse_solver, setup_bse_type_list
   use bsemain
+  use os_utils, only: make_directory
 
 ! !DESCRIPTION:
 !   Launches the construction and solving of the Bethe-Salpeter Hamiltonian
@@ -17,7 +19,7 @@ subroutine bselauncher
 ! !REVISION HISTORY:
 !   Created. 2016 (Aurich)
 !EOP
-!BOC      
+!BOC
 
   implicit none
 
@@ -33,7 +35,17 @@ subroutine bselauncher
   real(8) :: ts0, ts1
   real(8) :: vqmt(3)
   integer :: bse_type_index
-  character(len=256), allocatable :: bsetypelist(:) 
+  character(len=256), allocatable :: bsetypelist(:)
+  ! Process grid shape
+  integer(4) :: nprows, npcols
+  ! Number of used processes to be used for blacs
+  integer(4) :: nprocs, nprocs2d
+  ! mpi instance only for active ranks, used for ELPA
+  type(mpiinfo) :: mpicom_active
+  ! MPI communicator of the active BLACS grid
+  integer(4) :: comm_active
+  ! distinguish idle ranks and error status
+  integer(4) :: color, ierror
   
   !---------------------------------------------------------------------------!
   ! Init0,1,2 General inits
@@ -69,24 +81,10 @@ subroutine bselauncher
   !---------------------------------------------------------------------------!
   ! Create Output directories                                                 !
   !---------------------------------------------------------------------------!
-  !  epsilondir='EPSILON'
-  !  lossdir='LOSS'
-  !  sigmadir='SIGMA'
   bse_dir_list= (/ 'EPSILON','LOSS   ','SIGMA  ' /)
-  if (rank == 0) then
-    do idir = 1, num_bse_dirs
-       syscommand = 'test ! -e '//trim(adjustl(bse_dir_list(idir)))//' && mkdir '//trim(adjustl(bse_dir_list(idir)))
-       call system(trim(adjustl(syscommand)))
-    end do
-  end if
-!  if (rank == 0) then
-!    syscommand = 'test ! -e '//trim(adjustl(epsilondir))//' && mkdir '//trim(adjustl(epsilondir))
-!    call system(trim(adjustl(syscommand)))
-!    syscommand = 'test ! -e '//trim(adjustl(lossdir))//' && mkdir '//trim(adjustl(lossdir))
-!    call system(trim(adjustl(syscommand)))
-!    syscommand = 'test ! -e '//trim(adjustl(sigmadir))//' && mkdir '//trim(adjustl(sigmadir))
-!    call system(trim(adjustl(syscommand)))
-!  end if
+  do idir = 1, num_bse_dirs
+    call make_directory(bse_dir_list(idir), mpiglobal)
+  end do
   !---------------------------------------------------------------------------!
   ! Check Q-point sublist range
   !---------------------------------------------------------------------------!
@@ -120,15 +118,39 @@ subroutine bselauncher
   ! Set up process grids for BLACS (if compiled with DSCAL, dummies otherwise)
   ! DSCAL implies DMPI
   !---------------------------------------------------------------------------!
-  ! overwrite the input parameter
-  ! distribute equal .true. makes only sense if built with ScaLAPACK
-  input%xs%bse%distribute = set_distribute(input)
-  fdist = input%xs%bse%distribute
-  
+  ! overwrite the input parameter, distribute if ScaLAPACK or ELPA are requested
+  call select_bse_solver(input)
+  fdist = input%xs%bse%bsesolver /= 'lapack'
+
   !   Make square'ish process grid (context 0)
+#ifdef _ELPA_
+  ! Make square'ish porcess grid out of 'nprocs' processes to guarantee that only active ranks participate
+  nprocs = mpiglobal%procs
+  npcols = int(sqrt(dble(nprocs)))
+  nprows = nprocs / npcols
+  nprocs2d = npcols*nprows
+  if(nprocs2d /= nprocs) then
+    write(unitout,'("Info(setupblacs):&
+      & Warning - Processes do not fit 2d grid")')
+    write(unitout,'("Info(setup2dblacs):&
+      & Warning - ",i2," processes not used")') nprocs-nprocs2d
+  end if
+  if(mpiglobal%rank < nprocs2d) then
+    color = 1
+  else
+    color = MPI_UNDEFINED
+  end if
+  call MPI_Comm_split(mpiglobal%comm, color, 0, comm_active, ierror)
+  if (color /= MPI_UNDEFINED) then
+    call mpicom_active%init(comm_active)
+    call setupblacs(mpicom_active, 'grid', bi2d, np=nprocs2d)
+  else
+    call setupblacs(mpiglobal, 'xxx', bi2d, np=nprocs2d)
+  end if
+#else
+  ! legacy call for ScaLAPACK
   call setupblacs(mpiglobal, 'grid', bi2d)
-  !   Also make 1d grid with the same number of processes (context 1)
-  call setupblacs(mpiglobal, 'row', bi1d, np=bi2d%nprocs)
+#endif
   !   Also make 0d grid containing only the current processes (context 2) 
   !   (context 0 for a rank that is not on bi2d)
   call setupblacs(mpiglobal, '0d', bi0d, np=1)
@@ -149,7 +171,7 @@ subroutine bselauncher
 #ifdef MPI
   ! Distribute over qmt points and do diagonalization serial 
   if(.not. fdist) then 
-    write(unitout, '("Info(",a,"):", a, i3, a)') trim(thisname),&
+    write(unitout, '("Info(",a,"):", a, i0, a)') trim(thisname),&
       & " Distributing qmt-points over ", mpiglobal%procs, " processes."
     call printline(unitout, "+")
     iq1 = firstofset(mpiglobal%rank, nqmtselected, mpiglobal%procs)
@@ -190,7 +212,7 @@ subroutine bselauncher
   !---------------------------------------------------------------------------!
   ! Assemble and solve BSE for each Q-point in range
   !---------------------------------------------------------------------------
-  call setup_bse_type_list(input, bsetypelist)
+  call setup_bse_type_list(input, bsetypelist, input%xs%BseTypeSet%skipDoneBSEType)
   do bse_type_index = 1, size(bsetypelist)
     input%xs%bse%bsetype = trim(adjustl(bsetypelist(bse_type_index)))
 
@@ -215,7 +237,7 @@ subroutine bselauncher
   
       ! Info out
       call printline(unitout, "-")
-      write(unitout, '("Info(",a,"): Spectrum finished for iqmt=", i3)')&
+      write(unitout, '("Info(",a,"): BSE finished for iqmt=", i3)')&
         &trim(thisname), iqmt
       call printline(unitout, "-")
   
@@ -246,32 +268,7 @@ subroutine bselauncher
 
   ! Exit BLACS 
   call exitblacs(bi2d)
-  call exitblacs(bi1d)
   call exitblacs(bi0d)
-  
-  contains
-
-    subroutine setup_bse_type_list(input, bse_type_list)
-      type(input_type), intent(in) :: input
-      character(len=256), allocatable, intent(out) :: bse_type_list(:)
-
-      integer :: idx_bse_type
-
-      if (.not. associated(input%xs%BseTypeSet)) then
-        bse_type_list = [ input%xs%bse%bsetype ]
-      else
-        call terminate_if_false(size(input%xs%BseTypeSet%typearray)>0, "BseTypeSet is present but no type is defined.")
-        allocate(bse_type_list(size(input%xs%BseTypeSet%typearray)))
-        do idx_bse_type = 1, size(input%xs%BseTypeSet%typearray)
-          bse_type_list(idx_bse_type) = trim(adjustl(input%xs%BseTypeSet%typearray(idx_bse_type)%type%name))
-        end do
-        do idx_bse_type = 1, size(bse_type_list)
-            call terminate_if_false(count(bse_type_list == bse_type_list(idx_bse_type)) == 1, thisname//": More than one bsetype &
-                    element with name "// trim(adjustl(bse_type_list(idx_bse_type)))//".")
-        end do 
-      end if
-
-    end subroutine setup_bse_type_list
 
 end subroutine bselauncher
 !EOC

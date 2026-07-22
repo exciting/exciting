@@ -11,29 +11,34 @@
 !
 !
 Subroutine seceqnfv(ik, ispn, nmatp, ngp, igpig, vgpc, apwalm, sfacgp, tpgpc, cdft_maximum_overlap, evalfv, evecfv)
-      Use cdft,                      only: set_overlap_times_psi_gs
-      Use constants,                 only: zzero, zone
-      Use modmpi,                    only: mpiglobal
-      Use modinput,                  only: input
-      Use mod_Gkvector,              only: ngkmax
-      Use mod_APW_LO,                only: apwordmax, apword
-      Use mod_atoms,                 only: natmtot, natoms, nspecies, idxas
-      Use mod_muffin_tin,            only: lmmaxapw, idxlm
-      Use mod_eigensystem,           only: nmatmax, h1on, h1aa, h1loa, h1lolo, mt_hscf, MTRedirect
-      Use mod_eigenvalue_occupancy,  only: nstfv
-      Use mod_potential_and_density, only: ex_coef
-      Use modfvsystem,               only: evsystem, newsystem, deletesystem, solvewithlapack
-      Use mod_hybrids,               only: vnlmat
+  
+      use modinput,                  only: input
+      use precision,                 only: dp, i32
+      use cdft,                      only: set_overlap_times_psi_gs
+      use constants,                 only: zzero, zone
+      use modmpi,                    only: mpiglobal
+      use mod_Gkvector,              only: ngkmax
+      use mod_APW_LO,                only: apwordmax, apword
+      use mod_atoms,                 only: natmtot, natoms, nspecies, idxas
+      use mod_muffin_tin,            only: lmmaxapw, idxlm
+      use mod_eigensystem,           only: nmatmax, h1on, h1aa, h1loa, h1lolo, mt_hscf, MTRedirect, MaxAPWs
+      use mod_eigenvalue_occupancy,  only: nstfv
+      use mod_potential_and_density, only: ex_coef
+      use modfvsystem,               only: evsystem, newsystem, deletesystem, solvewithlapack
+      use mod_hybrids,               only: vnlmat
       use mod_misc,                  only: task
-      use mGGA_eigensystem, 				 only: gen_mGGA_H_and_S, mGGA_H, mGGA_S
+      use mGGA_eigensystem,          only: gen_mGGA_H_and_S, mGGA_H, mGGA_S
+      use modmpi,                    only: terminate
+      use mod_selfconsistent_gw,     only: is_gw_selfconsistent_flavour, qsgw, gw_first_iteration
+      use mod_qsgw,                  only: read_optimized_vxc_to_a_file
       use mod_secular_equation_inversion_symmetry, only: transform_eigenvectors_inversion_symmetry, &
                                                          get_lo_transformation_matrix_inv_sym, &
                                                          solve_secular_equation_inversion_symmetry
 
   ! !INPUT/OUTPUT PARAMETERS:
-  !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
-  !   ngp    : number of G+k-vectors for augmented plane waves (in,integer)
-  !   igpig  : index from G+k-vectors to G-vectors (in,integer(ngkmax))
+  !   nmatp  : order of overlap and Hamiltonian matrices (in,integer(i32))
+  !   ngp    : number of G+k-vectors for augmented plane waves (in,integer(i32))
+  !   igpig  : index from G+k-vectors to G-vectors (in,integer(i32)(ngkmax))
   !   vgpc   : G+k-vectors in Cartesian coordinates (in,real(3,ngkmax))
   !   apwalm : APW matching coefficients
   !            (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
@@ -53,32 +58,33 @@ Subroutine seceqnfv(ik, ispn, nmatp, ngp, igpig, vgpc, apwalm, sfacgp, tpgpc, cd
   !BOC
       Implicit None
   ! arguments
-      Integer, Intent (In) :: ik
-      Integer, Intent (In) :: ispn
-      Integer, Intent (In) :: nmatp
-      Integer, Intent (In) :: ngp
-      Integer, Intent (In) :: igpig (ngkmax)
-      Real (8), Intent (In) :: vgpc (3, ngkmax)
-      Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
-     & natmtot)
-      Complex (8), Intent (In) :: sfacgp (ngkmax, natmtot)
-      Real (8), Intent (In) :: tpgpc (2, ngkmax)
+      integer(i32), intent(in) :: ik
+      integer(i32), intent(in) :: ispn
+      integer(i32), intent(in) :: nmatp
+      integer(i32), intent(in) :: ngp
+      integer(i32), intent(in) :: igpig (ngkmax)
+      real(dp), intent(in) :: vgpc (3, ngkmax)
+      complex(dp), intent(in) :: apwalm (ngkmax, apwordmax, lmmaxapw, natmtot)
+      complex(dp), intent(in) :: sfacgp (ngkmax, natmtot)
+      real(dp), intent(in) :: tpgpc (2, ngkmax)
       !> If .true., then a constrained DFT calculation with the maximum overlap method
       !> is performed. In this case, the product of the overlap matrix with the GS wavefunctions
       !> must be evaluated and saved
       logical, intent(in) :: cdft_maximum_overlap
-      Real (8), Intent (Out) :: evalfv (nstfv)
-      Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv)
-  ! local variables
-      Type (evsystem) :: system
-      Logical :: packed
-      Integer :: ist
-      Complex (8), allocatable :: zm(:,:),zm2(:,:)
-      Complex (8), allocatable :: lo_transformation_matrix_inv_sym(:,:)
-      Real (8), allocatable :: evec_real(:,:)
+      real(dp), intent(out) :: evalfv (nstfv)
+      complex(dp), intent(out) :: evecfv (nmatmax, nstfv)
+      ! local variables
+      type(evsystem) :: system
+      logical :: packed
+      integer(i32) :: ist
+      complex(dp), allocatable :: zm(:,:),zm2(:,:)
+      complex(dp), allocatable :: lo_transformation_matrix_inv_sym(:,:)
+      real(dp), allocatable :: evec_real(:,:)
+      complex(dp), allocatable :: vxcopt(:,:)
+
       !character( len=64) :: fname
-  ! apwi related variables for storing matching coefficients in a more convenient way
-      Integer :: is,ia,ias,l,io,m,ifun,lm
+      ! apwi related variables for storing matching coefficients in a more convenient way
+      integer(i32) :: is,ia,ias,l,io,m,ifun,lm
 
   !----------------------------------------!
   !     Hamiltonian and overlap set up     !
@@ -100,13 +106,24 @@ Subroutine seceqnfv(ik, ispn, nmatp, ngp, igpig, vgpc, apwalm, sfacgp, tpgpc, cd
         ! If the maximum overlap method is used in a CDFT calculation
         if( cdft_maximum_overlap ) call set_overlap_times_psi_gs( ik, system%overlap%za )
 
-  !------------------------------------------------------------------------!
-  !   If Hybrid potential is used apply the non-local exchange potential !
-  !------------------------------------------------------------------------!
+        !------------------------------------------------------------------------!
+        !   If Hybrid potential is used apply the non-local exchange potential   !
+        !------------------------------------------------------------------------!
         if (task == 7) then
           system%hamilton%za(:,:) = system%hamilton%za(:,:) + &
                                     ex_coef*vnlmat(1:nmatp,1:nmatp,ik)
         end if
+
+        !------------------------------------------------------------------------!
+        !   If QSGW here we add the optimized exchange-correlation potential     !
+        !------------------------------------------------------------------------!
+        if (.not. gw_first_iteration() .and. is_gw_selfconsistent_flavour(qsgw)) then
+          call read_optimized_vxc_to_a_file(vxcopt, ik, input%gw%taskGroup%outputFormat, .true.)
+          !$omp parallel workshare
+          system%hamilton%za(:,:) = system%hamilton%za(:,:) + vxcopt(:,:)
+          !$omp end parallel workshare
+        end if
+
       else !expecting matrix-free Davidson here
         nullify(system%hamilton%za)
         nullify(system%overlap%za)
@@ -119,15 +136,21 @@ Subroutine seceqnfv(ik, ispn, nmatp, ngp, igpig, vgpc, apwalm, sfacgp, tpgpc, cd
         nullify(system%hamilton%ipiv)
         nullify(system%overlap%ipiv)        
         if (task == 7) then 
-          write(*,*) 'seqeqn: cannot run hybrid calculations with iterative eigensolver without constructing the Hamiltonian matrix explicitly'
-          stop
-        endif  
+          call terminate("seqeqn: cannot run hybrid calculations with iterative"// & 
+                         "eigensolver without constructing the Hamiltonian matrix explicitly")
+        endif
+        
+        if (is_gw_selfconsistent_flavour(qsgw)) then
+          call terminate("seqeqn: cannot run QSGW calculations with iterative"// & 
+                         "eigensolver without constructing the Hamiltonian matrix explicitly")
+        end if
+        
         call MTRedirect(mt_hscf%main,mt_hscf%spinless)        
       endif
 
       ! Rearranging matching coefficients should be generalised beyond the Davidson solver and moved to seceqn
       if (input%groundstate%solver%type.eq.'Davidson') then 
-        allocate(system%apwi(mt_hscf%maxaa,ngp,natmtot))
+        allocate(system%apwi(MaxAPWs(),ngp,natmtot))
         system%apwi=zzero
         Do is = 1, nspecies
           Do ia = 1, natoms (is)
@@ -157,7 +180,7 @@ Subroutine seceqnfv(ik, ispn, nmatp, ngp, igpig, vgpc, apwalm, sfacgp, tpgpc, cd
         call davidson(system,nstfv,evecfv,evalfv,ik)
         Call deletesystem (system)
         deallocate(system%apwi)
-       elseif (input%groundstate%solver%type == 'inversionsymmetry') then
+      elseif (input%groundstate%solver%type == 'inversionsymmetry') then
         lo_transformation_matrix_inv_sym = get_lo_transformation_matrix_inv_sym(ispn,ik)
         Call solve_secular_equation_inversion_symmetry(system, nmatp, ngp, nstfv, nmatmax, &
                 lo_transformation_matrix_inv_sym, evalfv, evec_real)

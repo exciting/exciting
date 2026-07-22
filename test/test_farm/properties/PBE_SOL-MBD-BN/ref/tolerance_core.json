@@ -1,0 +1,8 @@
+{
+  "MBD.OUT": {
+    "MBD energy": {
+      "tol": 1e-08,
+      "unit": "hartree"
+    }
+  }
+}

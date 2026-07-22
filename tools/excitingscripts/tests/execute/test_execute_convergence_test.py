@@ -229,5 +229,5 @@ def test_execute_convergence_test(monkeypatch, info_out_mock, tmp_path):
                                       [6, 5, -5314.3178557],
                                       [6, 6, -5314.65182124]])
 
-    assert np.allclose(execute_convergence_test(4, 6, 5, 6, root_directory=tmp_path), convergence_test_ref)
+    assert np.allclose(execute_convergence_test(4, 6, 2, 5, 6, 1, root_directory=tmp_path), convergence_test_ref)
 

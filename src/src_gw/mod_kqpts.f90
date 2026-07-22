@@ -6,7 +6,7 @@
 !------------------------------------------
 
 module mod_kqpts
-    use asserts, only: assert
+#include "asserts.fpp"
     use modinput, only: qpoints_type_array, kpoints_type_array
     ! We need to change internally to `terminate_when_false` to avoid a circular dependency
     use modmpi, only: terminate_when_false => terminate_if_false
@@ -106,12 +106,32 @@ module mod_kqpts
       procedure :: obtain_list_of_indexes
     end type
 
+    public :: has_full_k_point_coverage
+
 contains 
 
+!> Return whether the selected k-/q-point indexes cover the full set exactly once.
+pure logical function has_full_k_point_coverage(kpoint_indexes, n_kpoints) result(flag)
+  !> Selected k-/q-point indexes.
+  integer(i32), intent(in) :: kpoint_indexes(:)
+  !> Total number of k-/q-points in the full set.
+  integer(i32), intent(in) :: n_kpoints
+
+  integer(i32) :: ik
+
+  flag = size(kpoint_indexes) == n_kpoints .and. &
+    all( [(any(kpoint_indexes == ik), ik = 1, n_kpoints)] )
+end function has_full_k_point_coverage
+
+!> Check that an input k-/q-point range is valid.
 subroutine sanity_checks( this, first, last, maximum )
+  !> Parsed range object.
   class(ranges_of_indexes), intent(in) :: this
+  !> First requested k-/q-point index.
   integer, intent(in) :: first
+  !> Last requested k-/q-point index, or non-positive to select through `maximum`.
   integer, intent(in) :: last
+  !> Maximum available k-/q-point index.
   integer, intent(in) :: maximum
 
   call terminate_when_false( first>0, 'first k/q-point must be positive' )
@@ -126,60 +146,77 @@ subroutine sanity_checks( this, first, last, maximum )
 end subroutine
 
 
+!> Store a validated first/last k-/q-point range.
 subroutine parse_first_last( this, first, last, maximum )
+  !> Range object to update.
   class(ranges_of_indexes), intent(inout)  :: this
-  integer, intent(in)   :: first, last, maximum
+  !> First requested k-/q-point index.
+  integer, intent(in) :: first
+  !> Last requested k-/q-point index, or non-positive to select through `maximum`.
+  integer, intent(in) :: last
+  !> Maximum available k-/q-point index.
+  integer, intent(in) :: maximum
 
   call this%sanity_checks( first, last, maximum )
   this%first = first
-  this%last = merge( tsource=last, fsource=maximum, mask=last>=0 ) 
+  this%last = merge( tsource=last, fsource=maximum, mask=last>=0 )
 
 end subroutine
 
 
+!> Parse q-point ranges from XML input.
 subroutine parse_input_qpoints( this, qpoints_array, n_qpoints_max )
-  class(kpoints_sets), intent(inout) :: this 
+  !> q-point set object to update.
+  class(kpoints_sets), intent(inout) :: this
+  !> Parsed XML q-point ranges.
   type(qpoints_type_array), pointer, intent(in) :: qpoints_array(:)
+  !> Maximum available q-point index.
   integer(i32), intent(in) :: n_qpoints_max
 
   integer(i32) :: n, i
 
   n = size( qpoints_array )
   allocate( this%sets(n) )
-  do i = 1, n 
+  do i = 1, n
     call this%sets(i)%parse_first_last( qpoints_array(i)%qpoints%qi, qpoints_array(i)%qpoints%qf, n_qpoints_max )
   end do
 
 end subroutine
 
 
+!> Parse k-point ranges from XML input.
 subroutine parse_input_kpoints( this, kpoints_array, n_kpoints_max )
-  class(kpoints_sets), intent(inout) :: this 
+  !> k-point set object to update.
+  class(kpoints_sets), intent(inout) :: this
+  !> Parsed XML k-point ranges.
   type(kpoints_type_array), pointer, intent(in) :: kpoints_array(:)
+  !> Maximum available k-point index.
   integer(i32), intent(in) :: n_kpoints_max
 
   integer(i32) :: n, i
 
   n = size( kpoints_array )
   allocate( this%sets(n) )
-  do i = 1, n 
+  do i = 1, n
     call this%sets(i)%parse_first_last( kpoints_array(i)%kpoints%ki, kpoints_array(i)%kpoints%kf, n_kpoints_max )
   end do
 
 end subroutine
 
 
+!> Build the explicit list of selected k-/q-point indexes.
 subroutine obtain_list_of_indexes( this )
+  !> k-/q-point set object to update.
   class(kpoints_sets), intent(inout) :: this
 
   integer(i32) :: i, j
 
-  call assert( size( this%sets ) >= 1, 'sets must contain at least one element' )
+  CALL_ASSERT( size( this%sets ) >= 1, 'sets must contain at least one element' )
   this%list_of_indexes = [ (i, i=this%sets(1)%first,this%sets(1)%last) ]
   do j = 2, size( this%sets )
     this%list_of_indexes = [ this%list_of_indexes, ( i, i=this%sets(j)%first, this%sets(j)%last ) ]
   end do
 end subroutine
 
-   
+
 end module

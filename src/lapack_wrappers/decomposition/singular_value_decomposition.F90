@@ -3,7 +3,7 @@
 !> **[[dgesdd]]**, **[[zgesdd]]**.
 module singular_value_decomposition
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: mpiglobal, terminate_if_false
   use lapack_f95_interfaces, only: dgesdd, zgesdd
 
@@ -398,6 +398,7 @@ module singular_value_decomposition
     integer, allocatable :: iwork(:)
     real(dp), allocatable :: rwork(:) 
     complex(dp), allocatable :: work(:)
+    character(len=8) :: sinfo
 
     tol_ = default_tol_narrow_matrix
     if (present(tol)) tol_ = tol
@@ -414,7 +415,7 @@ module singular_value_decomposition
     
     if (jobz == 'N') then
       rwork_size = 5*k
-    else if (k / l < tol_) then
+    else if (dble(k) / dble(l) < tol_) then
       rwork_size = 5*k**2 + 5*k 
     else
       rwork_size = max(5*k**2 + 5*k, 2*k*l + 2*k**2 + k)
@@ -422,16 +423,17 @@ module singular_value_decomposition
     allocate(rwork(rwork_size))
 
     call zgesdd(jobz, m, n, A, m, sigma, U, m, V_H, n, work, -1, rwork, iwork, info)
+    write( sinfo, '(i8)' ) info
     call terminate_if_false(info == 0, &
-                           'zgesdd failed for searching optiomal work space.')
+                           'zgesdd failed for searching optiomal work space. info = '//trim(sinfo))
 
     lwork = nint(real(work(1)))
     deallocate(work); allocate(work(lwork))
 
     call zgesdd(jobz, m, n, A, m, sigma, U, m, V_H, n, work, lwork, rwork, iwork, info)
-    
+    write( sinfo, '(i8)' ) info
     call terminate_if_false(info == 0, &
-                           'zgesdd failed for calculating the SVD of A.')
+                           'zgesdd failed for calculating the SVD of A. info = '//trim(sinfo))
   end subroutine zgesdd_wrapper
 
 ! Utils
@@ -481,46 +483,31 @@ module singular_value_decomposition
 
 ! This preprocessor usage is deliberate, to prevent if statements being evaluated in production code.
 #ifdef USE_ASSERT
-    call assert(jobz /= 'X', 'Sizes of arrays do not fit.')
+    CALL_ASSERT(jobz /= 'X', 'Sizes of arrays do not fit.')
 
-    call assert(size_sigma == k, 'The size of sigma must be equal to min(m, n), &
-                                  when A is a m by n matrix')
+    CALL_ASSERT(size_sigma == k, 'The size of sigma must be equal to min(m, n),  when A is a m by n matrix')
 
     if (any(jobz == ['N', 'N'])) then
       continue
 
     else if (any(jobz == ['A', 'A'])) then
-      call assert(all(shape_U == [m, m]), &
-                 'If jobz = "A", U must be a quadratic matrix with size m by m, &
-                 when A is a m by n matrix')
-      call assert(all(shape_V_T == [n, n]), &
-                 'If jobz = "A", V_T must be a quadratic matrix with size n by n, &
-                 when A is a m by n matrix')
+      CALL_ASSERT(all(shape_U == [m, m]),  'If jobz = "A", U must be a quadratic matrix with size m by m,  when A is a m by n matrix')
+      CALL_ASSERT(all(shape_V_T == [n, n]),  'If jobz = "A", V_T must be a quadratic matrix with size n by n,  when A is a m by n matrix')
 
     else if (any(jobz == ['S', 'S'])) then
-      call assert(all(shape_U == [m, k]), &
-                 'If jobz = "S", U must be a matrix with size m by min(m, n), &
-                 when A is a m by n matrix')
-      call assert(all(shape_V_T == [m, k]), &
-                 'If jobz = "S", V_T must be a matrix with size min(m, n) by n, &
-                 when A is a m by n matrix')
+      CALL_ASSERT(all(shape_U == [m, k]),  'If jobz = "S", U must be a matrix with size m by min(m, n),  when A is a m by n matrix')
+      CALL_ASSERT(all(shape_V_T == [m, k]),  'If jobz = "S", V_T must be a matrix with size min(m, n) by n,  when A is a m by n matrix')
 
     else if (any(jobz == ['O', 'O']) .and. m >= n) then
-      call assert(all(shape_U == [m, n]), &
-                 'If jobz = "O" and m >= n, U must have the same shape a A.')
-      call assert(all(shape_V_T == [n, n]), &
-                 'If jobz = "O" and m >= n, V_T must be a quadratic matrix with size n by n, &
-                 when A is a m by n matrix')
+      CALL_ASSERT(all(shape_U == [m, n]),  'If jobz = "O" and m >= n, U must have the same shape a A.')
+      CALL_ASSERT(all(shape_V_T == [n, n]),  'If jobz = "O" and m >= n, V_T must be a quadratic matrix with size n by n,  when A is a m by n matrix')
 
     else if (any(jobz == ['O', 'O']) .and. m < n) then
-      call assert(all(shape_U == [m, m]), &
-                 'If jobz = "O" and m < n, U must be a quadratic matrix with size m by m, &
-                 when A is a m by n matrix')
-      call assert(all(shape_V_T == [m, n]), &
-                 'If jobz = "O" and m < n, V_T must have the same shape a A.')
+      CALL_ASSERT(all(shape_U == [m, m]),  'If jobz = "O" and m < n, U must be a quadratic matrix with size m by m,  when A is a m by n matrix')
+      CALL_ASSERT(all(shape_V_T == [m, n]),  'If jobz = "O" and m < n, V_T must have the same shape a A.')
 
     else
-      call assert(.false., 'jobz must be one of "A", "a", "S", "s", "O", "o", "N", "n".')
+      CALL_ASSERT(.false., 'jobz must be one of "A", "a", "S", "s", "O", "o", "N", "n".')
     end if
 #endif
   end subroutine assert_array_shape

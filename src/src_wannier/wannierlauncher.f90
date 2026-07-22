@@ -3,6 +3,7 @@ subroutine wannierlauncher
     use mod_wannier
     use mod_wannier_util
     use mod_wannier_maxloc
+    use mod_wannier_spin
     use mod_wannier_interpolate
     use mod_manopt
 
@@ -16,16 +17,21 @@ subroutine wannierlauncher
         if( mpiglobal%rank .eq. 0) call printbox( wf_info, '*', "Wannierization")
         do wf_group = 1, wf_ngroups
           call wffile_writeinfo_task
+          ! simple projection only
           if( wf_groups( wf_group)%method .eq. "pro") then
             if( mpiglobal%rank .eq. 0) call wannier_gen_pro
+          ! optimized projection functions only
           else if( wf_groups( wf_group)%method .eq. "opf") then
             if( mpiglobal%rank .eq. 0) call wfopf_gen
+          ! maximal localization with initial guess from simple projection
           else if( wf_groups( wf_group)%method .eq. "promax") then
             if( mpiglobal%rank .eq. 0) call wannier_gen_pro
             if( mpiglobal%rank .eq. 0) call wfmax_gen
+          ! maximal localization with initial guess from optimized projection functions
           else if( wf_groups( wf_group)%method .eq. "opfmax") then
             if( mpiglobal%rank .eq. 0) call wfopf_gen
             if( mpiglobal%rank .eq. 0) call wfmax_gen
+          ! maximal localization within disentangled subspace with initial guess from optimized projection functions
           else if( wf_groups( wf_group)%method .eq. "disSMV" .or. wf_groups( wf_group)%method .eq. "disFull") then
             if( mpiglobal%rank .eq. 0) call wfopf_gen
             if( mpiglobal%rank .eq. 0) call wfdis_gen
@@ -35,11 +41,15 @@ subroutine wannierlauncher
             write(*,*) " Error (propertylauncher): invalid value for attribute method"
           end if
         end do
+        
+        ! transform back from spin-separated states to original states 
+        if (wf_spin_dis) then
+          call wfspin_undo_spindis
+        end if
         call wffile_writetransform
       
       else if( input%properties%wannier%do .eq. "fromfile") then
         call wannier_gen_fromfile
-
       else
         call wannier_gen_fromfile
         call wffile_writeinfo_overall

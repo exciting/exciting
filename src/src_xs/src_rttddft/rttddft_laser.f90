@@ -1,6 +1,6 @@
 !> Module with the several laser pulses considered
 module rttddft_laser
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: pi, twopi
   use modinput, only: kick_type_array, trapCos_type_array, sinSq_type_array
   use physical_constants, only: c
@@ -117,8 +117,7 @@ contains
     !> resulting enum
     integer(kind(applied_field)) :: field
 
-    call assert( trim( name ) == field_total .or. trim( name ) == field_external , &
-      'name must be ' // field_total // ' or ' // field_external )
+    CALL_ASSERT( trim( name ) == field_total .or. trim( name ) == field_external ,  'name must be ' // field_total // ' or ' // field_external )
   
     select case( trim( name ) )
       case( field_total )
@@ -158,7 +157,7 @@ contains
   !> \]
   !> It is possible to broaden it as
   !> \[
-  !>    \mathbf{E}(t) = \mathbf{E}_0 \frac{15}{16}
+  !>    \mathbf{E}(t) = \mathbf{E}_0 \frac{15}{16 w}
   !>     \left( \frac{t-t_0}{w} +1 \right)^2 \left( \frac{t-t_0}{w} -1 \right)^2
   !> \]
   !> for \( t \) between \( t_0 - w \) and \( t_0 + w \), and zero otherwise.
@@ -214,7 +213,7 @@ contains
     if ( abs( this%width ) > eps_kick_width ) then
       t_aux = ( t - this%t_0 ) / this%width
       if( ( t_aux >= -1._dp) .and. ( t_aux <= 1._dp ) ) then
-        a = (15._dp/16._dp) * this%amplitude * (t_aux + 1._dp)**2*(t_aux - 1._dp)**2
+        a = (15._dp/16._dp) * this%amplitude * (t_aux + 1._dp)**2*(t_aux - 1._dp)**2 / this%width
       end if
     else
       if ( t == this%t_0 ) a = huge( 1._dp )

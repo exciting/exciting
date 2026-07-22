@@ -30,9 +30,8 @@ module physical_constants
   !> Elementary charge of an electron in C (CODATA 2018) 
   real(dp), public, parameter :: elec_charge = 1.602176634e-19_dp
   
-  ! TODO(Alex) Issue #20. Update to CODATA 2018 physical units if required
   !> Boltzmann constant in Hartree/kelvin (CODATA 2006)
-  Real(8), Public, Parameter :: kboltz = 3.166815343d-6
+  Real(dp), Public, Parameter :: kboltz = 3.1668115634022598e-06_dp
 
   !> Electron mass in kg (CODATA 2018)
   Real(dp), Public, Parameter :: elec_mass = 9.10938370e-31_dp;

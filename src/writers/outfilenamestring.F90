@@ -17,7 +17,7 @@ Character (256) Function outfilenamestring (filetag, ik)
       Use modinput
       Implicit None
       
-      Character (256), Intent (In) :: filetag
+      Character (len=*), Intent (In) :: filetag
       Integer, Intent (In) :: ik
       Character (256) :: tmp, tmp2, krange, scrpathtmp
       krange = ''

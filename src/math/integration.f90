@@ -1,5 +1,5 @@
 module integration
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zone, zzero
   use hermitian_matrix_multiplication, only: hermitian_matrix_multiply
   use linear_system_positive_definite, only: positive_definite_solve
@@ -71,15 +71,15 @@ module integration
     if( present(tol) ) tolerance = tol
     ! Sanity checks
     ! Check if H and H_past are hermitian
-    call assert( is_hermitian( H, tolerance ), 'H is not hermitian' )
-    call assert( is_hermitian( H_past, tolerance ), 'H_past is not hermitian' )
+    CALL_ASSERT( is_hermitian( H, tolerance ), 'H is not hermitian' )
+    CALL_ASSERT( is_hermitian( H_past, tolerance ), 'H_past is not hermitian' )
     ! Check if H, H_past and x have compatible size
-    call assert( size( H, 1 ) == size( x, 1 ), 'H and x have incompatible sizes.' )
-    call assert( size( H_past, 1 ) == size( x, 1 ), 'H_past and x have incompatible sizes.' )
+    CALL_ASSERT( size( H, 1 ) == size( x, 1 ), 'H and x have incompatible sizes.' )
+    CALL_ASSERT( size( H_past, 1 ) == size( x, 1 ), 'H_past and x have incompatible sizes.' )
     ! Check if S is positive definite
-    call assert( is_positive_definite( S, tolerance ), 'S is not positive definite' )
+    CALL_ASSERT( is_positive_definite( S, tolerance ), 'S is not positive definite' )
     ! Check if S and x have compatible size
-    call assert( size( S, 1 ) == size( x, 1 ), 'S and x have incompatible sizes.' )
+    CALL_ASSERT( size( S, 1 ) == size( x, 1 ), 'S and x have incompatible sizes.' )
   
     ! Allocate  
     allocate( k(dim, n_vectors, 4) )

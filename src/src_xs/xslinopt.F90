@@ -25,7 +25,6 @@ Subroutine xslinopt (iq)
       Use m_writesigma
       Use m_writekerr
       Use m_writesumrls
-      Use m_getunit
       Use m_genfilname
       Implicit None
   ! arguments
@@ -66,7 +65,6 @@ Subroutine xslinopt (iq)
       wplot = dble (wr)
   ! record length
       Inquire (IoLength=Recl) mdf1 (1)
-      Call getunit (unit1)
   ! neglect/include local field effects
       Do m = 1, n, Max (n-1, 1)
      ! loop over longitudinal components for optics
@@ -86,7 +84,7 @@ Subroutine xslinopt (iq)
               & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
               & oc1=oct1, oc2=oct2, iqmt=iq, filnam=filnam)
            ! read macroscopic dielectric function (original frequencies)
-               Open (unit1, File=trim(filnam), Form='unformatted', &
+               Open (newunit=unit1, File=trim(filnam), Form='unformatted', &
               & Action='read', Status='old', Access='direct', &
               & Recl=Recl)
                Do iw = 1, nwdf
@@ -146,8 +144,8 @@ Subroutine xslinopt (iq)
                Call gensumrls (wplot, mdf, sumrls)
            ! write optical functions to file
                Call writeeps (iq, oct1, oct2, wplot, mdf, trim(fneps))
-               Call writeloss (iq, wplot, loss(oct1, oct2, :), trim(fnloss))
-               Call writesigma (iq, wplot, sigma, trim(fnsigma))
+               Call writeloss (iq, wplot, loss(oct1, oct2, :), trim(fnloss), oct1, oct2)
+               Call writesigma (iq, wplot, sigma, trim(fnsigma), oct1, oct2)
                if (tq0) Call writesumrls (iq, sumrls, trim(fnsumrules))
            ! end loop over optical components
             End Do

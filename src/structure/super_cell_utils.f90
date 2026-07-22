@@ -1,8 +1,7 @@
 
 module super_cell_utils
    use precision, only: dp
-   use asserts, only: assert
-
+#include "asserts.fpp"
    implicit none
    private
    public :: get_translation_vectors, &
@@ -67,8 +66,7 @@ contains
       real(dp), allocatable:: translation(:, :)
       allocate(translation(3, n%total()))
 
-      call assert(n%integers_valid(), message='For each dimension the second integer &
-                  value has to be larger than or equal to the first integer value.')
+      CALL_ASSERT(n%integers_valid(), message='For each dimension the second integer  value has to be larger than or equal to the first integer value.')
 
       itrans = 0
       do i1 = n%i(1), n%i(2)
@@ -104,10 +102,8 @@ contains
       real(dp), allocatable :: positions(:, :)
       allocate (positions(3, sum(natoms)*size(translation, 2)))
 
-      call assert(size(translation, 1) == 3, message= &
-                  "Expected vector component along the first dimension is three.")
-      call assert(size(atomic_postion, 1) == 3, message= &
-                  "Expected vector component along the first dimension is three.")
+      CALL_ASSERT(size(translation, 1) == 3, message=  "Expected vector component along the first dimension is three.")
+      CALL_ASSERT(size(atomic_postion, 1) == 3, message=  "Expected vector component along the first dimension is three.")
 
       iatom = 0
       do i = 1, size(translation, 2)
@@ -138,8 +134,7 @@ contains
       !> Muffin-tin radius for each atom
       real(dp), allocatable :: extended_rmt(:)
 
-      call assert(size(natoms) == size(rmt), message= &
-                  "Dimensions of natoms and rmt have to be equal.") 
+      CALL_ASSERT(size(natoms) == size(rmt), message=  "Dimensions of natoms and rmt have to be equal.") 
       allocate(extended_rmt(sum(natoms)))
 
       ns = size(natoms)

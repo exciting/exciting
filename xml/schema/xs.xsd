@@ -682,7 +682,7 @@
           <xs:element ex:importance="expert" ex:unit="" name="pmat" minOccurs="0" maxOccurs="1">
             <xs:annotation>
               <xs:documentation> 
-                This element defines some details needed in the evaluation of
+                This element specifies the settings used in the evaluation of
                 the momentum matrix.
               </xs:documentation>
             </xs:annotation>
@@ -716,6 +716,45 @@
                     <inlinemath>z</inlinemath> components of the momentum matrix
                     are forced to be Hermitian. This may be useful to avoid numerical
                     noise.
+                  </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+            </xs:complexType>
+          </xs:element>
+
+          <xs:element ex:importance="expert" ex:unit="" name="spinPropagation" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation> 
+                This element defines the parameters for spin-polarized calculations.
+                It is only relevant when the <elementref>spin</elementref> element
+                is present within <elementref>goundstate</elementref>, 
+                which enables spin-polarized mode. 
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:attribute ex:importance="expert" ex:unit="" name="updateSOC"
+                type="xs:boolean" default="true">
+                <xs:annotation>
+                  <xs:documentation> For spin-polarized calculations with spin-orbit 
+                    coupling (SOC), <pre>updateSOC="false"</pre> forces that 
+                    the SOC term remains fixed to the ground-state value during 
+                    the time evolution. If set to <pre>"true"</pre>, the SOC term is 
+                    updated at each time step according to the instantaneous KS potential.
+                  </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+              <xs:attribute ex:importance="expert" ex:unit="" name="SOCGaugeCorrections"
+                type="xs:boolean" default="true">
+                <xs:annotation>
+                  <xs:documentation>
+                    When set to <pre>"true"</pre>, it enables full gauge corrections 
+                    <inlinemath>\mathrm{e}^{-\mathrm{i}\mathbf{A}\cdot\mathbf{r}}
+                    \hat{H}_{SOC}
+                    \mathrm{e}^{\mathrm{i}\mathbf{A}\cdot\mathbf{r}}</inlinemath>
+                    to the time-dependent Hamiltonian for spin-polarized 
+                    calculations with spin-orbit coupling (SOC) and the 
+                    velocity gauge. If <pre>"false"</pre>, the corrections are 
+                    neglected.
                   </xs:documentation>
                 </xs:annotation>
               </xs:attribute>
@@ -799,6 +838,16 @@
                 <xs:documentation> <pre>numberOfFrozenStates</pre> of the lowest-lying 
                 states will remain in the ground state and not evolve in time. 
                 This number is the same for each <bf>k</bf>-point.
+		            </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute ex:importance="expert" ex:unit="" name="orthogonalizeAgainstFrozen"
+              type="xs:boolean" default="false">
+              <xs:annotation>
+                <xs:documentation> Ensures that active wavefunctions remain orthogonal to frozen states 
+                  by re-orthogonalizing them at each time step (i.e., after applying the time-evolution operator).
+                  This option is ignored if no frozen states are present (<attref>numberOfFrozenStates</attref> = 0).
 		            </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -1007,7 +1056,6 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
-
           </xs:complexType>
         </xs:element>
 
@@ -1604,8 +1652,42 @@
               default="true">
               <xs:annotation>
                 <xs:documentation>
-                  Distribute the diagonalization of the BSH by calling a ScaLAPACK routine. If exciting is built without
-                  ScaLAPACK, this parameter has no effect.
+                  Deprecated. Use 'bsesolver' to select the diagonlization routine. Has no influence in the code.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="bsesolver" default="auto">
+              <xs:annotation>
+                <xs:documentation>Selects the routine for diagonalizing the full Bethe-Salpeter-Hamiltonian when using
+                  the direct solver. The 'auto' option selects the solver depending on the build options.</xs:documentation>
+              </xs:annotation>
+               <xs:simpleType>
+                 <xs:restriction base="xs:string">
+                   <xs:enumeration value="elpa1StageSolver"/>
+                   <xs:enumeration value="elpa2StageSolver"/>
+                   <xs:enumeration value="scalapackPzheevx"/>
+                   <xs:enumeration value="scalapackPzheevd"/>
+                   <xs:enumeration value="lapack"/>
+                   <xs:enumeration value="auto"/>
+                 </xs:restriction>
+               </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="BSEKernelStatusReports" type="xs:integer"
+              default="10">
+              <xs:annotation>
+                <xs:documentation>Specifies the number of status reports to be printed to stdout
+                during the scrcoulint and exccoulint tasks (MPI distributed). Defaults to no a report every 10 percent.
+                Includes the final report when the loop finishes.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="BSEKernelFineStatusReports" type="xs:integer"
+              default="0">
+              <xs:annotation>
+                <xs:documentation>Specifies the number of fine-grained status reports to be printed to stdout
+                during the scrcoulint and exccoulint tasks (OpenMP distributed). Defaults to no status reports.
+                Includes the final report when the loop finishes. Note: Mainly for debug purposes, can produce a lot
+                of output.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -1641,7 +1723,8 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="eecs" type="xs:integer"
               default="3">
               <xs:annotation>
-                <xs:documentation>Estimated BSE eigenvalue cluster size.</xs:documentation>
+                <xs:documentation>Estimated BSE eigenvalue cluster size. Only used in the scalapackx bsesolver.
+                Apriori not known but needed for propper orthogonalization of eigenvectors.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="econv" type="vect2d" default="0.0d0 0.0d0">
@@ -2377,6 +2460,14 @@
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
+            <xs:attribute ex:importance="experimental" ex:unit="" name="skipDoneBSEType" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> If set to <pre>"true"</pre>, exciting checks if the output for the requested BSE
+                  types already exist. For any type for which this is the case, the calculation is skipped.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
 	<xs:element ex:importance="expert" ex:unit="" name="plan" minOccurs="0" maxOccurs="1">

@@ -23,7 +23,7 @@
                     <list>
                       <li> <pre>"low"</pre> - 
 		           Minimal output is produced. For each optimization steps, the main output file 
-		           <pre>"INFO.OUT"</pre> contains information on the number of SCF cicles performed,
+		           <pre>"INFO.OUT"</pre> contains information on the number of SCF cycles performed,
 		    	   the value of the maximum force acting on the atoms, and the calculated total 
 		           energy. </li>
 		      <li> <pre>"normal"</pre> - 

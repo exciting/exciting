@@ -23,10 +23,14 @@ module potentials
     !> Then, we add the ionic potential and monopoles to the muffin-tin potential and multipoles.
     !> In a third step, we compute the multipole moments corresponding to the extension of the interstitial
     !> charge density inside the muffin-tin spheres using the subroutine [[multipoles_ir(subroutine)]].
-    !> Next, we solve Poisson's equation for the interstitial region using the subroutine [[poisson_ir(subroutine)]].
-    !> This is done by constructing a pseudocharge density with the same muffin-tin multipole moments
-    !> as the actual charge density and having a quickly converging Fourier series. With this pseudocharge
-    !> density, we solve Poisson's equation in reciprocal space for the interstitial Coulomb potential.
+    !> Next, we solve Poisson's equation for the interstitial region using the subroutine
+    !> [[poisson_ir_plus(subroutine)]]. This is done by first constructing a pseudocharge density
+    !> (in reciprocal space) with the same muffin-tin multipole moments as the actual charge density
+    !> and having a quickly converging Fourier series. The corresponding Fourier components are added
+    !> using [[pseudodensity_ir_single_mt(subroutine)]]. With this pseudocharge density, we obtain the
+    !> interstitial Coulomb potential in reciprocal space by applying the Coulomb kernel in
+    !> [[poisson_ir_plus(subroutine)]]. Depending on `input%groundstate%cutofftype`, either the standard
+    !> Coulomb kernel \(4\pi/|{\bf G+p}|^2\) is used or a spherically truncated kernel is applied.
     !> In the last step, we add the homogeneous solution of Poisson's equation to the muffin-tin Coulomb potential
     !> to match it with the interstitial potential on the muffin-tin sphere boundaries using the subroutines
     !> [[match_bound_mt(subroutine)]] and [[surface_ir(subroutine)]].
@@ -40,6 +44,7 @@ module potentials
       use mod_convergence, only: iscl
       use weinert
       use m_zfftifc, only: zfftifc
+      use mod_lattice, only: omega
 
       !> number or radial grid points for each species
       integer, intent(in) :: nr(:)
@@ -70,10 +75,11 @@ module potentials
       !> Fourier component of pseudocharge density for shortest \({\bf G+p}\) vector
       complex(dp), intent(out) :: zrho0
     
-      integer :: is, ia, ias, ir
+      integer :: is, ia, ias, ir, lmax
     
       real(dp), allocatable :: vion(:,:), vdplmt(:,:,:), vdplir(:)
       complex(dp), allocatable :: qlm(:,:), qlmir(:,:), zrhoig(:)
+      logical :: cutoff
     
       allocate( qlm( lmmaxvr, natmtot), qlmir( lmmaxvr, natmtot))
       allocate( zrhoig( ngrtot))
@@ -112,11 +118,20 @@ module potentials
       ! take difference of muffin-tin and interstitial multipole moments
       qlm = qlm - qlmir
     
-      ! solve Poisson's equation in interstitial region
-      call poisson_ir( input%groundstate%lmaxvr, input%groundstate%npsden, ngp, gpc, &
-                       ivg, jlgpr, ylmgp, sfacgp, intgv, ivgig, igfft, &
-                       zrhoig, qlm, zvclir)
+      ! construct pseudodensity
+      lmax=input%groundstate%lmaxvr
+      do is = 1, nspecies
+        do ia = 1, natoms(is)
+          ias = idxas( ia, is)
+          call pseudodensity_ir_single_mt( lmax, rmt(is), omega, input%groundstate%npsden, ngp, gpc, ivg, jlgpr(:,:,is), ylmgp, sfacgp(:,ias), intgv, ivgig, igfft, &
+                                           zrhoig, qlm(:,ias), epslat=input%structure%epslat)
+        end do
+      end do
       zrho0 = zrhoig( igfft( igp0))
+
+      ! solve Poisson's equation in interstitial region
+      cutoff=(trim( input%groundstate%cutofftype ) == "0d")
+      call poisson_ir_plus(ngp, gpc, igfft, zrhoig,zvclir,cutoff)
     
       ! evaluate interstitial potential on muffin-tin surface
       call surface_ir( input%groundstate%lmaxvr, ngp, gpc, &

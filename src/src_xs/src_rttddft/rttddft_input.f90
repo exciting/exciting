@@ -1,7 +1,7 @@
 module rttddft_input
-  use asserts, only: assert
-  use modinput, only: deltadensityplot_type, eigenvalues_type, occupations_type, plot3d_type, &
-    projectionCoefficients_type, screenshots_type, input_type
+#include "asserts.fpp"
+  use modinput, only: deltadensityplot_type, eigenvalues_type, occupations_type, &
+    plot3d_type, projectionCoefficients_type, screenshots_type, input_type
   use precision, only: dp, i32
   use propagators, only: propagator_input_elements
   use rttddft_io, only: restart_format, binary, hdf5, file_handler
@@ -137,10 +137,12 @@ module rttddft_input
     type(propagator_input_elements) :: propagator_input
     !> Type to encapsulate eeInteraction-related propagation parameters
     type(eeInteraction_keys) :: eeInteraction
-    !> Wether the KS wavefunctions must be normalized in each step 
+    !> Whether the KS wavefunctions must be normalized in each step 
     logical :: normalize_WF
     !> Number of low-lying states which will not be evolved
     integer(i32) :: n_frozen
+    !> Whether the active KS wavefunctions must be orthogonalized against frozen in each step 
+    logical :: orthogonalize_against_frozen
     !> Print output data every `n_print` steps
     integer(i32) :: n_print
     !> Radial step length (used to update the electron density)
@@ -159,6 +161,8 @@ module rttddft_input
     real(dp) :: scissor_shift
     !> If `.true.`, write a restart file every `n_print` steps
     logical, private :: save_state
+    !> If `.true.`, update the SOC term
+    logical, private :: updateSOC
     !> Identify which basis set will be used for the propagation (see [[basis_set]])
     integer(kind( basis_set )), private :: basis_set
     !> Identify which operator will be used for the coupling with external field (see [[field_coupling]])
@@ -175,6 +179,7 @@ module rttddft_input
     procedure :: write_restart => rttddft_input_keys_write_restart
     procedure :: restart_previous_calculation => rttddft_input_keys_restart_previous_calculation
     procedure :: do_from_scratch => rttddft_input_keys_do_from_scratch
+    procedure :: update_SOC => rttddft_input_keys_update_SOC
     procedure :: use_ks_basis => rttddft_input_keys_use_ks_basis
     procedure :: use_lapwlo_basis => rttddft_input_keys_use_lapwlo_basis
     procedure :: use_velocity_gauge => rttddft_input_keys_use_velocity_gauge
@@ -194,6 +199,7 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
 
   associate( rt_input => inp%xs%realTimeTDDFT )
     this%normalize_WF = rt_input%normalizeWF
+    this%orthogonalize_against_frozen = rt_input%orthogonalizeAgainstFrozen
     this%n_frozen = rt_input%numberOfFrozenStates
     this%n_print = rt_input%printAfterIterations
     this%t_end = rt_input%endTime
@@ -232,6 +238,11 @@ subroutine rttddft_input_keys_parse_input( this, inp, tol, a_vec )
   this%restart_file_handler%file_name = trim( inp%xs%h5fname )
   this%restart_file_handler%path = trim( inp%xs%h5gname )
   this%l_rad_step = inp%groundstate%lradstep
+  ! updateSOC must be false for spin-unpolarized calculations and when SOC is not used
+  this%updateSOC = .false.
+  if( associated( inp%groundstate%spin ) ) then
+    this%updateSOC = inp%groundstate%spin%spinorb .and. inp%xs%realTimeTDDFT%spinPropagation%updateSOC
+  end if
   this%scissor_shift = inp%xs%scissor
 end subroutine
 
@@ -247,6 +258,12 @@ pure logical function rttddft_input_keys_use_berry_phase( this ) result( check )
   check = ( this%field_coupling == berry_phase )
 end function
 
+!> Check whether SOC should be updated
+pure logical function rttddft_input_keys_update_SOC( this ) result( check )
+  class(rttddft_input_keys), intent(in) :: this
+  check = this%updateSOC
+end function
+
 !> (private) Given a string, get the corresponding [[field_coupling]]
 function string_to_field_coupling(string) result(r)
   !> String containing the start mode name
@@ -259,7 +276,7 @@ function string_to_field_coupling(string) result(r)
     case ("berryPhase")
       r = berry_phase
     case default
-      call assert( .false., "Unrecognized field_coupling")
+      CALL_ASSERT( .false., "Unrecognized field_coupling")
   end select
 end function
 
@@ -277,7 +294,7 @@ function string_to_ee_interaction( string ) result( r )
     case ("tdH")
       r = tdh
     case default
-      call assert( .false., "Unrecognized ee interaction")
+      CALL_ASSERT( .false., "Unrecognized ee interaction")
   end select
 end function
 
@@ -310,7 +327,7 @@ subroutine eeInteraction_init_from_string( this, string )
     this%evolve_adiabatic_xc = .false.
     this%evolve_coulomb = .true.
   case default
-    call assert( .false., "Unrecognized ee interaction")
+    CALL_ASSERT( .false., "Unrecognized ee interaction")
   end select
 end subroutine
 
@@ -338,7 +355,7 @@ function string_to_basis_set(string) result(r)
     case ("unperturbedKS")
       r = ks
     case default
-      call assert( .false., "Unrecognized basis set")
+      CALL_ASSERT( .false., "Unrecognized basis set")
   end select
 end function
 
@@ -366,7 +383,7 @@ function string_to_start_mode(string) result(r)
     case ("fromfile")
       r = fromfile
     case default
-      call assert( .false., "Unrecognized string")
+      CALL_ASSERT( .false., "Unrecognized string")
   end select
 end function
 
@@ -382,7 +399,7 @@ function string_to_restart_format(string) result(r)
     case ("hdf5")
       r = hdf5
     case default
-      call assert( .false., "Unrecognized string")
+      CALL_ASSERT( .false., "Unrecognized string")
   end select
 end function
 

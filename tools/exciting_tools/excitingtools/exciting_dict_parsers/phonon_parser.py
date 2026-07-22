@@ -1,7 +1,12 @@
 """Parsers for exciting phonon files."""
 
+import re
 from pathlib import Path
-from typing import Union
+from typing import Any, Dict, Union
+
+import numpy as np
+
+from excitingtools.parser_utils.parser_utils import numpy_gen_from_txt
 
 path_type = Union[Path, str]
 
@@ -52,3 +57,88 @@ def parse_phonon_out(filename: path_type) -> dict:
             )
 
     return phonon_data
+
+
+def parse_dyn_out(filename: path_type) -> dict:
+    """Parse the dynamical matrix output file.
+
+    :param filename: Path to DYN_Q????_????_????.OUT file.
+    :return: Dictionary containing dynamical matrix entry for each species, atom and polarization.
+    """
+
+    dyn_data = {}
+
+    with open(filename) as f:
+        lines = [line.strip() for line in f if line.strip()]
+
+    i = 0
+    for line in lines:
+        row = line.split(":")
+        if len(row) == 2:
+            i += 1
+            dyn_real, dyn_imag = map(float, row[0].split())
+            species, atom, polarisation = map(int, [s.split("=")[1] for s in row[1].split(",")])
+            dyn_data[str(i)] = {
+                "species": species,
+                "atom": atom,
+                "polarisation": polarisation,
+                "dynmat_real": dyn_real,
+                "dynmat_imag": dyn_imag,
+            }
+
+    return dyn_data
+
+
+def parse_epsinf_out(filename: path_type) -> dict:
+    """Parse the high-frequency dielectric constant output file.
+
+    :param filename: Path to EPSINF.OUT file.
+    :return: Dictionary containing high frequency dielectric constant.
+    """
+    return {"epsinf": numpy_gen_from_txt(filename)}
+
+
+def parse_zstar_out(filename: path_type) -> dict:
+    """Parse the Born-effective charges output file.
+
+    :param filename: Path to ZSTAR.OUT file.
+    :return: Dictionary containing the Born-effective charge tensor for each atom.
+    """
+    header_re = re.compile(
+        r"# species\s+(\d+)\s+atom\s+(\d+)\s+\((\w+)\s+(\d+)\)\s*:\s*([-\d.Ee+]+)\s+([-\d.Ee+]+)\s+([-\d.Ee+]+)"
+    )
+
+    zstar_data: Dict[str, Any] = {"atoms": {}, "acoustic_sum_rule_correction": None}
+    lines = Path(filename).read_text().splitlines()
+    iat = 0
+    i = 0
+
+    while i < len(lines):
+        line = lines[i]
+
+        # Atom header
+        m = header_re.match(line)
+        if m:
+            iat += 1
+            species, atom, symbol, species_atom = map(lambda x: int(x) if x.isdigit() else x, m.groups()[:4])
+            position = np.array(list(map(float, m.groups()[4:])), dtype=float)
+            tensor = np.loadtxt(lines[i + 1 : i + 4])
+            zstar_data["atoms"][str(iat)] = {
+                "species": species,
+                "atom": atom,
+                "symbol": symbol,
+                "species_atom": species_atom,
+                "position": position,
+                "tensor": tensor,
+            }
+            i += 4
+            continue
+
+        # Acoustic sum rule correction
+        if line.startswith("# Acoustic sum rule correction"):
+            zstar_data["acoustic_sum_rule_correction"] = np.loadtxt(lines[i + 1 : i + 4])
+            break
+
+        i += 1
+
+    return zstar_data

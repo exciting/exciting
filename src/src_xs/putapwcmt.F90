@@ -6,26 +6,23 @@
 subroutine putapwcmt(fname, ik, vk, vq, apwcmt)
   use modmain
   use modinput
-  use m_getunit
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
+  use precision, only: i32, long_int, dp
 
   implicit none
 
   ! Arguments
   character(*), intent(in) :: fname
-  integer, intent(in) :: ik
-  real(8), intent(in) :: vk(3), vq(3)
-  complex(8), intent(in) :: apwcmt(nstfv, apwordmax, lmmaxapw, natmtot)
+  integer(i32), intent(in) :: ik
+  real(dp), intent(in) :: vk(3), vq(3)
+  complex(dp), intent(in) :: apwcmt(nstfv, apwordmax, lmmaxapw, natmtot)
 
   ! local variables
-  integer :: reclen, un
+  integer(i32) :: un
+  integer(long_int) :: reclen
 
-  call getunit(un)
-
-  inquire(iolength=reclen) vq, vk, nstfv, apwordmax,&
-    & input%groundstate%lmaxapw, apwcmt
-
-  open(un, file=trim(fname), action='write', form='unformatted',&
-    & access='direct', recl=reclen)
+  call inquire_large( reclen, vq, vk, [nstfv, apwordmax, input%groundstate%lmaxapw], apwcmt )
+  call open_direct_unformatted_large( un, trim( adjustl( fname ) ), "write", reclen, "unknown" )
 
   write(un, rec=ik) vq, vk, nstfv, apwordmax, input%groundstate%lmaxapw, apwcmt
 

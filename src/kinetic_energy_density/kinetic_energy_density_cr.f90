@@ -1,7 +1,7 @@
 !> Module provides subroutines to calculate the kinetic energy density
 !> in the muffin-tin region for the core electrons `ked_cr`. 
 module kinetic_energy_density_cr
-    use asserts, only: assert
+
     use precision, only: dp
     use errors_warnings, only: terminate_if_true, terminate_if_false
     use modmpi, only: mpiglobal

@@ -1,6 +1,6 @@
 module wfplot_module
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zone
   use modinput, only: input
   use modmpi, only: terminate_if_false
@@ -120,10 +120,10 @@ module wfplot_module
 
     complex(dp), allocatable ::  wfmt(:,:,:,:,:), wfir(:,:,:)
 
-    call assert(1 <= ik, 'k-point index ist smaller than 1 (ik < 1).')
-    call assert(ik <= nkpt, 'k-point index ist larger than the number of k-points (ik > nkpt).')
-    call assert(1 <= ist, 'State index ist smaller than 1 (ist < 1).')
-    call assert(ist <= nstsv, 'State index ist larger than the number states (ik > nstsv).')
+    CALL_ASSERT(1 <= ik, 'k-point index ist smaller than 1 (ik < 1).')
+    CALL_ASSERT(ik <= nkpt, 'k-point index ist larger than the number of k-points (ik > nkpt).')
+    CALL_ASSERT(1 <= ist, 'State index ist smaller than 1 (ist < 1).')
+    CALL_ASSERT(ist <= nstsv, 'State index ist larger than the number states (ik > nstsv).')
 
     ! calculate the wavefunctions for all states
     allocate(wfmt(lmmaxapw, nrmtmax, natmtot, nspinor, nstsv))
@@ -162,10 +162,10 @@ module wfplot_module
     integer :: i, ist, ik, N_st, N_k, N_r
     complex(dp), allocatable :: apwalm(:, :, :, :), evecfv(:, :), evecsv(:, :)
 
-    call assert(minval(band_list) > 0, 'minval(band_list) <= 0.')
-    call assert(maxval(band_list) <= nstsv, 'maxval(band_list) <= nstsv.')
-    call assert(minval(k_list) > 0, 'minval(k_list) <= 0.')
-    call assert(maxval(k_list) <= nkpt, 'maxval(k_list) <= nkpt.')
+    CALL_ASSERT(minval(band_list) > 0, 'minval(band_list) <= 0.')
+    CALL_ASSERT(maxval(band_list) <= nstsv, 'maxval(band_list) <= nstsv.')
+    CALL_ASSERT(minval(k_list) > 0, 'minval(k_list) <= 0.')
+    CALL_ASSERT(maxval(k_list) <= nkpt, 'maxval(k_list) <= nkpt.')
 
     N_r = r_grid%npt
     N_st = size(band_list)

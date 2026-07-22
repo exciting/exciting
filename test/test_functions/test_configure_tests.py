@@ -85,7 +85,8 @@ tolerance_electric.json
 tolerance_core.json
 tolerance_spin.json
 tolerance_wfplot.json
-tolerance_fastBSE.json"""
+tolerance_fastBSE.json
+tolerance_phonon.json"""
 
     with pytest.raises(KeyError) as error_info:
         method = get_method_from_tolerance_file(test_name.as_posix(), subdirectory='')

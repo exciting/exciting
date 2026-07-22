@@ -74,6 +74,7 @@ class ExcitingCalculation(enum.Enum):
     core_properties = enum.auto()
     spin_properties = enum.auto()
     fastBSE = enum.auto()
+    phonons =  enum.auto()
 
 
 def get_calculation_types(input_calcs: List[str]) -> List[ExcitingCalculation]:

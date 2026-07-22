@@ -1,6 +1,6 @@
 module cvt_utils
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use math_utils, only: calculate_all_vector_distances, all_close
   use grid_utils, only: mesh_1d
 
@@ -40,20 +40,13 @@ module cvt_utils
     integer :: n_points, n_interpolation_points
     real(dp), allocatable :: cluster_centroids(:, :), distance_matrix(:, :)
 
-    call assert(size(points, 1) == 3, &
-            'Columns of points do not contain 3-d cooridnates: size(points, 1) \= 3.')
+    CALL_ASSERT(size(points, 1) == 3,  'Columns of points do not contain 3-d cooridnates: size(points, 1) \= 3.')
 
-    call assert(size(points, 2) >= size(interpolation_point_indices), &
-            'The number of requested interpolation points is larger then the number of given points: &
-                    size(points, 2) < size(interpolation_point_indices)')
+    CALL_ASSERT(size(points, 2) >= size(interpolation_point_indices),  'The number of requested interpolation points is larger then the number of given points:  size(points, 2) < size(interpolation_point_indices)')
 
-    call assert(all(interpolation_point_indices <= size(points, 2)), &
-            'Some elements in interpolation_point_indices are larger then the total number of points: &
-                    any(interpolation_point_indices > size(points, 2))')
+    CALL_ASSERT(all(interpolation_point_indices <= size(points, 2)),  'Some elements in interpolation_point_indices are larger then the total number of points:  any(interpolation_point_indices > size(points, 2))')
 
-    call assert(all(interpolation_point_indices > 0), &
-            'Some elements in interpolation_point_indices are less smaller then zero: &
-                    any(interpolation_point_indices <= 0)')
+    CALL_ASSERT(all(interpolation_point_indices > 0),  'Some elements in interpolation_point_indices are less smaller then zero:  any(interpolation_point_indices <= 0)')
 
     ! TODO: assert that interpolation_point_indices is an injective map.
 
@@ -98,19 +91,15 @@ module cvt_utils
     integer, allocatable :: map_to_clusters(:)
     real(dp), allocatable :: old_cluster_centroids(:, :), weighted_points(:, :), distance_matrix(:, :)
     
-    call assert(size(points, 1) == 3, &
-            'Columns of points are not 3-dim points: size(points, 1) /= 3.')
+    CALL_ASSERT(size(points, 1) == 3,  'Columns of points are not 3-dim points: size(points, 1) /= 3.')
 
-    call assert(size(points, 2) == size(weights), &
-            'Not the same number of points and weights: size(points, 2) /= size(weights).')
+    CALL_ASSERT(size(points, 2) == size(weights),  'Not the same number of points and weights: size(points, 2) /= size(weights).')
 
-    call assert(size(cluster_centroids, 1) == 3, &
-            'Columns of cluster_centroids are not 3-dim points: size(cluster_centroids, 1) /= 3.')
+    CALL_ASSERT(size(cluster_centroids, 1) == 3,  'Columns of cluster_centroids are not 3-dim points: size(cluster_centroids, 1) /= 3.')
 
-    call assert(size(points, 2) >= size(cluster_centroids, 2), &
-            'Number of points is smaller then number of clusters: size(points, 2) < size(cluster_centroids, 2).')
+    CALL_ASSERT(size(points, 2) >= size(cluster_centroids, 2),  'Number of points is smaller then number of clusters: size(points, 2) < size(cluster_centroids, 2).')
 
-    call assert(steps > 0, 'steps <= 0 on input.')
+    CALL_ASSERT(steps > 0, 'steps <= 0 on input.')
 
     n_points = size(points, 2)
     n_clusters = size(cluster_centroids, 2)

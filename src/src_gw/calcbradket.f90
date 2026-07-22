@@ -33,7 +33,7 @@ subroutine calcbradket(ia,is)
     integer(4) :: ilo1, ilo2
     integer(4) :: io1, io2
     integer(4) :: ir, irm
-    integer(4) :: ist1, ist2
+    integer(4) :: ist1, ist2, core_state1, core_state2
     integer(4) :: l1, l2
     real(8) :: fr(nrmtmax)
     real(8) :: gr(nrmtmax) 
@@ -58,7 +58,10 @@ subroutine calcbradket(ia,is)
     if (input%gw%debug) write(fdebug,100) ias, trim(spname(is))
 
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(none) SHARED(input,nmix,ncore,is,ias,spl,bigl,nrmt,umix,ucore,bradketc,apword,apwfr,lofr,nlorb,lorbl,utype,ftype,bradketa,bradketlo,spr,fdebug) PRIVATE(ir,irm,io1,ist1,ist2,l1,l2,fr,cf,gr,ilo1,ilo2,io2)
+!$OMP PARALLEL DEFAULT(none) &
+!$OMP& SHARED(input,nmix,ncore,core_state_indices,is,ias,spl,bigl,nrmt,umix,ucore,bradketc) &
+!$OMP& SHARED(apword,apwfr,lofr,nlorb,lorbl,utype,ftype,bradketa,bradketlo,spr,fdebug) &
+!$OMP& PRIVATE(ir,irm,io1,ist1,ist2,core_state1,core_state2,l1,l2,fr,cf,gr,ilo1,ilo2,io2)
 !$OMP DO SCHEDULE(dynamic)
 #endif
     ! Loop over radial mixed functions
@@ -70,14 +73,16 @@ subroutine calcbradket(ia,is)
         !------------------------------------------------
         io1 = 1
         do ist1 = 1, ncore(is)
-          l1 = spl(ist1,is)
+          core_state1 = core_state_indices(ist1,is)
+          l1 = spl(core_state1,is)
 
           !------------------------------------------------
           ! the right function of the product is a core wf
           !------------------------------------------------
           io2 = 1
           do ist2 = 1, ncore(is)
-            l2 = spl(ist2,is)
+            core_state2 = core_state_indices(ist2,is)
+            l2 = spl(core_state2,is)
             ! check the triangular rule for L, l1 and l2
             if ((iabs(l1-l2)<=bigl(irm,ias)).and.(bigl(irm,ias)<=(l1+l2))) then
               do ir = 1, nrmt(is)
@@ -158,7 +163,8 @@ subroutine calcbradket(ia,is)
             !---------------------------------------------
             io2 = 1
             do ist2 = 1, ncore(is)
-              l2 = spl(ist2,is)
+              core_state2 = core_state_indices(ist2,is)
+              l2 = spl(core_state2,is)
               ! check the triangular rule for L, l1 and l2
               if ((iabs(l1-l2)<=bigl(irm,ias)).and.(bigl(irm,ias)<=(l1+l2))) then
                 do ir = 1, nrmt(is)
@@ -241,7 +247,8 @@ subroutine calcbradket(ia,is)
           !--------------------------------------------
           io2 = 1
           do ist2 = 1, ncore(is)
-            l2 = spl(ist2,is)
+            core_state2 = core_state_indices(ist2,is)
+            l2 = spl(core_state2,is)
             ! check the triangular rule for L,l1 and l2
             if ((iabs(l1-l2)<=bigl(irm,ias)).and.(bigl(irm,ias)<=(l1+l2))) then
               do ir = 1, nrmt(is)
@@ -324,4 +331,3 @@ subroutine calcbradket(ia,is)
     return
 end subroutine
 !EOC
-

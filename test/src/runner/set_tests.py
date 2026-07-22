@@ -156,7 +156,7 @@ def check_default_files_under_test(default_files_under_test: dict):
     """
     tabulated_methods = {m.lower() for m in tol_file_name.keys()}
     methods_from_config = {m.lower() for m in default_files_under_test.keys()}
-
+    
     missing_methods = tabulated_methods - methods_from_config
     if missing_methods:
         raise ValueError(f"Missing default_files_under_test in config, for methods: {missing_methods}")

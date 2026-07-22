@@ -27,7 +27,6 @@ Contains
          Use m_findgntn0
          Use m_writegqpts
          Use m_genfilname
-         Use m_getunit
 ! !INPUT/OUTPUT PARAMETERS:
 !   msiz  : matrix size of local field effects (in,integer)
 !   sw    : true for inclusion of local field effects (in,logical)
@@ -65,15 +64,13 @@ Contains
          End If
          Allocate (fxch(-3:-1,-3:-1), fxcw1(-3:-1, n), fxcw2(n,-3:-1))
     ! filename for BSE-xc-kernel
-         Call getunit (un)
-    ! filename for xc-kernel
          Call genfilname (basename='FXC_BSE', asc=.False., &
         & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
         & input%xs%tddft%aresfxc, tord=input%xs%tddft%tordfxc, iqmt=1, &
         & filnam=filnam)
 	  ! get LFE size
          Inquire (IoLength=Recl) n_
-         Open (un, File=trim(filnam), Form='unformatted', Action='read',&
+         Open (newunit=un, File=trim(filnam), Form='unformatted', Action='read',&
         &  Status='old', Access='direct', Recl=Recl)
          Read (un, Rec=1) n_
          Close (un)
@@ -91,7 +88,7 @@ Contains
          fxc (:, :) = zzero
          Inquire (IoLength=Recl) n_, fxch, fxcw1 (:, :n_), fxcw2 (:n_, &
         & :), fxc (:n_, :n_)
-         Open (un, File=trim(filnam), Form='unformatted', Action='read',&
+         Open (newunit=un, File=trim(filnam), Form='unformatted', Action='read',&
         &  Status='old', Access='direct', Recl=Recl)
          Read (un, Rec=iw) n_, fxch, fxcw1 (:, :n_), fxcw2 (:n_, :), &
         & fxc (:n_, :n_)

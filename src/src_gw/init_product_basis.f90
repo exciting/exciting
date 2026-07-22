@@ -27,21 +27,8 @@ subroutine init_product_basis()
 !_______________________________________________________________________________
 ! Generate Kohn-Sham radial functions
 
-    ! generate the core wavefunctions and densities
-    call gencore
-    ! find the linearisation energies
-    call linengy
-    ! generate APW radial functions
-    call genapwfr
-    ! generate local-orbital radial functions
-    call genlofr
-
-    ! initialize core states
-    if (dabs(chgcr)>1.0e-6_dp) then
-      call init_core_states
-    else
-      input%gw%coreflag = "vab"
-    end if
+    call init_radial_functions()
+   
 
 !_______________________________________________________________________________
 ! Generate mixed product basis functions
@@ -202,5 +189,50 @@ subroutine init_product_basis()
     OMP_OFFLOAD target enter data map(always, to: bradketa, bradketc, bradketlo, mbindex)
 
     return
+
+contains
+
+  subroutine init_radial_functions()
+
+    use mod_selfconsistent_gw, only: gw_first_iteration, is_gw_selfconsistent_flavour, qsgw
+    use mod_qsgw, only: initial_gs_suffix
+    use mod_misc, only: filext
+
+    implicit none
+
+    logical :: initialize_from_current_state
+
+    ! For QSGW this beyond the first iteration we need to 
+    ! change the iteration file
+    initialize_from_current_state = gw_first_iteration() .or. .not. is_gw_selfconsistent_flavour(qsgw)
+
+    if (.not. initialize_from_current_state) then 
+      filext = initial_gs_suffix
+      call readstate()
+    end if
+    
+    ! generate the core wavefunctions and densities
+    call gencore
+    ! find the linearisation energies
+    call linengy
+    ! generate APW radial functions
+    call genapwfr
+    ! generate local-orbital radial functions
+    call genlofr
+    
+    ! initialize core states
+    if (dabs(chgcr)>1.0e-6_dp) then
+      call init_core_states
+    else
+      input%gw%coreflag = "vab"
+    end if
+
+    if (.not. initialize_from_current_state) then
+      filext = '.OUT'
+      call readstate()
+    end if
+
+  end subroutine init_radial_functions
+  
 end subroutine
 

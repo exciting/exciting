@@ -4,6 +4,7 @@ subroutine shg_new(a,b,c)
     use modinput
     use modmain
     use modmpi
+    use mod_getoccsv, only: getoccsv
     use unit_conversion, only: hartree_to_ev
     use constants, only: pi
     implicit none

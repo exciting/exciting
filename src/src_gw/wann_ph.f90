@@ -75,8 +75,7 @@ subroutine wann_ph (nqcored,qvlcored,nqfi,qvlfi,nqred,wphdense)
     CALL dyndiag2 (nat,ntyp,amass,ityp,dynmatD(:,:,iqnr),wphdense(:,iqnr))
   END DO
 
-!  CALL getunit(fid)
-!  OPEN (fid,file='rdotk2.OUT',action='Write',status='Unknown')
+!  OPEN (newunit=fid,file='rdotk2.OUT',action='Write',status='Unknown')
 !  DO ir = 1, nrpt
 !    rdotk = dot_product(rptl(:,ir),qvlfi(:,2))
 !    write(fid,103) ir, rptl(:,ir), qvlfi(:,2),  rdotk

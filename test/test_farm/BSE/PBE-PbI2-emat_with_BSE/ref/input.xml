@@ -20,7 +20,7 @@
   <xs xstype="BSE" ngridk="2 2 2" vkloff="0.001 0.002 0.003" ngridq="2 2 2" nempty="30" gqmax="0.8" broad="0.0036" scissor="0" tappinfo="true" tevout="true">
     <energywindow intv="0.0 1.0" points="1200"/>
     <screening screentype="full" nempty="50"/>
-    <BSE bsetype="singlet" nstlbse="55 66 1 10"/>
+    <BSE bsetype="singlet" nstlbse="39 48 1 10"/>
     <qpointset>
       <qpoint>0.0 0.0 0.0</qpoint>
     </qpointset>

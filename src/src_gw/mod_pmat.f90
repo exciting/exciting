@@ -338,10 +338,10 @@ contains
     &                   natmtot, nspecies, natoms, spr, idxas, idxlm, &
     &                   apword, nlorb, lorbl, apwfr, lofr, rwfcr, &
     &                   spocc, spl, nrmt
-    use mod_core_states, only : ncmax, lcoremax, ncore, ucore
+    use mod_core_states, only : ncmax, lcoremax, ncore, ucore, core_state_indices
     implicit none
     ! local variables
-    integer :: is, ia, ias, nr, ir, ic, ilo, io1, i
+    integer :: is, ia, ias, nr, ir, ic, ilo, io1, i, core_state
     integer :: l1, m1, lm1, l2, m2, lm2
     ! automatic arrays
     real(8) :: r2(nrmtmax)
@@ -380,7 +380,8 @@ contains
           ! QUESTION?: Which core radial function is correct to use:
           ! rwfcr or ucore (renormalized as in GW)?
           fr(:) = ucore(:,1,ic,ias)
-          l1 = spl(ic,is)
+          core_state = core_state_indices(ic,is)
+          l1 = spl(core_state,is)
           do m1 = -l1, l1
             lm1 = idxlm(l1,m1)
             call gradzfmtr(input%groundstate%lmaxapw, nr, &
@@ -392,14 +393,15 @@ contains
         !     APW-core-orbital      !
         !---------------------------!
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm1,l1,io1,ic,l2,m2,i,fr,gr,cf)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm1,l1,io1,ic,core_state,l2,m2,i,fr,gr,cf)
 !$OMP DO
 #endif
         do lm1 = 1, lmmaxapw
           l1  = lmapwidx(1,lm1)
           do io1 = 1, apword(l1,is)
             do ic = 1, ncore(is)
-              l2 = spl(ic,is)
+              core_state = core_state_indices(ic,is)
+              l2 = spl(core_state,is)
               do m2 = -l2, l2
                 do i = 1, 3
                   fr(1:nr) = apwfr(1:nr,1,io1,l1,ias)* &
@@ -421,7 +423,7 @@ contains
         !     local-orbital-core-orbital    !
         !-----------------------------------!
 #ifdef USEOMP
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm1,ilo,l1,m1,ic,l2,m2,i,fr,gr,cf)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(lm1,ilo,l1,m1,ic,core_state,l2,m2,i,fr,gr,cf)
 !$OMP DO
 #endif                
           do lm1 = 1, lmmaxlo(is)
@@ -429,7 +431,8 @@ contains
             l1  = lmloidx(2,lm1,is)
             m1  = lmloidx(3,lm1,is)            
             do ic = 1, ncore(is)
-              l2 = spl(ic,is)
+              core_state = core_state_indices(ic,is)
+              l2 = spl(core_state,is)
               do m2 = -l2, l2
                 do i = 1, 3
                   fr(1:nr) = lofr(1:nr,1,ilo,ias)* &

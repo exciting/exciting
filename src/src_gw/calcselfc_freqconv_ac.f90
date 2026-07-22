@@ -1,10 +1,8 @@
-!==================================================================
-! Calculates the q-dependent correlation term of the self-energy
-! using the frequency convolution
-!==================================================================
+!> Calculate the q-dependent correlation self-energy term using frequency convolution.
 subroutine calcselfc_freqconv_ac(ikp, iq)
     use modinput, only: input
     use mod_atoms, only: idxas
+    use evgw0_validation, only: has_checkpoint_qp_energy_for_band
     use mod_eigenvalue_occupancy, only: efermi
     use mod_corestate, only: evalcr
     use constants, only : zzero, pi
@@ -16,12 +14,15 @@ subroutine calcselfc_freqconv_ac(ikp, iq)
     use mod_gw_degeneracies, only: get_degenerate_limits_qp_interval_ikp, &
                                    degenerate_subspaces
     use precision, only: i32, dp
+    use self_consistent_eigenvalue_gw0, only: use_evgw0_input_qp, get_evalqp_evgw0_pointer
 
     implicit none
 
+    !> Irreducible k-point index.
     integer(i32), intent(in) :: ikp
+    !> q-point index.
     integer(i32), intent(in) :: iq
-    
+
     integer(i32) :: ik, jk, jkp
     integer(i32) :: ia, is, ias, ic, icg
     integer(i32) :: ie1, ie2
@@ -31,6 +32,11 @@ subroutine calcselfc_freqconv_ac(ikp, iq)
     complex(dp)  :: sc, zt1, zt2
     ! For the averaging over degenerate states
     integer(i32) :: ispace_init, ispace_final, ispace, lowband, upband, size_deg
+    real(dp), pointer :: evalqp_evgw0(:, :)
+
+    if ( use_evgw0_input_qp() ) then
+      call get_evalqp_evgw0_pointer(evalqp_evgw0)
+    end if
 
     ! k point
     ik = kset%ikp2ik(ikp)
@@ -59,7 +65,15 @@ subroutine calcselfc_freqconv_ac(ikp, iq)
             !=============================
             ! Valence electron contribution
             !=============================
-            enk = evalfv(ie2,jkp)
+            if ( use_evgw0_input_qp() ) then
+              if ( has_checkpoint_qp_energy_for_band(ie2, lbound(evalqp_evgw0, 1), ubound(evalqp_evgw0, 1)) ) then
+                enk = evalqp_evgw0(ie2,jkp)
+              else
+                enk = evalfv(ie2,jkp)
+              end if
+            else
+              enk = evalfv(ie2,jkp)
+            end if
           else
             !=============================
             ! Core electron contribution
@@ -67,7 +81,7 @@ subroutine calcselfc_freqconv_ac(ikp, iq)
             icg = ie2-nstse
             is = corind(icg,1)
             ia = corind(icg,2)
-            ic = corind(icg,3)
+            ic = corind(icg,6)
             ias = idxas(ia,is)
             enk = evalcr(ic,ias) - efermi
           end if ! val/cor

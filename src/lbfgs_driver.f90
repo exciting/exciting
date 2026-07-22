@@ -471,7 +471,7 @@ contains
         call scf_cycle(-1)
         nconf = nconf + 1
         if ((rank==0).and.(input%relax%outputlevelnumber>1))  then 
-            write(60,'(" Investigating configuration",T45,"# ",I9,"  (# of SCF cicles =",I4,")")') &
+            write(60,'(" Investigating configuration",T45,"# ",I9,"  (# of SCF cycles =",I4,")")') &
            &      nconf, iscl
             call flushifc(60)
         end if

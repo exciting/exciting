@@ -34,7 +34,7 @@
 module modmpi
   use precision, only: i32
   use trace, only: trace_back
-  use asserts, only: assert
+#include "asserts.fpp"
   use iso_fortran_env, only: error_unit
 #ifdef MPI
   use mpi
@@ -93,7 +93,7 @@ contains
    !>
    !> Also initialises global legacy variables: procs, rank. These should be scrapped.
   subroutine initmpi()
-    integer :: ierr
+    integer :: ierr, provided
     !> MPI communicator
     integer :: comm
     comm = 0
@@ -102,7 +102,7 @@ contains
 #ifdef SIRIUS
     call sirius_initialize(.true.)
 #else
-    call mpi_init(ierr)
+    call MPI_Init_thread(MPI_THREAD_SERIALIZED, provided, ierr)
 #endif
     comm = mpi_comm_world
 #endif
@@ -162,18 +162,19 @@ contains
       use iso_fortran_env, only: error_unit
 
       !> MPI environment object
-      type(mpiinfo), intent(inout) :: mpi_env
+      type(mpiinfo), intent(in) :: mpi_env
       !> Error message
       character(len=*), optional, intent(in) :: message
       !> Error code for Exciting to return to the invoking environment
       integer, parameter :: error_code = 101
 
 #ifdef MPI
+      integer :: ierr
       if(mpi_env%rank == 0) then
          if(present(message)) write(error_unit, *) trim(adjustl(message))
       end if
       call barrier( mpi_env )
-      call mpi_abort(mpi_env%comm, error_code, mpi_env%ierr)
+      call mpi_abort(mpi_env%comm, error_code, ierr)
 #else
       if(present(message)) write(error_unit, *) trim(adjustl(message))
       error stop
@@ -208,7 +209,7 @@ contains
   subroutine terminate_if_false_mpi(mpi_env, condition, message)
     use iso_fortran_env, only: error_unit
     !> MPI environment to terminate
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Error condition, need to be false to terminate the program and print the message
     logical, intent(in) :: condition
     !> Error message that is printed to the terminal if present and condition is false.
@@ -348,9 +349,9 @@ contains
       np = mpiglobal%procs
       if(present(nprocs)) np = nprocs
 
-      call assert(myrank >= 0, "myrank < 0.")
-      call assert(set >= 1, "set < 1.")
-      call assert(np >= myrank + 1, "np < myrank+1")
+      CALL_ASSERT(myrank >= 0, "myrank < 0.")
+      CALL_ASSERT(set >= 1, "set < 1.")
+      CALL_ASSERT(np >= myrank + 1, "np < myrank+1")
       
       ! Compute number of elements on current rank
       nofset = set / np
@@ -397,9 +398,9 @@ contains
       np = mpiglobal%procs
       if(present(nprocs)) np = nprocs
 
-      call assert(myrank >= 0, "myrank < 0.")
-      call assert(set >= 1, "set < 1.")
-      call assert(np >= myrank + 1, "np < myrank+1")
+      CALL_ASSERT(myrank >= 0, "myrank < 0.")
+      CALL_ASSERT(set >= 1, "set < 1.")
+      CALL_ASSERT(np >= myrank + 1, "np < myrank+1")
 
       ! Compute first element index on current rank
       firstofset = 1
@@ -449,9 +450,9 @@ contains
       np = mpiglobal%procs
       if(present(nprocs)) np = nprocs
 
-      call assert(myrank >= 0, "myrank < 0.")
-      call assert(set >= 1, "set < 1.")
-      call assert(np >= myrank + 1, "np < myrank+1")
+      CALL_ASSERT(myrank >= 0, "myrank < 0.")
+      CALL_ASSERT(set >= 1, "set < 1.")
+      CALL_ASSERT(np >= myrank + 1, "np < myrank+1")
 
       ! Compute last element index on this rank
       lastofset = 0

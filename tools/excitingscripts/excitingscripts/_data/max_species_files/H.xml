@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<spdb>
+	<sp chemicalSymbol="H" name="hydrogen" z="-1.0" mass="1837.36222">
+		<muffinTin rmin="1e-06" radius="1.1" rinf="19.5924" radialmeshPoints="400"/>
+		<atomicState n="1" l="0" kappa="1" occ="1.0" core="false"/>
+		<basis>
+			<default type="lapw" trialEnergy="0.15" searchE="false"/>
+			<custom l="0" type="lapw" n="1" searchE="false"/>
+			<lo l="0">
+				<wf matchingOrder="0" searchE="false" n="1"/>
+				<wf matchingOrder="1" searchE="false" n="1"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="1" searchE="false" n="1"/>
+				<wf matchingOrder="2" searchE="false" n="1"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="2" searchE="false" n="1"/>
+				<wf matchingOrder="3" searchE="false" n="1"/>
+			</lo>
+		</basis>
+	</sp>
+</spdb>

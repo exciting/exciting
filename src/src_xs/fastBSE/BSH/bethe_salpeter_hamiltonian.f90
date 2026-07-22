@@ -2,8 +2,7 @@
 module bethe_salpeter_hamiltonian
   use precision, only: dp
   use constants, only: zone
-  use asserts, only: assert
-
+#include "asserts.fpp"
   use interaction_kernel, only: interaction_kernel_type
   use vexc_isdf_kernel, only: vexc_isdf_kernel_type
   use wscr_isdf_kernel, only: wscr_isdf_kernel_type
@@ -70,7 +69,7 @@ module bethe_salpeter_hamiltonian
     !> BSH type
     class(bsh_type), intent(inout) :: this
 
-    call assert(allocated(this%transition_energies), 'this%transition_energies is not initialized.')
+    CALL_ASSERT(allocated(this%transition_energies), 'this%transition_energies is not initialized.')
     ip_gap = minval(this%transition_energies)
   end function
 

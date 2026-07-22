@@ -14,7 +14,7 @@ module efield_eigensystem
   complex(dp), allocatable :: Pmat_mt_basis(:,:,:,:)
 
   public :: ef_eig_init, ef_eig_free
-  public :: ef_eig_gen_dHmat
+  public :: ef_eig_gen_dSHmat
   public :: ef_eig_sternheimer
   public :: ef_eig_rotate_devec
 
@@ -37,7 +37,7 @@ module efield_eigensystem
       if( allocated( Pmat_mt_basis ) ) deallocate( Pmat_mt_basis )
     end subroutine ef_eig_free
 
-    !> This subroutine computes the response of the Hamiltonian matrix 
+    !> This subroutine computes the response of the overlap and Hamiltonian matrix 
     !> for the given \({\bf k}\) point.
     !>
     !> The full Hamiltonian response is given by
@@ -60,8 +60,8 @@ module efield_eigensystem
     !> \(\delta^{\bf q}_{I \mu} {\bf H}^0\) (see [[dfpt_eig_gen_dHmat(subroutine)]]).
     !> 
     !> The result is added to the input matrix!
-    subroutine ef_eig_gen_dHmat( ik, Gkset, fst, lst, evalk, eveck, apwalmk, dHmat, &
-        ip, dHmat_mt_basis, dpot_cfun_ig, dkin_cfun_ig )
+    subroutine ef_eig_gen_dSHmat( ik, Gkset, fst, lst, evalk, eveck, apwalmk, dSmat, dHmat, &
+        ip, dSmat_mt_basis, dHmat_mt_basis, dolp_cfun_ig, dpot_cfun_ig, dkin_cfun_ig )
       use mod_kpointset, only: Gk_set
       use mod_APW_LO, only: nlotot
       !> index of the \({\bf k}\) point
@@ -76,12 +76,18 @@ module efield_eigensystem
       complex(dp), intent(in) :: eveck(:,:)
       !> (L)APW matching coefficients \(A^\alpha_{{\bf G+p},lm,\xi}\) at \({\bf k}\)
       complex(dp), intent(in) :: apwalmk(:,:,:,:)
+      !> overlap response
+      complex(dp), intent(inout) :: dSmat(:,:)
       !> Hamiltonian response
       complex(dp), intent(inout) :: dHmat(:,:)
       !> polarization direction
       integer, optional, intent(in) :: ip
+      !> radial integrals of overlap response times Gaunt coefficients
+      complex(dp), optional, intent(in) :: dSmat_mt_basis(:,:,:)
       !> radial integrals of effective potential response times Gaunt coefficients
       complex(dp), optional, intent(in) :: dHmat_mt_basis(:,:,:)
+      !> interstitial overlap response times characteristic function in reciprocal space
+      complex(dp), optional, intent(in) :: dolp_cfun_ig(:)
       !> interstitial effective potential response times characteristic function in reciprocal space
       complex(dp), optional, intent(in) :: dpot_cfun_ig(:)
       !> interstitial (scalar relativistic) kinetic energy response times characteristic function in reciprocal space
@@ -91,16 +97,17 @@ module efield_eigensystem
 
       nmatk = Gkset%ngk(1, ik) + nlotot
 
-      if( present( ip ) ) then
+      if (present( ip )) then
         call gen_dH0( ik, Gkset, 1, nmatk, fst, lst, evalk, eveck, apwalmk, ip, dHmat )
       end if
 
-      if( present( dHmat_mt_basis ) .and. present( dpot_cfun_ig ) .and. present( dkin_cfun_ig ) ) then
+      if (present( dHmat_mt_basis ) .and. present( dSmat_mt_basis ) .and. &
+          present( dolp_cfun_ig ) .and. present( dpot_cfun_ig ) .and. present( dkin_cfun_ig )) then
         ! contribution from potential response
-        call dfpt_eig_gen_dHmat( ik, Gkset, Gkset, 1, nmatk, fst, lst, &
-          eveck, eveck, apwalmk, apwalmk, dHmat_mt_basis, dpot_cfun_ig, dkin_cfun_ig, dHmat )
+        call dfpt_eig_gen_dSHmat( ik, Gkset, Gkset, 1, nmatk, fst, lst, &
+          eveck, eveck, apwalmk, apwalmk, dSmat_mt_basis, dHmat_mt_basis, dolp_cfun_ig, dpot_cfun_ig, dkin_cfun_ig, dSmat, dHmat )
       end if
-    end subroutine ef_eig_gen_dHmat
+    end subroutine ef_eig_gen_dSHmat
 
     !> This subroutine solves the Sternheimer equation for a perturbing electric field
     !> for the eigenvalue and eigenvector response at a given \({\bf k}\) point.

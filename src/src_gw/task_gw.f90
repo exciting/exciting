@@ -14,6 +14,7 @@ subroutine task_gw()
 !!USES:
     use calculate_correlation_self_energy, only: calcselfc, sigmac_indexes
     use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
+    use calculate_exchange_self_energy, only: calcselfx
     use constants, only: zzero
     use invert_dielectric_function, only: calcinveps
     use mod_bands, only: bandstructure_analysis, delete_bands, evalfv, nstdf, nstse, numin, occfv

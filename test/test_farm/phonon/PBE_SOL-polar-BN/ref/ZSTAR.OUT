@@ -1,0 +1,17 @@
+# Born effective charge tensors for all atoms.
+# Rows correspond to E-field direction.
+# Columns correspond to atom displacement direction.
+# Acoustic sum rule has been imposed.
+#
+# species  1 atom   1 (B  1) :      0.000000     0.000000     0.000000
+        1.9552213065        0.0000000000        0.0000000000
+        0.0000000000        1.9552213065        0.0000000000
+        0.0000000000        0.0000000000        1.9552213065
+# species  2 atom   1 (N  1) :      0.250000     0.250000     0.250000
+       -1.9552213065        0.0000000000        0.0000000000
+        0.0000000000       -1.9552213065        0.0000000000
+        0.0000000000        0.0000000000       -1.9552213065
+# Acoustic sum rule correction (add to each tensor above to get original value)
+        0.0004145685        0.0000000000        0.0000000000
+        0.0000000000        0.0004145685        0.0000000000
+        0.0000000000        0.0000000000        0.0004145685

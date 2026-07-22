@@ -1,0 +1,63 @@
+<input>
+
+  <title>Carbon mixed core-state ordering</title>
+
+  <structure speciespath=".">
+    <crystal scale="6.7425">
+      <basevect>0.0 0.5 0.5</basevect>
+      <basevect>0.5 0.0 0.5</basevect>
+      <basevect>0.5 0.5 0.0</basevect>
+    </crystal>
+    <species speciesfile="C.xml">
+      <atom coord="0.00 0.00 0.00"/>
+      <atom coord="0.25 0.25 0.25"/>
+    </species>
+  </structure>
+
+  <groundstate
+    do="fromscratch"
+    rgkmax="4.0"
+    gmaxvr="8.0"
+    ngridk="1 1 1"
+    xctype="LDA_PW"
+    nempty="8"
+    maxscl="4"
+    epsengy="1.d-6"
+    radialgridtype="cubic-2">
+  </groundstate>
+
+  <gw
+    taskname="taskGroup"
+    ngridq="1 1 1"
+    nempty="8"
+    ibgw="1"
+    nbgw="8"
+    coreflag="all"
+    skipgnd="false"
+    qdepw="sum">
+    <taskGroup outputFormat="text">
+      <Coulomb eigenvalueThreshold="1.0d0">
+        <qpoints qi="1" qf="-1"/>
+      </Coulomb>
+    </taskGroup>
+    <mixbasis
+      lmaxmb="2"
+      epsmb="1.d-1"
+      gmb="0.7">
+    </mixbasis>
+    <barecoul
+      basis="mb"
+      barcevtol="0.2"
+      pwm="0.7">
+    </barecoul>
+    <freqgrid
+      nomeg="4"
+      eta="1.d-3"
+      fconv="imfreq"
+      fgrid="gauleg2"
+      freqmax="1.0d0"
+      freqmin="0.0d0">
+    </freqgrid>
+  </gw>
+
+</input>

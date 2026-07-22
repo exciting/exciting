@@ -7,7 +7,7 @@ module fastBSE_isdf
   use isdf_utils, only: isdf
   use modmpi, only: mpiinfo, terminate_if_false, terminate_mpi_env
   use modinput, only: input_type
-  use asserts, only: assert
+
   use xhdf5, only: xhdf5_type, abort_if_not_hdf5
   use xs_hdf5, only: h5ds_wfplot
   use os_utils, only: join_paths
@@ -34,7 +34,7 @@ module fastBSE_isdf
   !> points (`[[r_isdf_indices]]`).
   subroutine read_isdf_hdf5(mpi_env, h5file, h5path, zeta, u_o_isdf, u_u_isdf, r_vectors, r_isdf_indices)
     !> MPI environment
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Name of the HDF5 file
     type(xhdf5_type), intent(inout) :: h5file
     !> Name of the group in the HDF5 file
@@ -128,7 +128,7 @@ module fastBSE_isdf
 
   !> Calculate ISDF with interpolation points obtained by [[cvt]].
   subroutine fastBSE_isdf_cvt(mpi_env, input, h5file, h5group, info_unit)
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     type(input_type), intent(in) :: input
     character(*), intent(in) :: h5file, h5group
     integer, intent(in) :: info_unit

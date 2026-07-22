@@ -27,10 +27,7 @@ set(EXCLUDE_SRC_FILES
 set(EXCITING_INQUIRE_FILES "")
 if (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
 
-    list(APPEND EXCITING_INQUIRE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_xs/putgeteps0.f90")
-    list(APPEND EXCITING_INQUIRE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_xs/src_rttddft/rttddft_io_serial.f90")
-    list(APPEND EXCITING_INQUIRE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_gw/calcpmatgw.f90")
-    list(APPEND EXCITING_INQUIRE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src_hybrids/putvxnl.f90")
+    list(APPEND EXCITING_INQUIRE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/large_io/mod_large_io.f90")
 
     # We create an INQUIRE_FLAGS
     set(INQUIRE_FLAGS "-s integer64")
@@ -159,6 +156,17 @@ endif()
 # endforeach()
 # message(FATAL_ERROR "EXIT")
 
+# We allow for cherry picking files for debug flags
+# Cherry-pick files.
+set(CHERRY_PICK_FILES_FOR_DEBUG "" CACHE STRING "Semicolon-separated list of Fortran files, with paths relative to src, for debug")
+# Cherry-pick debug options
+set(CHERRY_PICK_FILES_DEBUG_FLAGS "" CACHE STRING "Options for the cherry picked files; no automatic flags are added.")
+# Include a function for cherry picking
+include(${CMAKE_SOURCE_DIR}/cmake/cherry_pick_for_debug.cmake)
+apply_cherry_pick_debug("${EXCITINGLIB_SRC_FILES}" "${CHERRY_PICK_FILES_FOR_DEBUG}" "${CHERRY_PICK_FILES_DEBUG_FLAGS}")
+apply_cherry_pick_debug("${EXCITINGLIB_SRC_FILES_FIXED}" "${CHERRY_PICK_FILES_FOR_DEBUG}" "${CHERRY_PICK_FILES_DEBUG_FLAGS}")
+apply_cherry_pick_debug("${EXCITING_INQUIRE_FILES}" "${CHERRY_PICK_FILES_FOR_DEBUG}" "${CHERRY_PICK_FILES_DEBUG_FLAGS}")
+
 #####################################
 # Compile and link exciting library #
 #####################################
@@ -169,6 +177,9 @@ include_directories(${CMAKE_Fortran_MODULE_DIRECTORY})
 # Check exciting has all dependencies compiled
 add_dependencies(excitingLib_objects libIDieL XC FoX_dom FoX_sax FoX_utils FoX_wcml FoX_wxml FoX_fsys FoX_common)
 target_include_directories(excitingLib_objects PRIVATE ${GX_MODULES})
+# Adding USE_ASSERT for compilation in Debug mode
+target_compile_definitions(excitingLib_objects PRIVATE $<$<CONFIG:Debug>:USE_ASSERT>)
+target_include_directories(excitingLib_objects PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fpp_include/)
 
 # Here create exciting library
 if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")

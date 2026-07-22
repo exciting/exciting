@@ -15,7 +15,6 @@ subroutine genwiqggp(flag, iq, igq1, igq2, clwt)
   use mod_qpoint, only: nqpt, ngridq
   use modxs, only: vgqc, sptclg, gqc
   use m_genfilname
-  use m_getunit
 ! !DESCRIPTION:
 !   Effective integrals of Coulomb interaction. See routine {\tt genwiq2}.
 !

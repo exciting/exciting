@@ -15,6 +15,7 @@ Subroutine writeeval
       Use modinput
       Use modmain
       Use Fox_wxml
+      use modmpi, only: rank
 ! !DESCRIPTION:
 !   Outputs the second-variational eigenvalues and occupation numbers to the
 !   file {\tt EIGVAL.OUT}.
@@ -27,6 +28,10 @@ Subroutine writeeval
 ! local variables
       Integer :: ik, ist, is, ia, ias
       Type (xmlf_t), Save :: xf
+      ! only root should do this to avoid file conflicts
+      if (rank /= 0) then
+          return
+      end if
 ! write out the valence eigenvalues
       Open (50, File='EIGVAL'//trim(filext), Action='WRITE', Form='FORM&
      &ATTED')
@@ -84,7 +89,7 @@ Subroutine writeeval
                  Call xml_AddAttribute(xf, "ist", ist)
                  Call xml_AddAttribute(xf, "n", spn(ist, is))
                  Call xml_AddAttribute(xf, "l", spl(ist, is))
-                 Call xml_AddAttribute(xf, "k", spl(ist, is))
+                 Call xml_AddAttribute(xf, "k", spk(ist, is))
                  Call xml_AddAttribute(xf, "eigenvalue", evalcr (ist, ias))
                  Call xml_EndElement(xf, "state")
                End If

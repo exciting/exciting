@@ -19,6 +19,7 @@ subroutine writepmatasc
   use mod_atoms, only: natmtot
   use mod_eigensystem, only: nmatmax 
   use mod_eigenvalue_occupancy, only: nstfv, nstsv
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
   use modxas, only: ncg
   use modxs, only: tscreen, fnpmat, fnpmat_t, kpari,&
                   & kparf, ripaa, ripalo,&
@@ -28,9 +29,9 @@ subroutine writepmatasc
   use m_genfilname
   use mod_hdf5
   use mod_core_states, only: init_core_states
-  use m_getunit, only: getunit
   use xhdf5, only: xhdf5_type
   use os_utils
+  use precision, only: i32, long_int, dp, str_32, str_256
 #ifdef MPI
   use mpi
 #endif
@@ -50,22 +51,18 @@ subroutine writepmatasc
   implicit none
 
   ! Local variables
-  integer :: ik, reclen
-  character(32) :: fnam
-  complex(8), allocatable :: apwalmt(:, :, :, :)
-  complex(8), allocatable :: evecfvt(:, :)
-  complex(8), allocatable :: evecsvt(:, :)
-  complex(8), allocatable :: pmat(:, :, :,:)
-  character(256) :: string
-  logical :: fast
+  integer(i32) :: ik
+  character(str_32) :: fnam
+  complex(dp), allocatable :: apwalmt(:, :, :, :)
+  complex(dp), allocatable :: evecfvt(:, :)
+  complex(dp), allocatable :: evecsvt(:, :)
+  complex(dp), allocatable :: pmat(:, :, :,:)
   character(*), parameter :: thisname="writepmatasc"
   character(:), allocatable :: group, cik
   ! External functions
-  logical, external :: tqgamma
+  logical(i32), external :: tqgamma
 
-  integer :: ist, ist1, ist2, oct, un, n_st1
-  integer :: ranks_
-
+  integer(i32) :: ist1, ist2, oct, un, n_st1
   type(xhdf5_type) :: h5
 
   ! Initialise universal variables
@@ -89,9 +86,6 @@ subroutine writepmatasc
 
   ! Initialize xas specific globals
   if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
-
-  ! Check if fast (default) version of matrix elements is used
-  fast=.false.
 
   ! Check if first Q-point in list is the gamma point,
   ! if not return.
@@ -200,8 +194,7 @@ subroutine writepmatasc
 
   else
 
-    call getunit(un)
-    open(un, File="PMAT_XS_ASC.OUT",Action="write")
+    open(newunit=un, File="PMAT_XS_ASC.OUT",Action="write")
 
     do ik=1,nkpt 
       if (input%xs%bse%xas) then
@@ -225,7 +218,6 @@ subroutine writepmatasc
 
   end if 
 
-  inquire(iolength=reclen) vkl(:, ik), nstsv, pmat
   deallocate(apwalmt, evecfvt, evecsvt, pmat)
 
   deallocate(apwcmt)
@@ -239,17 +231,7 @@ subroutine writepmatasc
 
   if(.not. input%sharedfs) call cpfiletonodes(trim(fnpmat))
 
-  if(task .eq. 120) then
-    close(50)
-    if(rank==0) then
-      write(*,*)
-      write(*, '("Info(writepmatxs):")')
-      write(*, '(" Momentum matrix elements written to file PMAT.OUT")')
-      write(*,*)
-    end if
-  else
-    write(unitout, '(a)') "Info(writepmatxs): Momentum matrix elements finished"
-  end if
+  write(unitout, '(a)') "Info(writepmatxs): Momentum matrix elements finished"
 
   ! Reset global file extension to default
   call genfilname(setfilext=.true.)

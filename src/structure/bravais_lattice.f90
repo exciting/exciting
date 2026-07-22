@@ -4,8 +4,7 @@
 module bravais_lattice
   use precision, only: dp
   use constants, only: pi
-  use asserts, only: assert
-
+#include "asserts.fpp"
   implicit none
 
   private
@@ -52,7 +51,7 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
+    CALL_ASSERT(a > 0)
 
     lattice = a * transpose(reshape([1, 0, 0, &
                                      0, 1, 0, &
@@ -92,7 +91,7 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
+    CALL_ASSERT(a > 0)
 
     lattice = 0.5_dp * a * transpose(reshape([-1, 1, 1, &
                                                1,-1, 1, &
@@ -116,8 +115,8 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(c > 0)
 
     lattice = a * transpose(reshape([        0.5_dp,         0.5_dp, 0.0_dp, &
                                     -0.5_dp * sqrt3, 0.5_dp * sqrt3, 0.0_dp, &
@@ -132,8 +131,8 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(c > 0)
 
     lattice = a * transpose(reshape([1.0_dp,         0.5_dp, 0.0_dp, &
                                      0.0_dp, 0.5_dp * sqrt3, 0.0_dp, &
@@ -158,8 +157,8 @@ contains
 
     real(dp) :: x, y, z 
 
-    call assert(a > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(c > 0)
 
     x = 0.5_dp * a
     y = 0.5_dp * a / sqrt3
@@ -192,8 +191,8 @@ contains
 
     real(dp) :: x, y, cx, cz
 
-    call assert(a > 0)
-    call assert(alpha > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(alpha > 0)
 
     x = sin(0.5_dp * alpha)
     y = sin(0.5_dp * alpha) / sqrt3
@@ -221,8 +220,8 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(c > 0)
 
     lattice = transpose(reshape([     a, 0.0_dp, 0.0_dp, &
                                  0.0_dp,      a, 0.0_dp, &
@@ -244,8 +243,8 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(c > 0)
 
     lattice = 0.5_dp * transpose(reshape([-a,  a,  a, &
                                            a, -a,  a, &
@@ -272,12 +271,12 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
-    call assert(b > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(b > 0)
+    CALL_ASSERT(c > 0)
 
-    call assert(a < b)
-    call assert(a < c)
+    CALL_ASSERT(a < b)
+    CALL_ASSERT(a < c)
 
     lattice = transpose(reshape([     a, 0.0_dp, 0.0_dp, &
                                  0.0_dp,      b, 0.0_dp, &
@@ -298,9 +297,9 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
-    call assert(b > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(b > 0)
+    CALL_ASSERT(c > 0)
 
     lattice = 0.5_dp * transpose(reshape([     a,      a,     0.0_dp, &
                                               -b,      b,     0.0_dp, &
@@ -322,9 +321,9 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
-    call assert(b > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(b > 0)
+    CALL_ASSERT(c > 0)
 
     lattice = 0.5 * transpose(reshape([2.0_dp * a,  0.0_dp,  0.0_dp, &
                                            0.0_dp,       b,       b, &
@@ -346,9 +345,9 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
-    call assert(b > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(b > 0)
+    CALL_ASSERT(c > 0)
 
     lattice = 0.5 * transpose(reshape([-a,  a,  a, &
                                         b, -b,  b, &
@@ -370,9 +369,9 @@ contains
     
     real(dp) :: lattice(3, 3)
 
-    call assert(a > 0)
-    call assert(b > 0)
-    call assert(c > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(b > 0)
+    CALL_ASSERT(c > 0)
 
     lattice = 0.5 * transpose(reshape([0.0_dp,      a,      a, &
                                             b, 0.0_dp,      b, &
@@ -403,10 +402,10 @@ contains
 
     real(dp) :: cx, cz
 
-    call assert(a > 0)
-    call assert(b > 0)
-    call assert(c > 0)
-    call assert(beta > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(b > 0)
+    CALL_ASSERT(c > 0)
+    CALL_ASSERT(beta > 0)
 
     cx = c * cos(beta)
     cz = c * sin(beta)
@@ -437,10 +436,10 @@ contains
 
     real(dp) :: cx, cz
 
-    call assert(a > 0)
-    call assert(b > 0)
-    call assert(c > 0)
-    call assert(beta > 0)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(b > 0)
+    CALL_ASSERT(c > 0)
+    CALL_ASSERT(beta > 0)
     
     cx = c * cos(beta)
     cz = c * sin(beta)
@@ -474,19 +473,19 @@ contains
 
     real(dp) :: bx, by, cx, cy, cz
 
-    call assert(a > 0)
-    call assert(b > 0)
-    call assert(c > 0)
-    call assert(alpha > 0); call assert(alpha < pi / 2)
-    call assert(beta > 0); call assert(beta < pi / 2)
-    call assert(gamma > 0); call assert(gamma < pi / 2)
+    CALL_ASSERT(a > 0)
+    CALL_ASSERT(b > 0)
+    CALL_ASSERT(c > 0)
+    CALL_ASSERT(alpha > 0); CALL_ASSERT(alpha < pi / 2)
+    CALL_ASSERT(beta > 0); CALL_ASSERT(beta < pi / 2)
+    CALL_ASSERT(gamma > 0); CALL_ASSERT(gamma < pi / 2)
 
     bx = b * cos(gamma)
     by = b * sin(gamma)
     cx = c * cos(beta)
     cy = c * (cos(alpha) - cos(beta) * cos(gamma)) / sin(gamma)
 
-    call assert(c * c > cx * cx + cy * cy)
+    CALL_ASSERT(c * c > cx * cx + cy * cy)
     cz = sqrt(c*c - cx*cx - cy*cy)
     
     lattice = transpose(reshape([     a,     bx, cx, &

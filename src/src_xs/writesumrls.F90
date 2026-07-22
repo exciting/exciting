@@ -14,7 +14,6 @@ Contains
          Use modmain, only: chgval
          use constants, only: pi
          Use modxs
-         Use m_getunit
          Use m_writevars
          Implicit None
     ! arguments
@@ -23,8 +22,7 @@ Contains
          Character (*), Intent (In) :: fn
     ! local variables
          Character (*), Parameter :: thisnam = 'writesumrls'
-         Call getunit (unit1)
-         Open (unit1, File=trim(fn), Action='write')
+         Open (newunit=unit1, File=trim(fn), Action='write')
     ! zeroth frequency moment sumrule
          Write (unit1, '(a, g18.10, a, g18.10, a)') 'zeroth frequency m&
         &oment sumrule (num. val. el.):', s (1), '(', chgval / 2.d0, ')&

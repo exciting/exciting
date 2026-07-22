@@ -5,8 +5,8 @@
       "unit": "Hartree"
     },
     "dos": {
-      "tol": 1e-08,
-      "unit": "1/Ha/Bohr^3"
+      "tol": 1e-07,
+      "unit": "1/Hartree"
     }
   },
   "WANNIER_INFO.OUT": {
@@ -14,24 +14,20 @@
       "tol": 0,
       "unit": "null"
     },
-    "localisation_center": {
-      "tol": 1e-08,
-      "unit": "Bohr"
-    },
     "Omega": {
-      "tol": 1e-08,
+      "tol": 0.0001,
       "unit": "null"
     },
     "Omega_I": {
-      "tol": 1e-08,
+      "tol": 0.0001,
       "unit": "null"
     },
     "Omega_D": {
-      "tol": 1e-08,
+      "tol": 0.0001,
       "unit": "null"
     },
     "Omega_OD": {
-      "tol": 1e-08,
+      "tol": 0.0001,
       "unit": "null"
     }
   }

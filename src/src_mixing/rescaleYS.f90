@@ -9,13 +9,15 @@ Subroutine rescaleYS (noldsteps, n, S, Y, potential, residual)
       Use mod_Gvector, Only: ngrtot
       Use mod_muffin_tin, Only: lmmaxvr, nrmtmax
       Use mod_atoms, Only: natmtot
+      Use precision, Only: i32, long_int, dp
       Implicit None
-      Integer, Intent (In) :: n, noldsteps
-      Real (8), Intent (Inout) :: S (n, noldstepsmax), Y (n, &
+      Integer(long_int), Intent (In) :: n
+      Integer(i32), Intent (In)  :: noldsteps
+      Real(dp), Intent (Inout) :: S (n, noldstepsmax), Y (n, &
      & noldstepsmax)
-      Real (8), Intent (Inout) :: potential (n), residual (n)
-      Real (8) :: PWAVE, CLAVE, Rescale, T1
-      Integer :: i, j, k, nmt, firstpw, lastpw
+      Real(dp), Intent (Inout) :: potential (n), residual (n)
+      Real(dp) :: PWAVE, CLAVE, Rescale, T1
+      Integer(long_int) :: i, j, k, nmt, firstpw, lastpw
 !
       nmt = lmmaxvr * nrmtmax * natmtot
       firstpw = n - ngrtot

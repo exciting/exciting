@@ -2,8 +2,9 @@
 subroutine gwtasklauncher()
     use modinput
     use inputdom
+    use mod_selfconsistent_gw, only: is_gw_selfconsistent_flavour, qsgw
 
-    call rereadinput()
+    if (.not. is_gw_selfconsistent_flavour(qsgw)) call rereadinput()
     call gw_main()
 
     return

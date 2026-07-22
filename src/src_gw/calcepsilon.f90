@@ -1,5 +1,5 @@
 module calculate_dielectric_function
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only : zone, zi, zzero
   use device_linalg_common_interface, only: zgemm_gpu
   use exciting_mpi, only: mpiinfo
@@ -19,6 +19,7 @@ module calculate_dielectric_function
   use mod_eigensystem, only: nmatmax
   use mod_eigenvalue_occupancy, only: nstfv
   use mod_expand_products, only: expand_products_generic
+  use mod_get_eigenvectors_times_matchingcoefficients, only: get_eigenvectors_times_matchingcoefficients
   use mod_head_and_wings, only: calcwings, calchead
   use mod_misc_gw, only: Gamma
   use mod_mpi_gw, only : mpi_sum_array, indexes_parallelization
@@ -90,8 +91,7 @@ subroutine calcepsilon( iq, indexes, write_progress_to_gw_info, mpi_env, print_P
 
   call timesec(tstart)
 
-  call assert( present(print_Polarizability_Factor) .eqv. present(file_format), &
-    'file_format and print_Polarizability_Factor must be either both present or not')
+  CALL_ASSERT( present(print_Polarizability_Factor) .eqv. present(file_format),  'file_format and print_Polarizability_Factor must be either both present or not')
 
   !=============================
   ! Initialization
@@ -210,8 +210,8 @@ subroutine calcepsilon( iq, indexes, write_progress_to_gw_info, mpi_env, print_P
     eveck = evecfv(:, first_occupied_band:last_occupied_band)
 
     ! compute products \sum_G C_{k}n * A_{lm}
-    call expand_evec(ik,'t')
-    call expand_evec(jk,'c')
+    call get_eigenvectors_times_matchingcoefficients(ik, 't', eveck, eveckalm)
+    call get_eigenvectors_times_matchingcoefficients(jk, 'c', eveckp, eveckpalm)
 
     OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
 

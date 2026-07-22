@@ -5,17 +5,19 @@ subroutine scf_cycle(verbosity)
     use lo_recommendation, only: recommend_local_orbital_trial_energies
     use mod_APW_LO, only: apwn, apwe0, lorbe0, lorbl, lorbord, lorbn, maxapword, maxlapw, nlorb
     use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, spr, spsymb
-    use mod_charge_and_moment, only: chgdst, chgpart, momtot
+    use mod_charge_and_moment, only: chgcalc, chgcr, chgdst, chgpart, chgtot, chgval, momtot 
     use mod_convergence, only: currentconvergence, vchgdst, vcurrentconvergence, vdeltae
     use mod_eigenvalue_occupancy, only: evalsv, fermidos, occsv, nstfv, nstsv
-    use mod_eigensystem, only: mt_hscf, MTInitAll, MTNullify, nmatmax
+    use mod_eigensystem, only: mt_hscf, MTInitAll, MTNullify, nmatmax, nmat
     use mod_energy, only: engytot, engyknst
     use mod_force, only: forcemax, forcetot
+    use mod_getoccsv, only: getoccsv
     use mod_Gvector, only: ngrid, ngrtot
-    use mod_Gkvector, only: vgkl
+    use mod_Gkvector, only: vgkl, ngkmax, ngk, gkc, tpgkc, sfacgk, igkig, vgkc
     use mod_kpoint, only: nkpt, vkl, wkpt
     use mod_LDA_LU, only: ldapu, lmmaxlu
     use mod_misc, only: filext, task, tlast, tstop
+    use modmixer_lifecycle, only: finish_mixer, initmixer, runmixer
     use mod_muffin_tin, only: lmmaxvr, nrmt, nrmtmax
     use mod_OEP_HF, only: resoep
     use mod_potential_and_density, only: generate_density_and_magnetization, m2effig, magir, magmt, meffig, rhomt, rhoir, veffmt, veffir, vxcmt, vxcir, exmt, exir, ecmt, ecir, xctype
@@ -25,13 +27,16 @@ subroutine scf_cycle(verbosity)
     use modinput, only: input, getfixspinnumber
     use modmpi, only: barrier, firstofset, lastofset, mpiglobal, &
       procs, rank, splittfile
-    use precision, only: dp, i32
+    use precision, only: dp, i32, long_int
     use scl_xml_out_Module, only: deltae, dforcemax, iscl, scl_iter_xmlout, scl_xml_out_write, scl_xml_write_moments
     use secular_equation, only: seceqn
     use sirius_api,    only: set_radial_functions_sirius, solve_seceqn_sirius, get_eval_sirius, get_evec_sirius, &
                              put_occ_sirius, generate_density_sirius, get_periodic_function_sirius
     use sirius_init,   only: sirius_options
+    use modfvsystem,  only: evsystem, newsystem, deletesystem
     use total_energy, only: energy
+    use mod_APW_LO,   only: apwordmax
+    use mod_muffin_tin, only: lmmaxapw
     use to_char_conversion, only: to_char
     use trial_energy_selection, only: select_apw_trial_energies, select_local_orbital_trial_energies
     use TS_vdW_module, only: C6ab, R0_eff_ab
@@ -42,31 +47,48 @@ subroutine scf_cycle(verbosity)
     use mgga_poteff
     use mgga_init
     use mGGA_eigensystem
+    use mod_selfconsistent_gw, only: gw_first_iteration, is_gw_selfconsistent_flavour, qsgw 
+    use mod_band_to_lapw_transform, only: write_overlap_to_a_file
+    use constants, only: zzero, zone
     
-    Implicit None
-
-    integer(i32), intent(IN) :: verbosity
-    Real(dp) :: et, fm
-    Real(dp), Allocatable :: evalfv(:, :)
-    Complex(dp), Allocatable :: evecfv(:, :, :)
-    Complex(dp), Allocatable :: evecsv(:, :)
-    Logical :: exist
-    Integer(i32) :: ik, is, ia, idm, id, lmax, nodesmax
-    Integer(i32) :: n, nwork
-    Real(dp), Allocatable :: v(:)
-    Real(dp) :: timetot, ts0, ts1, tin1, tin0, ta,tb
-    
+    implicit none
+    integer(i32), intent(in) :: verbosity
+    real(dp) :: et, fm, timetot, ts0, ts1, tin1, tin0, ta, tb
+    real(dp), allocatable :: evalfv(:, :), v(:), forcesum(:, :), rhomtref(:, :, :), &
+        rhoirref(:), occsv_gs(:, :), occsv_ref(:, :)
+    complex(dp), allocatable :: evecfv(:, :, :), evecsv(:, :), evecfv_store(:, :, :)
+    logical :: exist, spin_polarization, use_mGGA
+    integer(i32) :: ik, is, ia, idm, id, lmax, nodesmax, nwork, first_k, last_k
+    integer(long_int) :: n
     character(len=77) :: string, acoord
-
-    Real(dp), Allocatable :: rhomtref(:,:,:) ! muffin-tin charge density (reference)
-    Real(dp), Allocatable :: rhoirref(:)     ! interstitial real-space charge density (reference)
-
     type(cdft_input_keys) :: cdft_calculation
-    logical :: spin_polarization, use_mGGA
-    integer(i32) :: first_k, last_k
-    complex (dp), allocatable :: evecfv_store(:, :, :)
-    real (dp), allocatable :: occsv_ref(:, :)
+    logical :: update_radial_functions, update_radial_functions_qsgw
+    logical :: update_ks_potential
+    complex(dp), allocatable :: apwalm (:,:,:,:,:)
+    type(evsystem) :: osystem
+    complex(dp), allocatable :: evec(:,:), soverlap(:,:)
 
+
+    ! We cannot update the radial functions in the following cases:
+    !   1. Inside a QSGW cycle after the first iteration.
+    !   2. When using hybrid functionals.
+    !
+    ! Reason:
+    !   The radial solvers cannot handle non-local potentials
+    !   (as introduced by QSGW and hybrid methods).
+    !   Therefore, the basis must already contain sufficient
+    !   local orbitals (LOs) to ensure enough flexibility.
+    update_radial_functions_qsgw = .not. ((.not. gw_first_iteration()) .and. &
+                                   is_gw_selfconsistent_flavour(qsgw))
+    update_radial_functions      =  update_radial_functions_qsgw .and. task /= 7
+
+    if  (rank == 0) then
+        if (is_gw_selfconsistent_flavour(qsgw) .and. .not. gw_first_iteration()) then
+           write(60, *) 'QSGW - GS step'
+        end if 
+        if (.not. update_radial_functions) write(60, *) 'Updating of radial functions is deactivated'
+    end if
+ 
     first_k = firstofset(rank, nkpt)
     last_k = lastofset(rank, nkpt)
     acoord = "lattice"
@@ -93,10 +115,9 @@ subroutine scf_cycle(verbosity)
         Call readstate
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Potential read in from STATE.OUT")')
     Else If (task == 7) Then
-        ! restart from previous HYBRID iteration
-        call genmeffig()
-
-       continue
+        ! Do nothing (hybrids and NSCF case with previous call
+        ! to readstate)
+        continue
     Else If (task == 200) Then
         Call phveff
         If ((verbosity>-1).and.(rank==0)) write(60,'(" Supercell potential constructed from STATE.OUT")')
@@ -109,7 +130,10 @@ subroutine scf_cycle(verbosity)
         if ( associated(input%groundstate%mgga) ) then 
             call init_mgga()
             call calc_poteff_gga(veffmt, veffir, 2, xctype, rhomt, rhoir, vxcmt, vxcir, & 
-                                 exmt, ecmt, ecir, exir)                
+                                 exmt, ecmt, ecir, exir)
+            ! needed for ekin:
+            veffmt_gga = veffmt
+            veffir_gga = veffir
         else 
             call poteff( .true. )
         end if 
@@ -133,13 +157,13 @@ subroutine scf_cycle(verbosity)
 
     If (allocated(vcurrentconvergence)) deallocate(vcurrentconvergence)
     Allocate(vcurrentconvergence(input%groundstate%niterconvcheck))
-    vcurrentconvergence=0.d0
+    vcurrentconvergence=0.0_dp
     If (allocated(vdeltae)) deallocate(vdeltae)
     Allocate(vdeltae(input%groundstate%niterconvcheck))
-    vdeltae=0.d0
+    vdeltae=0.0_dp
     If (allocated(vchgdst)) deallocate(vchgdst)
     Allocate(vchgdst(input%groundstate%niterconvcheck))
-    vchgdst=0.d0
+    vchgdst=0.0_dp
 
 !_____________________________
 ! reference density
@@ -164,7 +188,7 @@ subroutine scf_cycle(verbosity)
       do ik = 1, nkpt
         call getoccsv( vkl(:, ik), occsv(:, ik) )
       end do
-      if ( cdft_calculation%read_density_potential_from_file() ) call readstate
+      if ( cdft_calculation%read_density_potential_from_file() ) call readstate()
       call determine_cdft_occupations( cdft_calculation, wkpt, occsv )
       if ( cdft_calculation%is_maximum_overlap_method_required() ) then
         occsv_ref = occsv
@@ -178,6 +202,10 @@ subroutine scf_cycle(verbosity)
       filext = string
     end if
 
+  If ((input%groundstate%mixernumber.eq.1) .Or. &
+ &   (input%groundstate%mixernumber.eq.2) .Or. &
+ &   ((input%groundstate%mixernumber.eq.3) .And. &
+ &    (input%groundstate%mixerswitch.eq.1))) then
 !----------------------------------------------------
 !! TIME - Mixer segment
     if ( associated(input%groundstate%mgga) ) then
@@ -185,9 +213,9 @@ subroutine scf_cycle(verbosity)
     else 
         Call timesec (ts0)
         ! size of mixing vector
-        n = lmmaxvr*nrmtmax*natmtot+ngrtot
-        If (spin_polarization) n = n*(1+ndmag)
-        If (ldapu .Ne. 0) n = n + 2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
+        n = int( lmmaxvr, kind = long_int ) * nrmtmax * natmtot + ngrtot
+        If ( spin_polarization ) n = n * (1 + ndmag)
+        If (ldapu .Ne. 0) n = n + 2_long_int * lmmaxlu * lmmaxlu * nspinor * nspinor * natmtot
         ! allocate mixing arrays
         Allocate (v(n))
         ! call mixing array allocation functions by setting
@@ -202,13 +230,29 @@ subroutine scf_cycle(verbosity)
     end if 
 !! TIME - End of mixer segment
 !----------------------------------------------------
+  Else 
+!----------------------------------------------------
+!! TIME - Mixer segment
+    Call timesec (ts0)
+    ! size of mixing vector
+    n = lmmaxvr*nrmtmax*natmtot+ngrtot
+    If (associated(input%groundstate%spin)) n = n*(1+ndmag)
+    If (ldapu .Ne. 0) n = n + 2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
+    Call initmixer
+    nwork = -1
+    iscl=0
+    Call timesec (ts1)
+    timemixer = ts1-ts0+timemixer
+!! TIME - End of mixer segment
+!----------------------------------------------------
+  End If
 
 ! set last iteration flag
     tlast = .False.
 ! set stop flag
     tstop = .False.
-    engytot = 0.d0
-    fm = 0.d0
+    engytot = 0.0_dp
+    fm = 0.0_dp
 ! delete any existing eigenvector files
     If ((rank .Eq. 0) .And. ((task .Eq. 0) .Or. (task .Eq. 2))) Call delevec()
 
@@ -264,7 +308,7 @@ subroutine scf_cycle(verbosity)
 !! TIME - Muffin-tin segment
         Call timesec (ts0)
 
-        if (task /= 7) then
+        if (update_radial_functions) then
           ! No updates of core and valence radial functions during hybrids run
           call gencore          ! generate the core wavefunctions and densities
           ! find the first linearization energies 
@@ -287,9 +331,9 @@ subroutine scf_cycle(verbosity)
         if ( associated(input%groundstate%sirius) ) then
           call set_radial_functions_sirius( input )
         end if
-!------------------------------------------------------------
-! Effective Hamiltonian Setup: Radial and Angular integrals
-!------------------------------------------------------------
+        !------------------------------------------------------------
+        ! Effective Hamiltonian Setup: Radial and Angular integrals
+        !------------------------------------------------------------
         call stopwatch("exciting:rad_int", 1)
         if ( associated(input%groundstate%mgga) ) then
             use_mGGA = ( ((task == 1) .or. (task == 3)) .and. mgga_read_in ) .or. (iscl >= 2)
@@ -307,8 +351,7 @@ subroutine scf_cycle(verbosity)
 ! partial charges
 
         if (input%groundstate%tpartcharges) then
-            allocate(chgpart(lmmaxvr,natmtot,nstsv))
-            chgpart(:,:,:)=0.d0
+            allocate(chgpart(lmmaxvr,natmtot,nstsv), source=0.0_dp)
         end if
 
         call timesec (ts1)
@@ -350,7 +393,7 @@ subroutine scf_cycle(verbosity)
                 Allocate (evecsv(nstsv, nstsv))
 
                 if (iscl.le.1) then
-                  evecfv=0d0
+                  evecfv=0_dp
                 elseif (input%groundstate%solver%type.eq.'Davidson') then
                   Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
                 endif
@@ -404,8 +447,8 @@ subroutine scf_cycle(verbosity)
             occsv = occsv_ref
             call update_occupations_with_the_maximum_overlap_method( evecfv_store, occsv(:, first_k:) )
           end if
-        else 
-          call occupy
+        else
+          call occupy(get_fermi_search_tolerance())
         end if 
 
         If (rank==0) Then
@@ -467,6 +510,15 @@ subroutine scf_cycle(verbosity)
         Call addrhocr
 ! calculate the charges
         Call charge( 's.c.f. loop iteration ' // to_char( iscl ) )
+        ! update total charge with cDFT occupations, since it is used for density normalization
+        if ( cdft_calculation%is_on() .and. ( iscl == 1 ) ) then
+            if ( abs( chgtot / chgcalc - 1._dp ) > input%groundstate%epschg ) then
+                chgtot = chgcalc
+                chgval = chgtot - chgcr
+                call warning( "Warning(gndstate): Total charge is now set to " // &
+                    to_char( chgtot ) // " for cDFT calculation." )
+            end if
+        end if
 ! calculate the moments
         If (spin_polarization) Call moment
 ! normalise the density
@@ -510,38 +562,50 @@ subroutine scf_cycle(verbosity)
 ! Compute the effective potential
 !-----------------------------------
         call timesec (ts0)
-        if ( associated(input%groundstate%mgga)) then 
+        if (associated(input%groundstate%mgga)) then
             call calc_poteff_mgga(veffmt, veffir, 3, xctype_mgga, rhomt, rhoir, exmt, ecmt, ecir, exir, &
                                 vxcmt, vxcmt_mgga_nonmult, vxcir, vxcir_mgga_nonmult, ked_ir, ked_mt)
             call calc_poteff_gga(veffmt_gga, veffir_gga, 2, xctype, rhomt, rhoir, vxcmt_gga, vxcir_gga, &
                                 exmt_gga, ecmt_gga, ecir_gga, exir_gga)
-        else 
-            call poteff( .true. )
-        end if 
-        call timesec (ts1)
+        else if ((input%groundstate%mixerswitch.eq.1) .or. &
+ &               (input%groundstate%mixernumber.eq.1) .or. &
+ &               (input%groundstate%mixernumber.eq.2)) then
+            call poteff(.true.)
+        end if
+        call timesec(ts1)
         timepot = ts1-ts0+timepot
-
 !---------------
 ! Mixing
 !---------------
-        if ( associated(input%groundstate%mgga) ) then  
+        if (associated(input%groundstate%mgga)) then
             call mgga_mixer(iscl, v, nwork, currentconvergence, vcurrentconvergence)
-        else 
-            Call timesec (ts1)
+        else if ((input%groundstate%mixernumber.eq.1) .Or. &
+ &               (input%groundstate%mixernumber.eq.2) .Or. &
+ &               ((input%groundstate%mixernumber.eq.3) .And. &
+ &                (input%groundstate%mixerswitch.eq.1))) then
+            call timesec(ts1)
             ! pack interstitial and muffin-tin effective potential and field into one array
-            Call packeff (.True., n, v)
+            call packeff(.True., n, v)
             ! mix in the old potential and field with the new
-            If (rank .Eq. 0) Then
-                Call mixerifc (input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+            if (rank .Eq. 0) then
+                call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
                 do id=1, input%groundstate%niterconvcheck-1
                     vcurrentconvergence(id) = vcurrentconvergence(id+1)
                 end do
                 vcurrentconvergence(input%groundstate%niterconvcheck) = currentconvergence
-            End If
-        call xmpi_bcast(mpiglobal, v)
+            end if
+            call xmpi_bcast(mpiglobal, v)
             ! unpack potential and field
-            Call packeff (.False., n, v)
-        end if 
+            call packeff(.False., n, v)
+        else
+            call runmixer(iscl)
+            call xmpi_bcast(mpiglobal, currentconvergence)
+            do id=1, input%groundstate%niterconvcheck-1
+                vcurrentconvergence(id) = vcurrentconvergence(id+1)
+            end do
+            vcurrentconvergence(input%groundstate%niterconvcheck) = currentconvergence
+            if (input%groundstate%mixerswitch.eq.2) call poteff(.true.)
+        end if
 !---------------
 ! Fourier transform effective potential to G-space
         Call genveffig
@@ -552,7 +616,7 @@ subroutine scf_cycle(verbosity)
         Call genmeffig
 ! reduce the external magnetic fields if required
         If (spin_polarization) Then
-            If (input%groundstate%spin%reducebf .Lt. 1.d0) Then
+            If (input%groundstate%spin%reducebf .Lt. 1._dp) Then
                 input%groundstate%spin%bfieldc(:) = &
                &  input%groundstate%spin%bfieldc(:) * input%groundstate%spin%reducebf
                 Do is = 1, nspecies
@@ -628,7 +692,7 @@ subroutine scf_cycle(verbosity)
             Call scl_xml_out_write()
         End If
 ! write STATE.OUT file if required
-        If (input%groundstate%nwrite .Ge. 1) Then
+        If (input%groundstate%nwrite .Ge. 1 .and. rank == 0) Then
             If (Mod(iscl, input%groundstate%nwrite) .Eq. 0) Then
                 Call writestate
                 if ((verbosity>-1).and.(rank==0)) Then
@@ -639,6 +703,7 @@ subroutine scf_cycle(verbosity)
         End If
         call timesec(ts1)
         timeio = ts1 - ts0 + timeio
+        call barrier
 !! TIME - End of third IO segment
 
 ! exit self-consistent loop if last iteration is complete
@@ -684,7 +749,7 @@ subroutine scf_cycle(verbosity)
             if ((verbosity>-1).and.(rank==0).and.(input%groundstate%scfconv.eq.'potential')) then
                 if (associated(input%groundstate%OEP)) then
                     write(60,*)
-                    write(60, '(" Magnitude of OEP residual",T45 ": ", F18.8)') resoep
+                    write(60, '(" Magnitude of OEP residual",T45, ": ", F18.8)') resoep
                 end if
                 write(60,*)
                 Write(60,'(" RMS change in effective potential (target) : ",G13.6,"  (",G13.6,")")') &
@@ -778,7 +843,7 @@ subroutine scf_cycle(verbosity)
         call printbox(60,"+",string)
     end if
     ! write density and potentials to file only if maxscl > 1
-    If ((input%groundstate%maxscl > 1)) Then
+    If ((input%groundstate%maxscl > 1) .and. (rank == 0)) Then
         Call writestate
         If ((verbosity>-1).and.(rank==0)) Then
             Write (60, '(" STATE.OUT is written")')
@@ -794,6 +859,7 @@ subroutine scf_cycle(verbosity)
     End If
     Call timesec(ts1)
     timeio = ts1 - ts0 + timeio
+    call barrier
 
 !------------------
 ! Compute forces
@@ -830,9 +896,16 @@ subroutine scf_cycle(verbosity)
     End If ! compute forces
 
     call stopwatch("exciting:post_scf", 1)
-    ! set nwork to -2 to tell interface to call the deallocation functions
-    If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, -2)
-    Deallocate(v)
+    If ((input%groundstate%mixernumber.eq.1) .Or. &
+ &      (input%groundstate%mixernumber.eq.2) .Or. &
+ &      ((input%groundstate%mixernumber.eq.3) .And. &
+ &       (input%groundstate%mixerswitch.eq.1))) then
+      ! set nwork to -2 to tell interface to call the deallocation functions
+      If (rank .Eq. 0) Call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, -2)
+      Deallocate(v)
+    Else
+        call finish_mixer
+    End if
     Call mpiresumeevecfiles()
 
     if (allocated(rhomtref)) deallocate(rhomtref)
@@ -868,6 +941,46 @@ subroutine scf_cycle(verbosity)
       call genxsLOs()
     end if
 
+    ! QSGW requires the products of the overlap matrices
+    ! and the eigenvectors. Recomputing these products
+    ! afterwards leads to problems in the LO, so they are
+    ! dumped at the end of the KS run.
+    if (is_gw_selfconsistent_flavour(qsgw)) then
+        do ik = first_k, last_k
+            allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv), source=zzero)
+            allocate(evec(nmatmax,nstfv))
+            allocate(soverlap(nstfv,nmat(1,ik)))
+            call match(ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), &
+                        sfacgk(:, :, 1, ik), apwalm(:, :, :, :, 1))
+            call newsystem(osystem, input%groundstate%solver%packedmatrixstorage, nmat(1,ik))
+            call overlapsetup(osystem, ngk(1, ik), apwalm, igkig(:, 1, ik), vgkc(:,:,1,ik))
+            call getevecfv(vkl(:,ik), vgkl(:,:,:,ik), evec)
+            call zgemm('c','n',nstfv,nmat(1,ik),nmat(1,ik), &
+                      zone,evec(1:nmat(1,ik),:),nmat(1,ik), &
+                      osystem%overlap%za,nmat(1,ik), &
+                      zzero,soverlap,nstfv)
+            call write_overlap_to_a_file(soverlap, ik, input%gw%taskGroup%outputFormat)
+            call deletesystem(osystem)  
+            deallocate(apwalm, evec, soverlap)     
+        end do
+    end if
+
     call mt_hscf%release()
     call stopwatch("exciting:post_scf", 0)
+
+contains
+
+    ! For density Pulay mixing, the mixer setup depends explicitly on the
+    ! Fermi level and DOS at the Fermi level. A tighter internal Fermi-search
+    ! tolerance reduces numerical noise in these quantities before they feed
+    ! back into the SCF update. Other paths keep the user-requested epsocc.
+    function get_fermi_search_tolerance() result(epsfermi)
+        real(dp), parameter :: density_pulay_epsfermi = 1e-13_dp
+        real(dp) :: epsfermi
+
+        epsfermi = input%groundstate%epsocc
+        if ((input%groundstate%mixernumber.eq.3) .and. &
+   &        (input%groundstate%mixerswitch.eq.2)) epsfermi = min(density_pulay_epsfermi, epsfermi)
+    end function get_fermi_search_tolerance
+
 end subroutine

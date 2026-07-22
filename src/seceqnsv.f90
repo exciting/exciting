@@ -37,7 +37,6 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Complex (8), Intent (In) :: evecfv (nmatmax, nstfv)
       Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
 ! local variables
-      Complex (8) :: evecfv_tmp (nmatmax, get_num_of_basis_functions_sv())
       Integer :: ispn, jspn, ia, is, ias
       Integer :: ist, jst, i, j, k, l, lm, nm, m, io
       Integer :: ir, irc, igk, ifg
@@ -70,8 +69,9 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Complex (8), Allocatable :: zfft2 (:)
       Complex (8), Allocatable :: zv (:, :)
       Complex (8), Allocatable :: work (:)
-!     Complex (8), Allocatable :: wfmt3 (:, :)
-      Complex (8) :: wfmt3 (lmmaxvr, nrcmtmax),wfmt4 (lmmaxvr, nrcmtmax)
+      Complex (8), Allocatable :: evecfv_tmp (:, :)
+      Complex (8), Allocatable :: wfmt3 (:, :)
+      Complex (8), Allocatable :: wfmt4 (:, :)
       Complex (8) , Allocatable :: zwf (:,:),apwi(:,:),zhwf(:,:),zhlo(:,:)
       Type (evsystem) :: systemfv, systemsv
       Logical :: packed
@@ -82,6 +82,7 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       ! Type (apw_lo_basis_type) :: mt_basis
 
       num_of_basis_functions_sv = get_num_of_basis_functions_sv()
+      Allocate (evecfv_tmp(nmatmax, num_of_basis_functions_sv))
       
       If (issvlo()) then
          evecfv_tmp(:,:) = zzero
@@ -134,6 +135,8 @@ Subroutine seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
       Allocate (rwork(3*nstsv))
       Allocate (wfmt1(lmmaxvr, nrcmtmax, num_of_basis_functions_sv))
       Allocate (wfmt2(lmmaxvr, nrcmtmax, nsc))
+      Allocate (wfmt3(lmmaxvr, nrcmtmax))
+      Allocate (wfmt4(lmmaxvr, nrcmtmax))
       lwork = 2 * nstsv
       Allocate (work(lwork))
 ! zero the second-variational Hamiltonian (stored in the eigenvector array)

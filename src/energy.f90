@@ -13,6 +13,7 @@
 !> Module with a subroutine to evaluate the total energy in DFT calculations
 module total_energy
   use constants, only: zone, zzero, y00
+  use mbd_energy_module, only: MBD_energy
   use mod_atoms, only: idxas, natoms, natmtot, nspecies, spcore, spocc, spnst, spr, spzn
   use mod_charge_and_moment, only: mommt, momtot
   use mod_convergence, only: iscl
@@ -375,7 +376,8 @@ subroutine energy
   !     DFT-1/2 contribution     !
   !------------------------------!
         if (associated(input%groundstate%dfthalf)) then
-          engyhalf = rfinp (1, rhomt, vhalfmt, rhoir, vhalfir)
+          if( .not. input%groundstate%dfthalf%NSCF ) &
+            engyhalf = rfinp (1, rhomt, vhalfmt, rhoir, vhalfir)
         endif
   
   !----------------------!
@@ -388,6 +390,8 @@ subroutine energy
               Call DFT_D2_energy
            Else If ( input%groundstate%vdWcorrection .Eq. "TSvdW" ) Then
               Call TS_vdW_energy
+           Else If ( input%groundstate%vdWcorrection .Eq. "MBD" ) Then
+              Call MBD_energy
            End If
            engytot = engytot + e_disp
         End If

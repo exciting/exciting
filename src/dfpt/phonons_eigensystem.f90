@@ -72,7 +72,7 @@ module phonons_eigensystem
     !> 
     !> The result is added to the input matrix!
     subroutine ph_eig_gen_dSHmat( ik, Gkset, Gkqset, fst, lst, eveck, eveckq, apwalmk, apwalmkq, dSmat, dHmat, &
-        pat, dHmat_mt_basis, dpot_cfun_ig, dkin_cfun_ig )
+        pat, dSmat_mt_basis, dHmat_mt_basis, dolp_cfun_ig, dpot_cfun_ig, dkin_cfun_ig )
       use mod_kpointset, only: Gk_set
       use mod_atoms, only: natmtot
       use mod_APW_LO, only: nlotot
@@ -90,8 +90,12 @@ module phonons_eigensystem
       complex(dp), intent(inout) :: dSmat(:,:), dHmat(:,:)
       !> displacement pattern \(p^{I \mu}_{\kappa\alpha}({\bf q})\)
       complex(dp), optional, intent(in) :: pat(3, natmtot)
-      !> radial integrals of effective potential response times Gaunt coefficients
+      !> overlap response radial muffin-tin integrals times Gaunt coefficients
+      complex(dp), optional, intent(in) :: dSmat_mt_basis(:,:,:)
+      !> Hamiltonian response radial muffin-tin integrals times Gaunt coefficients
       complex(dp), optional, intent(in) :: dHmat_mt_basis(:,:,:)
+      !> interstitial overlap response times characteristic function in reciprocal space
+      complex(dp), optional, intent(in) :: dolp_cfun_ig(:)
       !> interstitial effective potential response times characteristic function in reciprocal space
       complex(dp), optional, intent(in) :: dpot_cfun_ig(:)
       !> interstitial (scalar relativistic) kinetic energy response times characteristic function in reciprocal space
@@ -101,7 +105,7 @@ module phonons_eigensystem
 
       nmatkq = Gkqset%ngk(1, ik) + nlotot
 
-      if( present( pat ) ) then
+      if (present( pat )) then
         ! contribution from muffin-tin integrals
         call gen_dSH0_mt( ik, Gkset, Gkqset, 1, nmatkq, fst, lst, &
                eveck, eveckq, apwalmk, apwalmkq, pat, dSmat, dHmat )
@@ -110,10 +114,11 @@ module phonons_eigensystem
                eveck, eveckq, pat, dSmat, dHmat )
       end if
 
-      if( present( dHmat_mt_basis ) .and. present( dpot_cfun_ig ) .and. present( dkin_cfun_ig ) ) then
+      if (present( dHmat_mt_basis ) .and. present( dSmat_mt_basis ) .and. &
+          present( dolp_cfun_ig ) .and. present( dpot_cfun_ig ) .and. present( dkin_cfun_ig )) then
         ! contribution from potential response
-        call dfpt_eig_gen_dHmat( ik, Gkqset, Gkset, 1, nmatkq, fst, lst, &
-               eveckq, eveck, apwalmkq, apwalmk, dHmat_mt_basis, dpot_cfun_ig, dkin_cfun_ig, dHmat, &
+        call dfpt_eig_gen_dSHmat( ik, Gkqset, Gkset, 1, nmatkq, fst, lst, &
+               eveckq, eveck, apwalmkq, apwalmk, dSmat_mt_basis, dHmat_mt_basis, dolp_cfun_ig, dpot_cfun_ig, dkin_cfun_ig, dSmat, dHmat, &
                Gset=ph_Gqset )
       end if
     end subroutine ph_eig_gen_dSHmat
@@ -188,7 +193,7 @@ module phonons_eigensystem
       nmatkq = Gkqset%ngk(1, ik) + nlotot
       nst = lst - fst + 1
       stype = input%groundstate%stypenumber
-      if (stype < 0) stype = 3 ! Fermi-Dirac
+      if (stype < 0) stype = 1 ! Methfessel-Paxton 1
       sigma = 1.0_dp / input%groundstate%swidth
 
       allocate( dX(nmatkq, fst:lst) )

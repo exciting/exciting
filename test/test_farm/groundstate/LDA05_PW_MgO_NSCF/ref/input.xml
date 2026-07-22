@@ -1,0 +1,29 @@
+<input>
+   <title>MgO</title>
+   <structure speciespath="./"> 
+      <crystal scale="7.957636138">
+         <basevect>0.5 0.5 0.0</basevect>
+         <basevect>0.5 0.0 0.5</basevect>
+         <basevect>0.0 0.5 0.5</basevect>
+      </crystal>
+      <species speciesfile="Mg.xml" rmt="2.0d0">
+         <atom coord="0.0  0.0  0.0"/>                        
+      </species>
+      <species speciesfile="O.xml" rmt="1.6d0">
+         <atom coord="0.5 0.5 0.5" />
+         <dfthalfparam>
+            <shell number="0" ionization="0.5" cut="2.5" ampl="1" exponent="8"/>
+         </dfthalfparam>
+      </species>
+   </structure>
+   <groundstate 
+      do="fromscratch"
+      nempty="5"
+      xctype="LDA_PW"
+      ngridk="3 3 3" 
+      outputlevel="high" epsengy="1.d-4"
+      gmaxvr="12" useDensityMatrix="false"
+      rgkmax="5.0">
+      <dfthalf printVSfile="false" NSCF="true" printBandCharacter="true" />
+   </groundstate>
+</input>

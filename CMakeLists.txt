@@ -67,9 +67,6 @@ include(cmake/exciting_name.cmake)
 # HDF5 support
 include(cmake/hdf5.cmake)
 
-# ELPA support
-include(cmake/elpa.cmake)
-
 # Intel MKL checks
 include(cmake/mkl.cmake)
 
@@ -81,6 +78,9 @@ include(cmake/linalg.cmake)
 
 # Scalapack support
 include(cmake/scalapack.cmake)
+
+# ELPA support
+include(cmake/elpa.cmake)
 
 # SIRIUS support (https://github.com/electronic-structure/SIRIUS/)
 include(cmake/sirius.cmake)

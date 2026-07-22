@@ -1,6 +1,6 @@
 !> Module implementing general initializations for RT-TDDFT
 module rttddft_init
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zzero, real_zero, zone, zi
   use exciting_mpi, only: xmpi_bcast, xmpi_allreduce, xmpi_allgatherv
   use general_find_vbm_cbm, only: find_vbm_cbm
@@ -15,7 +15,9 @@ module rttddft_init
   use mod_core_states, only: ncg
   use mod_corestate, only: rhocr, evalcr
   use mod_eigensystem, only: nmatmax, nmat
-  use mod_eigenvalue_occupancy, only: nstfv, efermi
+  use mod_eigenvalue_occupancy, only: efermi, n_states_first_variational => nstfv, &
+    n_states_second_variational => nstsv
+  use mod_getoccsv, only: getoccsv
   use mod_gvector, only: intgv, ngvec, sfacg, vgc
   use mod_gkvector, only: ngk, ngkmax, gkc, tpgkc, sfacgk, gkmax, vgkc
   use mod_kpointset, only: G_set, generate_G_vectors, k_set, &
@@ -41,12 +43,12 @@ module rttddft_init
   use rttddft_Hamiltonian, only: hamiltonian_set
   use rttddft_hybrids, only: hybrids_used, Set_Dimension_mixed_product_basis, set_barecoul_basis
   use rttddft_input, only: rttddft_input_keys
-  use rttddft_io, only: file_pmat_exists, read_pmat, write_pmat, file_pmat_mt_exists, &
-    read_pmat_mt, write_pmat_mt, write_file_info, write_file_info_fill_line_with_char, &
+  use rttddft_io, only: file_pmat_exists, read_pmat, file_pmat_mt_exists, &
+    read_pmat_mt, write_file_info, write_file_info_fill_line_with_char, &
     get_filename_pmat, get_filename_pmat_mt, read_wavefunction, groundstate, t, t_minus_dt, &
     read_phases
   use rttddft_Overlap, only: overlap_set
-  use rttddft_pmat, only: obtain_pmat_LAPWloBasis, obtain_pmat_KSBasis
+  use rttddft_pmat, only: pmat_set
   use rttddft_Polarization, only: Polarization
   use rttddft_potential, only: update_potential
   use rttddft_VectorPotential, only: Vector_Potential, Vector_Potential_Field
@@ -64,9 +66,10 @@ module rttddft_init
 contains
 !> This subroutine initializes many variables used in a RT-TDDFT calculation.
 subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, molecular_dynamics, &
-    psi, overlap, H, apwalm, pmat, pmatmt, rhomt_frozen, rhoir_frozen, &
-    Gkset, Gset, psi_gnd_lapwlo, pws_for_berry_phase, k_ptrs, &
-    td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, j_para_spurious, p_vec_init )
+    psi, overlap, H, pmat, apwalm, rhomt_frozen, rhoir_frozen, &
+    Gkset, Gset, pws_for_berry_phase, k_ptrs, &
+    td_overlap_det, berry_coupling_term, prev_phases, e_vec, e_vec_save, &
+    j_para_spurious, p_vec_init, active_charge )
   !> Argument that encapsulates the input options of rttddft
   type(rttddft_input_keys), intent(in) :: rt_inp
   !> Argument that encapsulates the propagator
@@ -83,12 +86,10 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   type(overlap_set), intent(inout) :: overlap
   !> Type that encapsulates the hamiltonian matrices (to be allocated in `array_allocation` block)
   type(hamiltonian_set), intent(out) :: H
+  !> Type that encapsulates the momentum matrix (to be allocated in `array_allocation` block)
+  type(pmat_set), intent(out) :: pmat
   !> Matching coefficients of the (L)APWs (to be allocated in `array_allocation` block)
   complex(dp), allocatable, intent(out) :: apwalm(:, :, :, :, :)
-  !> Momentum matrix elements (to be allocated in `array_allocation` block)
-  complex(dp), allocatable, intent(out) :: pmat(:, :, :, :)
-  !> Muffin-tin part of the momentum matrix (to be allocated in `array_allocation` block)
-  complex(dp), allocatable, intent(out) :: pmatmt(:, :, :, :, :)
   !> Frozen part of the muffin-tin density (to be allocated in `array_allocation` block)
   real(dp), allocatable, intent(out) :: rhomt_frozen(:, :, :)
   !> Frozen part of the IR density (to be allocated in `array_allocation` block)
@@ -97,8 +98,6 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   type(Gk_set), intent(out) :: Gkset
   !> Set of \( \mathbf{G} \) vectors used for the matrix elements evaluation
   type(G_set), intent(out) :: Gset
-  !> KS-LAPW+lo transition matrix (ground state set in the LAPW+lo basis) (to be allocated in `array_allocation` block)
-  complex(dp), allocatable, intent(out) :: psi_gnd_lapwlo(:, :, :)
   !> Planewave matrix elements between neighbouring \( \mathbf{k} \) points (to be allocated in `array_allocation` block)
   complex(dp), allocatable, intent(out) :: pws_for_berry_phase(:, :, :, :, :)
   !> Array containing indices of the neighbouring \( \mathbf{k} \) points (to be allocated in `array_allocation` block)
@@ -117,15 +116,18 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   type(Current_Density_Field), intent(out) :: j_para_spurious
   !> GS polarization obtained at \( t = 0 \). Only used with Berry-phase field coupling.
   type(Polarization), intent(out) :: p_vec_init
+  !> Total charge of active electrons
+  real(dp), intent(out) :: active_charge
 
+  real(dp), parameter :: eps_scissor = 1.e-10_dp
   integer(i32) :: ik, first_kpt, last_kpt, l_max_pot, ham_dimension, kgrid_neighbours
-  logical :: evolve_H0, my_rank_writes_to_output, success
+  logical :: allocate_pmatmt, evolve_H0, my_rank_writes_to_output, scissor_requested, spin_polarized, success
   real(dp) :: occs_tol
   type(Vector_Potential_Field) :: a_aux
   type(Current_Density) :: j_aux
   type(Electric_Field) :: e_aux
   type(k_set) :: kset_rttddft
-  complex(dp), allocatable :: psi_gnd_lapwlo_copy(:, :, :)
+  complex(dp), allocatable :: psi_gnd_lapwlo(:, :, :), psi_gnd_lapwlo_copy(:, :, :), psi_gnd_second_variation(:, :, :)
   integer(i32), allocatable :: ik_to_array_position(:), k_shifts(:, :, :), shift_positions(:)
   real(dp), allocatable :: dk_vec(:, :, :), occupations(:, :)
   logical, allocatable :: k_needed(:)
@@ -133,6 +135,8 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   call adjust_input_and_init_exciting_globals( input )
   l_max_pot = input%groundstate%lmaxvr
   occs_tol = input%groundstate%epsocc
+  spin_polarized = input%groundstate%tevecsv
+  scissor_requested = ( rt_inp%scissor_shift > eps_scissor )
 
   my_rank_writes_to_output = (rank == 0)
   if ( my_rank_writes_to_output ) then
@@ -163,34 +167,35 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     shift_positions, k_shifts )
 
   ham_dimension = nmatmax
-  if ( rt_inp%use_ks_basis() ) ham_dimension = nstfv
+  if ( rt_inp%use_ks_basis() ) ham_dimension = n_states_second_variational
 
   call create_propagator( propagator, rt_inp%propagator_input, .not. molecular_dynamics%on )
   array_allocation: block
-    allocate( psi_gnd_lapwlo(nmatmax, nstfv, first_kpt : last_kpt + kgrid_neighbours), source = zzero )
-    allocate( occupations(nstfv, first_kpt : last_kpt), source = real_zero )
+    allocate( psi_gnd_lapwlo(nmatmax, n_states_first_variational, first_kpt : last_kpt + kgrid_neighbours), source = zzero )
+    if( spin_polarized ) allocate( psi_gnd_second_variation(n_states_second_variational, n_states_second_variational, first_kpt:last_kpt), source = zzero )
+    allocate( occupations(n_states_second_variational, first_kpt : last_kpt), source = real_zero )
     allocate( apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, first_kpt : last_kpt + kgrid_neighbours) )
-    call H%allocate( ham_dimension, first_kpt, nmat(1, first_kpt:last_kpt), nstfv, &
+    call H%allocate( ham_dimension, first_kpt, nmat(1, first_kpt:last_kpt), n_states_second_variational, &
        propagator%extrapolation_needed(), evolve_H0, rt_inp%use_lapwlo_basis(), &
-       molecular_dynamics%on, rt_inp%eeInteraction%use_ipa() )
+       molecular_dynamics%on, rt_inp%eeInteraction%use_ipa(), rt_inp%scissor_shift, rt_inp%update_SOC() )
     call overlap%allocate( rt_inp%use_lapwlo_basis(), ham_dimension, first_kpt, last_kpt )
-    if ( rt_inp%use_velocity_gauge() ) allocate( pmat(ham_dimension, ham_dimension, 3, first_kpt : last_kpt) )
-    if ( ( molecular_dynamics%on ) .and. ( molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative ) ) &
-      allocate( pmatmt(nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt) )
+    allocate_pmatmt = ( molecular_dynamics%on ) .and. ( molecular_dynamics%valence_corrections .or. molecular_dynamics%basis_derivative )
+    if ( rt_inp%use_velocity_gauge() ) call pmat%allocate( ham_dimension, first_kpt, last_kpt, &
+      rt_inp%pmat%force_pmat_hermitian, allocate_pmatmt, rt_inp%use_lapwlo_basis() )
     if ( rt_inp%n_frozen > 0 ) then
       allocate( rhomt_frozen, mold = rhomt )
       allocate( rhoir_frozen, mold = rhoir )
     end if
     if ( rt_inp%use_berry_phase() ) then
-      allocate( pws_for_berry_phase(nstfv, nstfv, first_kpt : last_kpt, 3, 4), source = zzero )
+      allocate( pws_for_berry_phase(n_states_first_variational, n_states_first_variational, first_kpt : last_kpt, 3, 4), source = zzero )
       allocate( td_overlap_det(3, kset_rttddft%nkpt), source = zzero )
       allocate( berry_coupling_term, mold = H%H_t%array )
       allocate( prev_phases(maxval( kset_rttddft%ngridk )**2, 3), source = real_zero )
     end if
   end block array_allocation
 
-  call read_WF_potential_rttddft( first_kpt, kset_rttddft, psi_gnd_lapwlo(:, :, first_kpt : last_kpt), &
-    occupations, H%initial_eigenvalues )
+  call read_WF_potential_rttddft( first_kpt, kset_rttddft, occupations, H%initial_eigenvalues, &
+    psi_gnd_lapwlo(:, :, first_kpt : last_kpt), psi_gnd_second_variation )
   ! Attention: `me_init` must be called after `read_WF_potential_rttddft`, since it initialize radial functions
   call initialize_me( Gset )
   
@@ -222,17 +227,23 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   end if ! dynamical Berry phase approach
 
   call initialize_wavefunction_set( psi, rt_inp%use_lapwlo_basis(), first_kpt, kset_rttddft, &
-    propagator%extrapolation_needed(), rt_inp%n_frozen, psi_gnd_lapwlo, occupations, occs_tol )
-  if ( rt_inp%use_lapwlo_basis() ) deallocate( psi_gnd_lapwlo )
-  if ( rt_inp%use_berry_phase() ) call H%adjust_eigenvalues_with_scissor_shift( rt_inp%scissor_shift, psi%n_occupied() + 1 )
+    propagator%extrapolation_needed(), rt_inp%n_frozen, psi_gnd_lapwlo, occupations, occs_tol, psi_gnd_second_variation )
 
   ! A special case of an input parameter for the EH and EHM propagators:
   ! first, n_eigvecs_houston can be < 0 and should be redefined as soon as nstfv is known
   ! second, n_eigvecs_houston should be at least n_occupied, and not larger than basis size
   ! The routine does nothing if different propagator is used
-  call propagator%update_and_check( psi%n_occupied(), minval( nmat(1, first_kpt : last_kpt) ), nstfv, success )
+  call propagator%update_and_check( psi%n_occupied(), minval( nmat(1, first_kpt : last_kpt) ), n_states_first_variational, success )
   call terminate_if_false( success, &
     'Error: Provided value of nEigenvectorsEH is either smaller than the number of occupied states or larger than basis size.' )
+
+  ! If paramagnetic current will be calculated, it must be calculated with the active charge, and not the total valence one. 
+  active_charge = 0._dp
+  do ik = first_kpt, last_kpt
+    active_charge = active_charge + &
+      sum( psi%occupations(psi%first_active() : psi%n_occupied(), ik) ) * psi%kset%wkpt(ik)
+  end do
+  call xmpi_allreduce( active_charge, mpi_env_k )
 
   if( molecular_dynamics%on ) call allocate_MD_globals( first_kpt, last_kpt, &
     allocate_B=molecular_dynamics%basis_derivative, &
@@ -240,7 +251,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   
   if ( my_rank_writes_to_output ) call estimate_memory_and_write_to_info( molecular_dynamics%on, &
     rt_inp%predictor_corrector%on, psi, overlap, H, apwalm, kgrid_neighbours, &
-    kset_rttddft%nkpt, pmat, pmatmt, psi_gnd_lapwlo, pws_for_berry_phase, berry_coupling_term )
+    kset_rttddft%nkpt, pmat, psi_gnd_lapwlo, pws_for_berry_phase, berry_coupling_term )
 
   if ( hybrids_used() ) then
     if ( input%xs%realTimeTDDFT%calcNonlocalCurrentDensity ) then
@@ -254,25 +265,21 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
 
   if ( rt_inp%use_velocity_gauge() ) then
     if( rt_inp%pmat%read_pmat_from_file ) then 
-      call terminate_if_false( file_pmat_exists( rt_inp%restart_file_handler, mpi_env_k ), &
-        'File:'//trim( get_filename_pmat() )//' not found')
-      call read_pmat( first_kpt, pmat, mpi_env_k, rt_inp%restart_file_handler )
-      if ( molecular_dynamics%on ) then 
-        call terminate_if_false( file_pmat_mt_exists( rt_inp%restart_file_handler, mpi_env_k ), &
-          'File:'//trim( get_filename_pmat_mt() )//' not found')
-        call read_pmat_mt( first_kpt, pmatmt, mpi_env_k, rt_inp%restart_file_handler )
-      end if
+      call pmat%read_from_file( mpi_env_k, rt_inp%restart_file_handler )
     else
-      if ( rt_inp%use_ks_basis() ) then
-        call obtain_pmat_KSBasis( first_kpt, rt_inp%pmat%force_pmat_hermitian, apwalm, psi_gnd_lapwlo, pmat )
-      else
-        call obtain_pmat_LAPWloBasis( first_kpt, rt_inp%pmat%force_pmat_hermitian, apwalm, pmat, pmatmt )
-      end if
+      call pmat%calculate( first_kpt, apwalm, psi_gnd_lapwlo, psi_gnd_second_variation )
     end if
-    if( rt_inp%pmat%write_pmat_to_file ) then
-      call write_pmat( first_kpt, pmat, mpi_env_k, rt_inp%restart_file_handler, kset_rttddft%nkpt )
-      if ( molecular_dynamics%on ) call write_pmat_mt( first_kpt, pmatmt, mpi_env_k, rt_inp%restart_file_handler, kset_rttddft%nkpt )
-    end if
+    if( rt_inp%pmat%write_pmat_to_file ) call pmat%write_to_file( mpi_env_k, &
+      rt_inp%restart_file_handler, kset_rttddft%nkpt )
+  end if
+
+  call overlap%initialize( apwalm, Gkset, pmat%MT, a_aux, mathcalH=H%mathcalH, mathcalB=mathcalB )
+  if ( scissor_requested ) then
+    call H%adjust_eigenvalues_with_scissor_shift( rt_inp%scissor_shift, psi%n_occupied() + 1 )
+    if ( rt_inp%use_lapwlo_basis() ) &
+      call H%build_lapwlo_scissor_matrix( rt_inp%scissor_shift, psi%n_occupied() + 1, overlap, psi_gnd_lapwlo )
+    if ( rt_inp%use_velocity_gauge() ) &
+      call pmat%scale( psi_gnd_lapwlo, H%initial_eigenvalues, overlap, rt_inp%scissor_shift, psi%n_occupied() )
   end if
 
   ! In general, non-physical parameters (such as the k-grid) can differ between the GS
@@ -280,22 +287,20 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   ! the same electron density. For consistency, we generate the initial density and potential
   ! at step 0 the same way as during the time propagation. 
   call update_density( psi, -1, rt_inp%normalize_WF, &
-    rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo, dens_case = ground_state )
+    rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, dens_case = ground_state )
   call update_potential()
 
-  call H%calculate( l_max_pot, apwalm, Gkset, psi_gnd_lapwlo )
+  call H%calculate( l_max_pot, apwalm, Gkset, psi_gnd_lapwlo, psi_gnd_second_variation )
   if ( rt_inp%use_ks_basis() ) then
     ! at t = 0, obtain the effective potential: since H%V_KS_0 was not initialized
     ! until this point, now H%H_t = H%H_t(t = 0) + H%V_KS_0
     call H%V_KS_0%copy_from( H%H_t ) 
     call H%V_KS_0%subtract( H%initial_eigenvalues )
     ! and put correct values in H%H_t (so addressing H%H_t further is safe)
-    call H%calculate( l_max_pot, apwalm, Gkset, psi_gnd_lapwlo )
+    call H%H_t%copy_from( H%initial_eigenvalues )
   else
     if ( .not. evolve_H0 ) call H%H_0%copy_from( H%H_t )
   end if
-
-  call overlap%initialize( apwalm, Gkset, pmatmt, a_aux, mathcalH=H%mathcalH, mathcalB=mathcalB )
 
   if ( rt_inp%use_velocity_gauge() ) then
     j_para_spurious%components = real_zero
@@ -311,8 +316,7 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
   end if
 
   if ( psi%has_frozen() ) then
-    call update_density( psi, -1, .false., rt_inp%l_rad_step, &
-      ks_lapwlo_transition_matrix=psi_gnd_lapwlo, dens_case=frozen )
+    call update_density( psi, -1, .false., rt_inp%l_rad_step, dens_case=frozen )
     rhomt_frozen = rhomt
     rhoir_frozen = rhoir
   end if
@@ -321,14 +325,14 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
     call psi%read_from_file( mpi_env_k, rt_inp%restart_file_handler )
     if( propagator%extrapolation_needed() ) then
       call update_density( psi, 0, rt_inp%normalize_WF, &
-        rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo, dens_case=save_and_frozen )
+        rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, dens_case=save_and_frozen )
       call update_potential( coulomb_only =  rt_inp%eeInteraction%coulomb_only() )
 
       if ( rt_inp%use_lapwlo_basis() ) call overlap%calculate( apwalm, &
-        Gkset, pmatmt, a_tot_t_minus_dt, mathcalH=H%mathcalH, mathcalB=mathcalB )
+        Gkset, pmat%MT, a_tot_t_minus_dt, mathcalH=H%mathcalH, mathcalB=mathcalB )
 
-      if ( evolve_H0 ) call H%calculate( l_max_pot, apwalm, Gkset, psi_gnd_lapwlo, &
-                              a_tot=a_tot_t_minus_dt, obtain_mathcalH=.true. )
+      if ( evolve_H0 ) call H%calculate( l_max_pot, apwalm, Gkset, &
+          psi_gnd_lapwlo, psi_gnd_second_variation, a_tot=a_tot_t_minus_dt, obtain_mathcalH=.true. )
       
       if ( rt_inp%use_velocity_gauge() ) then
         call H%add_external_coupling( a_tot_t_minus_dt, overlap, pmat )
@@ -340,16 +344,15 @@ subroutine initialize_rttddft( rt_inp, propagator, vec_pot, a_tot_t_minus_dt, mo
       call H%copy_H_t()
     end if ! propagator%extrapolation_needed()
 
-    call update_density( psi, 0, rt_inp%normalize_WF, &
-      rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen, psi_gnd_lapwlo )
+    call update_density( psi, 0, rt_inp%normalize_WF, rt_inp%l_rad_step, rhomt_frozen, rhoir_frozen )
     call update_potential( coulomb_only = rt_inp%eeInteraction%coulomb_only() )
 
     if ( rt_inp%use_berry_phase() ) call read_phases( prev_phases, rt_inp%restart_file_handler, mpi_env_k )
   end if
 
   if( evolve_H0 .or. rt_inp%restart_previous_calculation() ) then
-    call overlap%calculate( apwalm, Gkset, pmatmt, vec_pot%a_tot, mathcalH=H%mathcalH, mathcalB=mathcalB )
-    call H%calculate( l_max_pot, apwalm, Gkset, psi_gnd_lapwlo, a_tot=vec_pot%a_tot, obtain_mathcalH=.true. )
+    call overlap%calculate( apwalm, Gkset, pmat%MT, vec_pot%a_tot, mathcalH=H%mathcalH, mathcalB=mathcalB )
+    call H%calculate( l_max_pot, apwalm, Gkset, psi_gnd_lapwlo, psi_gnd_second_variation, a_tot=vec_pot%a_tot, obtain_mathcalH=.true. )
     if ( rt_inp%use_velocity_gauge() ) then
       call H%add_external_coupling( vec_pot%a_tot, overlap, pmat )
     else
@@ -397,7 +400,7 @@ end subroutine initialize_me
 
 !> Output general information about the RT-TDDFT calculation using [[write_file_info]]
 subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, psi, &
-    overlap, H, apwalm, kgrid_neighbours, n_kpt, pmat, pmatmt, &
+    overlap, H, apwalm, kgrid_neighbours, n_kpt, pmat, &
     psi_gnd_lapwlo, pws_for_berry_phase, berry_coupling_term )
   !> Are we performing an MD calculation?
   logical, intent(in) :: ionDynamics
@@ -415,12 +418,8 @@ subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, 
   integer(i32), intent(in) :: kgrid_neighbours
   !> Total number of \( \mathbf{k} \) points
   integer(i32), intent(in) :: n_kpt
-  !> Momentum matrix elements (projected onto the (L)APW+LO basis elements)
-  !> (nmatmax, nmatmax, 3, first_kpt : last_kpt)
-  complex(dp), intent(in), optional :: pmat(:, :, :, :)
-  !> Muffin-tin part of the Momentum matrix
-  !> (nmatmax, nmatmax, 3, natmtot, first_kpt : last_kpt)
-  complex(dp), intent(in), optional :: pmatmt(:, :, :, :, :)
+  !> Momentum matrix 
+  class(pmat_set), intent(in) :: pmat
   !> KS-LAPW+lo transition matrix (ground state set in the LAPW+lo basis)
   complex(dp), intent(in), optional :: psi_gnd_lapwlo(:, :, :)
   !> Planewave matrix elements between neighbouring \( \mathbf{k} \) points
@@ -436,11 +435,11 @@ subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, 
 
   aux_h = real( sizeof( overlap ) + sizeof( H ), dp ) / MB
   if( present( berry_coupling_term ) ) aux_h = aux_h + real( sizeof( berry_coupling_term ), dp ) / MB
-  aux_w = real( sizeof( psi%frozen ) + sizeof( psi%active ) + sizeof( psi%groundstate ), dp ) / MB
+  aux_w = real( sizeof( psi%frozen ) + sizeof( psi%active ) + sizeof( psi%groundstate_lapwlo ), dp ) / MB
 
   if ( kgrid_neighbours > 0 ) then
     aux_add = real( kgrid_neighbours, dp ) / real( kgrid_neighbours + psi%n_kpts(), dp ) &
-    * real( sizeof( apwalm ) + sizeof( psi_gnd_lapwlo ), dp )
+    * real( sizeof( apwalm ) + sizeof( psi%groundstate_lapwlo ), dp )
     ! Estimate memory to be allocated in [[get_td_overlap_det_and_berry_coupling_term]]
     aux_td = real( sizeof( psi%active ), dp ) * &
     real( n_kpt, dp ) / real( psi%n_kpts(), dp ) / MB + real( psi%n_occupied() * psi%n_occupied() * &
@@ -477,14 +476,11 @@ subroutine estimate_memory_and_write_to_info( ionDynamics, predictor_corrector, 
       real( sizeof( psi_gnd_lapwlo ), dp ) / MB
     call write_file_info( string )
   end if
-  if ( present( pmat ) ) then
-    write ( string, formatMemory ) 'Momentum matrix:', real( sizeof( pmat ), dp ) / MB
-    call write_file_info( string )
-  end if
+  write ( string, formatMemory ) 'Momentum matrix:', real( sizeof( pmat ), dp ) / MB
+  call write_file_info( string )
   if ( ionDynamics ) then
-    call write_file_info( string )
     write (string, formatMemory) 'Molecular Dynamics - Muffin-tin aux. matrices:', &
-      real( sizeof(pmatmt) + sizeof(H%mathcalH) + sizeof(mathcalB) + sizeof(B_time) + sizeof(B_past), dp )/MB
+      real( sizeof(H%mathcalH) + sizeof(mathcalB) + sizeof(B_time) + sizeof(B_past), dp )/MB
     call write_file_info( string )
   end if
   if ( present( pws_for_berry_phase ) ) then
@@ -548,18 +544,20 @@ subroutine is_gs_input_compatible_with_xs( inp, is_compatible)
 end subroutine
 
 !> read WF and potential from potential gs run. For hybrid functionals, the parameters are read from the PBE run
-subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, evecfv_gnd, occupations, initial_ks_energies )
+subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, occupations, initial_ks_energies, evecfv_gnd, evecsv_gnd )
   use modgw, only: kset
   !> Index of the first \( \mathbf{k} \) point treated by the current (MPI) rank
   integer(i32), intent(in) :: first_kpt
   !> k set used in the RT-TDDFT module
   type(k_set), intent(in) :: kset_rttddft
-  !> Basis-expansion coefficients of the groundstate KS-WFs
-  complex(dp), intent(out) :: evecfv_gnd(:, :, first_kpt :)
   !> Initial occupations array
-  real(dp), intent(out) :: occupations(:, first_kpt :)
+  real(dp), contiguous, intent(out) :: occupations(:, first_kpt :)
   !> Initial eigenvalues array
-  real(dp), intent(out) :: initial_ks_energies(:, first_kpt :)
+  real(dp), contiguous, intent(out) :: initial_ks_energies(:, first_kpt :)
+  !> Basis-expansion coefficients of the groundstate KS-WFs
+  complex(dp), contiguous, intent(out) :: evecfv_gnd(:, :, first_kpt :)
+  !> Basis-expansion coefficients of the groundstate KS-WFs
+  complex(dp), contiguous, optional, intent(out) :: evecsv_gnd(:, :, first_kpt :)
 
   integer(i32) :: ik, last_kpt
   logical :: file_exists
@@ -597,14 +595,14 @@ subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, evecfv_gnd, occup
     ! Read KS eigenvalues from file EVALFV.OUT
     !----------------------------------------
     if (allocated(evalfv)) deallocate (evalfv)
-    allocate (evalfv(nstfv, kset%nkpt))
+    allocate (evalfv(n_states_first_variational, kset%nkpt))
     evalfv(:, :) = 0.d0
     do ik = 1, kset%nkpt
       call getevalfv(kset%vkl(:, ik), evalfv(:, ik))
     end do
 
     ! VB / CB state index
-    call find_vbm_cbm(1, nstfv, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
+    call find_vbm_cbm(1, n_states_first_variational, kset%nkpt, evalfv, efermi, nomax, numin, ikvbm, ikcbm, ikvcm)
 
     ! The matrix sizes of mixed product basis quantities depend on if the core electrons are treated as valence
     ! This code block sets the dimension accordingly and is later read out in UpdateNonlocalCurrentDensity
@@ -630,8 +628,8 @@ subroutine read_WF_potential_rttddft( first_kpt, kset_rttddft, evecfv_gnd, occup
   end do
   filext = string
 
-  call read_wavefunction( groundstate, first_kpt, kset_rttddft%vkl(:, first_kpt:last_kpt), evecfv_gnd, mpi_env_k )
-
+  call read_wavefunction( groundstate, first_kpt, kset_rttddft%vkl(:, first_kpt:last_kpt), &
+    evecfv_gnd, evecsv_gnd, mpi_env_k )
 end subroutine
 
 
@@ -690,7 +688,7 @@ subroutine get_data_from_neighbours( first_kpt, last_kpt, n_kpt, k_needed, &
       call xmpi_bcast( mpi_env_k, states_local, broadcasting_rank )    
    
       if ( k_needed(ik) ) then
-        call assert( pos > ubound( apwalm_extended, 5 ), "more kgrid_neighbours found than exist" )
+        CALL_ASSERT( pos > ubound( apwalm_extended, 5 ), "more kgrid_neighbours found than exist" )
 
         apwalm_extended(:, :, :, :, pos) = apwlam_local
         psi_gnd_lapwlo_extended(:, :, pos) = states_local
@@ -702,7 +700,7 @@ subroutine get_data_from_neighbours( first_kpt, last_kpt, n_kpt, k_needed, &
   end do ! MPI procs
 
   pos = pos - 1
-  call assert( pos /= ubound( apwalm_extended, 5 ), "less kgrid_neighbours found than exist" )
+  CALL_ASSERT( pos /= ubound( apwalm_extended, 5 ), "less kgrid_neighbours found than exist" )
 end subroutine get_data_from_neighbours
 
 
@@ -955,6 +953,7 @@ subroutine ensure_valid_kpt_offset( kpt_offset )
   end if
 end subroutine
 
+
 !> Call the core exciting init routines
 subroutine adjust_input_and_init_exciting_globals( global_input )
   !> Argument encapsulating input parameters
@@ -973,7 +972,6 @@ subroutine adjust_input_and_init_exciting_globals( global_input )
   call init1()
   call init2()
   if ( hybrids_used() ) call init_hybrids()
-
 end subroutine
 
 end module rttddft_init

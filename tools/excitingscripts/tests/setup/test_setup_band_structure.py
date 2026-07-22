@@ -23,7 +23,7 @@ def test_setup_band_structure(input_xml_mock, tmp_path):
                     {"coord": [0.625, 0.25, 0.625], "label": "U"},
                     {"coord": [0.5, 0.0, 0.5], "label": "X"}]}}}}
 
-    setup_band_structure(input_xml_mock.full_path, root_directory=tmp_path)
+    setup_band_structure(input_xml_mock.full_path, root_directory=tmp_path, overwrite=True)
     parsed_input = parse_input_xml(tmp_path / "input.xml")
     parsed_input_properties = parsed_input.properties.to_xml()  # pylint: disable=no-member
 

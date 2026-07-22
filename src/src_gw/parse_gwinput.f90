@@ -1,15 +1,21 @@
-
+!> Parse GW input parameters into module state.
 subroutine parse_gwinput()
 
+    use gw_info, only: write_to_gwinfo
     use modinput
     use modmain
     use modgw
     use mod_coulomb_potential, only: vccut
     use modmpi
     use mod_hybrids, only: hybridhf
+    use mod_selfconsistent_gw, only: is_gw_selfconsistent_flavour, iteration, no_selfconsistent_gw, qsgw
+    use precision, only: i32, dp
+    use to_char_conversion, only: to_char
+
     implicit none
-    integer :: idum
-    real(8) :: rdum
+    
+    integer(i32) :: idum
+    real(dp) :: rdum
 
     if (associated(input%groundstate%spin)) then
         if (rank==0) call boxmsg(fgw,'!',"WARNING! GW for magnetic materials is not yet implemented!")
@@ -157,18 +163,26 @@ subroutine parse_gwinput()
       if (rank==0) write(fgw,*) 'Number of empty states:', input%gw%selfenergy%nempty
     end if
 
-    if (rank==0) write(fgw,*) 'Solution of the QP equation:'
-    select case (input%gw%selfenergy%eqpsolver)
-        case(0)
-            if (rank==0) write(fgw,*) "  0 - perturbative solution"
-        case(1)
-            if (rank==0) write(fgw,*) "  1 - Z=1 solution"
-        case(2)
-            if (rank==0) write(fgw,*) "  2 - iterative solution"
-        case default
-            if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%eqpsolver'
-            stop
-    end select
+    if (rank==0) then
+        call write_to_gwinfo('Solution of the QP equation:')
+        select case (input%gw%selfenergy%eqpsolver)
+            case(0)
+                call write_to_gwinfo('  0 - perturbative solution')
+            case(1)
+                call write_to_gwinfo('  1 - Z=1 solution')
+            case(2)
+                call write_to_gwinfo('  2 - iterative solution')
+            case default
+                write(*,*) 'ERROR(parse_gwinput): Illegal value for input%gw%SelfEnergy%eqpsolver'
+                stop
+        end select
+        if (associated(input%gw%evGW0)) then
+            call write_to_gwinfo('evGW0 workflow mode: enabled')
+            call write_to_gwinfo('  Maximum number of iterations: '//trim(to_char(input%gw%evGW0%maxIterations)))
+            call write_to_gwinfo('  Convergence threshold: '//trim(to_char(input%gw%evGW0%tolerance)))
+            call write_to_gwinfo('  do mode: '//trim(input%gw%evGW0%do))
+        end if
+    end if
 
     if (rank==0) write(fgw,*) 'Energy alignment:'
     select case (input%gw%selfenergy%eshift)
@@ -355,9 +369,9 @@ subroutine parse_gwinput()
     end select
     if (rank==0) call linmsg(fgw,'-','')
 
-!-------------------------------------------------------------------------------
-! Special treatment in case of hybrid functionals
-!-------------------------------------------------------------------------------
+    !-------------------------------------------------------------------------------
+    ! Special treatment in case of hybrid functionals
+    !-------------------------------------------------------------------------------
     hybridhf = .false.
     if (xctype(1) >= 400) then
         hybridhf = .true.
@@ -369,16 +383,71 @@ subroutine parse_gwinput()
         input%gw%vqloff = input%groundstate%vkloff
     end if
 
+!-------------------------------------------------------------------------------
+! Number of the empty bands used in GW code
+!-------------------------------------------------------------------------------
+    if (input%gw%nempty < 1) then
+        if (rank==0) then
+            call write_to_gwinfo('WARNING(parse_gwinput): Number of empty states is not specified!')
+            call write_to_gwinfo('  This parameter must be carefully chosen based on the convergence tests')
+            call write_to_gwinfo('')
+        end if
+        input%gw%nempty = input%groundstate%nempty
+    end if
+    ! overwrite the GS value to be able to run scf_cycle()
+    input%groundstate%nempty = max(input%gw%nempty,input%gw%selfenergy%nempty)
+    if (rank==0) then
+        call write_to_gwinfo('Number of empty states (GW): '//trim(to_char(input%gw%nempty)))
+        call write_to_gwinfo('')
+    end if
+
+    !-------------------------------------------------------------------------------
+    ! Self consistent GW
+    !-------------------------------------------------------------------------------
+    if (.not. is_gw_selfconsistent_flavour(no_selfconsistent_gw)) then
+        if (rank==0) write(fgw,*) 'Self-consitent GW:'
+        if (is_gw_selfconsistent_flavour(qsgw)) then
+            if (rank==0) write(fgw,*) 'Flavour: Quasiparticle self-consistent GW (QSGW)'
+            if (rank==0) write(fgw,*) 'Iteration : ', iteration
+
+            ! The user should not set this. I am permissive and allow them to 
+            ! set whatever, but I am setting it to the correct values
+            if (input%gw%ibgw /= 1 .or. input%gw%nbgw /= 0) then
+                if (rank==0) then
+                    write(fgw,*) 'Warning([ibgw,nbgw] - QSGW) ibgw and nbgw are ignored for QSGW runs'
+                    write(fgw,*) 'Warning([ibgw,nbgw] - QSGW) they are automatically overwritten to encompase all bands in the NSCF run'
+                end if
+            end if
+
+            ! Use parameters from groundstate/hybrids for consistency
+            input%gw%ngridq = input%groundstate%ngridk
+            input%gw%vqloff = input%groundstate%vkloff
+            
+            ! This will automatically set the code to apply the GW correction to all empty states
+            ! The user should not set this
+            input%gw%ibgw = 1_i32
+            input%gw%nbgw = int(chgval/2.0_dp) + input%gw%nempty + 10
+
+        end if
+    end if
+    
+
     !-------------------------------------------------------------------------------
     ! Band range where GW corrections are applied
     !-------------------------------------------------------------------------------
     if (isspinorb()) then
         input%gw%ibgw = 1
-        input%gw%nbgw = int(chgval/2.d0) + input%gw%nempty + 1
+        input%gw%nbgw = int(chgval/2.0_dp) + input%gw%nempty + 1
     end if
     ibgw = input%gw%ibgw
     nbgw = input%gw%nbgw
-    if (nbgw < 1) nbgw = input%gw%nempty
+    if (nbgw < 1) then
+        if (associated(input%gw%evGW0)) then
+            nbgw = int(chgval/2.d0) + input%gw%nempty + 1
+        else
+            nbgw = input%gw%nempty
+        end if
+    end if
     if (ibgw >= nbgw) then
         if (rank==0) write(*,*) 'ERROR(parse_gwinput): Illegal values for ibgw ot nbgw!'
         if (rank==0) write(*,*) '    ibgw = ', ibgw, '   nbgw = ', nbgw
@@ -386,20 +455,6 @@ subroutine parse_gwinput()
         stop
     end if
     if (rank==0) write(fgw,'(a,2i7)') ' Interval of quasiparticle states (ibgw, nbgw): ', ibgw, nbgw
-    if (rank==0) write(fgw,*)
-
-!-------------------------------------------------------------------------------
-! Number of the empty bands used in GW code
-!-------------------------------------------------------------------------------
-    if (input%gw%nempty < 1) then
-        if (rank==0) write(fgw,*) 'WARNING(parse_gwinput): Number of empty states is not specified!'
-        if (rank==0) write(fgw,*) '  This parameter must be carefully chosen based on the convergence tests'
-        if (rank==0) write(fgw,*)
-        input%gw%nempty = input%groundstate%nempty
-    end if
-    ! overwrite the GS value to be able to run scf_cycle()
-    input%groundstate%nempty = max(input%gw%nempty,input%gw%selfenergy%nempty)
-    if (rank==0) write(fgw,*)'Number of empty states (GW): ', input%gw%nempty
     if (rank==0) write(fgw,*)
 
 !-------------------------------------------------------------------------------

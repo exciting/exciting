@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+
+
+  <title>helium</title>
+
+
+  <structure speciespath=".">
+    <crystal scale="8">
+      <basevect> 1.0     0.0     0.0 </basevect>
+      <basevect> 0.0     1.0     0.0 </basevect>
+      <basevect> 0.0     0.0     1.0 </basevect>
+    </crystal>
+    <species speciesfile="He.xml" rmt="3.0">
+      <atom coord="0.00 0.00 0.00" />
+    </species>
+  </structure>
+
+  <groundstate 
+    do='skip'
+    lradstep='1'
+    ngridk="1 1 1"
+    rgkmax="7"
+    gmaxvr="30" 
+    maxscl="20"
+    epschg="1d-6"
+    epsengy="1d-6"
+    lmaxmat="8"
+    lmaxapw="8"
+    lmaxvr="8"
+    mixer="msec"
+    radialgridtype="cubic-2"
+    CoreRelativity="none"
+    ValenceRelativity="none"
+    swidth="0.001"
+    nempty="50"
+    mixerswitch="1"
+    xctype="HYB_PBE0"
+    outputlevel="high"
+    nosym="true"
+>
+      <Hybrid 
+	 exchangetype="HF" 
+         excoeff="1.0" 
+	 eccoeff="0.0"
+         />
+
+
+ <solver
+     evaltol='1d-15'
+    />
+  </groundstate>
+
+   <gw
+      taskname="taskGroup"
+      ngridq="1 1 1"
+      nempty="50"
+      ibgw="1"
+      nbgw="0"
+      skipgnd="true"
+      qdepw="tet"
+      coreflag="xal"
+      enforceDegeneracy="false">
+      <taskGroup outputFormat="text">
+        <Coulomb>
+          <qpoints qi="1" qf="1"/>
+        </Coulomb>
+        <cc4sInterface nLastFrozen="1" testRun="true">
+          <qpoints qi="1" qf="1"/>
+	  <kpoints ki="1" kf="1"/>
+        </cc4sInterface>
+      </taskGroup>
+      <mixbasis
+         lmaxmb="6"
+         epsmb="1.d-6"
+         gmb="2.0"
+       ></mixbasis>
+      <barecoul
+          basis="mb"
+          barcevtol="0.0d0">
+      </barecoul>
+      <freqgrid
+         nomeg="16"
+      ></freqgrid>
+   </gw>
+
+
+</input>
+

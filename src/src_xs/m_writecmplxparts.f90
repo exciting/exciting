@@ -5,7 +5,8 @@ module m_writecmplxparts
   contains
 
     subroutine writecmplxparts(fbasename, remat, immat, ik1, ik2, revec, imvec, veclen, dirname)
-      use m_getunit
+      use modmpi, only: mpiglobal
+      use os_utils, only: make_directory
       character(*), intent(in) :: fbasename
       real(8), intent(in), optional :: remat(:,:), immat(:,:)
       real(8), intent(in), optional :: revec(*), imvec(*)
@@ -17,8 +18,7 @@ module m_writecmplxparts
 
       if(present(dirname)) then 
         dname = trim(adjustl(dirname))//'/'
-        syscommand = 'test ! -e '//trim(adjustl(dname))//' && mkdir '//trim(adjustl(dname))
-        call system(trim(adjustl(syscommand)))
+        call make_directory(dname, mpiglobal)
       else
         dname = ''
       end if
@@ -49,8 +49,7 @@ module m_writecmplxparts
       fname = trim(adjustl(dname))//trim(adjustl(fname))
 
       if(present(remat)) then 
-        call getunit(un)
-        open(unit=un, file=fname, action='write', status='replace')
+        open(newunit=un, file=fname, action='write', status='replace')
         do a1=1,n
           write(un, fmt=frmt, advance='no') remat(a1,1)
           do a2=2,m
@@ -60,8 +59,7 @@ module m_writecmplxparts
         end do
         close(un)
       else if(present(revec) .and. present(veclen)) then
-        call getunit(un)
-        open(unit=un, file=fname, action='write', status='replace')
+        open(newunit=un, file=fname, action='write', status='replace')
         do a1=1,veclen
           write(un, fmt=frmt) revec(a1)
         end do
@@ -69,12 +67,11 @@ module m_writecmplxparts
       end if
 
       if(present(immat)) then
-        call getunit(un)
         fname =''
         write(fname,'("Im_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
         fname = trim(adjustl(dname))//trim(adjustl(fname))
 
-        open(unit=un, file=fname, action='write', status='replace')
+        open(newunit=un, file=fname, action='write', status='replace')
         do a1=1,n
           write(un,fmt=frmt, advance='no') immat(a1,1)
           do a2=2,m
@@ -84,11 +81,10 @@ module m_writecmplxparts
         end do
         close(un)
       else if(present(imvec) .and. present(veclen)) then
-        call getunit(un)
         fname =''
         write(fname,'("Im_",a,a,".OUT")') trim(adjustl(fbasename)),trim(adjustl(tmp3))
         fname = trim(adjustl(dname))//trim(adjustl(fname))
-        open(unit=un, file=fname, action='write', status='replace')
+        open(newunit=un, file=fname, action='write', status='replace')
         do a1=1,veclen
           write(un,fmt=frmt) imvec(a1)
         end do

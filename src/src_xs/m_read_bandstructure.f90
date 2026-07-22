@@ -19,7 +19,6 @@ module m_read_bandstructure
 
     subroutine read_bandstructure(fname)
       use modmpi, only: terminate
-      use m_getunit
       use mod_hdf5, only: hdf5_read
 
       character(*), intent(in) :: fname
@@ -39,8 +38,7 @@ module m_read_bandstructure
       end if
 
       ! Read in Bandstructure
-      call getunit(un)
-      open(unit=un, file=trim(fname), form='formatted', action='read')
+      open(newunit=un, file=trim(fname), form='formatted', action='read')
 
       !   Read in index of lowest and highest band and the number of steps along the path
       allocate(brange_(3))

@@ -32,7 +32,7 @@ module mod_expand_products
   use mod_coulomb_potential,          only: barc
   use modmpi,                         only: terminate_if_false
   use xstring,                        only: newline
-  use asserts,                        only: assert
+#include "asserts.fpp"
   implicit none
 
   !> Flag indicating computation type: valence-valence 
@@ -99,21 +99,18 @@ contains
     integer(i32)                              :: basis_size
     integer(i32)                              :: n_core_offset, m_core_offset
 
-    call assert( allocated(minm), 'minm must be allocated before call')
-    call assert( lbound(minm,1) == 1, &
-         'First dimension of minm must have lower bound 1.' )
+    CALL_ASSERT( allocated(minm), 'minm must be allocated before call')
+    CALL_ASSERT( lbound(minm,1) == 1,  'First dimension of minm must have lower bound 1.' )
     
     ! Determine the basis size. It differs between mbsiz and matsiz depending on the 
     ! application or not of the bare Coulomb potential
     basis_size = size(minm,1)
 
     if (apply_barc) then
-       call assert(allocated(barc), 'barc must be allocated if apply_barc=.true.')
-       call assert( basis_size == mbsiz, &
-            'First dimension of minm must equal mbsiz when v-diagonal basis (barc) is applied.' )
+       CALL_ASSERT(allocated(barc), 'barc must be allocated if apply_barc=.true.')
+       CALL_ASSERT( basis_size == mbsiz,  'First dimension of minm must equal mbsiz when v-diagonal basis (barc) is applied.' )
     else
-       call assert( basis_size == matsiz, &
-            'First dimension of minm must equal matsiz when barc is not applied.' )
+       CALL_ASSERT( basis_size == matsiz,  'First dimension of minm must equal matsiz when barc is not applied.' )
     end if
 
     ! Determine minm bounds
@@ -127,14 +124,10 @@ contains
     dim_m_val  = max(m_val_end - m_val_start + 1, 0_i32)
     dim_m_core = max(m_core_end - m_core_start + 1, 0_i32)
 
-    call assert( dim_n_val + dim_n_core == dim_n, &
-         'Dimension mismatch for n in M^i_{nm}' )
-    call assert( dim_m_val + dim_m_core == dim_m, &
-         'Dimension mismatch for m in M^i_{nm}' )
-    call assert( (dim_n_val==0) .or. (lbound(minm,2) <= n_val_start .and. n_val_end <= ubound(minm,2)), &
-         'Valence n-subrange must lie within minm second-dimension bounds' )
-    call assert( (dim_m_val==0) .or. (lbound(minm,3) <= m_val_start .and. m_val_end <= ubound(minm,3)), &
-         'Valence m-subrange must lie within minm third-dimension bounds' )
+    CALL_ASSERT( dim_n_val + dim_n_core == dim_n,  'Dimension mismatch for n in M^i_{nm}' )
+    CALL_ASSERT( dim_m_val + dim_m_core == dim_m,  'Dimension mismatch for m in M^i_{nm}' )
+    CALL_ASSERT( (dim_n_val==0) .or. (lbound(minm,2) <= n_val_start .and. n_val_end <= ubound(minm,2)),  'Valence n-subrange must lie within minm second-dimension bounds' )
+    CALL_ASSERT( (dim_m_val==0) .or. (lbound(minm,3) <= m_val_start .and. m_val_end <= ubound(minm,3)),  'Valence m-subrange must lie within minm third-dimension bounds' )
     
     ! Zero full array (Intel-optimized if available)
     OMP_OFFLOAD target
@@ -442,9 +435,7 @@ contains
 
     if (has_core) then
        !-- Safety check: shifted core block must lie within global bounds
-       call assert( (offset + core_start) >= global_lbound .and. &
-            (offset + core_end)   <= global_ubound,              &
-            'block_offset: shifted core block out of global bounds' )
+       CALL_ASSERT( (offset + core_start) >= global_lbound .and.  (offset + core_end)   <= global_ubound,               'block_offset: shifted core block out of global bounds' )
     else
        ! Empty core block → offset unused
        offset = 0_i32

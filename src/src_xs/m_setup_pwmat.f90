@@ -20,6 +20,7 @@ module m_setup_pwmat
   use m_xsgauntgen
   use m_findgntn0
   use mod_variation, only: ematqk_sv
+  use precision, only: dp, i32, long_int
 
   implicit none
 
@@ -32,10 +33,10 @@ module m_setup_pwmat
       
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
-    !   integer(4) :: iqmt            ! Index of momentum transfer
-    !   integer(4) :: igqmt           ! Index of G+qmt
+    !   integer(i32) :: iqmt            ! Index of momentum transfer
+    !   integer(i32) :: igqmt           ! Index of G+qmt
     ! Out:
-    !   complex(8) :: pwmat(hamsize)  ! Plane wave matrix elemens
+    !   complex(dp) :: pwmat(hamsize)  ! Plane wave matrix elemens
     ! 
     ! !DESCRIPTION:
     !   The routine generates the plane wave matrix elements 
@@ -57,20 +58,21 @@ module m_setup_pwmat
     !   Created. (Aurich)
     !EOP
     !BOC
-      integer(4), intent(in) :: iqmt, igqmt
-      complex(8), intent(out) :: pwmat(hamsize)
+      integer(i32), intent(in) :: iqmt, igqmt
+      complex(dp), intent(out) :: pwmat(hamsize)
 
-      integer(4) :: io, iu, ik, iknr, ikmnr, ik1, ik2
-      integer(4) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
-      integer(4) :: a1, numgq
-      integer(4) :: i,j, igq
+      integer(i32) :: io, iu, ik, iknr, ikmnr, ik1, ik2
+      integer(i32) :: ino, inu, ioabs1, iuabs1, ioabs2, iuabs2 
+      integer(i32) :: a1, numgq
+      integer(i32) :: i,j, igq
 
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
-      complex(8), allocatable :: muo(:,:,:), muog(:,:,:), mou_(:,:,:)
-      integer(4), allocatable, target :: ikm2ikp_dummy(:,:)
-      real(8), parameter :: epslat = 1.0d-8
+      complex(dp), allocatable :: muo(:,:,:), muog(:,:,:), mou_(:,:,:)
+      integer(i32), allocatable, target :: ikm2ikp_dummy(:,:)
+      real(dp), parameter :: epslat = 1.0d-8
       logical :: fsamekm, fsamekp
+      integer(long_int) :: large_gather_size
 
       !------------------------------------!
       ! Setup grids k, k-qmt/2 and k+qmt/2
@@ -163,7 +165,7 @@ module m_setup_pwmat
       muo=zzero
       muog=zzero
 
-      if(input%xs%bse%distribute) then 
+      if(input%xs%bse%bsesolver /= 'lapack') then
         ik1=firstofset(mpiglobal%rank, nk_bse)
         ik2=lastofset(mpiglobal%rank, nk_bse)
       else
@@ -218,9 +220,12 @@ module m_setup_pwmat
         muog(1:inu, 1:ino, ik) = muo(1:inu,1:ino,igqmt)
       end do
 
-      ! Gather moug 
-      if( input%xs%bse%distribute ) &
-        call xmpi_allgatherv( mpiglobal, muog, nu_bse_max * no_bse_max * (ik2 - ik1 + 1) )
+      ! Gather moug
+      
+      if( input%xs%bse%bsesolver /= 'lapack' ) then
+        large_gather_size = int( nu_bse_max, kind=long_int ) * no_bse_max * (ik2 - ik1 + 1)
+        call xmpi_allgatherv( mpiglobal, muog, large_gather_size )
+      end if
 
       call ematqdealloc
       deallocate(muo)
@@ -252,8 +257,8 @@ module m_setup_pwmat
     subroutine setup_pwmat_dist(dpwmat, iqmt, igqmt, binfo)
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
-    !   integer(4) :: iqmt            ! Index of momentum transfer
-    !   integer(4) :: igqmt           ! Index of G+qmt
+    !   integer(i32) :: iqmt            ! Index of momentum transfer
+    !   integer(i32) :: igqmt           ! Index of G+qmt
     !   type(blacsinfo) :: binfo      ! Info type for BLACS grid
     ! Out:
     !   type(dzmat) :: dpwma          ! 2D block cyclic distributed plane wave
@@ -273,11 +278,11 @@ module m_setup_pwmat
     !   Created. (Aurich)
     !EOP
     !BOC
-      integer(4), intent(in) :: iqmt, igqmt
+      integer(i32), intent(in) :: iqmt, igqmt
       type(blacsinfo), intent(in) :: binfo
       type(dzmat), intent(inout) :: dpwmat
 
-      complex(8) :: pwmat(hamsize,1)
+      complex(dp) :: pwmat(hamsize,1)
 
       call setup_pwmat(pwmat(:,1), iqmt, igqmt)
 

@@ -1,8 +1,0 @@
-run/
-venv/
-.ipynb_checkpoints
-__pycache__
-build/
-run_*
-nbconvert.help
-static_html

@@ -152,18 +152,24 @@ contains
   
   !> Returns the index map that sorts the elements of a 1d real array
   !> in ascending order. Employs the Heapsort algorithm
-  function sort_index_1d_real( n, a, inc) result( idx)
+  function sort_index_1d_real( n, a, inc, eps ) result( idx)
     !> number of elements in the array
     integer, intent( in) :: n
     !> the array to be sorted
     real(dp), intent( in) :: a(*)
     !> increment (consider only every inc-th element)
     integer, optional, intent( in) :: inc
+    !> epsilon such that `a < b` only if `a < b + eps`
+    real(dp), optional, intent(in) :: eps
     !> index map that sorts the array
     integer :: idx(n)
 
     integer :: incr
     integer :: i, j, k, l, m
+    real(dp) :: tol
+
+    tol = epsilon( 1.0_dp )
+    if (present(eps)) tol = eps
 
     incr = 1
     if( present( inc)) incr = inc
@@ -191,9 +197,9 @@ contains
        j = l + l
        do while( j <= k)
           if( j < k) then
-             if( a( incr*(idx(j)-1)+1) < a( incr*(idx(j+1)-1)+1)) j = j + 1
+             if( a( incr*(idx(j)-1)+1) < a( incr*(idx(j+1)-1)+1) + tol) j = j + 1
           end if
-          if( a( incr*(m-1)+1) < a( incr*(idx(j)-1)+1)) then
+          if( a( incr*(m-1)+1) < a( incr*(idx(j)-1)+1) + tol) then
              idx(i) = idx(j)
              i = j
              j = j + j

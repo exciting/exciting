@@ -1,5 +1,5 @@
 module rttddft_io_unformatted
-  use asserts, only: assert
+#include "asserts.fpp"
   use exciting_mpi, only: mpiinfo
   use file_utils, only: add_default_extension, delete_file
   use MD, only: trajectory
@@ -10,14 +10,15 @@ module rttddft_io_unformatted
   use os_utils, only: path_exists
   use precision, only: dp, i32
   use rttddft_file_formats, only: file_handler, restart_format, binary, hdf5
-  use rttddft_file_names, only: filename_phases, filename_pmat, filename_pmat_mt, filename_rho_vks, filename_wavefunction, &
+  use rttddft_file_names, only: filename_phases, filename_pmat, filename_pmat_mt, &
+    filename_rho_vks, filename_wavefunction, filename_wavefunction_second_variation, &
     kpt_latt_name, RTTDDFT_suffix, &
     suffix_wavefunction_gnd, suffix_wavefunction_t, suffix_wavefunction_t_minus_dt
-  use rttddft_io_hdf5, only: dataset_exists, read_array_hdf5, write_array_hdf5
+  use rttddft_io_hdf5, only: dataset_exists, read_array_hdf5, read_three_arrays_hdf5, write_array_hdf5, write_three_arrays_hdf5
 #ifdef MPI
-  use rttddft_io_parallel, only: read_array, write_array
+  use rttddft_io_parallel, only: read_array, read_three_arrays, write_array, write_three_arrays
 #else
-  use rttddft_io_serial, only: read_array, write_array
+  use rttddft_io_serial, only: read_array, read_three_arrays, write_array, write_three_arrays
 #endif
   use to_char_conversion, only: to_char
 
@@ -36,7 +37,7 @@ module rttddft_io_unformatted
   public :: groundstate, t, t_minus_dt
 
   interface read_wavefunction
-    module procedure :: read_wavefunction_non_spin_polarized
+    module procedure :: read_wavefunction_non_spin_spiral
     module procedure :: read_wavefunction_spin_polarized
   end interface
 
@@ -62,7 +63,7 @@ contains
 
     integer(kind(restart_format)) :: file_format
     
-    call assert( present( handler ) .eqv. present( mpi_env ), "mpi_env must be passed when handler is present" )
+    CALL_ASSERT( present( handler ) .eqv. present( mpi_env ), "mpi_env must be passed when handler is present" )
 
     file_format = binary
     if( present( handler ) ) file_format = handler%file_format
@@ -73,18 +74,30 @@ contains
         call handler%assert_consistency( )
         exists = dataset_exists( handler%file_name, handler%path, trim( name ), mpi_env )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
         exists = .false.
     end select
   end function
 
-  logical function file_pmat_exists( handler, mpi_env )
+  logical function file_pmat_exists( handler, mpi_env ) result(ok)
     !> File handler
     type(file_handler), optional, intent(in) :: handler
     !> MPI environment (needed to write in parallel over MPI procs.)
     type(mpiinfo), optional, intent(in) :: mpi_env
 
-    file_pmat_exists = rttddft_file_exists( get_filename_pmat( ), handler, mpi_env )
+    logical :: special
+
+    special = .false.
+    if( present( handler ) ) then
+      special = ( handler%file_format == hdf5 )
+    end if
+    if( .not. special ) then
+      ok = rttddft_file_exists( get_filename_pmat( ), handler, mpi_env )
+    else
+      ok = rttddft_file_exists( get_filename_pmat( )//"-1", handler, mpi_env ) &
+        .and. rttddft_file_exists( get_filename_pmat( )//"-2", handler, mpi_env ) &
+        .and. rttddft_file_exists( get_filename_pmat( )//"-3", handler, mpi_env )
+    end if
   end function
 
   function get_filename_pmat() result(name)
@@ -93,11 +106,15 @@ contains
   end function
 
   !> Read the momentum matrix elements from file
-  subroutine read_pmat( first_kpt, pmat, mpi_env, handler )
+  subroutine read_pmat( first_kpt, pmat_x, pmat_y, pmat_z, mpi_env, handler )
     !> Index of the first `k-point` to be considered
     integer,intent(in) :: first_kpt
-    !> Momentum matrix elements
-    complex(dp), intent(out) :: pmat(:, :, :, first_kpt:)
+    !> Momentum matrix elements - x component
+    complex(dp), contiguous, intent(inout)   :: pmat_x(:, :, first_kpt:)
+    !> Momentum matrix elements - y component
+    complex(dp), contiguous, intent(inout)   :: pmat_y(:, :, first_kpt:)
+    !> Momentum matrix elements - z component
+    complex(dp), contiguous, intent(inout)   :: pmat_z(:, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
     !> File handler
@@ -109,21 +126,26 @@ contains
     if( present( handler ) ) file_format = handler%file_format
     select case(file_format)
       case( binary )
-        call read_array( get_filename_pmat( ), first_kpt, pmat, mpi_env=mpi_env )
+        call read_three_arrays( get_filename_pmat( ), first_kpt, pmat_x, pmat_y, pmat_z, mpi_env=mpi_env )
       case( hdf5 )
         call handler%assert_consistency( )
-        call read_array_hdf5( handler%file_name, handler%path, get_filename_pmat( ), first_kpt, pmat, mpi_env=mpi_env )
+        call read_three_arrays_hdf5( handler%file_name, handler%path, get_filename_pmat( ), first_kpt, &
+          pmat_x, pmat_y, pmat_z, mpi_env=mpi_env )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
   end subroutine
 
   !> Write the momentum matrix elements to file
-  subroutine write_pmat( first_kpt, pmat, mpi_env, handler, n_kpt )
+  subroutine write_pmat( first_kpt, pmat_x, pmat_y, pmat_z, mpi_env, handler, n_kpt )
     !> Index of the first `k-point` to be considered in the sum
-    integer,intent(in)        :: first_kpt
-    !> Momentum matrix elements
-    complex(dp), intent(inout)   :: pmat(:, :, :, first_kpt:)
+    integer, intent(in) :: first_kpt
+    !> Momentum matrix elements - x component
+    complex(dp), contiguous, intent(inout)   :: pmat_x(:, :, first_kpt:)
+    !> Momentum matrix elements - y component
+    complex(dp), contiguous, intent(inout)   :: pmat_y(:, :, first_kpt:)
+    !> Momentum matrix elements - z component
+    complex(dp), contiguous, intent(inout)   :: pmat_z(:, :, first_kpt:)
     !> MPI environment (needed to write in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
     !> File handler
@@ -133,18 +155,19 @@ contains
     
     integer(kind(restart_format)) :: file_format
 
-    call assert( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
+    CALL_ASSERT( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
 
     file_format = binary
     if( present( handler ) ) file_format = handler%file_format
     select case(file_format)
       case( binary )
-        call write_array( get_filename_pmat( ), first_kpt, pmat, mpi_env=mpi_env )
+        call write_three_arrays( get_filename_pmat( ), first_kpt, pmat_x, pmat_y, pmat_z, mpi_env=mpi_env )
       case( hdf5 )
         call handler%assert_consistency( )
-        call write_array_hdf5( handler%file_name, handler%path, get_filename_pmat( ), pmat, first_kpt, n_kpt, mpi_env=mpi_env )
+        call write_three_arrays_hdf5( handler%file_name, handler%path, get_filename_pmat( ), &
+          pmat_x, pmat_y, pmat_z, first_kpt, n_kpt, mpi_env=mpi_env )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
   end subroutine
 
@@ -191,7 +214,7 @@ contains
         call handler%assert_consistency( )
         call read_array_hdf5( handler%file_name, handler%path, get_filename_pmat_mt( ), first_kpt, pmat_mt, mpi_env=mpi_env )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
   end subroutine
 
@@ -210,7 +233,7 @@ contains
     
     integer(kind(restart_format)) :: file_format
 
-    call assert( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
+    CALL_ASSERT( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
 
     file_format = binary
     if( present( handler ) ) file_format = handler%file_format
@@ -221,7 +244,7 @@ contains
         call handler%assert_consistency( )
         call write_array_hdf5( handler%file_name, handler%path, get_filename_pmat_mt( ), pmat_mt, first_kpt, n_kpt, mpi_env=mpi_env )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
   end subroutine
 
@@ -260,17 +283,29 @@ contains
     name = add_default_extension( filename_wavefunction // get_suffix_filename_wavefunction(psi_case) )
   end function
 
+  !> (Private) Return `filename_wavefunction_previous`, `filename_wavefunction` or `filename_wavefunction_gnd`
+  pure function get_filename_wavefunction_second_variation( psi_case ) result(name)
+    !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
+    integer(kind(wavefunction_case)), intent(in) :: psi_case
+    !> File name (to return)
+    character(len=:), allocatable :: name
+
+    name = add_default_extension( filename_wavefunction_second_variation // get_suffix_filename_wavefunction(psi_case) )
+  end function
+
   !> Read wavefunction coefficients from file. Similar to [[getevecfv]], but 
   !> does not need to split files and can be used by multiple MPI procs simultaneously.
-  subroutine read_wavefunction_non_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env, handler )
+  subroutine read_wavefunction_non_spin_spiral( psi_case, first_kpt, kpt_latt, psi, psi_sv, mpi_env, handler )
     !> Enum telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
     integer(kind(wavefunction_case)) :: psi_case
     !> First k-point treated by this (MPI)rank
     integer(i32), intent(in) :: first_kpt
     !> k-points in lattice coordinates
     real(dp), intent(in) :: kpt_latt(:, first_kpt:)
-    !> Basis-expansion coefficients of the (spin-unpolarized) KS-WFs
+    !> Basis-expansion coefficients of the (not spin-spiral) KS-WFs
     complex(dp), contiguous, target, intent(out) :: psi(:, :, first_kpt:)
+    !> Basis-expansion coefficients of the second-variational KS-WFs
+    complex(dp), contiguous, optional, intent(out) :: psi_sv(:, :, first_kpt:)
     !> MPI environment (needed to read in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
     !> File handler
@@ -283,11 +318,12 @@ contains
     associate( m => size(psi, 1), n => size(psi, 2), last_kpt => ubound( psi, 3 ) )
       ptr(1:m, 1:n, 1:n_spin, first_kpt:last_kpt) => psi
     end associate
-    call read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env, handler )
+    call read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, psi_sv, &
+      mpi_env, handler )
   end subroutine
 
   !> Same as [[read_wavefunction_non_spin_polarized]], but for the spin polarized case
-  subroutine read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, psi, mpi_env, handler )
+  subroutine read_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, psi, psi_sv, mpi_env, handler )
     !> Enum containing telling if `psi` refers to \(t\), \(t-\Delta t\), or to groundstate
     integer(kind(wavefunction_case)) :: psi_case
     !> First k-point treated by this (MPI)rank
@@ -296,6 +332,8 @@ contains
     real(dp), contiguous, intent(in) :: kpt_latt(:, first_kpt:)
     !> Basis-expansion coefficients of the (spin-polarized) KS-WFs
     complex(dp), contiguous, intent(out) :: psi(:, :, :, first_kpt:)
+    !> Basis-expansion coefficients of the second-variational KS-WFs
+    complex(dp), contiguous, optional, intent(out) :: psi_sv(:, :, first_kpt:)
     !> MPI environment (needed to read in parallel over MPI procs.)
     type(mpiinfo), intent(in) :: mpi_env
     !> File handler
@@ -307,18 +345,19 @@ contains
     file_format = binary
     if( present(handler) ) file_format = handler%file_format
     associate( n_spin => size(psi, 3) )
-      call assert( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
-      call assert( size(kpt_latt, 1) == n_cartesian_coords, to_char(n_cartesian_coords) // " cartesian components are expected" )
-      call assert( size(kpt_latt, 2) == size(psi, 4), "kpt_latt and psi must be compatible.")
+      CALL_ASSERT( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
+      CALL_ASSERT( size(kpt_latt, 1) == n_cartesian_coords, to_char(n_cartesian_coords) // " cartesian components are expected" )
+      CALL_ASSERT( size(kpt_latt, 2) == size(psi, 4), "kpt_latt and psi must be compatible.")
     end associate
     select case(file_format)
       case( binary )
         call read_array( get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, mpi_env )
+        if( present(psi_sv) ) call read_array( get_filename_wavefunction_second_variation(psi_case), first_kpt, psi_sv, kpt_latt, mpi_env )
       case( hdf5 )
         call handler%assert_consistency( )
         call read_array_hdf5( handler%file_name, handler%path, get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, kpt_latt_name, mpi_env )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
   end subroutine
   
@@ -347,7 +386,7 @@ contains
     associate( m => size(psi, 1), n => size(psi, 2), last_kpt => ubound( psi, 3 ) )
       ptr(1:m, 1:n, 1:n_spin, first_kpt:last_kpt) => psi
     end associate
-    call assert( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
+    CALL_ASSERT( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
     call write_wavefunction_spin_polarized( psi_case, first_kpt, kpt_latt, ptr, mpi_env, handler, n_kpt )
   end subroutine
 
@@ -371,13 +410,13 @@ contains
     integer(i32), parameter :: n_spin_max = 2, n_cartesian_coords = 3
     integer(kind(restart_format)) :: file_format
 
-    call assert( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
+    CALL_ASSERT( present(n_kpt) .eqv. present(handler), "n_kpt must be passed when handler is present")
     file_format = binary
     if( present(handler) ) file_format = handler%file_format
     associate( n_spin => size(psi, 3) )
-      call assert( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
-      call assert( size(kpt_latt, 1) == n_cartesian_coords, "kpt_latt must have size 3 along 1st dim.")
-      call assert( size(kpt_latt, 2) == size(psi, 4), "kpt_latt and psi must be compatible.")
+      CALL_ASSERT( n_spin <= n_spin_max, "psi has more spin polarizations than allowed")
+      CALL_ASSERT( size(kpt_latt, 1) == n_cartesian_coords, "kpt_latt must have size 3 along 1st dim.")
+      CALL_ASSERT( size(kpt_latt, 2) == size(psi, 4), "kpt_latt and psi must be compatible.")
       select case(file_format)
         case( binary )
           call write_array( get_filename_wavefunction(psi_case), first_kpt, psi, kpt_latt, mpi_env=mpi_env )
@@ -386,7 +425,7 @@ contains
           call write_array_hdf5( handler%file_name, handler%path, get_filename_wavefunction(psi_case), &
             psi, first_kpt, n_kpt, kpt_latt, kpt_latt_name, mpi_env )
         case default
-          call assert( .false., "Unrecognized format" )
+          CALL_ASSERT( .false., "Unrecognized format" )
       end select
     end associate
   end subroutine
@@ -423,7 +462,7 @@ contains
         call write_array_hdf5( handler%file_name, handler%path, add_default_extension( filename_phases ), &
           phases_to_match, mpi_env, serial_access=.true. )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
   end subroutine
 
@@ -449,7 +488,7 @@ contains
         call read_array_hdf5( handler%file_name, handler%path, add_default_extension( filename_phases ), &
           phases_to_match, mpi_env )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
   end subroutine
 
@@ -521,7 +560,7 @@ contains
         call wrapper_write_complex_array_hdf5( 'veffig', veffig )
         call wrapper_write_complex_array_hdf5( 'meffig', meffig )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
     contains 
       !> Wrapper to call [[write_array_hdf5]] for complex arrays
@@ -573,7 +612,7 @@ contains
         call wrapper_read_complex_array_hdf5( 'veffig', veffig )
         call wrapper_read_complex_array_hdf5( 'meffig', meffig )
       case default
-        call assert( .false., "Unrecognized format" )
+        CALL_ASSERT( .false., "Unrecognized format" )
     end select
     contains 
       !> Wrapper to call [[read_array_hdf5]] for complex arrays

@@ -29,7 +29,7 @@ contains
         use modinput, only: input_type
         use mod_eigenvalue_occupancy, only: evalsv
         use m_genwgrid, only: genwgrid
-        use os_utils, only: make_directory_command
+        use os_utils, only: make_directory
         use modmpi, only: mpiglobal 
         use constants, only: pi
 
@@ -96,10 +96,8 @@ contains
         character(256) :: os_command
 
         do idir = 1, size(dirnames_dichroic_tensors)
-            os_command = make_directory_command(dirnames_dichroic_tensors(idir))
-            call system(trim(adjustl(os_command)))
-            os_command = make_directory_command(dirnames_oscillator_strengths(idir))
-            call system(trim(adjustl(os_command)))
+            call make_directory(dirnames_dichroic_tensors(idir), mpiglobal)
+            call make_directory(dirnames_oscillator_strengths(idir), mpiglobal)
         end do
 
         use_gw = associated(input%gw)
@@ -647,7 +645,6 @@ contains
         use modinput, only: input
         use modxs, only: bsed, escale, ivgmt, vqlmt, vgcmt, vqcmt
         use m_genfilname
-        use m_getunit
         use m_write_hdf5
         use modxs, only: symt2, ivgigq, sptclg
         use constants, only: zzero
@@ -714,8 +711,7 @@ contains
             fnexc = trim(dirname)//'/'//trim(fnexc)
 
         ! Write out exciton energies and oscillator strengths
-        call getunit(unexc)
-            open (unexc, file=fnexc, form='formatted', action='write', status='replace')
+            open (newunit=unexc, file=fnexc, form='formatted', action='write', status='replace')
             write (unexc, '("#",1x,"Excitonic eigen energies and oscillator strengths")')
             write (unexc, '("#")')
             write (unexc, '("# Momentum transfer Q=G+q in lattice cooridnates")')

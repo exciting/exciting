@@ -30,6 +30,10 @@ subroutine exccoulint(iqmt)
   use mod_xsgrids
   use mod_Gkvector, only: gkmax
   use m_getpmat, only: getpmat, getpmatxas
+  use m_status_report, only: status_report_t
+  use, intrinsic :: iso_fortran_env, only: output_unit
+  use precision, only: dp, i32, long_int
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
 ! !DESCRIPTION:
 !   Calculates the exchange term of the Bethe-Salpeter Hamiltonian.
 !
@@ -48,50 +52,59 @@ subroutine exccoulint(iqmt)
 
   character(*), parameter :: thisname = 'exccoulint'
   ! ik,jk block of V matrix (final product)
-  complex(8), allocatable :: excli(:, :)
+  complex(dp), allocatable :: excli(:, :)
   ! Auxilliary arrays for the construction of excli
-  complex(8), allocatable :: ematuok(:, :, :, :)
-  complex(8), allocatable :: muo(:,:,:)
+  complex(dp), allocatable :: ematuok(:, :, :, :)
+  complex(dp), allocatable :: muo(:,:,:)
   ! Truncated coulomb potential
-  real(8), allocatable :: potcl(:)
+  real(dp), allocatable :: potcl(:)
   ! ik jk q points 
-  integer(4) :: ikkp
-  integer(4) :: ik, iknr, ikpnr, ikmnr
-  integer(4) :: jk, jknr, jkpnr, jkmnr
-  integer(4), allocatable, target :: ikm2ikp_dummy(:,:)
+  integer(i32) :: ikkp
+  integer(i32) :: ik, iknr, ikpnr, ikmnr
+  integer(i32) :: jk, jknr, jkpnr, jkmnr
+  integer(i32), allocatable, target :: ikm2ikp_dummy(:,:)
   ! Number of occupied/unoccupied states at ik and jk
-  integer(4) :: ino, inu
+  integer(i32) :: ino, inu
   ! Number of transitions at ik and jk
-  integer(4) :: inou, jnou
+  integer(i32) :: inou, jnou
   ! State loop indices
-  integer(4) :: io, jo, iu, ju
+  integer(i32) :: io, jo, iu, ju
   ! Aux.
-  integer(4) :: igq1, numgq
+  integer(i32) :: igq1, numgq
   ! Maximal l used in the APWs and LOs
   !   Influences quality of plane wave matrix elements
-  integer(4) :: maxl_apwlo
+  integer(i32) :: maxl_apwlo
   ! Maximal l used in the Reghley expansion of exponential
   !   Influences quality of plane wave matrix elements
-  integer(4) :: maxl_e
+  integer(i32) :: maxl_e
   ! Maximal l used in the APWs and LOs in the groundstate calculations
   !   Influences quality of eigencoefficients.
-  integer(4) :: maxl_mat
+  integer(i32) :: maxl_mat
   ! Timinig vars
-  real(8) :: tpw1, tpw0
-  integer(4) :: flg_analytic
+  real(dp) :: tpw1, tpw0
+  integer(i32) :: flg_analytic
   ! momentum matrix variables
-  complex(8), allocatable :: pmuo1(:,:,:), pmuo2(:,:,:), pmou1_(:,:,:), &
+  complex(dp), allocatable :: pmuo1(:,:,:), pmuo2(:,:,:), pmou1_(:,:,:), &
                           & pmou2_(:,:,:)
-  integer(4) :: iuabs1, iuabs2, iuabs3, iuabs4
-  integer(4) :: ioabs1, ioabs2, ioabs3, ioabs4
-  integer(4) :: inu1, inu2, ino1, ino2
-  integer(4) :: comp_
+  integer(i32) :: iuabs1, iuabs2, iuabs3, iuabs4
+  integer(i32) :: ioabs1, ioabs2, ioabs3, ioabs4
+  integer(i32) :: inu1, inu2, ino1, ino2
+  integer(i32) :: comp_
 
-  integer(4) :: igqmt
+  integer(i32) :: igqmt
   logical :: fcoup
-  real(8), parameter :: epslat = 1.0d-8
+  real(dp), parameter :: epslat = 1.0d-8
   logical :: fsamekp, fsamekm
   logical :: fchibarq, chibar0
+
+  type(status_report_t) :: status_report
+
+  ! variables for opening the V file
+  integer(long_int) :: reclen
+  integer(i32) :: inquire_buffer(5)
+  complex(dp), allocatable :: inquire_zmat(:,:)
+  integer(i32) :: file_unit
+  integer(long_int) :: large_gather_size
 
   fcoup = input%xs%bse%coupling
   fchibarq = input%xs%bse%chibarq
@@ -292,6 +305,7 @@ subroutine exccoulint(iqmt)
     write(unitout, '("Info(exccoulint):&
      & Generating plane wave matrix elements for momentum transfer iqmt=",i4)') iqmt
     call timesec(tpw0)
+    call flushifc(unitout)
   end if
 
   !! Plane wave matrix elements calculation.
@@ -301,6 +315,13 @@ subroutine exccoulint(iqmt)
   ! Parallelize over non reduced k-points
   ! participating in the BSE
   call genparidxran('k', nk_bse)
+
+  call status_report%init( &
+    nreports=input%xs%BSE%BSEKernelStatusReports, &
+    niter=kparf - kpari + 1, &
+    calling_loop_name="exccoulint_k", &
+    out_unit=output_unit, &
+    start_time=tpw0)
 
   !! RR:  M_uok(G,qmt) = <iu ikm|e^{-i(G+qmt)r}|io ikp>
   !!      with ikp = ik+qmt
@@ -327,13 +348,17 @@ subroutine exccoulint(iqmt)
 
     ! and save it for all ik
     ematuok(1:inu, 1:ino, 1:numgq, ik) = muo(1:inu, 1:ino, 1:numgq)
+
+    call status_report%update()
   end do
+  call status_report%delete()
 
   ! Helper no longer needed
   if(allocated(muo)) deallocate(muo)
 
   ! Communicate array-parts wrt. k-points
-  call xmpi_allgatherv( mpiglobal, ematuok, nu_bse_max * no_bse_max * numgq * (kparf - kpari + 1) )
+  large_gather_size = int( nu_bse_max, kind = long_int ) * no_bse_max * numgq * (kparf - kpari + 1)
+  call xmpi_allgatherv( mpiglobal, ematuok, large_gather_size )
 
   if(mpiglobal%rank == 0) then
     call timesec(tpw1)
@@ -385,11 +410,27 @@ subroutine exccoulint(iqmt)
   if(mpiglobal%rank == 0) then
     write(unitout, *)
     write(unitout, '("Info(exccoulint): Generating V matrix elements")')
-    if(iqmt == 1 .or. input%xs%bse%chibarq) then 
+    write(unitout, '("Info(exccoulint): Number of contributing k-point combinations: ", i0)') nkkp_bse
+    if(iqmt == 1 .or. input%xs%bse%chibarq) then
       write(unitout, '("Info(exccoulint): Zeroing Coulomb potential at G+qmt index:", i3)') igqmt
     end if
     call timesec(tpw0)
+    call flushifc(unitout)
   end if
+
+  ! Get large enough record length (size can depend on the BSE problem)
+  allocate(inquire_zmat(nou_bse_max, nou_bse_max))
+  call inquire_large( reclen, [iqmt], inquire_buffer, inquire_zmat )
+  if (mpiglobal%is_root) then
+    call open_direct_unformatted_large( file_unit, trim( exclifname ), "write", reclen, "unknown" )
+  end if
+
+  call status_report%init( &
+    nreports=input%xs%BSE%BSEKernelStatusReports, &
+    niter=pparf - ppari + 1, &
+    calling_loop_name="exccoulint_kkp", &
+    out_unit=output_unit, &
+    start_time=tpw0)
 
   kkp: do ikkp = ppari, pparf
 
@@ -469,10 +510,18 @@ subroutine exccoulint(iqmt)
     call makeexcli(pmuo1,pmuo2,excli(1:inou,1:jnou))
 
     ! Parallel write
-    call putbsemat(exclifname, 77, ikkp, iqmt, excli)
+    call putbsemat(file_unit, 77, ikkp, iqmt, excli)
+
+    call status_report%update()
   ! End loop over(k,kp) pairs
   end do kkp
+  call status_report%delete()
   call barrier(callername=trim(thisname))
+
+  ! close excli file
+  if (mpiglobal%is_root) then
+    close(file_unit)
+  end if
 
   if(mpiglobal%rank == 0) then
     call timesec(tpw1)
@@ -495,7 +544,7 @@ subroutine exccoulint(iqmt)
 
     subroutine getmuo(muo)
       use mod_variation, only: ematqk_sv
-      complex(8), intent(out) :: muo(:,:,:)
+      complex(dp), intent(out) :: muo(:,:,:)
 
       type(bcbs) :: ematbc
       character(256) :: fileext0_save, fileext_save
@@ -567,14 +616,14 @@ subroutine exccoulint(iqmt)
     subroutine makeexcli(pmuo1,pmuo2,excli)
       ! momentum matrix elements needed for corrections of the head of the 
       !exchange matrix elements
-      complex(8), intent(in), allocatable  :: pmuo1(:,:,:), pmuo2(:,:,:)
+      complex(dp), intent(in), allocatable  :: pmuo1(:,:,:), pmuo2(:,:,:)
       ! exchange matrix elements of the BSE
-      complex(8), intent(out) :: excli(inou, jnou) 
+      complex(dp), intent(out) :: excli(inou, jnou) 
 
       ! Work arrays
-      complex(8) :: emat12(inou, numgq), emat34(jnou, numgq)
-      complex(8) :: pmat12(inou), pmat34(jnou)
-      integer(4) :: iaoff, jaoff, ia, ja, comp
+      complex(dp) :: emat12(inou, numgq), emat34(jnou, numgq)
+      complex(dp) :: pmat12(inou), pmat34(jnou)
+      integer(i32) :: iaoff, jaoff, ia, ja, comp
       logical    :: chibar0
 
       chibar0=input%xs%BSE%chibar0

@@ -6,18 +6,21 @@ subroutine checkevalqp(fname, nkp2, kvecs2, eqp2)
   use mod_bands, only: nkp1
   use mod_kpoint, only: nkpt, vkl
   use mod_eigenvalue_occupancy, only: nstsv
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
   use modgw, only: ibgw, nbgw
   use modbse, only: koulims
+  use precision, only: i32, dp, long_int
 
   implicit none
   character(*), intent(in) :: fname
-  integer, intent(in) :: nkp2
-  real(8), intent(in) :: kvecs2(3,nkp2)
-  real(8), intent(inout):: eqp2(nstsv,nkp2)
+  integer(i32), intent(in) :: nkp2
+  real(dp), intent(in) :: kvecs2(3,nkp2)
+  real(dp), intent(inout):: eqp2(nstsv,nkp2)
 
   logical       :: exist, fxas
-  integer(4)    :: recl
-  integer(4)    :: ioglobalmin, iuglobalmax, iuglobalmin
+  integer(long_int) :: recl
+  integer(i32) :: unit
+  integer(i32) :: ioglobalmin, iuglobalmax, iuglobalmin
 
   !-----------------------------------------------------------------------------
   ! Get global band index limits
@@ -38,11 +41,10 @@ subroutine checkevalqp(fname, nkp2, kvecs2, eqp2)
     stop
   end if
       
-  inquire(IoLength=recl) nkp1, ibgw, nbgw
-  open(70, File=trim(fname), Action='READ', Form='UNFORMATTED', &
-  &    Access='DIRECT', Recl=recl)
-  read(70, Rec=1) nkp1, ibgw, nbgw
-  close(70)
+  call inquire_large( recl, [nkp1, ibgw, nbgw] )
+  call open_direct_unformatted_large( unit, trim(fname), "read", recl, "old" )
+  read(unit, Rec=1) nkp1, ibgw, nbgw
+  close(unit)
   !------------------------------
   ! Data-set consistency check
   !------------------------------

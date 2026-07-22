@@ -80,7 +80,7 @@ Subroutine hartfock
 ! generate the kinetic matrix elements
       Call genkinmat
 ! find the occupation numbers and Fermi energy
-      Call occupy
+      Call occupy(input%groundstate%epsocc)
 10    Continue
 ! set last iteration flag
       tlast = .False.
@@ -117,7 +117,7 @@ Subroutine hartfock
 !x$OMP END DO
 !x$OMP END PARALLEL
 ! find the occupation numbers and Fermi energy
-         Call occupy
+         Call occupy(input%groundstate%epsocc)
 ! write out the eigenvalues and occupation numbers
          Call writeeval
 ! write the Fermi energy to file

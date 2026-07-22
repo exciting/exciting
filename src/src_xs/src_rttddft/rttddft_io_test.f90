@@ -190,8 +190,8 @@ contains
     allocate( psi(m, n, first_kpt:last_kpt), source=reshape( complex_matrix_5x7, [m, n, n_kpt_per_proc] ) )
     psi(1, 1, first_kpt) = psi(1, 1, first_kpt) + (mpiglobal%rank)*zi
     psi_ref = psi
-    call write_wavefunction(t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal)
-    call read_wavefunction(t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal )
+    call write_wavefunction(t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpi_env=mpiglobal)
+    call read_wavefunction(t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpi_env=mpiglobal)
     call test_report%assert( all_close( psi , psi_ref, tol ), report_message( test_id, tested_array // ' binary format ', test_counter) )
     call barrier()
     if( mpiglobal%is_root ) call delete_wavefunction_binary_file( t )
@@ -203,8 +203,8 @@ contains
     hdf5_handler%file_name = "rt.h5"
     hdf5_handler%path = "./"
 #ifdef _HDF5_    
-    call write_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal, hdf5_handler, n_kpt )
-    call read_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpiglobal, hdf5_handler )
+    call write_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpi_env=mpiglobal, handler=hdf5_handler, n_kpt=n_kpt )
+    call read_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi, mpi_env=mpiglobal, handler=hdf5_handler )
     call test_report%assert( all_close( psi , psi_ref, tol ), report_message( test_id, tested_array // ' HDF5 format ', test_counter) )
     call barrier
     if( mpiglobal%is_root ) call delete_file( hdf5_handler%file_name, i_err )
@@ -222,17 +222,17 @@ contains
     psi_spin(1, 1, 2, first_kpt) = psi_spin(1, 1, 2, first_kpt)**2 - (mpiglobal%rank)*zi
     psi_spin_ref = psi_spin
     call write_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal )
-    call read_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal )
+    call read_wavefunction( t_minus_dt, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpi_env=mpiglobal )
     call test_report%assert( all_close( psi_spin , psi_spin_ref, tol ), report_message( test_id, tested_array // ' binary format - spin', test_counter) )
     call barrier
     if( mpiglobal%is_root ) call delete_wavefunction_binary_file( t_minus_dt )
     call barrier
 
-    ! Spin-polarized case, format: HDF5
+    ! Spin-polarized case, format: HDF5 (not yet implemented)
     test_counter = 4
 #ifdef _HDF5_     
     call write_wavefunction( t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal, hdf5_handler, n_kpt )
-    call read_wavefunction( t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpiglobal, hdf5_handler )
+    call read_wavefunction( t, first_kpt, kpt_latt(:, first_kpt:last_kpt), psi_spin, mpi_env=mpiglobal, handler=hdf5_handler )
     call test_report%assert( all_close( psi_spin , psi_spin_ref, tol ), report_message( test_id, tested_array // ' HDF5 format - spin', test_counter) )
     call barrier
     if( mpiglobal%is_root ) call delete_file( hdf5_handler%file_name, i_err )
@@ -272,9 +272,9 @@ contains
     
     ! Test read/write in binary format
     test_counter = 1
-    call write_pmat( first_kpt, pmat, mpiglobal )
+    call write_pmat( first_kpt, pmat(:, :, 1, :), pmat(:, :, 2, :), pmat(:, :, 3, :), mpiglobal )
     call test_report%assert( file_pmat_exists( ), report_message( test_id, tested_array // ' binary file not found', test_counter) )
-    call read_pmat( first_kpt, pmat, mpiglobal )
+    call read_pmat( first_kpt, pmat(:, :, 1, :), pmat(:, :, 2, :), pmat(:, :, 3, :), mpiglobal )
     call test_report%assert( all_close( pmat , pmat_ref, tol ), report_message( test_id, tested_array // ' binary format', test_counter) )
     call barrier
     if( mpiglobal%is_root ) call delete_pmat_binary_file()
@@ -285,10 +285,12 @@ contains
     hdf5_handler%file_format = hdf5
     hdf5_handler%file_name = "rt.h5"
     hdf5_handler%path = "./"   
-    call write_pmat( first_kpt, pmat_ref, mpiglobal, hdf5_handler, n_kpt )
+    call write_pmat( first_kpt, pmat_ref(:, :, 1, :), pmat_ref(:, :, 2, :), pmat_ref(:, :, 3, :), &
+      mpiglobal, hdf5_handler, n_kpt )
     call test_report%assert( file_pmat_exists( hdf5_handler, mpiglobal ), &
-      report_message( test_id, tested_array // ' HDF5 file not found', test_counter) )
-    call read_pmat( first_kpt, pmat, mpiglobal, hdf5_handler )
+      test_id // ' - ' // tested_array // ' HDF5 file not found, test - ' // to_char(test_counter) )
+    call read_pmat( first_kpt, pmat(:, :, 1, :), pmat(:, :, 2, :), pmat(:, :, 3, :), &
+      mpiglobal, hdf5_handler )
     call test_report%assert( all_close( pmat , pmat_ref, tol ), report_message( test_id, tested_array // ' HDF5 format', test_counter) )
     call barrier()
     if( mpiglobal%is_root ) call delete_file( hdf5_handler%file_name, i_err )

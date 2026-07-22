@@ -8,8 +8,7 @@ module phonons_density_potential
   use m_zfftifc, only: zfftifc
 
   use precision, only: dp
-  use asserts, only: assert
-
+#include "asserts.fpp"
   implicit none
   private
 
@@ -851,8 +850,7 @@ module phonons_density_potential
       lspl = lsplsymc(isym)
       call r3mtv( dble( symlat(:, :, lspl) ), vql, vql_rot )
       shift = nint( vql_rot - vql0 )
-      call assert( sum( abs( vql_rot - vql0 - shift ) ) < 1e-6_dp, &
-        '`vql` and `vql0` are not related by given symmetry.' )
+      CALL_ASSERT( sum( abs( vql_rot - vql0 - shift ) ) < 1e-6_dp,  '`vql` and `vql0` are not related by given symmetry.' )
 
       ! get symmetry matrix Gamma
       sym_G = ph_util_symmetry_G( isym, vql0 )

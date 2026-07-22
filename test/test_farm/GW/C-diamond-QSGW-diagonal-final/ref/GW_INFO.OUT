@@ -1,0 +1,2 @@
+This is a dummy file because the current test suit is expecting a GW_INFO.OUT for GW calculation, but in this case this file is not generated.
+This behaviour is intended in this case, as we are running and testing the GS part of the last run of a QSGW run.

@@ -13,9 +13,11 @@ subroutine kernxc_bse
   use mod_APW_LO, only: lolmax
   use mod_qpoint, only: nqpt
   use mod_kpoint, only: nkptnr
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
   use mod_misc, only: task
   use mod_lattice, only: omega
   use constants, only: zi, zone, zzero
+  use precision, only: i32, long_int, dp, str_256
 #ifdef TETRA      
   use modtetra
 #endif
@@ -38,7 +40,6 @@ subroutine kernxc_bse
   use m_genwgrid
   use m_xszoutpr3
   use m_getpemat
-  use m_getunit
   use m_genfilname
   use m_putgetbsemat
   use m_ematqk
@@ -57,41 +58,42 @@ subroutine kernxc_bse
 
   ! local variables
   character(*), parameter :: thisname = 'kernxc_bse'
-  integer(4), parameter :: iqmt = 1, noptc = 3
+  integer(i32), parameter :: iqmt = 1, noptc = 3
 
-  character(256) :: filnam2, filnam3, filnam4
-  integer(4) :: iw, wi, wf, nwdfp, n, reclen, un, un2, un3, j1, j2, oct
-  integer(4) :: ikkp, iknr, jknr, iknrq, jknrq, igq1, igq2
-  integer(4) :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24
-  real(8) :: t1, brd
-  real(8) :: cpu_init1offs, cpu_ematrad, cpu_ematqalloc, cpu_ematqk1
-  real(8) :: cpu_ematqdealloc, cpu_clph, cpu_suma, cpu_write
-  complex(8) :: zt1
+  character(str_256) :: filnam2, filnam3, filnam4
+  integer(i32) :: iw, wi, wf, nwdfp, n, un, un2, un3, j1, j2, oct
+  integer(long_int) :: reclen
+  integer(i32) :: ikkp, iknr, jknr, iknrq, jknrq, igq1, igq2
+  integer(i32) :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24
+  real(dp) :: t1, brd
+  real(dp) :: cpu_init1offs, cpu_ematrad, cpu_ematqalloc, cpu_ematqk1
+  real(dp) :: cpu_ematqdealloc, cpu_clph, cpu_suma, cpu_write
+  complex(dp) :: zt1
 
   ! allocatable arrays
-  real(8), allocatable :: dek(:, :), dok(:, :), scisk(:, :)
-  real(8), allocatable :: dekp(:, :), dokp(:, :), sciskp(:, :)
-  real(8), allocatable :: deval(:, :, :), docc(:, :, :), scis(:, :, :)
-  real(8), allocatable :: dde(:, :)
-  complex(8), allocatable :: zmr(:, :), zmq(:, :), zmra(:, :), zmqa(:, :)
-  complex(8), allocatable :: scclit(:, :), scclith(:, :), sccli(:, :, :, :)
-  complex(8), allocatable :: emat(:, :, :, :), emata(:, :, :, :)
-  complex(8), allocatable :: den1(:), den2(:), den1a(:), den2a(:)
-  complex(8), allocatable :: emat12p(:, :), emat12pa(:, :)
-  complex(8), allocatable :: emat12k(:, :, :), emat12kp(:, :, :)
-  complex(8), allocatable :: emat12ka(:, :, :), emat12kpa(:, :, :)
-  complex(8), allocatable :: residr(:, :), residq(:, :), osca(:, :), oscb(:, :)
-  complex(8), allocatable :: residra(:, :), residqa(:, :), oscaa(:, :), oscba(:, :)
-  complex(8), allocatable :: fxc(:, :, :), w(:), bsedg(:, :), bufou(:, :, :),&
+  real(dp), allocatable :: dek(:, :), dok(:, :), scisk(:, :)
+  real(dp), allocatable :: dekp(:, :), dokp(:, :), sciskp(:, :)
+  real(dp), allocatable :: deval(:, :, :), docc(:, :, :), scis(:, :, :)
+  real(dp), allocatable :: dde(:, :)
+  complex(dp), allocatable :: zmr(:, :), zmq(:, :), zmra(:, :), zmqa(:, :)
+  complex(dp), allocatable :: scclit(:, :), scclith(:, :), sccli(:, :, :, :)
+  complex(dp), allocatable :: emat(:, :, :, :), emata(:, :, :, :)
+  complex(dp), allocatable :: den1(:), den2(:), den1a(:), den2a(:)
+  complex(dp), allocatable :: emat12p(:, :), emat12pa(:, :)
+  complex(dp), allocatable :: emat12k(:, :, :), emat12kp(:, :, :)
+  complex(dp), allocatable :: emat12ka(:, :, :), emat12kpa(:, :, :)
+  complex(dp), allocatable :: residr(:, :), residq(:, :), osca(:, :), oscb(:, :)
+  complex(dp), allocatable :: residra(:, :), residqa(:, :), oscaa(:, :), oscba(:, :)
+  complex(dp), allocatable :: fxc(:, :, :), w(:), bsedg(:, :), bufou(:, :, :),&
     & bufuo(:, :, :), pufou(:, :, :), pufuo(:, :, :)
 
-  character(256) :: sfname, sinfofname
+  character(str_256) :: sfname, sinfofname
   type(bcbs) :: bc
-  logical :: sfcmpt, sfid
+  logical(i32) :: sfcmpt, sfid
 
   ! external functions
-  integer(4), external :: idxkkp, l2int
-  logical, external :: tqgamma
+  integer(i32), external :: idxkkp, l2int
+  logical(i32), external :: tqgamma
 
   ! check that if kohn-sham response is time-ordered, so is the setting for the kernel
   if(input%xs%tddft%tordfxc .neqv. input%xs%tddft%torddf) then
@@ -107,7 +109,7 @@ subroutine kernxc_bse
   call init0
   call init1
   call init2
-
+!
   ! save variables for the gamma q-point
   call xssave0
 
@@ -251,7 +253,7 @@ subroutine kernxc_bse
 
   ! generate energy grid
   call genwgrid(nwdf, input%xs%energywindow%intv, input%xs%tddft%acont,&
-    & 0.d0, w_cmplx=w)
+    & 0.0_dp, w_cmplx=w)
 
   ! precalculate matrix elements
   !   calculate radial integrals
@@ -384,14 +386,14 @@ subroutine kernxc_bse
 
       jknrq = ikmapikq(jknr, iqmt)
 
-      cpu_init1offs = 0.d0
-      cpu_ematrad = 0.d0
-      cpu_ematqalloc = 0.d0
-      cpu_ematqk1 = 0.d0
-      cpu_ematqdealloc = 0.d0
-      cpu_clph = 0.d0
-      cpu_suma = 0.d0
-      cpu_write = 0.d0
+      cpu_init1offs = 0.0_dp
+      cpu_ematrad = 0.0_dp
+      cpu_ematqalloc = 0.0_dp
+      cpu_ematqk1 = 0.0_dp
+      cpu_ematqdealloc = 0.0_dp
+      cpu_clph = 0.0_dp
+      cpu_suma = 0.0_dp
+      cpu_write = 0.0_dp
 
       if(iknr .le. jknr) then
         ! index for upper triangle
@@ -601,27 +603,23 @@ subroutine kernxc_bse
     & acont=input%xs%tddft%acont, nar= .not. input%xs%tddft%aresfxc,&
     & tord=input%xs%tddft%tordfxc, iqmt=iqmt, filnam=filnam2)
    
-  call getunit(un)
-  open(un, file=trim(filnam2), form='formatted', action='write', status='replace')
+  open(newunit=un, file=trim(filnam2), form='formatted', action='write', status='replace')
 
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE', asc=.false., bzsampl=bzsampl,&
     & acont=input%xs%tddft%acont, nar= .not. input%xs%tddft%aresfxc,&
     & tord=input%xs%tddft%tordfxc, iqmt=iqmt, filnam=filnam3)
-
-  inquire(iolength=reclen) n, fxc(-3:-1,-3:-1, 1), fxc(-3:-1, 1:, 1),&
-    & fxc(1:,-3:-1, 1), fxc(1:, 1:, 1)
-  call getunit(un2)
-  open(un2, file=trim(filnam3), form='unformatted', action='write',&
-    & status='replace', access='direct', recl=reclen)
+  
+  call inquire_large( reclen, [n], fxc(-3:-1,-3:-1, 1), fxc(-3:-1, 1:, 1),&
+    & fxc(1:,-3:-1, 1), fxc(1:, 1:, 1) )
+  call open_direct_unformatted_large( un2, trim( filnam3 ), "write", reclen, "replace" )
 
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE_HEAD', asc=.false., &
     & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .not. input%xs%tddft%aresfxc,&
     & tord=input%xs%tddft%tordfxc, iqmt=iqmt, filnam=filnam4)
 
-  call getunit(un3)
-  open(un3, file=trim(filnam4), form='formatted', action='write', status='replace')
+  open(newunit=un3, file=trim(filnam4), form='formatted', action='write', status='replace')
 
   do iw = 1, nwdf
     write(un2, rec=iw) n, fxc(-3:-1,-3:-1, iw), fxc(-3:-1, 1:, iw),&

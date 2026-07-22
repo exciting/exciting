@@ -1,10 +1,9 @@
 
 module mod_vxc
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zzero, zone
   use gw_io, only: file_format_binary, file_format_text
   use modmpi, only: terminate_if_false
-  use m_getunit, only: getunit
   use precision, only: dp, i32
 
   implicit none
@@ -43,11 +42,26 @@ module mod_vxc
   !> Singleton with the diagonal matrix elements of the exchange-correlation potential
   type(vxc_diagonal_elements), public, protected :: vxcnn
 
-  public :: calcvxcnn, read_vxcnn, write_vxcnn, deallocate_vxcnn
+  public :: calcvxcnn, deallocate_vxcnn, get_vxcnn_file_name, read_vxcnn, write_vxcnn
 
 contains
+  !> Return the VXCNN file name for a task-group output format.
+  pure function get_vxcnn_file_name(file_format) result(file_name)
+    !> Task-group output format.
+    character(len=*), intent(in) :: file_format
+    !> VXCNN file name including extension.
+    character(len=len(file_name_vxcnn) + len(extension_binary_format)) :: file_name
+
+    if (trim(file_format) == file_format_text) then
+      file_name = file_name_vxcnn // extension_text_format
+    else
+      file_name = file_name_vxcnn // extension_binary_format
+    end if
+  end function get_vxcnn_file_name
+
   !> Initialize the components of an object with type `vxc_diagonal_elements`
   subroutine init_components( this, first_band, last_band, kpt_indexes, kpt_lattice_coord, vxcnn_elements )
+    !> Diagonal VXC object to initialize.
     class(vxc_diagonal_elements), intent(out) :: this
     !> Index of the first Kohn-Sham band
     integer(i32), intent(in) :: first_band
@@ -60,12 +74,11 @@ contains
     !> When present, initialize `diag_elements` with this array
     complex(dp), intent(in), optional :: vxcnn_elements(first_band:, :)
 
-    call assert( size(kpt_indexes) == size(kpt_lattice_coord, 2), &
-      'kpt_indexes and kpt_lattice_coord have incompatible sizes' )
-    call assert( size(kpt_lattice_coord, 1)==3, 'kpt_lattice_coord must have size 3 along 1st dim.' )
+    CALL_ASSERT( size(kpt_indexes) == size(kpt_lattice_coord, 2),  'kpt_indexes and kpt_lattice_coord have incompatible sizes' )
+    CALL_ASSERT( size(kpt_lattice_coord, 1)==3, 'kpt_lattice_coord must have size 3 along 1st dim.' )
     if( present( vxcnn_elements ) ) then 
-      call assert( size( vxcnn_elements, 2 ) == size(kpt_indexes), 'vxcnn_elements and kpt_indexes must have compatible sizes')
-      call assert( ubound( vxcnn_elements, 1 ) == last_band, 'vxcnn_elements must have ubound along 1st dim. equal to last_band')
+      CALL_ASSERT( size( vxcnn_elements, 2 ) == size(kpt_indexes), 'vxcnn_elements and kpt_indexes must have compatible sizes')
+      CALL_ASSERT( ubound( vxcnn_elements, 1 ) == last_band, 'vxcnn_elements must have ubound along 1st dim. equal to last_band')
       allocate( this%diag_elements, source=vxcnn_elements )
     else 
       allocate( this%diag_elements(first_band:last_band, size(kpt_indexes) ), source=zzero )
@@ -75,15 +88,18 @@ contains
 
   end subroutine
 
-  
+
+  !> Deallocate the components of a `vxc_diagonal_elements` object.
   subroutine deallocate_components( this )
+    !> Diagonal VXC object to deallocate.
     class(vxc_diagonal_elements), intent(inout) :: this
 
     deallocate( this%diag_elements, this%kpt_indexes, this%kpt_lattice_coord )
   end subroutine
 
 
-  subroutine deallocate_vxcnn 
+  !> Deallocate the module-level VXCNN object.
+  subroutine deallocate_vxcnn
     call vxcnn%deallocate_components()
   end subroutine
 
@@ -97,9 +113,9 @@ contains
     !> Index of the last KS band to write to the output file
     integer(i32), intent(in) :: last_band_to_write
 
-    call assert( allocated( vxcnn%diag_elements ), 'vxcnn%diag_elements not allocated' )
-    call assert( first_band_to_write >= lbound( vxcnn%diag_elements, 1 ), 'first_band_to_write out of bounds' )
-    call assert( last_band_to_write <= ubound( vxcnn%diag_elements, 1 ), 'last_band_to_write out of bounds' )
+    CALL_ASSERT( allocated( vxcnn%diag_elements ), 'vxcnn%diag_elements not allocated' )
+    CALL_ASSERT( first_band_to_write >= lbound( vxcnn%diag_elements, 1 ), 'first_band_to_write out of bounds' )
+    CALL_ASSERT( last_band_to_write <= ubound( vxcnn%diag_elements, 1 ), 'last_band_to_write out of bounds' )
 
     select case( trim(file_format) )
     case( file_format_text )
@@ -122,8 +138,7 @@ contains
 
     integer(i32) :: fid, ik, i, j
 
-    call getunit( fid )
-    open( fid, file=file_name_vxcnn//extension_text_format, form='FORMATTED', status='UNKNOWN' )
+    open( newunit=fid, file=get_vxcnn_file_name(file_format_text), form='FORMATTED', status='UNKNOWN' )
     write( fid, '(3I10,A)' ) first_band_to_write, last_band_to_write, &
       size( vxcnn%diag_elements, 2 ), ' : index of first band, index of last band, number of k-points '
     do j = 1, size( vxcnn%kpt_indexes )
@@ -148,9 +163,7 @@ contains
 
     integer(i32) :: fid, j
 
-    call getunit(fid)
-
-    open( fid, file=file_name_vxcnn//extension_binary_format, Form='UNFORMATTED', Status='UNKNOWN' )
+    open( newunit=fid, file=get_vxcnn_file_name(file_format_binary), Form='UNFORMATTED', Status='UNKNOWN' )
     write( fid ) first_band_to_write, last_band_to_write, size( vxcnn%diag_elements, 2 )
     do j = 1, size( vxcnn%kpt_indexes )
       write( fid ) vxcnn%kpt_indexes(j), vxcnn%kpt_lattice_coord(:, j), &
@@ -163,6 +176,7 @@ contains
 
   !> Read VXC stored in a file
   subroutine read_vxcnn( file_format )
+    !> Format of the input file.
     character(len=*), intent(in) :: file_format
 
     select case( trim(file_format) )
@@ -187,9 +201,7 @@ contains
     real(dp), allocatable :: kpt_lattice_coord(:, :)
     complex(dp), allocatable :: vxcnn_elements(:, :)
 
-
-    call getunit(fid)
-    open( fid, file=file_name_vxcnn//extension_text_format, form='FORMATTED', status='UNKNOWN', action="READ" )
+    open( newunit=fid, file=get_vxcnn_file_name(file_format_text), form='FORMATTED', status='UNKNOWN', action="READ" )
     read( fid, * ) first_band, last_band, n_kpts
     allocate( kpt_indexes(n_kpts), kpt_lattice_coord(3, n_kpts) )
     allocate( vxcnn_elements(first_band:last_band, n_kpts) )
@@ -216,9 +228,7 @@ contains
     real(dp), allocatable :: kpt_lattice_coord(:, :)
     complex(dp), allocatable :: vxcnn_elements(:, :)
 
-
-    call getunit(fid)
-    open( fid, file=file_name_vxcnn//extension_binary_format, form='UNFORMATTED', status='UNKNOWN', action="READ" )
+    open( newunit=fid, file=get_vxcnn_file_name(file_format_binary), form='UNFORMATTED', status='UNKNOWN', action="READ" )
     read( fid ) first_band, last_band, n_kpts
     allocate( kpt_indexes(n_kpts), kpt_lattice_coord(3, n_kpts) )
     allocate( vxcnn_elements(first_band:last_band, n_kpts) )
@@ -381,8 +391,8 @@ contains
       do ispace = ispace_init, ispace_final
         lowband  = degenerate_subspaces(1, ispace, ikp)
         upband   = degenerate_subspaces(2, ispace, ikp)
-        call assert( lowband >= first_band, 'lowband is smaller than first_band' )
-        call assert( upband <= last_band, 'upband is larger than last_band' )
+        CALL_ASSERT( lowband >= first_band, 'lowband is smaller than first_band' )
+        CALL_ASSERT( upband <= last_band, 'upband is larger than last_band' )
         size_deg = degenerate_subspaces(3, ispace, ikp)
         vxcnn%diag_elements(lowband:upband, i) = sum( vxcnn%diag_elements(lowband:upband, i) ) / size_deg
       end do

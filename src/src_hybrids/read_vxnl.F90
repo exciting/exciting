@@ -1,18 +1,19 @@
 
 subroutine read_vxnl()
 
+    use mod_large_io, only: inquire_large, open_direct_unformatted_large
     use modmain,     only: nkpt, nstfv, wkpt
     use mod_bands,   only: nomax
     use mod_hybrids, only: vxnl, fname_vxnl
     use modmpi,      only: rank
-    use m_getunit
+    use precision, only: i32, long_int
     implicit none
 
     ! local variables
-    integer  :: ik, nkpt_, ib, nstfv_
+    integer(i32) :: ik, nkpt_, ib, nstfv_
     integer  :: ikfirst, iklast
-    integer  :: fid
-    integer  :: Recl
+    integer(i32) :: fid
+    integer(long_int) :: Recl
     logical  :: exist
 
 !$OMP CRITICAL
@@ -23,10 +24,8 @@ subroutine read_vxnl()
       stop
     end if
 
-    inquire(IoLength=recl) nkpt_, nstfv_
-    call getunit(fid)
-    open(fid, File=fname_vxnl, Action='READ', Form='UNFORMATTED', &
-    &    Access='DIRECT', Recl=recl)
+    call inquire_large( Recl, [nkpt_, nstfv_] )
+    call open_direct_unformatted_large( fid, fname_vxnl, "read", Recl, "old" )
     read(fid, Rec=1) nkpt_, nstfv_
     close(fid)
 
@@ -47,10 +46,8 @@ subroutine read_vxnl()
     if (allocated(vxnl)) deallocate(vxnl)
     allocate(vxnl(nstfv,nstfv,nkpt))
 
-    inquire(IoLength=recl) nkpt_, nstfv_, vxnl(:,:,1)
-    call getunit(fid)
-    open(fid, File=fname_vxnl, Action='READ', Form='UNFORMATTED', &
-    &    Access='DIRECT', Recl=Recl)
+    call inquire_large( Recl, [nkpt_, nstfv_], vxnl(:,:,1) )
+    call open_direct_unformatted_large( fid, fname_vxnl, "read", Recl, "old" )
     do ik = 1, nkpt
       read(fid, Rec=ik) nkpt_, nstfv_, vxnl(:,:,ik)
     end do ! ik

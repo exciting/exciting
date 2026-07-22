@@ -21,7 +21,7 @@ module kinetic_energy_density
     use kinetic_energy_density_cr, only: gen_ked_cr
     use kinetic_energy_density_ir, only: gen_ked_ir
     use precision, only: dp
-    use asserts, only: assert
+
     use constants, only: zzero, zone
     use mod_atoms, only: nspecies, natmtot, spnrmax, spnr, natoms, idxas
     use modinput, only: input
@@ -29,6 +29,7 @@ module kinetic_energy_density
     use modmpi, only : mpi_env_k, distribute_loop
     use mod_eigensystem, only: nmatmax
     use mod_eigenvalue_occupancy, only: nstfv, nstsv
+    use mod_getoccsv, only: getoccsv
     use mod_spin, only: ncmag, nspnfv, ndmag
     use mod_muffin_tin, only : nrcmtmax, nrmt
     use muffin_tin_basis, only: mt_basis_type

@@ -16,7 +16,6 @@ Contains
          Use modinput
          Use modxs
          Use modmpi
-         Use m_getunit
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq, ik, ngp
@@ -125,12 +124,11 @@ Contains
     !------------------------!
     !     get parameters     !
     !------------------------!
-         Call getunit (un)
          If (present(x34)) Then
        ! I/O record length
             Inquire (IoLength=Recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, &
            & l2_, h2_, l3_, h3_, l4_, h4_
-            Open (Unit=un, File=trim(filnam), Form='unformatted', &
+            Open (newunit=un, File=trim(filnam), Form='unformatted', &
            & Action='read', Access='direct', Recl=Recl)
             Read (un, Rec=1) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, &
            & h2_, l3_, h3_, l4_, h4_
@@ -139,7 +137,7 @@ Contains
        ! I/O record length
             Inquire (IoLength=Recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, &
            & l2_, h2_
-            Open (Unit=un, File=trim(filnam), Form='unformatted', &
+            Open (newunit=un, File=trim(filnam), Form='unformatted', &
            & Action='read', Access='direct', Recl=Recl)
             Read (un, Rec=1) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, &
            & h2_
@@ -183,12 +181,11 @@ Contains
          End If
          Allocate (x12t(n1_, n2_, ngq_))
          If (present(x34)) allocate (x34t(n3_, n4_, ngq_))
-         Call getunit (un)
          If (present(x34)) Then
        ! I/O record length
             Inquire (IoLength=Recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, &
            & l2_, h2_, l3_, h3_, l4_, h4_, x12t, x34t
-            Open (Unit=un, File=trim(filnam), Form='unformatted', &
+            Open (newunit=un, File=trim(filnam), Form='unformatted', &
            & Action='read', Access='direct', Recl=Recl)
             Read (un, Rec=ikr) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, &
            & h2_, l3_, h3_, l4_, h4_, x12t, x34t
@@ -196,7 +193,7 @@ Contains
        ! I/O record length
             Inquire (IoLength=Recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, &
            & l2_, h2_, x12t
-            Open (Unit=un, File=trim(filnam), Form='unformatted', &
+            Open (newunit=un, File=trim(filnam), Form='unformatted', &
            & Action='read', Access='direct', Recl=Recl)
             Read (un, Rec=ikr) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, &
            & h2_, x12t

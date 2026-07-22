@@ -23,7 +23,7 @@
 !>
 subroutine dshmul( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use gaunt
   !> maximum angular momentum \(l\) in expansion of first function \(f_1({\bf r})\)
   integer, intent(in) :: lmax1
@@ -55,10 +55,10 @@ subroutine dshmul( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
 
   real(dp), allocatable :: tmp(:), res(:,:), f1c(:,:), f2c(:,:)
 
-  call assert( lmax1 >= 0, 'dshmul: Invalid argumemt: lmax1 must not be negative.')
-  call assert( lmax2 >= 0, 'dshmul: Invalid argumemt: lmax2 must not be negative.')
-  call assert( lmax3 >= 0, 'dshmul: Invalid argumemt: lmax3 must not be negative.')
-  call assert( nr > 0, 'dshmul: Invalid argument: nr must be positive.')
+  CALL_ASSERT( lmax1 >= 0, 'dshmul: Invalid argumemt: lmax1 must not be negative.')
+  CALL_ASSERT( lmax2 >= 0, 'dshmul: Invalid argumemt: lmax2 must not be negative.')
+  CALL_ASSERT( lmax3 >= 0, 'dshmul: Invalid argumemt: lmax3 must not be negative.')
+  CALL_ASSERT( nr > 0, 'dshmul: Invalid argument: nr must be positive.')
 
   lmmax1 = (lmax1 + 1)**2
   lmmax2 = (lmax2 + 1)**2
@@ -124,7 +124,7 @@ end subroutine dshmul
 !>
 subroutine zshmul( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use gaunt
   !> maximum angular momentum \(l\) in expansion of first function \(f_1({\bf r})\)
   integer, intent(in) :: lmax1
@@ -156,10 +156,10 @@ subroutine zshmul( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
 
   complex(dp), allocatable :: tmp(:), res(:,:)
 
-  call assert( lmax1 >= 0, 'zshmul: Invalid argumemt: lmax1 must not be negative.')
-  call assert( lmax2 >= 0, 'zshmul: Invalid argumemt: lmax2 must not be negative.')
-  call assert( lmax3 >= 0, 'zshmul: Invalid argumemt: lmax3 must not be negative.')
-  call assert( nr > 0, 'zshmul: Invalid argument: nr must be positive.')
+  CALL_ASSERT( lmax1 >= 0, 'zshmul: Invalid argumemt: lmax1 must not be negative.')
+  CALL_ASSERT( lmax2 >= 0, 'zshmul: Invalid argumemt: lmax2 must not be negative.')
+  CALL_ASSERT( lmax3 >= 0, 'zshmul: Invalid argumemt: lmax3 must not be negative.')
+  CALL_ASSERT( nr > 0, 'zshmul: Invalid argument: nr must be positive.')
 
   lmmax1 = (lmax1 + 1)**2
   lmmax2 = (lmax2 + 1)**2
@@ -224,7 +224,7 @@ end subroutine zshmul
 !>
 subroutine zshmulc( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use gaunt
   !> maximum angular momentum \(l\) in expansion of first function \(f_1({\bf r})\)
   integer, intent(in) :: lmax1
@@ -256,10 +256,10 @@ subroutine zshmulc( lmax1, lmax2, lmax3, nr, a, f1, ld1, f2, ld2, b, f3, ld3)
 
   complex(dp), allocatable :: tmp(:), res(:,:)
 
-  call assert( lmax1 >= 0, 'zshmulc: Invalid argumemt: lmax1 must not be negative.')
-  call assert( lmax2 >= 0, 'zshmulc: Invalid argumemt: lmax2 must not be negative.')
-  call assert( lmax3 >= 0, 'zshmulc: Invalid argumemt: lmax3 must not be negative.')
-  call assert( nr > 0, 'zshmulc: Invalid argument: nr must be positive.')
+  CALL_ASSERT( lmax1 >= 0, 'zshmulc: Invalid argumemt: lmax1 must not be negative.')
+  CALL_ASSERT( lmax2 >= 0, 'zshmulc: Invalid argumemt: lmax2 must not be negative.')
+  CALL_ASSERT( lmax3 >= 0, 'zshmulc: Invalid argumemt: lmax3 must not be negative.')
+  CALL_ASSERT( nr > 0, 'zshmulc: Invalid argument: nr must be positive.')
 
   lmmax1 = (lmax1 + 1)**2
   lmmax2 = (lmax2 + 1)**2

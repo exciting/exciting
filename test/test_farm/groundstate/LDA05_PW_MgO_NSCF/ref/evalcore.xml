@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evalcore>
+  <species is="1" chemicalSymbol="Mg">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-4.563526830833e1"/>
+      <state ist="2" n="2" l="0" k="1" eigenvalue="-2.496375745347e0"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-1.306218434519e0"/>
+      <state ist="4" n="2" l="1" k="2" eigenvalue="-1.295657663806e0"/>
+    </atom>
+  </species>
+  <species is="2" chemicalSymbol="O">
+    <atom ia="1">
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-1.823109442434e1"/>
+    </atom>
+  </species>
+</evalcore>

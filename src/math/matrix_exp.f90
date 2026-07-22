@@ -1,6 +1,6 @@
 !> Module computing the matrix exponential
 module matrix_exp
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zone, zzero
   use math_utils, only: is_hermitian, is_positive_definite
   use general_matrix_multiplication, only: matrix_multiply
@@ -68,9 +68,9 @@ contains
     if( present(tol) ) tolerance = tol
 
     ! Sanity checks
-    call assert( dim_H == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
-    call assert( is_positive_definite( S, tolerance ), 'S is not positive definite' )
-    call assert( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
+    CALL_ASSERT( dim_H == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
+    CALL_ASSERT( is_positive_definite( S, tolerance ), 'S is not positive definite' )
+    CALL_ASSERT( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
 
     ! Taylor expansion
     do it = 1, order_taylor
@@ -117,9 +117,9 @@ contains
     if( present(tol) ) tolerance = tol
 
     ! Sanity checks
-    call assert( size( H, 1 ) == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
-    call assert( is_positive_definite( S, tolerance ), 'S is not positive definite' )
-    call assert( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
+    CALL_ASSERT( size( H, 1 ) == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
+    CALL_ASSERT( is_positive_definite( S, tolerance ), 'S is not positive definite' )
+    CALL_ASSERT( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
 
     ! Taylor expansion
     do it = 1, order_taylor
@@ -210,10 +210,10 @@ contains
     n_vectors = size( vectors, 2 )
 
     ! Sanity checks
-    call assert( n_expansion <= matrix_dim, 'more eigenvectors than matrix_dim are requested' )
-    call assert( size( H, 1 ) == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
-    call assert( is_positive_definite( S, tolerance ), 'S is not positive definite' )
-    call assert( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
+    CALL_ASSERT( n_expansion <= matrix_dim, 'more eigenvectors than matrix_dim are requested' )
+    CALL_ASSERT( size( H, 1 ) == size( vectors, 1 ), 'H and vectors have incompatible sizes.' )
+    CALL_ASSERT( is_positive_definite( S, tolerance ), 'S is not positive definite' )
+    CALL_ASSERT( size( S, 1 ) == size( vectors, 1 ), 'S and vectors have incompatible sizes.' )
 
     allocate( eigenvectors(matrix_dim, n_expansion), aux(matrix_dim, n_vectors) )
     allocate( proj(n_expansion, n_vectors), aux_exp(matrix_dim, n_expansion), eigenvalues(n_expansion) )

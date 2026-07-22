@@ -8,14 +8,16 @@ Subroutine setup_YY (iscl, n, S, Y, YY)
      & YHIST, qmx, RedPred, RedOld, PM1, qmx_input, noldsteps, MUSE, &
      & MSECINFO, IDSCALE, residual, dmix_last, DIAG, dmixout, rtrap
       Use mod_Gvector, Only: ngrtot
+      Use precision, Only: i32, long_int, dp
       Implicit None
-      Integer, Intent (In) :: iscl, n
-      Real (8), Intent (In) :: S (n, noldstepsmax), Y (n, noldstepsmax)
-      Real (8), Intent (Out) :: YY (noldstepsmax, noldstepsmax)
-      Real (8) :: SS (noldstepsmax, noldstepsmax)
-      Real (8), Parameter :: dbase = 0.005D0
-      Real (8) :: ascl1, DMIXM, DMIX
-      Integer :: k, j
+      Integer(i32), Intent (In) :: iscl
+      Integer(long_int), Intent (In) :: n
+      Real(dp), Intent (In) :: S (n, noldstepsmax), Y (n, noldstepsmax)
+      Real(dp), Intent (Out) :: YY (noldstepsmax, noldstepsmax)
+      Real(dp) :: SS (noldstepsmax, noldstepsmax)
+      Real(dp), Parameter :: dbase = 0.005_dp
+      Real(dp) :: ascl1, DMIXM, DMIX
+      Integer(i32) :: k, j
 !--------------------------------------------------------------------
 !       Generate the noldstepsmax x noldstepsmax Matrices
 !       Also generate scaling information
@@ -37,8 +39,8 @@ Subroutine setup_YY (iscl, n, S, Y, YY)
             YY (k, j) = YY (j, k)
          End Do
       End Do
-      DIAG = Max (DIAG, 1D-12)
-      DIAG = Min (DIAG, 0.1D0)
+      DIAG = Max (DIAG, 1e-12_dp)
+      DIAG = Min (DIAG, 0.1_dp)
 !
       RedPred = 1
         !experiment:

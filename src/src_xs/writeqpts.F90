@@ -11,7 +11,6 @@ subroutine writeqpts
   use mod_qpoint, only: nqpt, vql, vqc
   use mod_misc, only: task
   use modxs, only: ngq, nqptr, vqlr, vqcr, wqptr
-  use m_getunit
   use m_genfilname
 ! !DESCRIPTION:
 !   Writes the ${\bf q}$-points in lattice coordinates, weights and number of
@@ -29,10 +28,9 @@ subroutine writeqpts
   integer :: iq, un
   character(256) :: filnam
 
-  call getunit(un)
   Call genfilname(basename='QPOINTS', appfilext=.True., filnam=filnam)
 
-  open(un, file=trim(filnam), action='WRITE', form='FORMATTED')
+  open(newunit=un, file=trim(filnam), action='WRITE', form='FORMATTED')
   write(un, '(I6, " : nqpt; q-point, vql, vqc, ngq below")') nqpt
 
   do iq = 1, nqpt
@@ -45,7 +43,7 @@ subroutine writeqpts
   if(task .eq. 440) then
     call genfilname(basename='QPOINTSR', appfilext=.True., filnam=filnam)
 
-    open(un, file=trim(filnam), action='write', form='formatted', status='replace')
+    open(newunit=un, file=trim(filnam), action='write', form='formatted', status='replace')
     write(un, '(i6, " : nqptr; q-point, vqlr, vqcr, wqptr below")') nqptr
 
     do iq = 1, nqptr

@@ -10,7 +10,7 @@ module libxcifc
 #endif
 #endif
    use precision, only: dp, long_int
-   use asserts, only: assert
+#include "asserts.fpp"
    use iso_c_binding, only: c_int
    use modmpi, only: terminate
 
@@ -64,9 +64,8 @@ contains
       end if 
 
       family_id = xc_f03_family_from_id(id)
-      call assert(family_id == XC_FAMILY_LDA, "Error(libxcifc): Id of functional has & 
-                  to belong to the family of LDA functionals.")
-      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+      CALL_ASSERT(family_id == XC_FAMILY_LDA, "Error(libxcifc): Id of functional has  to belong to the family of LDA functionals.")
+      CALL_ASSERT(id > 0, message="Id for xc functional has to be greater than zero.")
 
       call xc_f03_func_init(p, id, XC_UNPOLARIZED, ierr)
       if (ierr /= 0) call terminate("Error(libxc_lda_pot_spin_unpolarized): error in calling xc_f03_func_init")
@@ -111,9 +110,8 @@ contains
       end if 
 
       family_id = xc_f03_family_from_id(id)
-      call assert(family_id == XC_FAMILY_LDA, "Error(libxcifc): Id of functional has & 
-                  to belong to the family of LDA functionals.")
-      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+      CALL_ASSERT(family_id == XC_FAMILY_LDA, "Error(libxcifc): Id of functional has  to belong to the family of LDA functionals.")
+      CALL_ASSERT(id > 0, message="Id for xc functional has to be greater than zero.")
 
       call xc_f03_func_init(p, id, XC_POLARIZED, ierr)
 
@@ -162,9 +160,8 @@ contains
       end if 
 
       family_id = xc_f03_family_from_id(id)
-      call assert((family_id == XC_FAMILY_GGA) .or. (family_id == XC_FAMILY_HYB_GGA), & 
-                  "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
-      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+      CALL_ASSERT((family_id == XC_FAMILY_GGA) .or. (family_id == XC_FAMILY_HYB_GGA),  "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
+      CALL_ASSERT(id > 0, message="Id for xc functional has to be greater than zero.")
 
       call xc_f03_func_init(p, id, XC_UNPOLARIZED, ierr)
 
@@ -232,9 +229,8 @@ contains
 
       family_id = xc_f03_family_from_id(id)
       family_id = 32
-      call assert((family_id == XC_FAMILY_GGA) .or. (family_id == XC_FAMILY_HYB_GGA), & 
-                  "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
-      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+      CALL_ASSERT((family_id == XC_FAMILY_GGA) .or. (family_id == XC_FAMILY_HYB_GGA),  "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
+      CALL_ASSERT(id > 0, message="Id for xc functional has to be greater than zero.")
 
       call xc_f03_func_init(p, id, XC_POLARIZED, ierr)
 
@@ -298,9 +294,8 @@ contains
       end if 
 
       family_id = xc_f03_family_from_id(id)
-      call assert((family_id == XC_FAMILY_MGGA), & 
-                  "Error(libxcifc): Id of functional has to belong to the family of mGGA functionals.")
-      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+      CALL_ASSERT((family_id == XC_FAMILY_MGGA),  "Error(libxcifc): Id of functional has to belong to the family of mGGA functionals.")
+      CALL_ASSERT(id > 0, message="Id for xc functional has to be greater than zero.")
 
       call xc_f03_func_init(p, id, XC_UNPOLARIZED, ierr)
       
@@ -390,9 +385,8 @@ contains
       end if 
 
       family_id = xc_f03_family_from_id(id)
-      call assert(family_id == XC_FAMILY_MGGA, & 
-                  "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
-      call assert(id > 0, message="Id for xc functional has to be greater than zero.")
+      CALL_ASSERT(family_id == XC_FAMILY_MGGA,  "Error(libxcifc): Id of functional has to belong to the family of GGA functionals.")
+      CALL_ASSERT(id > 0, message="Id for xc functional has to be greater than zero.")
 
       call xc_f03_func_init(p, id, XC_POLARIZED, ierr)
 

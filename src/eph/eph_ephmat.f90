@@ -3,7 +3,7 @@ module eph_ephmat
   use eph_variables
 
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi
   use block_data_file, only: block_data_file_type
 
@@ -11,55 +11,86 @@ module eph_ephmat
   private
 
   ! standard (Fan-Migdal) matrix elements
-  !> name for binary file to save standard (Fan-Migdal) EPH matrix in reciprocal space phonon Hamiltonian gauge for later access
+  !> name for binary file to save standard (Fan-Migdal) EPH matrix in reciprocal space atomic Hamiltonian gauge for later access
   character(*), parameter :: eph_ephmat_gFMkq_filename = "EPH_GKQ.OUT"
   !> name for binary file to save standard (Fan-Migdal) EPH matrix in real space atomic Wannier gauge for later access
   character(*), parameter :: eph_ephmat_gFMRR_filename = "EPH_GRR.OUT"
   
-  public :: eph_ephmat_gen_coarse, eph_ephmat_setup_interpolation, eph_ephmat_interpolate, eph_ephmat_average
+  ! effective high and low energy (hilo) matrix elements (Fan-Migdal + Debye-Waller)
+  !> name for binary file to save hilo EPH matrix in reciprocal space phonon Hamiltonian gauge for later access
+  character(*), parameter, public :: eph_ephmat_gFMHILOkq_filename = "EPH_GFMHILOKQ.OUT"
+  character(*), parameter, public :: eph_ephmat_gDWHILOkq_filename = "EPH_GDWHILOKQ.OUT"
+
+  
+  public :: eph_ephmat_gen_coarse, eph_ephmat_setup_interpolation, eph_ephmat_interpolate, eph_ephmat_hilo_read_coarse, eph_ephmat_average
 
 contains
 
   !================================================================================ 
   ! GENERATE MATRIX ELEMENTS ON COARSE GRIDS
   !
-  !> Generate the electron-phonon matrix elements in atomic Hamiltonian gauge
+  !> Generate the standard electron-phonon matrix elements in atomic Hamiltonian gauge
   !> on the coarse electron grid \({\bf k}\) and phonon grid \({\bf q}\)
-  !>
-  !> \[ g_{mn,\kappa \alpha}({\bf k},{\bf q}) = 
-  !>    \langle \psi_{m{\bf k}+{\bf q}} | \delta^{\bf q}_{\kappa \alpha} V({\bf r}) | \psi_{n{\bf k}} \rangle \;. \]
-  subroutine eph_ephmat_gen_coarse( standard, mpicomm )
-    use constants, only: zzero
+  !> \[ 
+  !>     g_{mn,\kappa \alpha}({\bf k},{\bf q}) = 
+  !>       \langle \psi_{m{\bf k}+{\bf q}} | \delta^{\bf q}_{\kappa \alpha} V({\bf r}) | \psi_{n{\bf k}} \rangle \;.
+  !> \]
+  !> The high and low energy matrix elements in phonon Hamiltonian gauge are defined as
+  !> \[
+  !>     g^{\rm hilo}_{nn',\nu}({\bf k},{\bf q}) = 2 \sum\limits_{\kappa,\alpha,\kappa',\alpha'} \frac{1}{2\omega_{\nu{\bf q}}}
+  !>       \frac{e^\ast_{\kappa\alpha,\nu}({\bf q})}{\sqrt{M_{\kappa}}}\, 
+  !>       \sum\limits_{m}^{\hilo} \left[ \frac{g^\ast_{mn,\kappa\alpha}({\bf k},{\bf q})\, g_{mn',\kappa'\alpha'}({\bf k},{\bf q})}{\epsilon_{n{\bf k}} - \epsilon_{m{\bf k}+{\bf q}}} 
+  !>       - \frac{g^\ast_{mn,\kappa\alpha}({\bf k},\Gamma)\, \sum\limits_{\kappa''} g_{mn,\kappa''\alpha'}({\bf k},\Gamma)\, \delta_{\kappa\kappa'}}{\epsilon_{n{\bf k}} - \epsilon_{m{\bf k}}} \right]
+  !>       \frac{e_{\kappa'\alpha',\nu}({\bf q})}{\sqrt{M_{\kappa'}}} \;,
+  !> \]
+  !> where the first (second) term in the square brackets accounts for the contribution to the Fan-Migdal (Debye-Waller) 
+  !> self-energy and the sum runs over states \(m\) that are outside, i.e., above and below, the Wannierized part
+  !> of the bandstructure. The matrix elements are then transformed to atomic gauge.
+  subroutine eph_ephmat_gen_coarse( standard, hilo, mpicomm )
+    use constants, only: zzero, zone
     use dfpt_variables, only: dfpt_lmaxvr, dfpt_lmmaxvr, dfpt_kset, dfpt_Gset, dfpt_Gkset, mt_basis, fevalk0, feveck0
     use dfpt_eigensystem, only: dfpt_eig_geteval, dfpt_eig_getevec
+    use eph_electrons, only: eph_el_fermi_and_scissor
+    use eph_phonons, only: eph_ph_energy_q, eph_ph_evec_q
     use matrix_elements, only: me_init, me_finit, me_mt_alloc
     use mod_kpointset
-    use mod_atoms, only: natmtot
+    use mod_atoms, only: natmtot, nspecies, natoms, idxas, spmass
     use mod_muffin_tin, only: nrmtmax
     use mod_APW_LO, only: nlotot
+    use math_utils, only: get_degeneracies
     !> compute standard e-ph matrix elements (default: `.true.`)
     logical, optional, intent(in) :: standard
+    !> compute matrix elements used to approximate high and low energy contribution to electron self-energy (default: `.true.`)
+    logical, optional, intent(in) :: hilo
     !> MPI communicator (default: global MPI communicator)
     type(mpiinfo), optional, intent(inout) :: mpicomm
 
-    integer :: iq, ik, irec, ias, ip, imode, iq_range(2), nmat
-    logical :: do_standard
+    integer :: iq, iq0, ik, irec, is, ia, ias, jas, ip, jp, imode, jmode, iq_range(2), m1, m2, nm, ist, ideg
+    logical :: do_standard, do_hilo
+    real(dp) :: mi
+    complex(dp) :: ta(3,3)
     type(mpiinfo) :: mpi
-    type(block_data_file_type) :: gFMkq_file
+    type(block_data_file_type) :: gFMkq_file, gFMHILOkq_file, gDWHILOkq_file, gDWHILOk_tmp_file
     type(k_set) :: kqset
     type(G_set) :: Gqset
     type(Gk_set) :: Gkqset
 
-    integer, allocatable :: ik_range(:,:)
+    integer, allocatable :: ik_range(:,:), deg(:,:)
     real(dp), allocatable :: evalk(:), evalkq(:)
     complex(dp), allocatable :: gpot_mt_basis(:,:,:,:), &
                                 dpot_mt(:,:,:,:,:), dpot_ir(:,:,:), dpot_mt_basis(:,:,:,:), dpot_cfun_ig(:,:), &
-                                gFM_atomic(:,:,:), &
-                                eveck(:,:), eveckq(:,:)
+                                gHILO_phonon(:,:), gHILO_DW_atomic(:,:,:,:), &
+                                eveck(:,:), eveckq(:,:), v1(:)
+    complex(dp), allocatable, target :: gFM_atomic(:,:,:), gFM_phonon(:,:,:)
+    complex(dp), pointer :: g_atomic(:,:,:), g_phonon(:,:,:)
+
+    complex(dp), external :: zdotc
 
     ! set defaults
     do_standard = .true.
     if (present(standard)) do_standard = standard
+    do_hilo = .true.
+    if (present(hilo)) do_hilo = hilo
     mpi = mpiglobal
     if (present(mpicomm)) mpi = mpicomm
 
@@ -76,24 +107,45 @@ contains
 
     !******************************************************************************** 
     ! standard electron-phonon matrix elements in atomic Hamiltonian gauge
+    ! and high and low energy matrix elements in atomic Hamiltonian gauge
     !******************************************************************************** 
     ! Note: Called `gFM` due their use in the Fan-Migdal self-energy and to distinguish 
     !       them from the Debye-Waller matrix elements.
-    if (do_standard) then
+    if (do_standard .or. do_hilo) then
       ! set up and open binary files
-      gFMkq_file = block_data_file_type( eph_ephmat_gFMkq_filename, [eph_nst, eph_nst, 3*natmtot], cmplx( 0, 0, dp ) )
-      call gFMkq_file%open( mpi, delete_existing=.true. )
-
+      if (do_standard) then
+        gFMkq_file = block_data_file_type( eph_ephmat_gFMkq_filename, [eph_nst, eph_nst, 3*natmtot], cmplx( 0, 0, dp ) )
+        call gFMkq_file%open( mpi, delete_existing=.true. )
+      end if
+      if (do_hilo) then
+        gFMHILOkq_file = block_data_file_type( eph_ephmat_gFMHILOkq_filename, [eph_nst, eph_nmode_tot], cmplx( 0, 0, dp ) )
+        call gFMHILOkq_file%open( mpi, delete_existing=.true. )
+        gDWHILOkq_file = block_data_file_type( eph_ephmat_gDWHILOkq_filename, [eph_nst, eph_nmode_tot], cmplx( 0, 0, dp ) )
+        call gDWHILOkq_file%open( mpi, delete_existing=.true. )
+        gDWHILOk_tmp_file = block_data_file_type( 'EPH_GDWHILODWK.TMP', [eph_nst, 3, 3, natmtot], cmplx( 0, 0, dp ) )
+        call gDWHILOk_tmp_file%open( mpi, delete_existing=.true. )
+      end if
+      
       ! set loop limits
       call distribute_double_loop( mpi%rank, mpi%procs, [1, eph_qset_ph%nkpt], [1, eph_kset_el%nkpt], iq_range, ik_range )
       
       ! allocate arrays
-      allocate( gFM_atomic(eph_fst:eph_lst, eph_fst:eph_lst, 3*natmtot) )
+      if (do_standard) then
+        allocate( gFM_atomic(eph_fst:eph_lst, eph_fst:eph_lst, 3*natmtot) )
+        allocate( gFM_phonon(eph_fst:eph_lst, eph_fst:eph_lst, eph_nmode_tot) )
+      end if
+      if (do_hilo) then
+        allocate( gHILO_phonon(eph_fst:eph_lst, eph_nmode_tot) )
+        allocate( gHILO_DW_atomic(eph_fst:eph_lst, 3, 3, natmtot) )
+      end if
       call me_mt_alloc( dpot_mt_basis, 3*natmtot )
 
       ! generate radial integrals times Gaunt coefficients for potential gradient
       ! using Gauss' theorem and regularized effective potential
       call eph_ephmat_gen_grad_pot_mt_basis( dfpt_lmaxvr, gpot_mt_basis )
+
+      ! find index of Gamma point
+      call findkptinset( [0.0_dp, 0.0_dp, 0.0_dp], eph_qset_ph, ip, iq0 )
       
       ! compute matrix elements
       do iq = iq_range(1), iq_range(2)
@@ -121,40 +173,159 @@ contains
         end do
         ! compute matrix elements for all k-points
         do ik = ik_range(1, iq), ik_range(2, iq)
-          nmat = Gkqset%ngk(1, ik) + nlotot
+          if (do_hilo) then
+            nm = Gkqset%ngk(1, ik) + nlotot
+            m1 = 1; m2 = nm
+            allocate( g_atomic(m1:m2, eph_fst:eph_lst, 3*natmtot) )
+            allocate( g_phonon(m1:m2, eph_fst:eph_lst, eph_nmode_tot) )
+          else
+            nm = eph_nst
+            m1 = eph_fst; m2 = eph_lst
+            g_atomic(m1:m2, eph_fst:eph_lst, 1:3*natmtot) => gFM_atomic
+            g_phonon(m1:m2, eph_fst:eph_lst, 1:eph_nmode_tot) => gFM_phonon
+          end if
           ! read eigenvalues and eigenvectors at k
           call dfpt_eig_geteval( eph_kset_el%vkl(:, ik), fevalk0, dfpt_kset, [eph_fst, eph_lst], evalk )
           call dfpt_eig_getevec( eph_kset_el%vkl(:, ik), eph_Gkset_el%vgkl(:, :, 1, ik), feveck0, dfpt_kset, dfpt_Gkset, [eph_fst, eph_lst], eveck )
+          call eph_el_fermi_and_scissor( evalk, size(evalk), eph_efermi, eph_scissor )
           ! read eigenvalues and eigenvectors at k+q
-          call dfpt_eig_geteval( kqset%vkl(:, ik), fevalk0, dfpt_kset, [eph_fst, eph_lst], evalkq )
-          call dfpt_eig_getevec( kqset%vkl(:, ik), Gkqset%vgkl(:, :, 1, ik), feveck0, dfpt_kset, dfpt_Gkset, [eph_fst, eph_lst], eveckq )
+          call dfpt_eig_geteval( kqset%vkl(:, ik), fevalk0, dfpt_kset, [m1, m2], evalkq )
+          call dfpt_eig_getevec( kqset%vkl(:, ik), Gkqset%vgkl(:, :, 1, ik), feveck0, dfpt_kset, dfpt_Gkset, [m1, m2], eveckq )
+          call eph_el_fermi_and_scissor( evalkq, size(evalkq), eph_efermi, eph_scissor )
       
           ! STANDARD MATRIX ELEMENTS
           do ias = 1, natmtot
             do ip = 1, 3
               imode = (ias - 1) * 3 + ip
-              call eph_ephmat_gen_gmat( ik, eph_Gkset_el, Gkqset, Gqset, eph_fst, eph_lst, eph_fst, eph_lst, &
-                dpot_mt_basis(:, :, :, imode), dpot_cfun_ig(:, imode), eveckq, eveck, gFM_atomic(:, :, imode) )
+              call eph_ephmat_gen_gmat( ik, eph_Gkset_el, Gkqset, Gqset, m1, m2, eph_fst, eph_lst, &
+                dpot_mt_basis(:, :, :, imode), dpot_cfun_ig(:, imode), eveckq, eveck, g_atomic(:, :, imode) )
             end do
           end do
+          ! impose acoustic sumrule
+          if (iq == 1) then
+            deg = get_degeneracies( evalk, eph_el_degtol )
+            deg(1:2, :) = deg(1:2, :) + eph_fst - 1 
+            do ip = 1, 3
+              g_phonon(:, :, 1) = zzero
+              do ias = 1, natmtot
+                imode = (ias - 1) * 3 + ip
+                g_phonon(:, :, 1) = g_phonon(:, :, 1) + g_atomic(:, :, imode)
+              end do
+              g_phonon(:, :, 1) = g_phonon(:, :, 1) / natmtot 
+              do ias = 1, natmtot
+                imode = (ias - 1) * 3 + ip
+                do ideg = 1, size( deg, dim=2 )
+                  g_atomic(deg(1, ideg):deg(2, ideg), deg(1, ideg):deg(2, ideg), imode) = g_atomic(deg(1, ideg):deg(2, ideg), deg(1, ideg):deg(2, ideg), imode) - g_phonon(deg(1, ideg):deg(2, ideg), deg(1, ideg):deg(2, ideg), 1)
+                end do
+              end do
+            end do
+          end if
+          if (do_standard .and. do_hilo) gFM_atomic = g_atomic(eph_fst:eph_lst, :, :)
+
+          ! HILO MATRIX ELEMENTS
+          if (do_hilo) then
+            ! FM HILO contribution
+            deg = get_degeneracies( evalk, eph_el_degtol )
+            deg(1:2, :) = deg(1:2, :) + eph_fst - 1 
+            call eph_ephmat_transform_atomic_phonon( eph_ph_energy_q(:, iq), eph_ph_evec_q(:, :, iq), g_atomic, g_phonon, nm*eph_nst, 1 )
+            do imode = 1, eph_nmode_tot
+              do ist = eph_fst, eph_lst
+                v1 = g_phonon(:, ist, imode) / cmplx( evalk(ist) - evalkq, eph_el_degtol, dp )
+                v1(eph_fst_span:eph_lst_span) = zzero
+                gHILO_phonon(ist, imode) = zdotc( nm, v1, 1, g_phonon(1, ist, imode), 1 ) + zdotc( nm, g_phonon(1, ist, imode), 1, v1, 1 )
+              end do
+              ! average over degenerate states
+              do ideg = 1, size( deg, dim=2 )
+                gHILO_phonon(deg(1, ideg):deg(2, ideg), imode) = sum( gHILO_phonon(deg(1, ideg):deg(2, ideg), imode) ) / deg(3, ideg) 
+              end do
+            end do
+
+            ! DW HILO contribution (q-independent)
+            if (iq == 1) then
+              !call eph_ephmat_transform_atomic_phonon( eph_ph_energy_q(:, iq), eph_ph_evec_q(:, :, iq), g_atomic, g_phonon, nm*eph_nst, -1 )
+              g_phonon = zzero
+              deg = get_degeneracies( evalk, eph_el_degtol )
+              deg(1:2, :) = deg(1:2, :) + eph_fst - 1 
+              do jp = 1, 3
+                do jas = 1, natmtot
+                  jmode = (jas - 1) * 3 + jp
+                  g_phonon(:, :, jp) = g_phonon(:, :, jp) + g_atomic(:, :, jmode) 
+                end do
+                do ias = 1, natmtot
+                  do ip = 1, 3
+                    imode = (ias - 1) * 3 + ip
+                    do ist = eph_fst, eph_lst
+                      v1 = g_phonon(:, ist, jp) / cmplx( evalk(ist) - evalkq, max(1e-6_dp, eph_el_degtol), dp )
+                      v1(eph_fst_span:eph_lst_span) = zzero
+                      gHILO_DW_atomic(ist, ip, jp, ias) = zdotc( nm, v1, 1, g_atomic(1, ist, imode), 1 ) + zdotc( nm, g_atomic(1, ist, imode), 1, v1, 1 )
+                    end do
+                    ! average over degenerate states
+                    do ideg = 1, size( deg, dim=2 )
+                      gHILO_DW_atomic(deg(1, ideg):deg(2, ideg), ip, jp, ias) = sum( gHILO_DW_atomic(deg(1, ideg):deg(2, ideg), ip, jp, ias) ) / deg(3, ideg) 
+                    end do
+                  end do
+                end do
+              end do
+              call gDWHILOk_tmp_file%write( ik, gHILO_DW_atomic )
+            end if
+          end if
       
-          ! write eph matrix elements in atomic coordinates
+          ! write eph matrix elements to file
           irec = (iq - 1) * eph_kset_el%nkpt + ik
-          call gFMkq_file%write( irec, gFM_atomic )
+          if (do_standard) call gFMkq_file%write( irec, gFM_atomic )
+          if (do_hilo) call gFMHILOkq_file%write( irec, gHILO_phonon )
+          if (do_hilo) deallocate( g_atomic, g_phonon )
         end do
         ! deallocate arrays
         deallocate( dpot_cfun_ig )
       end do
+      call barrier( mpicom=mpi )
 
-      deallocate( gFM_atomic )
+      ! DW HILO contribution (q-dependent)
+      if (do_hilo) then
+        do iq = iq_range(1), iq_range(2)
+          do ik = ik_range(1, iq), ik_range(2, iq)
+            gHILO_phonon = zzero
+            call gDWHILOk_tmp_file%read( ik, gHILO_DW_atomic )
+            do imode = 1, eph_nmode_tot
+              if (eph_ph_energy_q(imode, iq) <= eph_ph_energy_zero) cycle
+              do is = 1, nspecies
+                if (spmass(is) == 0.0_dp) cycle
+                mi = 1.0_dp / (2.0_dp * eph_ph_energy_q(imode, iq) * spmass(is))
+                do ia = 1, natoms(is)
+                  ias = idxas(ia, is)
+                  ta = zzero
+                  ist = (ias - 1) * 3 + 1
+                  call zgerc( 3, 3, cmplx( mi, 0, dp ), eph_ph_evec_q(ist, imode, iq), 1, eph_ph_evec_q(ist, imode, iq), 1, ta(1, 1), 3 )
+                  call zgemv( 'n', eph_nst, 9, -zone, &
+                    gHILO_DW_atomic(eph_fst, 1, 1, ias), eph_nst, &
+                    ta(1, 1), 1, zone, &
+                    gHILO_phonon(eph_fst, imode), 1 )
+                end do
+              end do
+            end do
+            irec = (iq - 1) * eph_kset_el%nkpt + ik
+            call gDWHILOkq_file%write( irec, gHILO_phonon )
+          end do
+        end do
+      end if
+
+      if (allocated(gFM_atomic)) deallocate( gFM_atomic )
+      if (allocated(gFM_phonon)) deallocate( gFM_phonon )
+      if (allocated(gHILO_phonon)) deallocate( gHILO_phonon )
+      if (allocated(gHILO_DW_atomic)) deallocate( gHILO_DW_atomic )
       
       ! close binary file
-      call gFMkq_file%close( mpi )
+      if (do_standard) call gFMkq_file%close( mpi )
+      if (do_hilo) then
+        call gFMHILOkq_file%close( mpi )
+        call gDWHILOkq_file%close( mpi )
+        call gDWHILOk_tmp_file%close( mpi )
+        call gDWHILOk_tmp_file%delete( mpi )
+      end if
     end if
 
     ! free memory
-    deallocate( dpot_mt, dpot_ir )
-    if (allocated(dpot_mt_basis)) deallocate( dpot_mt_basis )
     call delete_k_vectors( kqset )
     call delete_G_vectors( Gqset )
     call delete_Gk_vectors( Gkqset )
@@ -185,9 +356,9 @@ contains
     integer :: iq, iq1, iq2, ik, ik0, ikq0, ire, ire1, ire2, irec, irp, isymk, isymkq, ivg(3), un
     logical :: write_loc
     real(dp) :: vkl(3), vkql(3)
-    type(block_data_file_type) :: gFMkq_file, gFMRq_file, gFMRR_file
+    type(block_data_file_type) :: gkq_file, gRq_file, gRR_file
 
-    complex(dp), allocatable :: gFM_aW_RR(:,:,:,:), gFM_aH_kq(:,:,:), gFM_aW_kq(:,:,:,:), gFM_aW_Rq(:,:,:,:), &
+    complex(dp), allocatable :: g_aW_RR(:,:,:,:), g_aH_kq(:,:,:), g_aW_kq(:,:,:,:), g_aW_Rq(:,:,:,:), &
                                 g_lr_pref_a(:,:)
 
     write_loc = .false.
@@ -197,38 +368,38 @@ contains
     ! standard electron-phonon matrix elements
     !******************************************************************************** 
     ! set up binary files
-    gFMRR_file = block_data_file_type( eph_ephmat_gFMRR_filename, [eph_nwf_tot, eph_nwf_tot, 3*natmtot], cmplx( 0, 0, dp ) )
-    gFMkq_file = block_data_file_type( eph_ephmat_gFMkq_filename, [eph_nst, eph_nst, 3*natmtot], cmplx( 0, 0, dp ) )
-
+    gRR_file = block_data_file_type( eph_ephmat_gFMRR_filename, [eph_nwf_tot, eph_nwf_tot, 3*natmtot], cmplx( 0, 0, dp ) )
+    gkq_file = block_data_file_type( eph_ephmat_gFMkq_filename, [eph_nst, eph_nst, 3*natmtot], cmplx( 0, 0, dp ) )
+    
     ! try to read last g_aW(R,R) from file
-    if (gFMRR_file%exists()) then
-      allocate( gFM_aW_RR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, 1) )
+    if (gRR_file%exists()) then
+      allocate( g_aW_RR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, 1) )
       irec = eph_el_mfi%nr * eph_ph_mfi%nr
-      call gFMRR_file%open( mpiglobal )
-      call gFMRR_file%read( irec, gFM_aW_RR(:, :, :, 1) )
-      call gFMRR_file%close( mpiglobal )
-      deallocate( gFM_aW_RR )
+      call gRR_file%open( mpiglobal )
+      call gRR_file%read( irec, g_aW_RR(:, :, :, 1) )
+      call gRR_file%close( mpiglobal )
+      deallocate( g_aW_RR )
     ! compute g_aW(R,R) and write to file
-    else if (gFMkq_file%exists()) then
+    else if (gkq_file%exists()) then
       ! open file for g_aH(k,q)
-      call gFMkq_file%open( mpiglobal )
-
+      call gkq_file%open( mpiglobal )
+    
       ! create and open temporary file for g_aW(Re,q)
-      gFMRq_file = block_data_file_type( 'EPH_GRQ.TMP', [eph_nwf_tot, eph_nwf_tot, 3*natmtot], cmplx( 0, 0, dp ) )
-      call gFMRq_file%open( mpiglobal, delete_existing=.true. )
-
+      gRq_file = block_data_file_type( 'EPH_GRQ.TMP', [eph_nwf_tot, eph_nwf_tot, 3*natmtot], cmplx( 0, 0, dp ) )
+      call gRq_file%open( mpiglobal, delete_existing=.true. )
+    
       !................................................................................ 
       ! Fourier transform k -> Re
       !
-      allocate( gFM_aH_kq(eph_nst, eph_nst, 3*natmtot) )
-      allocate( gFM_aW_kq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_el_mfi%np) ) 
-      allocate( gFM_aW_Rq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_el_mfi%nr) ) 
+      allocate( g_aH_kq(eph_nst, eph_nst, 3*natmtot) )
+      allocate( g_aW_kq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_el_mfi%np) ) 
+      allocate( g_aW_Rq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_el_mfi%nr) ) 
       if (eph_polar) allocate( g_lr_pref_a(3, natmtot) )
-
+    
       ! set loop limits
       iq1 = firstofset( mpiglobal%rank, eph_ph_mfi%np, mpiglobal%procs )
       iq2 = lastofset( mpiglobal%rank, eph_ph_mfi%np, mpiglobal%procs )
-
+    
       do iq = iq1, iq2
         ! generate prefactors for long-range matrix elements in atomic gauge
         if (eph_polar) then
@@ -248,37 +419,37 @@ contains
           call r3frac( 1e-6_dp, vkql, ivg )
           call findkptinset( vkql, eph_kset_el, isymkq, ikq0 )
           ! read g_aH(k,q) from file
-          call eph_ephmat_read_coarse( eph_kset_el, eph_qset_ph, eph_el_mfi%vpl(:, ik), eph_ph_mfi%vpl(:, iq), gFMkq_file, gFM_aH_kq )
+          call eph_ephmat_read_coarse( eph_kset_el, eph_qset_ph, eph_el_mfi%vpl(:, ik), eph_ph_mfi%vpl(:, iq), gkq_file, g_aH_kq )
           ! transform to Wannier gauge
-          call eph_ephmat_transform_Hamiltonian_Wannier( eph_el_evec_k(:, :, ik0), eph_el_evec_k(:, :, ikq0), gFM_aH_kq, gFM_aW_kq(:, :, :, ik), 3*natmtot, 1 )
+          call eph_ephmat_transform_Hamiltonian_Wannier( eph_el_evec_k(:, :, ik0), eph_el_evec_k(:, :, ikq0), g_aH_kq, g_aW_kq(:, :, :, ik), 3*natmtot, 1 )
           ! subtract long range matrix elements in atomic Wannier gauge
           if (eph_polar) &
-            call eph_ephmat_add_lr( -zone, g_lr_pref_a, gFM_aW_kq(:, :, :, ik) )
+            call eph_ephmat_add_lr( -zone, g_lr_pref_a, g_aW_kq(:, :, :, ik) )
         end do
         ! transform from k to Re
-        call eph_el_mfi%transform_p2R( [eph_nwf_tot, eph_nwf_tot], 3*natmtot, gFM_aW_kq, eph_nwf_tot**2, 3*natmtot, gFM_aW_Rq, eph_nwf_tot**2, 3*natmtot )
+        call eph_el_mfi%transform_p2R( [eph_nwf_tot, eph_nwf_tot], 3*natmtot, g_aW_kq, eph_nwf_tot**2, 3*natmtot, g_aW_Rq, eph_nwf_tot**2, 3*natmtot )
         ! write g_aW(Re,q) to temporary file
         do ire = 1, eph_el_mfi%nr
           irec = (iq - 1) * eph_el_mfi%nr + ire
-          call gFMRq_file%write( irec, gFM_aW_Rq(:, :, :, ire) )
+          call gRq_file%write( irec, g_aW_Rq(:, :, :, ire) )
         end do
       end do
-
-      deallocate( gFM_aH_kq, gFM_aW_kq, gFM_aW_Rq )
-      if (eph_polar) deallocate( g_lr_pref_a )
+    
+      deallocate( g_aH_kq, g_aW_kq, g_aW_Rq )
+      if (allocated(g_lr_pref_a)) deallocate( g_lr_pref_a )
       !................................................................................ 
 
       ! close file for g_aH(k,q)
-      call gFMkq_file%close( mpiglobal )
+      call gkq_file%close( mpiglobal )
 
       ! open file for g_aW(Re,Rp)
-      call gFMRR_file%open( mpiglobal )
+      call gRR_file%open( mpiglobal )
 
       !................................................................................ 
       ! Fourier transform q -> Rp
       !
-      allocate( gFM_aW_Rq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_ph_mfi%np) )
-      allocate( gFM_aW_RR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_ph_mfi%nr) )
+      allocate( g_aW_Rq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_ph_mfi%np) )
+      allocate( g_aW_RR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_ph_mfi%nr) )
 
       ! set loop limits
       ire1 = firstofset( mpiglobal%rank, eph_el_mfi%nr, mpiglobal%procs )
@@ -288,31 +459,28 @@ contains
         ! read g_aW(Re,q) from temporary file
         do iq = 1, eph_ph_mfi%np
           irec = (iq - 1) * eph_el_mfi%nr + ire
-          call gFMRq_file%read( irec, gFM_aW_Rq(:, :, :, iq) )
+          call gRq_file%read( irec, g_aW_Rq(:, :, :, iq) )
         end do
         ! transform from q to Rp
-        call eph_ph_mfi%transform_p2R( [eph_nwf_tot, eph_nwf_tot], 3*natmtot, gFM_aW_Rq, eph_nwf_tot**2, 3*natmtot, gFM_aW_RR, eph_nwf_tot**2, 3*natmtot )
+        call eph_ph_mfi%transform_p2R( [eph_nwf_tot, eph_nwf_tot], 3*natmtot, g_aW_Rq, eph_nwf_tot**2, 3*natmtot, g_aW_RR, eph_nwf_tot**2, 3*natmtot )
         ! write g_aW(Re,Rp) to file
         do irp = 1, eph_ph_mfi%nr
           irec = (irp - 1) * eph_el_mfi%nr + ire
-          call gFMRR_file%write( irec, gFM_aW_RR(:, :, :, irp) )
+          call gRR_file%write( irec, g_aW_RR(:, :, :, irp) )
         end do
       end do
       !................................................................................ 
-
-      ! close and delete temporary file for g_aW(Re,q)
-      call gFMRq_file%close( mpiglobal )
-      call gFMRq_file%delete( mpiglobal )
-
+    
       ! write spatial localization to file
+      call barrier( mpicom=mpiglobal )
       if (mpiglobal%rank == 0 .and. write_loc) then
         open( newunit=un, file='eph_ephmat_loc_el.dat', action='write', form='formatted' )
         write( un, '("#",a5,a26,a26)' ) 'iR', '|Re|', 'max(|g(Re,0)|)'
         irp = 1
         do ire = 1, eph_el_mfi%nr
           irec = (irp - 1) * eph_el_mfi%nr + ire
-          call gFMRR_file%read( irec, gFM_aW_RR(:, :, :, irp) )
-          write( un, '(i6,2g26.16)' ) ire, eph_el_mfi%rlen(ire), maxval( abs( gFM_aW_RR(:, :, :, irp) ) )
+          call gRR_file%read( irec, g_aW_RR(:, :, :, 1) )
+          write( un, '(i6,2g26.16)' ) ire, eph_el_mfi%rlen(ire), maxval( abs( g_aW_RR(:, :, :, 1) ) )
         end do
         close( un )
 
@@ -321,16 +489,29 @@ contains
         ire = 1
         do irp = 1, eph_ph_mfi%nr
           irec = (irp - 1) * eph_el_mfi%nr + ire
-          call gFMRR_file%read( irec, gFM_aW_RR(:, :, :, irp) )
-          write( un, '(i6,2g26.16)' ) irp, eph_ph_mfi%rlen(irp), maxval( abs( gFM_aW_RR(:, :, :, irp) ) )
+          call gRR_file%read( irec, g_aW_RR(:, :, :, 1) )
+          write( un, '(i6,2g26.16)' ) irp, eph_ph_mfi%rlen(irp), maxval( abs( g_aW_RR(:, :, :, 1) ) )
+        end do
+        close( un )
+
+        open( newunit=un, file='eph_ephmat_loc_el_q0.dat', action='write', form='formatted' )
+        write( un, '("#",a5,a26,a26)' ) 'iR', '|Re|', 'max(|g(Re,0)|)'
+        iq = 1
+        do ire = 1, eph_el_mfi%nr
+          irec = (iq - 1) * eph_el_mfi%nr + ire
+          call gRq_file%read( irec, g_aW_Rq(:, :, :, 1) )
+          write( un, '(i6,2g26.16)' ) ire, eph_el_mfi%rlen(ire), maxval( abs( g_aW_Rq(:, :, :, 1) ) )
         end do
         close( un )
       end if
-
+    
+      ! close and delete temporary file for g_aW(Re,q)
+      call gRq_file%close( mpiglobal )
+      call gRq_file%delete( mpiglobal )
       ! close file for g_aW(Re,Rp)
-      call gFMRR_file%close( mpiglobal )
+      call gRR_file%close( mpiglobal )
 
-      deallocate( gFM_aW_Rq, gFM_aW_RR )
+      deallocate( g_aW_Rq, g_aW_RR )
     else
       call terminate_if_false( .false., '(eph_ephmat_setup_interpolation) &
         Electron-phonon matrix elements on coarse grids not found.' )
@@ -356,30 +537,32 @@ contains
   !> MPI parallelization is over the product of \({\bf k}'\) and \({\bf R}_{ph}\) points for the Fourier
   !> transform \({\bf R}_e \rightarrow {\bf k}'\)
   !> and over the product of \({\bf k}'\) and \({\bf q}'\) points for the Fourier transform
-  !> \({\bf R}_{ph} \rightarrow {\bf q}'\), 
-  !> but each process can specify a different band and mode ranges `irange`, `frange`, and `mrange`.
+  !> \({\bf R}_{ph} \rightarrow {\bf q}'\). 
+  !> To compute different band and mode ranges for different processes, pass corresponding
+  !> subsets of electron (phonon) energies and eigenvectors. See parameters `irange` (`mrange`)
+  !> in [[eph_el_interpolate(subroutine)]] ([[eph_ph_interpolate(subroutine)]]).
   subroutine eph_ephmat_interpolate( vkl, vql, Umnk, Umnkq, ph_energy_q, ph_evec_q, ephmat, &
       electron_gauge, phonon_gauge, include_polar, irange, frange, mrange, mpicomm )
-    use eph_electrons, only: eph_el_mfi
+    use eph_electrons, only: eph_el_mfi, eph_el_mindist
     use eph_phonons, only: eph_ph_mfi
     use constants, only: zone
     use exciting_mpi, only: xmpi_allreduce
     use mod_atoms, only: natmtot
     use modinput
 #ifdef MPI
-    use mpi_f08, only: MPI_Send, MPI_Recv, MPI_DOUBLE_COMPLEX, MPI_STATUS_IGNORE, MPI_Comm
+use mpi_f08, only: MPI_Send, MPI_Recv, MPI_DOUBLE, MPI_DOUBLE_COMPLEX, MPI_STATUS_IGNORE, MPI_Comm
 #endif
     !> set of wave vectors \({\bf k}'\) in lattice coordinates
     real(dp), intent(in) :: vkl(:,:)
     !> set of wave vectors \({\bf q}'\) in lattice coordinates
     real(dp), intent(in) :: vql(:,:)
-    !> Wannier transformation matrices \(U_{mn}({\bf k}')\)
+    !> Wannier transformation matrices \(U_{mn}({\bf k}')\) as obtained from [[eph_el_interpolate(subroutine)]]
     complex(dp), intent(in) :: Umnk(:,:,:)
-    !> Wannier transformation matrices \(U_{mn}({\bf k}'+{\bf q}')\)
+    !> Wannier transformation matrices \(U_{mn}({\bf k}'+{\bf q}')\) as obtained from [[eph_el_interpolate(subroutine)]]
     complex(dp), intent(in) :: Umnkq(:,:,:,:)
-    !> phonon energies \(\omega_{\nu{\bf q}'}\)
+    !> phonon energies \(\omega_{\nu{\bf q}'}\) as obtained from [[eph_ph_interpolate(subroutine)]]
     real(dp), intent(in) :: ph_energy_q(:,:)
-    !> phonon eigenvectors \(e_{\kappa\alpha,\nu}({\bf q}')\)
+    !> phonon eigenvectors \(e_{\kappa\alpha,\nu}({\bf q}')\) as obtained from [[eph_ph_interpolate(subroutine)]]
     complex(dp), intent(in) :: ph_evec_q(:,:,:)
     !> EPH matrix \(g_{mn,\nu}({\bf k}', {\bf q}')\)
     complex(dp), allocatable, intent(out) :: ephmat(:,:,:,:,:)
@@ -389,58 +572,43 @@ contains
     character, optional, intent(in) :: phonon_gauge
     !> include long-range part in polar materials (default: `.true.`)
     logical, optional, intent(in) :: include_polar
-    !> range of band index for initial state \(|n{\bf k}'\rangle\) (default: all rows of \(U({\bf k}')\))
+    !> range of band index for initial state \(|n{\bf k}'\rangle\) (default: all rows of \(U({\bf k}')\))   
+    !> Must match `irange` used in [[eph_el_interpolate(subroutine)]] to obtain `Umnk`, if `electron_gauge = 'H'`. 
     integer, optional, intent(in) :: irange(2)
     !> range of band index for final state \(|m{\bf k}'+{\bf q}'\rangle\) (default: all rows of \(U({\bf k}'+{\bf q}')\))
+    !> Must match `irange` used in [[eph_el_interpolate(subroutine)]] to obtain `Umnkq`, if `electron_gauge = 'H'`. 
     integer, optional, intent(in) :: frange(2)
     !> range of phonon modes \(\nu\) (default: all columns of \(e({\bf q}')\))
+    !> Must match `mrange` used in [[eph_ph_interpolate(subroutine)]] to obtain `ph_evec_q`, if `phonon_gauge = 'p'`. 
     integer, optional, intent(in) :: mrange(2)
     !> MPI communicator (default: global MPI communicator)
     type(mpiinfo), optional, intent(inout) :: mpicomm
 
-    integer :: nk, nq, nwfk, nwfkq, nmode, nelem, irng(2), frng(2), mrng(2)
-    integer :: ik, ik1, ik2, iq, iq1, iq2, ire, irp, ir1, ir2, irec, irank, jrank
+    integer :: nk, nq, nwfk, nwfkq, nmode, nelem, irng(2), frng(2), mrng(2), imin, imax, fmin, fmax, mmin, mmax
+    integer :: ik, ik1, ik2, iq, iq1, iq2, ire, irp, ir1, ir2, irec, irank
     logical :: polar, hgauge, pgauge
     type(mpiinfo) :: mpi
     type(block_data_file_type) :: gFMRR_file
 
     integer, allocatable :: ik_range(:,:), iq_range(:,:), ir_range(:,:), irng_list(:,:), frng_list(:,:), mrng_list(:,:)
-    complex(dp), allocatable :: g_aW_RR(:,:,:,:), g_aW_kR(:,:,:,:,:), g_aW_kq(:,:,:,:,:), &
-                                g_lr_pref_a(:,:,:), g_xH(:,:,:), g_pX(:,:,:)
+    real(dp), allocatable :: wq(:,:), wq_(:)
+    complex(dp), allocatable :: g_aW_RR(:,:,:,:), g_aW_kR(:,:,:,:,:), g_aW_Rq(:,:,:,:,:), g_aW_kq(:,:,:,:,:), &
+                                g_lr_pref_a(:,:,:), g_xH(:,:,:), g_pX(:,:,:), g_(:,:,:), &
+                                Uk(:,:,:), Ukq(:,:,:,:), eq(:,:,:), Uk_(:,:), Ukq_(:,:), eq_(:,:) 
 
     ! set number of interpolation points
     nk = size( vkl, dim=2 )
     nq = size( vql, dim=2 )
     
     ! check input
-    call assert( size( vkl, dim=1 ) == 3, &
-      '`vkl` must be a set of vectors of length 3.' )
-    call assert( size( vql, dim=1 ) == 3, &
-      '`vql` must be a set of vectors of length 3.' )
-    call assert( size( Umnk, dim=3 ) == nk, &
-      '3rd dimension of `Umnk` must equal number of k-vectors.' )
-    call assert( size( Umnkq, dim=3 ) == nk, &
-      '3rd dimension of `Umnkq` must equal number of k-vectors.' )
-    call assert( size( Umnkq, dim=4 ) == nq, &
-      '4th dimension of `Umnkq` must equal number of q-vectors.' )
-    call assert( size( ph_energy_q, dim=2 ) == nq, &
-      '2nd dimension of `ph_energy_q` must equal number of q-vectors.' )
-    call assert( size( ph_evec_q, dim=3 ) == nq, &
-      '3rd dimension of `ph_evec_q` must equal number of q-vectors.' )
-    call assert( size( Umnk, dim=2 ) == eph_nwf_tot, &
-      '2nd dimension of `Umnk` must equal total number of Wannier functions.' )
-    call assert( size( Umnk, dim=2 ) == eph_nwf_tot, &
-      '2nd dimension of `Umnkq` must equal total number of Wannier functions.' )
-    call assert( size( ph_energy_q, dim=1 ) == size( ph_evec_q, dim=2 ), &
-      '1st dimension of `ph_energy_q` must equal 2nd dimension of `ph_evec_q`.' )
-    call assert( size( ph_evec_q, dim=1 ) == 3*natmtot, &
-      '1st dimension of `ph_evec_q` must equal `3*natmtot`.' )
-    if (present( electron_gauge )) &
-      call assert( any( electron_gauge == ['H', 'h', 'W', 'w'] ), &
-        '`electron_gauge` must be either `H` (Hamiltonian gauge) or `W` (Wannier gauge).' )
-    if (present( phonon_gauge )) &
-      call assert( any( phonon_gauge == ['p', 'P', 'a', 'A'] ), &
-        '`phonon_gauge` must be either `p` (phonon gauge) or `a` (atomic gauge).' )
+    CALL_ASSERT( size( vkl, dim=1 ) == 3, '`vkl` must be a set of vectors of length 3.' )
+    CALL_ASSERT( size( vql, dim=1 ) == 3, '`vql` must be a set of vectors of length 3.' )
+    if (present( electron_gauge )) then
+      CALL_ASSERT( any( electron_gauge == ['H', 'h', 'W', 'w'] ), '`electron_gauge` must be either `H` (Hamiltonian gauge) or `W` (Wannier gauge).' )
+    end if
+    if (present( phonon_gauge )) then
+      CALL_ASSERT( any( phonon_gauge == ['p', 'P', 'a', 'A'] ), '`phonon_gauge` must be either `p` (phonon gauge) or `a` (atomic gauge).' )
+    end if
 
     ! set defaults
     polar = .true.
@@ -452,6 +620,41 @@ contains
     mpi = mpiglobal
     if (present(mpicomm)) mpi = mpicomm
 
+    ! set band and mode ranges
+    if (hgauge) then
+      irng = [eph_fwf, eph_lwf]
+      frng = [eph_fwf, eph_lwf]
+    else
+      irng = [1, eph_nwf_tot]
+      frng = [1, eph_nwf_tot]
+    end if
+    if (present(irange)) irng = irange
+    if (present(frange)) frng = frange
+    if (pgauge) then
+      mrng = [eph_fmode, eph_lmode]
+    else
+      mrng = [1, 3*natmtot]
+    end if
+    if (present(mrange)) mrng = mrange
+
+    ! check more input
+    if (hgauge) then
+      CALL_ASSERT( size( Umnk, dim=3 ) == nk, '3rd dimension of `Umnk` must equal number of k-vectors.' )
+      CALL_ASSERT( size( Umnkq, dim=3 ) == nk, '3rd dimension of `Umnkq` must equal number of k-vectors.' )
+      CALL_ASSERT( size( Umnkq, dim=4 ) == nq, '4th dimension of `Umnkq` must equal number of q-vectors.' )
+      CALL_ASSERT( size( Umnk, dim=2 ) == eph_nwf_tot, '2nd dimension of `Umnk` must equal total number of Wannier functions.' )
+      CALL_ASSERT( size( Umnkq, dim=2 ) == eph_nwf_tot, '2nd dimension of `Umnkq` must equal total number of Wannier functions.' )
+      CALL_ASSERT( size( Umnk, dim=1 ) == irng(2) - irng(1) + 1, '1st dimension of `Umnk` does not match specified or implied band range `irange`.' )
+      CALL_ASSERT( size( Umnkq, dim=1 ) == frng(2) - frng(1) + 1, '1st dimension of `Umnkq` does not match specified or implied band range `frange`.' )
+    end if
+    if (pgauge) then
+      CALL_ASSERT( size( ph_energy_q, dim=2 ) == nq, '2nd dimension of `ph_energy_q` must equal number of q-vectors.' )
+      CALL_ASSERT( size( ph_evec_q, dim=3 ) == nq, '3rd dimension of `ph_evec_q` must equal number of q-vectors.' )
+      CALL_ASSERT( size( ph_evec_q, dim=1 ) == 3*natmtot, '1st dimension of `ph_evec_q` must equal `3*natmtot`.' )
+      CALL_ASSERT( size( ph_energy_q, dim=1 ) == mrng(2) - mrng(1) + 1, '1st dimension of `ph_energy_q` does not match specified or implied mode range `mrange`.' )
+      CALL_ASSERT( size( ph_evec_q, dim=2 ) == mrng(2) - mrng(1) + 1, '2nd dimension of `ph_evec_q` does not match specified or implied mode range `mrange`.' )
+    end if
+
     ! set matrix size
     nwfk = size( Umnk, dim=1 )
     if (.not. hgauge) nwfk = eph_nwf_tot
@@ -460,116 +663,209 @@ contains
     nmode = size( ph_energy_q, dim=1 )
     if (.not. pgauge) nmode = 3*natmtot
 
-    ! set band and mode ranges
-    irng = [1, nwfk]
-    if (present(irange)) irng = irange
-    frng = [1, nwfkq]
-    if (present(frange)) frng = frange
-    mrng = [1, nmode]
-    if (present(mrange)) mrng = mrange
-
     ! set total number of matrix elements
     nelem = eph_nwf_tot**2 * 3*natmtot
 
     ! communicate information on band and mode distribution
-    allocate( irng_list(2, mpi%procs), frng_list(2, mpi%procs), mrng_list(2, mpi%procs) )
-    irng_list = 0; irng_list(:, mpi%rank+1) = irng
-    frng_list = 0; frng_list(:, mpi%rank+1) = frng
-    mrng_list = 0; mrng_list(:, mpi%rank+1) = mrng
+    allocate( irng_list(3, 0:mpi%procs-1), frng_list(3, 0:mpi%procs-1), mrng_list(3, 0:mpi%procs-1) )
+    irng_list = 0; irng_list(:, mpi%rank) = [irng, irng(2)-irng(1)+1]
+    frng_list = 0; frng_list(:, mpi%rank) = [frng, frng(2)-frng(1)+1]
+    mrng_list = 0; mrng_list(:, mpi%rank) = [mrng, mrng(2)-mrng(1)+1]
     call xmpi_allreduce( irng_list, mpi )
     call xmpi_allreduce( frng_list, mpi )
     call xmpi_allreduce( mrng_list, mpi )
+    imin = minval( irng_list ); imax = maxval( irng_list )
+    fmin = minval( frng_list ); fmax = maxval( frng_list )
+    mmin = minval( mrng_list ); mmax = maxval( mrng_list )
 
     ! open file with g_aW(Re,Rp)
     gFMRR_file = block_data_file_type( eph_ephmat_gFMRR_filename, [eph_nwf_tot, eph_nwf_tot, 3*natmtot], cmplx( 0, 0, dp ) )
     call gFMRR_file%open( mpi )
 
     !................................................................................ 
-    ! Fourier transform Re -> k'
-    !
-    ! distribute k and Rp among processes
-    call patchwork_distribution( eph_ph_mfi%nr, nk, mpi%procs, ir_range, ik_range )
-    ir1 = ir_range(1, mpi%rank+1)
-    ir2 = ir_range(2, mpi%rank+1)
-    ik1 = ik_range(1, mpi%rank+1)
-    ik2 = ik_range(2, mpi%rank+1)
-    allocate( g_aW_RR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_el_mfi%nr) )
-    if (mpi%rank == 0) then
-      allocate( g_aW_kR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, nk, eph_ph_mfi%nr) )
-    else
-      allocate( g_aW_kR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, ik1:ik2, ir1:ir2) )
-    end if
-
-    do irp = ir1, ir2
-      ! read g_aW(Re,Rp) from file
-      do ire = 1, eph_el_mfi%nr
-        irec = (irp - 1) * eph_el_mfi%nr + ire
-        call gFMRR_file%read( irec, g_aW_RR(:, :, :, ire) )
-      end do
-      ! transform to g_aW(k,Rp)
-      if (ik_range(3, mpi%rank+1) > 0) then
-        call eph_el_mfi%transform_R2p( [eph_nwf_tot, eph_nwf_tot], 3*natmtot, &
-          g_aW_RR, eph_nwf_tot**2, 3*natmtot, &
-          g_aW_kR(1, 1, 1, ik1, irp), eph_nwf_tot**2, 3*natmtot, vkl(:, ik1:ik2), &
-          minimal_distances=.true. )
+    ! first Fourier transform
+    if (eph_ph_mfi%nr*nk + eph_el_mfi%nr < eph_el_mfi%nr*nq + eph_ph_mfi%nr) then
+      ! Fourier transform Re -> k'
+      !
+      ! distribute k and Rp among processes
+      call patchwork_distribution( eph_ph_mfi%nr, nk, mpi%procs, ir_range, ik_range )
+      ir1 = ir_range(1, mpi%rank+1)
+      ir2 = ir_range(2, mpi%rank+1)
+      ik1 = ik_range(1, mpi%rank+1)
+      ik2 = ik_range(2, mpi%rank+1)
+      allocate( g_aW_RR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_el_mfi%nr) )
+      if (mpi%rank == 0) then
+        allocate( g_aW_kR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, nk, eph_ph_mfi%nr) )
+      else
+        allocate( g_aW_kR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, ik1:ik2, ir1:ir2) )
       end if
-    end do
-    deallocate( g_aW_RR )
 
-    ! collect g_aW_kR at rank 0
-#ifdef MPI
-    if (mpi%rank == 0) then
-      do irank = 1, mpi%procs-1
-        do irp = ir_range(1, irank+1), ir_range(2, irank+1)
-          call MPI_Recv( g_aW_kR(1, 1, 1, ik_range(1, irank+1), irp), nelem*ik_range(3, irank+1), MPI_DOUBLE_COMPLEX, irank, irank*eph_ph_mfi%nr+irp, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
-        end do
-      end do
-    else
       do irp = ir1, ir2
-        call MPI_Send( g_aW_kR(1, 1, 1, ik1, irp), nelem*ik_range(3, mpi%rank+1), MPI_DOUBLE_COMPLEX, 0, mpi%rank*eph_ph_mfi%nr+irp, MPI_Comm(mpi%comm), mpi%ierr )
-      end do
-      deallocate( g_aW_kR )
-    end if
-#endif
-    !................................................................................ 
-
-    !................................................................................ 
-    ! Fourier transform Rp -> q'
-    !
-    ! distribute k and q among processes
-    call patchwork_distribution( nk, nq, mpi%procs, ik_range, iq_range )
-    ik1 = ik_range(1, mpi%rank+1)
-    ik2 = ik_range(2, mpi%rank+1)
-    iq1 = iq_range(1, mpi%rank+1)
-    iq2 = iq_range(2, mpi%rank+1)
-    if (mpi%rank /= 0) allocate( g_aW_kR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, ik1:ik2, eph_ph_mfi%nr) )
-    allocate( g_aW_kq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, ik1:ik2, iq1:iq2) )
-
-    ! distribute g_aW_kR among processes
-#ifdef MPI
-    if (mpi%rank == 0) then
-      do irank = 1, mpi%procs-1
-        if (ik_range(3, irank+1) < 1) cycle
-        do irp = 1, eph_ph_mfi%nr
-          call MPI_Send( g_aW_kR(1, 1, 1, ik_range(1, irank+1), irp), nelem*ik_range(3, irank+1), MPI_DOUBLE_COMPLEX, irank, irank*eph_ph_mfi%nr+irp, MPI_Comm(mpi%comm), mpi%ierr )
+        ! read g_aW(Re,Rp) from file
+        do ire = 1, eph_el_mfi%nr
+          irec = (irp - 1) * eph_el_mfi%nr + ire
+          call gFMRR_file%read( irec, g_aW_RR(:, :, :, ire) )
         end do
+        ! transform to g_aW(k,Rp)
+        if (ik_range(3, mpi%rank+1) > 0) then
+          call eph_el_mfi%transform_R2p( [eph_nwf_tot, eph_nwf_tot], 3*natmtot, &
+            g_aW_RR, eph_nwf_tot**2, 3*natmtot, &
+            g_aW_kR(1, 1, 1, ik1, irp), eph_nwf_tot**2, 3*natmtot, vkl(:, ik1:ik2), &
+            minimal_distances=eph_el_mindist )
+        end if
       end do
-    else if (ik_range(3, mpi%rank+1) > 0) then
-      do irp = 1, eph_ph_mfi%nr
-        call MPI_Recv( g_aW_kR(1, 1, 1, ik1, irp), nelem*ik_range(3, mpi%rank+1), MPI_DOUBLE_COMPLEX, 0, mpi%rank*eph_ph_mfi%nr+irp, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+      deallocate( g_aW_RR )
+
+      ! collect g_aW_kR at rank 0
+#ifdef MPI
+      if (mpi%rank == 0) then
+        do irank = 1, mpi%procs-1
+          do irp = ir_range(1, irank+1), ir_range(2, irank+1)
+            call MPI_Recv( g_aW_kR(1, 1, 1, ik_range(1, irank+1), irp), nelem*ik_range(3, irank+1), MPI_DOUBLE_COMPLEX, irank, irank*eph_ph_mfi%nr+irp, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+          end do
+        end do
+      else
+        do irp = ir1, ir2
+          call MPI_Send( g_aW_kR(1, 1, 1, ik1, irp), nelem*ik_range(3, mpi%rank+1), MPI_DOUBLE_COMPLEX, 0, mpi%rank*eph_ph_mfi%nr+irp, MPI_Comm(mpi%comm), mpi%ierr )
+        end do
+        deallocate( g_aW_kR )
+      end if
+#endif
+    else
+      ! Fourier transform Rp -> q'
+      !
+      ! distribute q and Re among processes
+      call patchwork_distribution( eph_el_mfi%nr, nq, mpi%procs, ir_range, iq_range )
+      ir1 = ir_range(1, mpi%rank+1)
+      ir2 = ir_range(2, mpi%rank+1)
+      iq1 = iq_range(1, mpi%rank+1)
+      iq2 = iq_range(2, mpi%rank+1)
+      allocate( g_aW_RR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, eph_ph_mfi%nr) )
+      if (mpi%rank == 0) then
+        allocate( g_aW_Rq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, nq, eph_el_mfi%nr) )
+      else
+        allocate( g_aW_Rq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, iq1:iq2, ir1:ir2) )
+      end if
+
+      do ire = ir1, ir2
+        ! read g_aW(Re,Rp) from file
+        do irp = 1, eph_ph_mfi%nr
+          irec = (irp - 1) * eph_el_mfi%nr + ire
+          call gFMRR_file%read( irec, g_aW_RR(:, :, :, irp) )
+        end do
+        ! transform to g_aW(Re,q)
+        if (iq_range(3, mpi%rank+1) > 0) then
+          call eph_ph_mfi%transform_R2p( [eph_nwf_tot*eph_nwf_tot, 3*natmtot], 1, &
+            g_aW_RR, nelem, 1, &
+            g_aW_Rq(1, 1, 1, iq1, ire), nelem, 1, vql(:, iq1:iq2), &
+            minimal_distances=.false. )
+        end if
       end do
+      deallocate( g_aW_RR )
+
+      ! collect g_aW_Rq at rank 0
+#ifdef MPI
+      if (mpi%rank == 0) then
+        do irank = 1, mpi%procs-1
+          do ire = ir_range(1, irank+1), ir_range(2, irank+1)
+            call MPI_Recv( g_aW_Rq(1, 1, 1, iq_range(1, irank+1), ire), nelem*iq_range(3, irank+1), MPI_DOUBLE_COMPLEX, irank, irank*eph_el_mfi%nr+ire, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+          end do
+        end do
+      else
+        do ire = ir1, ir2
+          call MPI_Send( g_aW_Rq(1, 1, 1, iq1, ire), nelem*iq_range(3, mpi%rank+1), MPI_DOUBLE_COMPLEX, 0, mpi%rank*eph_el_mfi%nr+ire, MPI_Comm(mpi%comm), mpi%ierr )
+        end do
+        deallocate( g_aW_Rq )
+      end if
+#endif
     end if
+    !................................................................................ 
+
+    !................................................................................ 
+    ! second Fourier tansform
+    if (eph_ph_mfi%nr*nk + eph_el_mfi%nr < eph_el_mfi%nr*nq + eph_ph_mfi%nr) then
+      ! Fourier transform Rp -> q'
+      !
+      ! distribute k and q among processes
+      call patchwork_distribution( nk, nq, mpi%procs, ik_range, iq_range )
+      ik1 = ik_range(1, mpi%rank+1)
+      ik2 = ik_range(2, mpi%rank+1)
+      iq1 = iq_range(1, mpi%rank+1)
+      iq2 = iq_range(2, mpi%rank+1)
+      if (mpi%rank /= 0) allocate( g_aW_kR(eph_nwf_tot, eph_nwf_tot, 3*natmtot, ik1:ik2, eph_ph_mfi%nr) )
+      allocate( g_aW_kq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, ik1:ik2, iq1:iq2) )
+
+      ! distribute g_aW_kR among processes
+#ifdef MPI
+      if (mpi%rank == 0) then
+        do irank = 1, mpi%procs-1
+          if (ik_range(3, irank+1) < 1) cycle
+          do irp = 1, eph_ph_mfi%nr
+            call MPI_Send( g_aW_kR(1, 1, 1, ik_range(1, irank+1), irp), nelem*ik_range(3, irank+1), MPI_DOUBLE_COMPLEX, irank, irank*eph_ph_mfi%nr+irp, MPI_Comm(mpi%comm), mpi%ierr )
+          end do
+        end do
+      else if (ik_range(3, mpi%rank+1) > 0) then
+        do irp = 1, eph_ph_mfi%nr
+          call MPI_Recv( g_aW_kR(1, 1, 1, ik1, irp), nelem*ik_range(3, mpi%rank+1), MPI_DOUBLE_COMPLEX, 0, mpi%rank*eph_ph_mfi%nr+irp, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+        end do
+      end if
 #endif
 
-    ! transform to g_aW_(k,q)
-    if (iq_range(3, mpi%rank+1) > 0) then
-      call eph_ph_mfi%transform_R2p( [eph_nwf_tot**2, 3*natmtot], ik_range(3, mpi%rank+1), &
-        g_aW_kR(1, 1, 1, ik1, 1), nelem, size( g_aW_kR, dim=4 ), &
-        g_aW_kq, nelem, size( g_aW_kq, dim=4 ), vql(:, iq1:iq2), &
-        minimal_distances=.false. )
-    end if
+      ! transform to g_aW_(k,q)
+      if (iq_range(3, mpi%rank+1) > 0) then
+        call eph_ph_mfi%transform_R2p( [eph_nwf_tot**2, 3*natmtot], ik_range(3, mpi%rank+1), &
+          g_aW_kR(1, 1, 1, ik1, 1), nelem, size( g_aW_kR, dim=4 ), &
+          g_aW_kq, nelem, size( g_aW_kq, dim=4 ), vql(:, iq1:iq2), &
+          minimal_distances=.false. )
+      end if
 
-    deallocate( g_aW_kR )
+      deallocate( g_aW_kR )
+    else
+      ! Fourier transform Re -> k'
+      !
+      ! distribute k and q among processes
+      call patchwork_distribution( nq, nk, mpi%procs, iq_range, ik_range )
+      ik1 = ik_range(1, mpi%rank+1)
+      ik2 = ik_range(2, mpi%rank+1)
+      iq1 = iq_range(1, mpi%rank+1)
+      iq2 = iq_range(2, mpi%rank+1)
+      if (mpi%rank /= 0) allocate( g_aW_Rq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, iq1:iq2, eph_el_mfi%nr) )
+      allocate( g_aW_kq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, iq1:iq2, ik1:ik2) )
+
+      ! distribute g_aW_Rq among processes
+#ifdef MPI
+      if (mpi%rank == 0) then
+        do irank = 1, mpi%procs-1
+          if (iq_range(3, irank+1) < 1) cycle
+          do ire = 1, eph_el_mfi%nr
+            call MPI_Send( g_aW_Rq(1, 1, 1, iq_range(1, irank+1), ire), nelem*iq_range(3, irank+1), MPI_DOUBLE_COMPLEX, irank, irank*eph_el_mfi%nr+ire, MPI_Comm(mpi%comm), mpi%ierr )
+          end do
+        end do
+      else if (iq_range(3, mpi%rank+1) > 0) then
+        do ire = 1, eph_el_mfi%nr
+          call MPI_Recv( g_aW_Rq(1, 1, 1, iq1, ire), nelem*iq_range(3, mpi%rank+1), MPI_DOUBLE_COMPLEX, 0, mpi%rank*eph_el_mfi%nr+ire, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+        end do
+      end if
+#endif
+
+      ! transform to g_aW_(k,q)
+      if (ik_range(3, mpi%rank+1) > 0) then
+        call eph_el_mfi%transform_R2p( [eph_nwf_tot, eph_nwf_tot], 3*natmtot*iq_range(3, mpi%rank+1), &
+          g_aW_Rq(1, 1, 1, iq1, 1), eph_nwf_tot**2, size( g_aW_Rq, dim=3)*size( g_aW_Rq, dim=4 ), &
+          g_aW_kq, eph_nwf_tot**2, size( g_aW_kq, dim=3 )*size( g_aW_kq, dim=4 ), vkl(:, ik1:ik2), &
+          minimal_distances=eph_el_mindist )
+      end if
+
+      deallocate( g_aW_Rq )
+
+      ! change order from (q,k) to (k,q)
+      call move_alloc( g_aW_kq, g_aW_Rq )
+      allocate( g_aW_kq(eph_nwf_tot, eph_nwf_tot, 3*natmtot, ik1:ik2, iq1:iq2) )
+      do iq = iq1, iq2
+        g_aW_kq(:, :, :, :, iq) = g_aW_Rq(:, :, :, iq, :)
+      end do
+      deallocate( g_aW_Rq )
+    end if
     !................................................................................ 
 
     !................................................................................ 
@@ -577,10 +873,10 @@ contains
     !
     ! generate long range prefactors in atomic gauge
     if (eph_polar .and. polar) then
-      allocate( g_lr_pref_a(3, natmtot, iq1:iq2) )
+      allocate( g_lr_pref_a(3, natmtot, nq) )
       !$omp parallel default( shared )
       !$omp do
-      do iq = iq1, iq2
+      do iq = 1, nq
         if (input%eph%elphbolt) then
           call eph_ephmat_gen_lr_prefactor_atomic_elphbolt( eph_ph_mfi%bvec, vql(:, iq), eph_dielten, eph_borncharge, g_lr_pref_a(:, :, iq), eph_ph_mfi%ngrid, 14.0_dp )
         else
@@ -591,9 +887,94 @@ contains
       !$omp end parallel
     end if
 
-    ! transform gauge
-    allocate( g_xH(nwfkq, nwfk, 3*natmtot) )
-    allocate( g_pX(eph_nwf_tot, eph_nwf_tot, nmode) )
+    ! send transformation to others
+#ifdef MPI
+    if (hgauge) then
+      do irank = 0, mpi%procs-1
+        if (irank == mpi%rank) cycle
+        do ik = ik_range(1, irank+1), ik_range(2, irank+1)
+          irec = mpi%rank*nq*nk + ik
+          call MPI_Send( Umnk(:, :, ik), irng_list(3, mpi%rank)*eph_nwf_tot, MPI_DOUBLE_COMPLEX, irank, 1*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), mpi%ierr )
+          do iq = iq_range(1, irank+1), iq_range(2, irank+1)
+            irec = mpi%rank*nq*nk + iq*nk + ik
+            call MPI_Send( Umnkq(:, :, ik, iq), frng_list(3, mpi%rank)*eph_nwf_tot, MPI_DOUBLE_COMPLEX, irank, 2*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), mpi%ierr )
+          end do
+        end do
+      end do
+    end if
+    if (pgauge) then
+      do irank = 0, mpi%procs-1
+        if (irank == mpi%rank) cycle
+        do iq = iq_range(1, irank+1), iq_range(2, irank+1)
+          irec = mpi%rank*nq*nk + iq*nk
+          call MPI_Send( ph_energy_q(:, iq), mrng_list(3, mpi%rank), MPI_DOUBLE, irank, 3*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), mpi%ierr )
+          call MPI_Send( ph_evec_q(:, :, iq), mrng_list(3, mpi%rank)*3*natmtot, MPI_DOUBLE_COMPLEX, irank, 4*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), mpi%ierr )
+        end do
+      end do
+    end if
+#endif
+    ! receive transformations from others
+    if (hgauge) then
+      allocate( Uk(imin:imax, eph_nwf_tot, ik1:ik2) )
+      allocate( Ukq(fmin:fmax, eph_nwf_tot, ik1:ik2, iq1:iq2) )
+      do irank = 0, mpi%procs-1
+        if (irank == mpi%rank) then
+          do ik = ik1, ik2
+            Uk(irng(1):irng(2), :, ik) = Umnk(:, :, ik)
+            do iq = iq1, iq2
+              Ukq(frng(1):frng(2), :, ik, iq) = Umnkq(:, :, ik, iq)
+            end do
+          end do
+#ifdef MPI
+        else
+          allocate( Uk_(irng_list(1, irank):irng_list(2, irank), eph_nwf_tot) )
+          allocate( Ukq_(frng_list(1, irank):frng_list(2, irank), eph_nwf_tot) )
+          do ik = ik1, ik2
+            irec = irank*nq*nk + ik
+            call MPI_Recv( Uk_, size(Uk_), MPI_DOUBLE_COMPLEX, irank, 1*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+            Uk(irng_list(1, irank):irng_list(2, irank), :, ik) = Uk_
+            do iq = iq1, iq2
+              irec = irank*nq*nk + iq*nk + ik
+              call MPI_Recv( Ukq_, size(Ukq_), MPI_DOUBLE_COMPLEX, irank, 2*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+              Ukq(frng_list(1, irank):frng_list(2, irank), :, ik, iq) = Ukq_
+            end do
+          end do
+          deallocate( Uk_, Ukq_ )
+#endif
+        end if
+      end do
+    end if
+    if (pgauge) then
+      allocate( wq(mmin:mmax, iq1:iq2) )
+      allocate( eq(3*natmtot, mmin:mmax, iq1:iq2) )
+      do irank = 0, mpi%procs-1
+        if (irank == mpi%rank) then
+          do iq = iq1, iq2
+            wq(mrng(1):mrng(2), iq) = ph_energy_q(:, iq)
+            eq(:, mrng(1):mrng(2), iq) = ph_evec_q(:, :, iq)
+          end do
+#ifdef MPI
+        else
+          allocate( wq_(mrng_list(3, irank)) )
+          allocate( eq_(3*natmtot, mrng_list(3, irank)) )
+          do iq = iq1, iq2
+            irec = irank*nq*nk + iq*nk
+            call MPI_Recv( wq_, size(wq_), MPI_DOUBLE, irank, 3*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+            wq(mrng_list(1, irank):mrng_list(2, irank), iq) = wq_
+            call MPI_Recv( eq_, size(eq_), MPI_DOUBLE_COMPLEX, irank, 4*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
+            eq(:, mrng_list(1, irank):mrng_list(2, irank), iq) = eq_
+          end do
+          deallocate( wq_, eq_ )
+#endif
+        end if
+      end do
+    end if
+    call barrier( mpi )
+
+    allocate( ephmat(frng(1):frng(2), irng(1):irng(2), mrng(1):mrng(2), nk, nq) )
+    allocate( g_xH(fmin:fmax, imin:imax, 3*natmtot) )
+    allocate( g_pX(eph_nwf_tot, eph_nwf_tot, mmin:mmax) )
+
     do iq = iq1, iq2
       do ik = ik1, ik2
         ! add long range matrix elements in atomic Wannier gauge
@@ -601,52 +982,85 @@ contains
           call eph_ephmat_add_lr( zone, g_lr_pref_a(:, :, iq), g_aW_kq(:, :, :, ik, iq) )
         ! transform to Hamiltonian gauge
         if (hgauge) then
-          call eph_ephmat_transform_Hamiltonian_Wannier( Umnk(:, :, ik), Umnkq(:, :, ik, iq), g_xH, g_aW_kq(:, :, :, ik, iq), 3*natmtot, -1 )
-          g_aW_kq(:nwfkq, :nwfk, :, ik, iq) = g_xH
+          call eph_ephmat_transform_Hamiltonian_Wannier( Uk(:, :, ik), Ukq(:, :, ik, iq), g_xH, g_aW_kq(:, :, :, ik, iq), 3*natmtot, -1 )
+          g_aW_kq(fmin:fmax, imin:imax, :, ik, iq) = g_xH
         end if
         ! transform to phonon gauge
         if (pgauge) then
-          call eph_ephmat_transform_atomic_phonon( ph_energy_q(:, iq), ph_evec_q(:, :, iq), g_aW_kq(:, :, :, ik, iq), g_pX, eph_nwf_tot**2, 1 )
-          g_aW_kq(:, :, :nmode, ik, iq) = g_pX
+          call eph_ephmat_transform_atomic_phonon( wq(:, iq), eq(:, :, iq), g_aW_kq(:, :, :, ik, iq), g_pX, eph_nwf_tot**2, 1 )
+          g_aW_kq(:, :, mmin:mmax, ik, iq) = g_pX
         end if
+        ephmat(:, :, :, ik, iq) = g_aW_kq(frng(1):frng(2), irng(1):irng(2), mrng(1):mrng(2), ik, iq)
       end do
     end do
-    deallocate( g_xH, g_pX )
-    if (eph_polar .and. polar) deallocate( g_lr_pref_a )
-    !................................................................................ 
 
-    ! distribute final result
-    if (allocated(ephmat)) deallocate( ephmat )
-    allocate( ephmat(frng(1):frng(2), irng(1):irng(2), mrng(1):mrng(2), nk, nq) )
-    nelem = size( ephmat(:, :, :, 1, 1) )
-    ephmat(:, :, :, ik1:ik2, iq1:iq2) = g_aW_kq(frng(1):frng(2), irng(1):irng(2), mrng(1):mrng(2), ik1:ik2, iq1:iq2)
+    deallocate( g_xH, g_pX )
+    if (allocated(Uk)) deallocate( Uk )
+    if (allocated(Ukq)) deallocate( Ukq )
+    if (allocated(wq)) deallocate( wq )
+    if (allocated(eq)) deallocate( eq )
+
+    ! distribute result
 #ifdef MPI
-    do jrank = 0, mpi%procs-1
-      if (mpi%rank == jrank) then
-        do irank = 0, mpi%procs-1
-          if (irank == jrank) cycle
-          do iq = iq_range(1, irank+1), iq_range(2, irank+1)
-            do ik = ik_range(1, irank+1), ik_range(2, irank+1)
-              call MPI_Recv( ephmat(:, :, :, ik, iq), nelem, MPI_DOUBLE_COMPLEX, irank, irank*nq*nk+iq*nk+ik, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
-            end do
-          end do
+    do irank = 0, mpi%procs-1
+      if (irank == mpi%rank) cycle
+      allocate( g_(frng_list(3, irank), irng_list(3, irank), mrng_list(3, irank)) )
+      do iq = iq1, iq2
+        do ik = ik1, ik2
+          irec = mpi%rank*nq*nk + iq*nk + ik
+          g_ = g_aW_kq(frng_list(1, irank):frng_list(2, irank), irng_list(1, irank):irng_list(2, irank), mrng_list(1, irank):mrng_list(2, irank), ik, iq)
+          call MPI_Send( g_, size(g_), MPI_DOUBLE_COMPLEX, irank, 5*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), mpi%ierr )
         end do
-      else
-        do iq = iq1, iq2
-          do ik = ik1, ik2
-            g_xH = g_aW_kq(frng_list(1, jrank+1):frng_list(2, jrank+1), irng_list(1, jrank+1):irng_list(2, jrank+1), mrng_list(1, jrank+1):mrng_list(2, jrank+1), ik, iq)
-            call MPI_Send( g_xH, size( g_xH ), MPI_DOUBLE_COMPLEX, jrank, mpi%rank*nq*nk+iq*nk+ik, MPI_Comm(mpi%comm), mpi%ierr )
-          end do
+      end do
+      deallocate( g_ )
+    end do
+    do irank = 0, mpi%procs-1
+      if (irank == mpi%rank) cycle
+      do iq = iq_range(1, irank+1), iq_range(2, irank+1)
+        do ik = ik_range(1, irank+1), ik_range(2, irank+1)
+          irec = irank*nq*nk + iq*nk + ik
+          call MPI_Recv( ephmat(:, :, :, ik, iq), nwfkq*nwfk*nmode, MPI_DOUBLE_COMPLEX, irank, 5*mpi%procs*nq*nk+irec, MPI_Comm(mpi%comm), MPI_STATUS_IGNORE, mpi%ierr )
         end do
-      end if
+      end do
     end do
 #endif
+
     deallocate( g_aW_kq )
+    !................................................................................ 
 
     ! close file with g_aW(Re,Rp)
     call gFMRR_file%close( mpi )
   end subroutine eph_ephmat_interpolate
   !-------------------------------------------------------------------------------- 
+
+  !> Read high and low energy matrix elements for given lattice vectors from file.  
+  !> See [[eph_ephmat_gen_coarse(subroutine)]] for definition of HILO matrix elements.
+  subroutine eph_ephmat_hilo_read_coarse( kset, qset, vkl, vql, file, g_pH_kq )
+    use mod_kpointset, only: k_set
+    !> set of \({\bf k}_0\)-vectors the matrix elements have been calculated for
+    type(k_set), intent(in) :: kset
+    !> set of \({\bf q}_0\)-vectors the matrix elements have been calculated for
+    type(k_set), intent(in) :: qset
+    !> \({\bf k}\)-vector (in lattice Coordinates)
+    real(dp), intent(in) :: vkl(3)
+    !> \({\bf q}\)-vector (in lattice Coordinates)
+    real(dp), intent(in) :: vql(3)
+    !> file that contains matrix elements at \({\bf k}_0\) and \({\bf q}_0\)
+    type(block_data_file_type), intent(inout) :: file
+    !> matrix elements \(g^{\rm hilo}_{nn,\nu}({\bf k},{\bf q})\)
+    complex(dp), intent(out) :: g_pH_kq(:,:)
+
+    integer :: ik0, iq0, isymk, isymq, irec
+
+    ! find equivalent q-point q0 and connecting symmetry
+    call findkptinset( vql, qset, isymq, iq0 )
+    ! find equivalent k-point k0 and connecting symmetry
+    call findkptinset( vkl, kset, isymk, ik0 )
+
+    ! read matrix elements at k0 and q0
+    irec = (iq0 - 1) * kset%nkpt + ik0
+    call file%read( irec, g_pH_kq )
+  end subroutine eph_ephmat_hilo_read_coarse
 
   !================================================================================ 
   ! READ MATRIX ELEMENTS ON COARSE GRIDS FROM FILE
@@ -659,9 +1073,9 @@ contains
   !> such that \({\bf q} = \mathrm{\bf R}{\bf q}_0 + {\bf G}\).
   !> The matrix elements are rotated using the phonon symmetry matrix \(\Gamma(\mathcal{S};{\bf q})\)
   !> (see [[ph_util_symmetry_G(subroutine)]])
-  !> \[ g_{mn,\kappa\alpha}({\bf k},{\bf q}) = \sum_{\lambda,\beta} 
-  !>    g_{mn,\lambda\beta}(\mathrm{\bf R}^{-1}{\bf k},{\bf q}_0)\, 
-  !>    \Gamma_{\kappa\alpha,\lambda\beta}^\ast(\mathcal{S};{\bf q}) \;. \]
+  !> \[ g_{mn,\kappa\alpha}({\bf k},{\bf q}) = \sum_{\kappa',\alpha'} 
+  !>    g_{mn,\kappa'\alpha'}(\mathrm{\bf R}^{-1}{\bf k},{\bf q}_0)\, 
+  !>    \Gamma_{\kappa\alpha,\kappa'\alpha'}^\ast(\mathcal{S};{\bf q}) \;. \]
   subroutine eph_ephmat_read_coarse( kset, qset, vkl, vql, file, g_aH_kq )
     use constants, only: zzero, zone
     use dfpt_variables, only: dfpt_kset, dfpt_Gset, dfpt_Gkset, feveck0
@@ -696,12 +1110,9 @@ contains
     ! check input
     f_rank = file%get_block_rank()
     f_shape = file%get_block_shape()
-    call assert( f_rank == 3, &
-      'Data blocks in file must have rank 3.' )
-    call assert( all( f_shape == shape( g_aH_kq ) ), &
-      'Shape of data blocks in file and shape of matrix elements are not compatible.' )
-    call assert( f_shape(3) == 3*natmtot, &
-      'Size of dimension 3 must be `3*natmtot`.' )
+    CALL_ASSERT( f_rank == 3, 'Data blocks in file must have rank 3.' )
+    CALL_ASSERT( all( f_shape == shape( g_aH_kq ) ), 'Shape of data blocks in file and shape of matrix elements are not compatible.' )
+    CALL_ASSERT( f_shape(3) == 3*natmtot, 'Size of dimension 3 must be `3*natmtot`.' )
 
     ! generate G+k vectors if not yet done
     if (.not. allocated(eph_Gkset_el%ngk)) &
@@ -892,12 +1303,9 @@ contains
     integer, allocatable :: deg_k(:,:), deg_kq(:,:), deg_q(:,:)
 
     ! check input
-    call assert( size( el_energy_kq ) == size( g_kq, dim=1 ), &
-      'Number of electron energies at k+q and size of 1st dimension of matrix elements must be equal.' )
-    call assert( size( el_energy_k ) == size( g_kq, dim=2 ), &
-      'Number of electron energies at k and size of 2nd dimension of matrix elements must be equal.' )
-    call assert( size( ph_energy_q ) == size( g_kq, dim=3 ), &
-      'Number of phonon energies at q and size of 3rd dimension of matrix elements must be equal.' )
+    CALL_ASSERT( size( el_energy_kq ) == size( g_kq, dim=1 ),  'Number of electron energies at k+q and size of 1st dimension of matrix elements must be equal.' )
+    CALL_ASSERT( size( el_energy_k ) == size( g_kq, dim=2 ),  'Number of electron energies at k and size of 2nd dimension of matrix elements must be equal.' )
+    CALL_ASSERT( size( ph_energy_q ) == size( g_kq, dim=3 ),  'Number of phonon energies at q and size of 3rd dimension of matrix elements must be equal.' )
 
     allocate( g_kq_avg, source=abs( g_kq ) )
     deg_kq = get_degeneracies( el_energy_kq, eps_el )
@@ -1088,8 +1496,7 @@ contains
     integer :: nwfk, nwfkq, ist, ip, ias
     complex(dp) :: ialpha
 
-    call assert( size( g_aW, dim=3 ) == 3*natmtot, &
-      '3rd dimension of `g_aW` must equal `3*natmtot`.' )
+    CALL_ASSERT( size( g_aW, dim=3 ) == 3*natmtot,  '3rd dimension of `g_aW` must equal `3*natmtot`.' )
     
     nwfk = size( g_aW, dim=2 )
     nwfkq = size( g_aW, dim=1 )
@@ -1139,14 +1546,10 @@ contains
     if (dir == 0) return
 
     ! check input
-    call assert( size( g_Hamilton, dim=1 ) == size( Umnkq, dim=1 ), &
-      'Size of 1st dimension of `g_Hamilton` must equal size of 1st dimension of `Umnkq`.' )
-    call assert( size( g_Hamilton, dim=2 ) == size( Umnk, dim=1 ), &
-      'Size of 2nd dimension of `g_Hamilton` must equal size of 1st dimension of `Umnk`.' )
-    call assert( size( g_Wannier, dim=1 ) == size( Umnkq, dim=2 ), &
-      'Size of 1st dimension of `g_Wannier` must equal size of 2nd dimension of `Umnkq`.' )
-    call assert( size( g_Wannier, dim=2 ) == size( Umnk, dim=2 ), &
-      'Size of 2nd dimension of `g_Wannier` must equal size of 2nd dimension of `Umnk`.' )
+    CALL_ASSERT( size( g_Hamilton, dim=1 ) == size( Umnkq, dim=1 ),  'Size of 1st dimension of `g_Hamilton` must equal size of 1st dimension of `Umnkq`.' )
+    CALL_ASSERT( size( g_Hamilton, dim=2 ) == size( Umnk, dim=1 ),  'Size of 2nd dimension of `g_Hamilton` must equal size of 1st dimension of `Umnk`.' )
+    CALL_ASSERT( size( g_Wannier, dim=1 ) == size( Umnkq, dim=2 ),  'Size of 1st dimension of `g_Wannier` must equal size of 2nd dimension of `Umnkq`.' )
+    CALL_ASSERT( size( g_Wannier, dim=2 ) == size( Umnk, dim=2 ),  'Size of 2nd dimension of `g_Wannier` must equal size of 2nd dimension of `Umnk`.' )
 
     if (dir > 0) then
       allocate( aux(size( g_Hamilton, dim=1 ), size( Umnk, dim=2 )) )
@@ -1204,22 +1607,22 @@ contains
     !> direction (`>0`: atomic to phonon, `<0`: phonon to atomic)
     integer, intent(in) :: dir
 
-    integer :: imode, is, ia, ias
+    integer :: nmode, imode, is, ia, ias
     real(dp) :: t1
 
     complex(dp), allocatable :: transform(:,:)
 
     if (dir == 0) return
 
-    ! check input
-    call assert( size( ph_energy_q ) == size( ph_evec_q, dim=2 ), &
-      'Different number of modes for phonon energies and eigenvectors.' )
-    call assert( size( ph_evec_q, dim=1 ) == 3*natmtot, &
-      '1st dimension of phonon eigenvectors must be `3*natmtot`.' )
+    nmode = size( ph_energy_q )
 
-    allocate( transform(3*natmtot, size( ph_energy_q )) )
+    ! check input
+    CALL_ASSERT( size( ph_energy_q ) == size( ph_evec_q, dim=2 ),  'Different number of modes for phonon energies and eigenvectors.' )
+    CALL_ASSERT( size( ph_evec_q, dim=1 ) == 3*natmtot,  '1st dimension of phonon eigenvectors must be `3*natmtot`.' )
+
+    allocate( transform(3*natmtot, nmode) )
     if (dir > 0) then
-      do imode = 1, size( ph_energy_q )
+      do imode = 1, nmode
         if (ph_energy_q(imode) > eph_ph_energy_zero) then
           t1 = 1.0_dp / sqrt( 2.0_dp * ph_energy_q(imode) )
         else
@@ -1238,12 +1641,12 @@ contains
           transform(ias:ias+2, :) = transform(ias:ias+2, :) * t1
         end do
       end do
-      call zgemm( 'n', 'n', ld, size( ph_energy_q ), 3*natmtot, zone, &
+      call zgemm( 'n', 'n', ld, nmode, 3*natmtot, zone, &
         g_atomic, ld, &
         transform, 3*natmtot, zzero, &
         g_phonon, ld )
     else
-      do imode = 1, size( ph_energy_q )
+      do imode = 1, nmode
         if (ph_energy_q(imode) > eph_ph_energy_zero) then
           t1 = sqrt( 2.0_dp * ph_energy_q(imode) )
         else
@@ -1262,7 +1665,7 @@ contains
           transform(ias:ias+2, :) = transform(ias:ias+2, :) * t1
         end do
       end do
-      call zgemm( 'n', 'c', ld, 3*natmtot, size( ph_energy_q ), zone, &
+      call zgemm( 'n', 'c', ld, 3*natmtot, nmode, zone, &
         g_phonon, ld, &
         transform, 3*natmtot, zzero, &
         g_atomic, ld )

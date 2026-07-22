@@ -34,16 +34,23 @@ module APW_basis_size
         !> Calculated rgkmax value 
         real(dp):: rgkmax
 
-        ! Label for atomic number
-        character(10) :: z_label
-
+        ! Label for atomic number (integer) and nuclear charge (real)
+        character(10) :: z_int_label
+        character(20) :: z_real_label
+        integer :: z_int
+        
         rgkmax_rmt_min = get_predefined_rgkmax(z_rmt_min)
-        write(z_label,'(I3)') idnint(Abs(z_rmt_min))
-        call terminate_if_false(mpiglobal, rgkmax_rmt_min /= -1.0_dp ,"Error (APW_basis_size):&
-                                & rgkmax cannot be calculated using the APWprecision attribute because a predefined&
-                                & rgkmax value for the given atomic number"// trim(z_label) // " does not exist.& 
-                                & Remove the APWprecision attribute from your input and manually choose a rgkmax-value&
-                                & for the calculation.")
+
+        z_int = idnint(abs(z_rmt_min))
+        write(z_int_label,'(I0)') z_int
+        write(z_real_label,'(F12.6)') abs(z_rmt_min)
+        
+        call terminate_if_false(mpiglobal, rgkmax_rmt_min > 0.0_dp, &
+             "Error (APW_basis_size): Cannot determine rgkmax from APWprecision because no predefined rgkmax " // &
+             "is available for Z = " // trim(adjustl(z_real_label)) // &
+             " (nearest integer: " // trim(z_int_label) // "). " // &
+             "Predefined values are available only for integer atomic numbers 1–86 (and only where tabulated). " // &
+             "Action: set /input/groundstate/@useAPWprecision='false' and specify rgkmax manually." )
 
         rgkmax = APWprecision * rgkmax_rmt_min
 
@@ -71,16 +78,25 @@ module APW_basis_size
         !> Calculated APWprecision value 
         real(dp):: APWprecision
 
-        ! Label for atomic number
-        character(10) :: z_label
+        ! Label for atomic number (integer) and nuclear charge (real)
+        character(10) :: z_int_label
+        character(20) :: z_real_label
+        integer :: z_int
         
         rgkmax_rmt_min = get_predefined_rgkmax(z_rmt_min)
-        write(z_label,'(I3)') idnint(Abs(z_rmt_min))
 
-        if (rgkmax_rmt_min == -1.0_dp) then
-            call warning("Warning (APW_basis_size): Automatic computation of the attribute APWprecision&
-            & is not possible, because a predefined rgkmax value for the given atomic number"// trim(z_label) // " does not exist.")
-            APWprecision = -1.0_dp 
+        z_int = idnint(abs(z_rmt_min))
+        write(z_int_label,'(I0)') z_int
+        write(z_real_label,'(F12.6)') abs(z_rmt_min)
+        
+        if (rgkmax_rmt_min <= 0.0_dp) then
+           call warning( &
+                "Warning (APW_basis_size): Automatic computation of APWprecision is not possible because no predefined rgkmax " // &
+                "is available for Z = " // trim(adjustl(z_real_label)) // &
+                " (nearest integer: " // trim(z_int_label) // "). " // &
+                "Predefined values are available only for integer atomic numbers 1–86 (and only where tabulated). " // &
+                "APWprecision cannot be determined automatically." )
+           APWprecision = -1.0_dp 
         else 
             APWprecision = rgkmax / rgkmax_rmt_min
         end if

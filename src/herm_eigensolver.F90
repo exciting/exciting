@@ -1,81 +1,34 @@
 module herm_eigensolver
 #ifdef _ELPA_
-  use elpa
+  use elpa, only: elpa_t, ELPA_OK, elpa_init, elpa_allocate, ELPA_SOLVER_1STAGE,&
+    & ELPA_SOLVER_2STAGE, elpa_deallocate, elpa_uninit
 #endif
   use modmpi, only: terminate, terminate_if_false
   use m_hesolver
   use modscl
   use precision
+  use to_char_conversion, only: to_char
   use iso_fortran_env, only: error_unit
   
   implicit none
 
   private
-  public :: he_eigensolver_wrapper, lapack_eigensolver
-#ifdef SCAL
-  public :: scalapack_eigensolver
-#endif
-#ifdef _ELPA_
-  public :: elpa_eigensolver
+  public :: &
+          lapack_eigensolver, &
+          scalapack_eigensolver_pzheevx, &
+          scalapack_eigensolver_pzheevd, &
+          elpa_eigensolver
+  ! Used if the ScaLAPACK routine PZHEEVX is requested to solve the BSE Hamiltonian.
+  ! Specifies which eigenvectors should be reorthogonalized. See the ScaLAPACK documentation for more details.
+  ! A negative value (the default) will use the ScaLAPACK default (which is the legacy behavior).
+  real(dp), parameter :: scalapack_pzheevx_orfac = -1.0
   integer(i32), parameter :: elpa_api_version = 20250131
-#endif
 
 contains
-
-  !> Wrapper for Hermitian eigensolvers (ELPA, ScaLAPACK, or LAPACK)
-  !> Automatically selects the appropriate eigensolver based on matrix
-  !> distribution and compile-time options. Falls back to LAPACK if
-  !> distributed solvers are not available.
-  subroutine he_eigensolver_wrapper(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
-    !> ham:Hermitian matrix to diagonalize
-    type(dzmat), intent(inout) :: ham
-    !> eval:Eigenvalues (output)
-    real(dp), intent(inout) :: eval(:)
-    !> binfo:BLACS context information
-    type(blacsinfo), intent(in) :: binfo
-    !> evec:Eigenvectors (optional)
-    type(dzmat), intent(inout), optional :: evec
-    !> i1,i2:Index bounds for eigenvalue subset (optional)
-    integer(i32), intent(in), optional :: i1, i2
-    !> v1,v2:Value bounds for eigenvalue subset (optional)
-    real(dp), intent(in), optional :: v1, v2
-    !> found:Number of eigenvalues found (optional)
-    integer(i32), intent(out), optional :: found
-    !> eecs:Extra parameter for eigensolvers (optional)
-    integer(i32), intent(in), optional :: eecs
-
-    logical :: distributed, sane
-
-    if (present(evec)) then
-      distributed = ham%isdistributed .and. evec%isdistributed
-      sane = (ham%isdistributed .eqv. evec%isdistributed)
-    else
-      distributed = ham%isdistributed
-      sane = .true.
-    end if
-
-    call terminate_if_false(sane, &
-         'Error(he_eigensolver_wrapper): Inconsistent matrix distribution')
-
-    if (distributed) then
-#ifdef _ELPA_
-      call elpa_eigensolver(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
-#elif defined(SCAL)
-      call scalapack_eigensolver(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
-#else
-      ! Fall back to LAPACK if no distributed solver is available
-      call lapack_eigensolver(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
-#endif
-    else
-      call lapack_eigensolver(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
-    end if
-
-  end subroutine he_eigensolver_wrapper
-
   !> Solves a Hermitian eigenvalue problem using ELPA library
   !> Computes eigenvalues and optionally eigenvectors using ELPA
   !> (Eigenvalue SoLvers for Petaflop-Applications).
-  subroutine elpa_eigensolver(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
+  subroutine elpa_eigensolver(ham, eval, binfo, elpa_solver, evec, i2, found)
 #ifdef _OPENMP
     use omp_lib
 #endif
@@ -85,30 +38,21 @@ contains
     real(dp), intent(inout) :: eval(:)
     !> binfo:BLACS context information
     type(blacsinfo), intent(in) :: binfo
+    !> which ELPA solver to use, must be '1' or '2'
+    character(1), intent(in) :: elpa_solver
     !> evec:Eigenvectors (optional)
     type(dzmat), intent(inout), optional :: evec
-    !> i1,i2:Index bounds for eigenvalue subset (optional)
-    integer(i32), intent(in), optional :: i1, i2
-    !> v1,v2:Value bounds for eigenvalue subset (optional)
-    real(dp), intent(in), optional :: v1, v2
+    !> i2:Upper index bound for eigenvalue subset (optional)
+    integer(i32), intent(in), optional :: i2
     !> found:Number of eigenvalues found (optional)
     integer(i32), intent(out), optional :: found
-    !> eecs:Extra parameter (currently unused)
-    integer(i32), intent(in), optional :: eecs
 
 #ifdef _ELPA_
     class(elpa_t), pointer :: eh
     integer(i32)          :: na, nev
     integer(i32)          :: error, success
-    integer(i32)          :: loc_il, loc_iu
-    logical               :: subset_i, subset_v
     logical               :: evalsonly
     integer(i32)          :: omp_threads
-    ! Variables for subset selection
-    integer(i32)          :: k, j
-    integer(i32), allocatable :: idx(:)
-    logical, allocatable  :: mask(:)
-    real(dp), allocatable :: eval_all(:)
 
     evalsonly = .not. present(evec)
 
@@ -118,15 +62,11 @@ contains
       call terminate_if_false(evec%context == binfo%context, 'Error(elpa_eigensolver): &
            context mismatch: evec%context /= binfo%context.')
     end if
-    na        = ham%nrows
-    subset_i  = present(i1) .or. present(i2)
-    subset_v  = present(v1) .and. present(v2)
-    loc_il = 1 ; loc_iu = na
-    if (subset_i) then
-      if (present(i1)) loc_il = i1
-      if (present(i2)) loc_iu = i2
-    end if
-    nev = loc_iu - loc_il + 1
+
+    na = ham%nrows
+    nev = na
+    if (present(i2)) nev = i2
+    call terminate_if_false(1 <= nev .and. nev <= na, 'Error(elpa_eigensolver): Upper index selection out of range.')
 
     call terminate_if_false(elpa_init(elpa_api_version) == ELPA_OK, &
          'Error(elpa_eigensolver): ELPA API version mismatch')
@@ -149,14 +89,19 @@ contains
     call eh%set("mpi_comm_parent", binfo%mpi%comm, error)
     call eh%set("process_row",     binfo%myprow,   error)
     call eh%set("process_col",     binfo%mypcol,   error)
-    call eh%set("omp_threads", omp_threads, error)
+    call eh%set("omp_threads",     omp_threads,    error)
 
     success = eh%setup()
     call terminate_if_false(success == ELPA_OK, 'Error(elpa_eigensolver): ELPA setup failed')
-
-    call eh%set("solver", ELPA_SOLVER_2STAGE, error)
+    if (elpa_solver == '1') then
+      call eh%set("solver", ELPA_SOLVER_1STAGE, error)
+    else if (elpa_solver == '2') then
+      call eh%set("solver", ELPA_SOLVER_2STAGE, error)
+    else
+      call terminate('Error(elpa_eigensolver): Solver name not recognized, use "1" or "2".')
+    end if
     call terminate_if_false(error == ELPA_OK, 'Error(elpa_eigensolver): setting solver failed')
-    
+
     if (evalsonly) then
       call eh%eigenvalues(ham%za, eval, error)
       call terminate_if_false(error == ELPA_OK, 'Error(elpa_eigensolver): computing eigenvalues failed')
@@ -164,39 +109,9 @@ contains
       call eh%eigenvectors(ham%za, eval, evec%za, error)
       call terminate_if_false(error == ELPA_OK, 'Error(elpa_eigensolver): computing eigenvectors failed')
     end if
-    
-    ! Handle subset selection (safe form to avoid shape mismatch)
-    if (subset_i) then
-      k = loc_iu - loc_il + 1
-      eval(1:k) = eval(loc_il:loc_iu)
-      if (present(evec)) then
-        do j = 1, k
-          evec%za(:, j) = evec%za(:, loc_il + j - 1)
-        end do
-      end if
-      if (present(found)) found = k
-    else if (subset_v) then
-      allocate(eval_all(size(eval)))
-      eval_all = eval
-      allocate(mask(size(eval_all)))
-      mask = (eval_all >= v1 .and. eval_all <= v2)
-      k = count(mask)
-      if (k > 0) then
-        allocate(idx(k))
-        idx = pack([(j, j=1,size(eval_all))], mask)
-        eval(1:k) = eval_all(idx)
-        if (present(evec)) then
-          do j = 1, k
-            evec%za(:, j) = evec%za(:, idx(j))
-          end do
-        end if
-        deallocate(idx)
-      end if
-      if (present(found)) found = k
-      deallocate(eval_all, mask)
-    else
-      if (present(found)) found = size(eval)
-    end if
+
+    if (present(found)) found = nev
+
     call elpa_deallocate(eh, error)
     call elpa_uninit()
 #else
@@ -207,7 +122,7 @@ contains
 
   !> Solves a Hermitian eigenvalue problem using ScaLAPACK library
   !> Computes eigenvalues and optionally eigenvectors using ScaLAPACK's pzheevx routine.
-  subroutine scalapack_eigensolver(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
+  subroutine scalapack_eigensolver_pzheevx(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
     !> ham:Hermitian matrix to diagonalize
     type(dzmat), intent(inout) :: ham
     !> eval:Eigenvalues (output)
@@ -235,7 +150,6 @@ contains
     complex(dp), allocatable :: work(:)
     real(dp), allocatable :: rwork(:)
     integer(i32), allocatable :: iwork(:)
-    real(dp) :: orfac
     integer(i32) :: ia, ja, iz, jz
     integer(i32) :: nevalfound, nevecfound
     real(dp), allocatable :: gap(:)
@@ -249,13 +163,13 @@ contains
     if(.not. evalsonly) then
       call terminate_if_false(ham%context == evec%context .and. &
            ham%context == binfo%context .and. evec%context == binfo%context, &
-           'Error(scalapack_eigensolver): ham, evec and binfo have differing contexts.')
+           'Error(scalapack_eigensolver_pzheevx): ham, evec and binfo have different contexts.')
     end if
     call terminate_if_false(.not. ((present(i1) .or. present(i2)) .and. &
          (present(v1) .or. present(v2))), &
-         'Error(scalapack_eigensolver): I and V specified.')
+         'Error(scalapack_eigensolver_pzheevx): I and V specified.')
     call terminate_if_false(.not. (present(v1) .and. .not. present(v2)), &
-         'Error(scalapack_eigensolver): Specify whole interval.')
+         'Error(scalapack_eigensolver_pzheevx): Specify whole interval.')
 
     if(present(i1) .or. present(i2)) then
       il = 1
@@ -264,11 +178,11 @@ contains
       if(present(i1)) il = i1
       if(present(i2)) iu = i2
       call terminate_if_false(il >= 1 .and. iu >= 1, &
-           'Error(scalapack_eigensolver): iu and il need to be positive.')
+           'Error(scalapack_eigensolver_pzheevx): iu and il need to be positive.')
       call terminate_if_false(il <= iu, &
-           'Error(scalapack_eigensolver): il > iu.')
+           'Error(scalapack_eigensolver_pzheevx): il > iu.')
       call terminate_if_false(iu <= ham%nrows, &
-           'Error(scalapack_eigensolver): iu > nrows.')
+           'Error(scalapack_eigensolver_pzheevx): iu > nrows.')
     end if
 
     if(present(v1) .and. present(v2)) then
@@ -276,7 +190,7 @@ contains
       vl = v1
       vu = v2
       call terminate_if_false(vl <= vu, &
-           'Error(scalapack_eigensolver): vl > vu')
+           'Error(scalapack_eigensolver_pzheevx): vl > vu')
     end if
 
     if(.not. (present(i1) .or. present(i2)) .and. .not. present(v1)) then
@@ -289,7 +203,6 @@ contains
       jobzchar = 'V'
     end if
 
-    orfac = 1.0e-9_dp
     abstol = 2.0_dp * pdlamch(binfo%context, 'S')
 
     allocate(ifail(ham%nrows))
@@ -308,19 +221,19 @@ contains
       end if
     end if
 
-    call workspacequery(jobzchar, rangechar)
+    call workspacequery_pzheevx(jobzchar, rangechar)
     allocate(work(lwork), rwork(lrwork), iwork(liwork))
 
     if(evalsonly) then
       call new_dzmat(evecdummy,1,1,binfo)
       call pzheevx(jobzchar, rangechar, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
-        & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
+        & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, scalapack_pzheevx_orfac,&
         & evecdummy%za, iz, jz, evecdummy%desc, work, lwork, rwork, lrwork, iwork, liwork,&
         & ifail, iclustr, gap, info)
       call del_dzmat(evecdummy)
     else
       call pzheevx(jobzchar, rangechar, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
-        & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
+        & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, scalapack_pzheevx_orfac,&
         & evec%za, iz, jz, evec%desc, work, lwork, rwork, lrwork, iwork, liwork,&
         & ifail, iclustr, gap, info)
     end if
@@ -329,7 +242,7 @@ contains
       found = nevalfound
     end if
 
-    call errorinspect(binfo, info)
+    call errorinspect_pzheevx(binfo, info)
 
     deallocate(ifail)
     deallocate(iclustr)
@@ -337,13 +250,14 @@ contains
     deallocate(work, rwork, iwork)
 
 #else
-    call terminate("Error(scalapack_eigensolver): scalapack_eigensolver called but exciting &
+    call terminate("Error(scalapack_eigensolver_pzheevx): scalapack_eigensolver_pzheevx called but exciting &
          is not linked to ScaLAPACK.")
 #endif
   contains
 
 #ifdef SCAL
-    subroutine workspacequery(jobtype, rangetype)
+    !> Call ScaLAPACK to obtain the optimal workspace sizes
+    subroutine workspacequery_pzheevx(jobtype, rangetype)
       character(1), intent(in) :: jobtype, rangetype
 
       integer(i32) :: nhetrd_lwork, anb, nps, n
@@ -365,13 +279,13 @@ contains
       if(jobtype == 'N') then
         call new_dzmat(evecdummy,1,1,binfo)
         call pzheevx(jobtype, rangetype, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
-          & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
+          & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, scalapack_pzheevx_orfac,&
           & evecdummy%za, iz, jz, evecdummy%desc, work, lwork, rwork, lrwork, iwork, liwork,&
           & ifail, iclustr, gap, info)
         call del_dzmat(evecdummy)
       else
         call pzheevx(jobtype, rangetype, 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
-          & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, orfac,&
+          & vl, vu, il, iu, abstol, nevalfound, nevecfound, eval, scalapack_pzheevx_orfac,&
           & evec%za, iz, jz, evec%desc, work, lwork, rwork, lrwork, iwork, liwork,&
           & ifail, iclustr, gap, info)
       end if
@@ -385,62 +299,157 @@ contains
       liwork=int(iwork(1))
 
       deallocate(work, rwork, iwork)
-    end subroutine workspacequery
+    end subroutine workspacequery_pzheevx
 
-    subroutine errorinspect(binfo, ierror)
+    !> Analyse the return code from ScaLAPACK, kill the code if a fatal code is detected, print error messages
+    subroutine errorinspect_pzheevx(binfo, ierror)
       type(blacsinfo), intent(in) :: binfo
       integer(i32), intent(in) :: ierror
       integer(i32) :: i, maxcs, tmp
 
       if (ierror == 0) return
 
-      if (binfo%mpi%rank == 0) then
-        write(error_unit,'("Error(scalapack_eigensolver): pzheevx returned non-zero info:", i6)') ierror
-        
-        if( ierror < 0) then
-          write(error_unit,'("Error(scalapack_eigensolver) cause: Invalid input")')
-        else if(mod(ierror,2) /= 0) then
-          write(error_unit,'("Error(scalapack_eigensolver) cause: Eigenvectors not converged")')
-          write(error_unit,'("scalapack_eigensolver ifail")')
-          write(error_unit,'(I8)') ifail
-        else if(mod(ierror/2,2) /= 0) then
-          maxcs = 0
-          do i = 1, size(iclustr)-1
-            tmp = iclustr(i+1) - iclustr(i)
-            if(tmp > 0) then
-              maxcs = max(tmp, maxcs)
-            else
-              exit
-            end if
-          end do
-          i = i-1
-          write(error_unit,'("Warning(scalapack_eigensolver) cause: Reorthogonalization failed,&
-            & insufficient workspace. There are", i8," clusters of eigenvalues&
-            & and the largest one has size ", i8,". &
-            & Increase input%xs%bse%eecs to ", i8," to guarantee orthogonal eigenvectors.&
-            & (usually the results are still good)")')&
-            & i, maxcs, maxcs
-          write(error_unit,'("scalapack_eigensolver iclustr:")')
-          write(error_unit,'(I8)') iclustr
-        else if(mod(ierror/4,2) /= 0) then
-          write(error_unit,'("Error(scalapack_eigensolver) cause:&
-            & Not all eigenvectors computed, insufficient workspace.")')
-        else if(mod(ierror/8,2) /= 0) then
-          write(error_unit,'("Error(scalapack_eigensolver) cause:&
-            & Eigenvalue computation failed")')
-        end if
+      write(error_unit,'("Error(scalapack_eigensolver_pzheevx): pzheevx returned non-zero info:", i6, " on rank:", i6)')&
+        & ierror, binfo%mpi%rank
+
+      if( ierror < 0) then
+        write(error_unit,'("Error(scalapack_eigensolver_pzheevx): ", a)') &
+          "pzheevx argument no. " // to_char(ierror) // " is invalid."
+      else if(mod(ierror,2) /= 0) then
+        write(error_unit,'("Error(scalapack_eigensolver_pzheevx): ", a)') &
+          "Eigenvectors did not converge. pzheevx returned ifail = " // to_char(ifail)
+      else if(mod(ierror/2,2) /= 0) then
+        maxcs = 0
+        do i = 1, size(iclustr)-1
+          tmp = iclustr(i+1) - iclustr(i)
+          if(tmp > 0) then
+            maxcs = max(tmp, maxcs)
+          else
+            exit
+          end if
+        end do
+        i = i-1
+
+        write(error_unit,'("Warning(scalapack_eigensolver_pzheevx): ", a)') &
+          "Reorthogonalization failed because of insufficient workspace. There are " &
+       // to_char(i) // " clusters of eigenvalues. The largest has size " // to_char(maxcs) // "." &
+       // "To guarantee orthogonal eigenvectors set <input><xs><bse><eecs> at least to " // to_char(maxcs) // "." &
+       // "Usually the results are still good."
+        write(error_unit,'("scalapack_eigensolver_pzheevx iclustr:")')
+        write(error_unit,'(I8)') iclustr
+        return
+      else if(mod(ierror/4,2) /= 0) then
+        write(error_unit,'("Error(scalapack_eigensolver_pzheevx): ", a)') &
+          "Could not compute all eigenvectors because of insufficient workspace."
+      else if(mod(ierror/8,2) /= 0) then
+        write(error_unit,'("Error(scalapack_eigensolver_pzheevx): ", a)') &
+          "Eigenvalue computation failed"
       end if
-      
-      call terminate_if_false(.false., 'Error(scalapack_eigensolver): &
+
+      call terminate_if_false(.false., 'Error(scalapack_eigensolver_pzheevx): &
            pzheevx returned non-zero info')
-    end subroutine errorinspect
+    end subroutine errorinspect_pzheevx
 #endif
 
-  end subroutine scalapack_eigensolver
+  end subroutine scalapack_eigensolver_pzheevx
+
+  !> Solves a Hermitian eigenvalue problem using ScaLAPACK library
+  !> Computes eigenvalues and eigenvectors using ScaLAPACK's pzheevd routine.
+  subroutine scalapack_eigensolver_pzheevd(ham, eval, binfo, evec, found)
+    !> ham:Hermitian matrix to diagonalize
+    type(dzmat), intent(inout) :: ham
+    !> eval:Eigenvalues (output)
+    real(dp), intent(inout) :: eval(:)
+    !> binfo:BLACS context information
+    type(blacsinfo), intent(in) :: binfo
+    !> evec:Eigenvectors
+    type(dzmat), intent(inout) :: evec
+    !> found:Number of eigenvalues found (optional)
+    integer(i32), intent(out), optional :: found
+
+#ifdef SCAL
+    integer(i32) :: info
+    integer(i32) :: lwork, lrwork, liwork
+    complex(dp), allocatable :: work(:)
+    real(dp), allocatable :: rwork(:)
+    integer(i32), allocatable :: iwork(:)
+    integer(i32) :: ia, ja, iz, jz
+    character(16) :: info_str
+
+    call terminate_if_false(ham%context == evec%context .and. &
+         ham%context == binfo%context .and. evec%context == binfo%context, &
+         'Error(scalapack_eigensolver_pzheevd): ham, evec and binfo have different contexts.')
+
+    ia = 1
+    ja = 1
+    iz = 1
+    jz = 1
+
+    lwork=-1
+    lrwork=-1
+    liwork=-1
+
+    allocate(work(3), rwork(3), iwork(3))
+
+    ! workspace query
+    call pzheevd('V', 'U', ham%nrows, ham%za, ia, ja, ham%desc,&
+      & eval,&
+      & evec%za, iz, jz, evec%desc, work, lwork, rwork, lrwork, iwork, liwork,&
+      & info)
+
+    write(info_str,'(I5)') info
+    call terminate_if_false(info == 0, 'Error(scalapack_eigensolver_pzheevd): &
+         pzheevd workspacequery returned non-zero info: '//info_str)
+
+    lwork  = int(real(work(1)))
+    lrwork = int(rwork(1))
+    liwork = iwork(1)
+
+    deallocate(work, rwork, iwork)
+    allocate(work(lwork), rwork(lrwork), iwork(liwork))
+
+    call pzheevd('V', 'U', ham%nrows, ham%za, ia, ja, ham%desc, eval,&
+      & evec%za, iz, jz, evec%desc, work, lwork, rwork, lrwork, iwork, liwork, info)
+
+    call errorinspect_pzheevd(binfo, info)
+
+    if (present(found)) found = size(eval)
+
+    deallocate(work, rwork, iwork)
+
+#else
+    call terminate("Error(scalapack_eigensolver_pzheevd): scalapack_eigensolver_pzheevd called but exciting &
+         is not linked to ScaLAPACK.")
+#endif
+    end subroutine scalapack_eigensolver_pzheevd
+
+#ifdef SCAL
+    !> Analyse the return code from ScaLAPACK, kill the code if a fatal code is detected, print error messages
+    subroutine errorinspect_pzheevd(binfo, ierror)
+      type(blacsinfo), intent(in) :: binfo
+      integer(i32), intent(in) :: ierror
+
+      if (ierror == 0) return
+
+    write(error_unit,'("Error(scalapack_eigensolver_pzheevd): pzheevd returned non-zero info:", i6, " on rank:", i6)')&
+        & ierror, binfo%mpi%rank
+
+    if( ierror < 0) then
+      write(error_unit,'("Error(scalapack_eigensolver_pzheevd): ", a)') &
+          "pzheevd argument no. " // to_char(ierror) // " is invalid."
+    else
+      write(error_unit,'("Error(scalapack_eigensolver_pzheevd): ", a)') &
+          "Eigenvalue no. " // to_char(ierror) // " did not converged."
+    end if
+
+      call terminate_if_false(.false., 'Error(scalapack_eigensolver_pzheevd): &
+           pzheevd returned non-zero info')
+    end subroutine errorinspect_pzheevd
+#endif
 
   !> Solves a Hermitian eigenvalue problem using LAPACK library
   !> Computes eigenvalues and optionally eigenvectors using LAPACK routines (non-distributed).
-  subroutine lapack_eigensolver(ham, eval, binfo, evec, i1, i2, v1, v2, found, eecs)
+  subroutine lapack_eigensolver(ham, eval, binfo, evec, i1, i2, v1, v2, found)
     !> ham:Hermitian matrix to diagonalize
     type(dzmat), intent(inout) :: ham
     !> eval:Eigenvalues (output)
@@ -455,8 +464,6 @@ contains
     real(dp), intent(in), optional :: v1, v2
     !> found:Number of eigenvalues found (optional)
     integer(i32), intent(out), optional :: found
-    !> eecs:Extra parameter (currently unused)
-    integer(i32), intent(in), optional :: eecs
 
     if (present(evec)) then
       call hesolver(ham%za, eval, evec%za, i1, i2, v1, v2, found)

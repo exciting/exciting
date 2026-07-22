@@ -1,6 +1,6 @@
 !> Module that contains the subroutines envolved in the update of KS WFs
 module rttddft_Wavefunction
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zone, zzero, zi
   use exciting_mpi, only: mpiinfo, xmpi_allgather, xmpi_allreduce
   use mod_kpointset, only: k_set
@@ -22,10 +22,12 @@ module rttddft_Wavefunction
   
   !> Type for the set of wavefunctions expanded on a basis set
   type, public, abstract :: wavefunction_set
-    !> Basis expansion coefficients of the frozen states
+    !> Initial basis expansion coefficients of all states (in LAPW+lo basis)
+    complex(dp), allocatable :: groundstate_lapwlo(:, :, :)
+    !> Ground state second-variational wavefunctions
+    complex(dp), allocatable :: groundstate_second_variation(:, :, :)
+    !> Basis expansion coefficients of the frozen states (same basis as `active`)
     complex(dp), allocatable :: frozen(:, :, :)
-    !> Initial basis expansion coefficients of all states
-    complex(dp), allocatable :: groundstate(:, :, :)
     !> Basis expansion coefficients of the active states at time \(t\)
     complex(dp), allocatable :: active(:, :, :)
     !> Storage for the expansion coefficients of the active states
@@ -39,9 +41,11 @@ module rttddft_Wavefunction
 
     contains
       procedure :: expanded_in_lapwlo => wavefunction_set_expanded_in_lapwlo
+      procedure :: expanded_in_ks => wavefunction_set_expanded_in_ks
       procedure :: first_active => wavefunction_set_first_active
       procedure :: first_kpt => wavefunction_set_first_kpt
       procedure :: has_frozen => wavefunction_set_has_frozen
+      procedure :: has_second_variation => wavefunction_set_has_second_variation
       procedure(initialize_interface), private, deferred :: initialize
       procedure :: last_kpt => wavefunction_set_last_kpt
       procedure :: n_active => wavefunction_set_n_active
@@ -58,6 +62,7 @@ module rttddft_Wavefunction
       procedure :: restore => restore_wavefunctions
       procedure :: save => save_wavefunctions
       procedure :: write_to_file => wavefunction_set_write
+      procedure :: orthogonalize_against_frozen => wavefunction_set_orthogonalize_against_frozen
   end type
 
   !> Type to encapsulate the wavefunction set expanded in the LAPW+lo basis
@@ -77,8 +82,8 @@ module rttddft_Wavefunction
   end type
 
   abstract interface
-    subroutine initialize_interface( this, first_kpt, kset, save_needed, n_frozen, complete_gnd_set_lapwlo, &
-        occupations, occs_tol )
+    subroutine initialize_interface( this, first_kpt, kset, save_needed, n_frozen, &
+        complete_gnd_set_lapwlo, occupations, occs_tol, complete_gnd_set_second_variation )
       import :: dp, i32, k_set, wavefunction_set
       class(wavefunction_set), intent(inout) :: this
       !> Index of the first \( \mathbf{k} \)-point assigned to this MPI rank
@@ -90,11 +95,13 @@ module rttddft_Wavefunction
       !> Number of the frozen states
       integer(i32), intent(in) :: n_frozen
       !> Initial wavefunction set in the LAPW+lo basis, (n_basis, n_states, n_kpt)
-      complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, :)
+      complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, first_kpt:)
       !> State occupations array (n_states, n_kpt)
       real(dp), contiguous, intent(in) :: occupations(:, :)
       !> Minimal value of occupation for the state to be 'occupied'
       real(dp), intent(in) :: occs_tol
+      !> Second-variational wavefunctions in the KS basis (n_basis_sv, n_states_sv, n_kpt)
+      complex(dp), contiguous, optional, intent(in) :: complete_gnd_set_second_variation(:, :, first_kpt:)
     end subroutine
 
     !> Project the active states onto the ground state wavefunctions
@@ -123,7 +130,7 @@ contains
   !> Initializes the wavefunction set class ([[wavefunction_set]])
   !> with a concrete type, depending on the basis set
   subroutine initialize_wavefunction_set( psi, use_lapwlo_basis, first_kpt, kset, &
-      save_needed, n_frozen, complete_gnd_set_lapwlo, occupations, occs_tol )
+      save_needed, n_frozen, complete_gnd_set_lapwlo, occupations, occs_tol, complete_gnd_set_second_variation )
     class(wavefunction_set), allocatable, intent(out) :: psi
     !> Whether the LAPW+lo basis should be used
     logical, intent(in) :: use_lapwlo_basis
@@ -141,18 +148,21 @@ contains
     real(dp), contiguous, intent(in) :: occupations(:, first_kpt:)
     !> Minimal value of occupation for the state to be 'occupied'
     real(dp), intent(in) :: occs_tol
+    !> Second-variational wavefunctions in the KS basis (n_basis_sv, n_states_sv, n_kpt)
+    complex(dp), contiguous, optional, intent(in) :: complete_gnd_set_second_variation(:, :, first_kpt:)
 
     if ( use_lapwlo_basis ) then
       allocate( wavefunction_set_lapwlo_basis :: psi )
     else
       allocate( wavefunction_set_ks_basis :: psi )      
     end if
-    call psi%initialize( first_kpt, kset, save_needed, n_frozen, complete_gnd_set_lapwlo, occupations, occs_tol )
+    call psi%initialize( first_kpt, kset, save_needed, n_frozen, complete_gnd_set_lapwlo, &
+      occupations, occs_tol, complete_gnd_set_second_variation )
   end subroutine
 
   !> Initialize the set from the ground state WFs expanded in LAWP+lo basis. See [[initialize_]] for documentation.
   subroutine initialize_set_in_lapwlo_basis( this, first_kpt, kset, save_needed, n_frozen, &
-      complete_gnd_set_lapwlo, occupations, occs_tol )
+      complete_gnd_set_lapwlo, occupations, occs_tol, complete_gnd_set_second_variation )
     class(wavefunction_set_lapwlo_basis), intent(inout) :: this
     integer(i32), intent(in) :: first_kpt
     type(k_set), intent(in) :: kset
@@ -161,25 +171,24 @@ contains
     complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, first_kpt:)
     real(dp), contiguous, intent(in) :: occupations(:, first_kpt:)
     real(dp), intent(in) :: occs_tol
+    complex(dp), contiguous, intent(in), optional :: complete_gnd_set_second_variation(:, :, :)
 
-    integer(i32) :: last_kpt, n_active_states, n_basis
+    integer(i32) :: last_kpt, n_occupied_states, n_basis
 
     last_kpt = ubound( complete_gnd_set_lapwlo, 3 )
     n_basis = size( complete_gnd_set_lapwlo, 1 )
-    call assert( n_frozen <= size( complete_gnd_set_lapwlo, 2 ), 'n_frozen > n_states')
-    call assert( size( complete_gnd_set_lapwlo, 2 ) == size( occupations, 1 ), &
-      'complete_gnd_set_lapwlo and occupations have different n_states')
-    call assert( size( complete_gnd_set_lapwlo, 3 ) == size( occupations, 2 ), &
-      'complete_gnd_set_lapwlo and occupations have different n_kpts')
+    CALL_ASSERT( n_frozen <= size( complete_gnd_set_lapwlo, 2 ), 'n_frozen > n_states')
+    CALL_ASSERT( size( complete_gnd_set_lapwlo, 2 ) == size( occupations, 1 ),  'complete_gnd_set_lapwlo and occupations have different n_states')
+    CALL_ASSERT( size( complete_gnd_set_lapwlo, 3 ) == size( occupations, 2 ),  'complete_gnd_set_lapwlo and occupations have different n_kpts')
 
     this%eps_occ = occs_tol
     allocate( this%occupations, source = occupations )
-    allocate( this%groundstate, source = complete_gnd_set_lapwlo )
+    allocate( this%groundstate_lapwlo, source = complete_gnd_set_lapwlo )
     this%kset = kset
     ! TODO: n_active_states to be defined by the user (issue #248)
-    call last_occupied_for_all_ranks( occupations, occs_tol, mpiglobal, n_active_states )
-    allocate( this%active(n_basis, n_active_states-n_frozen, first_kpt:last_kpt), &
-      source = complete_gnd_set_lapwlo(:, n_frozen + 1 : n_active_states, :) )
+    call last_occupied_for_all_ranks( occupations, occs_tol, mpiglobal, n_occupied_states )
+    allocate( this%active(n_basis, n_occupied_states-n_frozen, first_kpt:last_kpt), &
+      source = complete_gnd_set_lapwlo(:, n_frozen + 1 : n_occupied_states, :) )
     if ( save_needed ) allocate( this%active_save, source = this%active )
     if ( n_frozen > 0 ) allocate( this%frozen(n_basis, n_frozen, first_kpt:last_kpt), &
       source = complete_gnd_set_lapwlo(:, 1 : n_frozen, :) )
@@ -187,7 +196,7 @@ contains
 
   !> Initialize the set from the ground state WFs expanded in KS basis. See [[initialize_]] for documentation.
   subroutine initialize_set_in_ks_basis( this, first_kpt, kset, save_needed, n_frozen, complete_gnd_set_lapwlo, &
-      occupations, occs_tol )
+      occupations, occs_tol, complete_gnd_set_second_variation )
     class(wavefunction_set_ks_basis), intent(inout) :: this
     integer(i32), intent(in) :: first_kpt
     type(k_set), intent(in) :: kset
@@ -196,33 +205,45 @@ contains
     complex(dp), contiguous, intent(in) :: complete_gnd_set_lapwlo(:, :, first_kpt:)
     real(dp), contiguous, intent(in) :: occupations(:, first_kpt:)
     real(dp), intent(in) :: occs_tol
+    complex(dp), contiguous, optional, intent(in) :: complete_gnd_set_second_variation(:, :, first_kpt:)
 
-    integer(i32) :: i, last_kpt, n_active_states, n_gnd_states
+    integer(i32) :: i, last_kpt, n_occupied_states, n_gnd_states, n_gnd_states_sv, n_spinors
 
     n_gnd_states = size( complete_gnd_set_lapwlo, 2 )
     last_kpt = ubound( complete_gnd_set_lapwlo, 3 )
+    n_gnd_states_sv = n_gnd_states
+    if( present( complete_gnd_set_second_variation ) ) then
+      n_gnd_states_sv = size( complete_gnd_set_second_variation, 1 )
+      n_spinors = n_gnd_states_sv / n_gnd_states
+      CALL_ASSERT( size( complete_gnd_set_second_variation, 2 ) == n_gnd_states_sv, 'complete_gnd_set_second_variation has incompatible n_states' )
+      CALL_ASSERT( ubound( complete_gnd_set_second_variation, 3 ) == last_kpt, 'complete_gnd_set_second_variation has incompatible n_kpts' )
+      CALL_ASSERT( n_spinors == 1 .or. n_spinors == 2, 'n_spinors must be 1 or 2' )
+    end if
 
-    call assert( n_frozen <= n_gnd_states, 'n_frozen > n_gnd_states')
-    call assert( n_gnd_states == size( occupations, 1 ), &
-      'complete_gnd_set_lapwlo and occupations have different n_states')
-    call assert( size( complete_gnd_set_lapwlo, 3 ) == size( occupations, 2 ), &
-      'complete_gnd_set_lapwlo and occupations have different n_kpts')
+    CALL_ASSERT( n_frozen <= n_gnd_states, 'n_frozen > n_gnd_states')
+    CALL_ASSERT( n_gnd_states_sv == size( occupations, 1 ),  'occupations has wrong n_states')
+    CALL_ASSERT( size( complete_gnd_set_lapwlo, 3 ) == size( occupations, 2 ),  'complete_gnd_set_lapwlo and occupations have different n_kpts')
 
     this%eps_occ = occs_tol
-    allocate( this%occupations, source = occupations )
-    allocate( this%groundstate(n_gnd_states, n_gnd_states, first_kpt:last_kpt), source = zzero )
-    do i = 1, n_gnd_states
-      this%groundstate(i, i, :) = zone
-    end do
     this%kset = kset
+    allocate( this%occupations, source = occupations )
+    allocate( this%groundstate_lapwlo, source = complete_gnd_set_lapwlo )
+    if( present( complete_gnd_set_second_variation ) ) &
+      allocate( this%groundstate_second_variation, source = complete_gnd_set_second_variation )
 
     ! TODO: n_active_states to be defined by the user (issue #248)
-    call last_occupied_for_all_ranks( occupations, occs_tol, mpiglobal, n_active_states )
-    allocate( this%active(n_gnd_states, n_active_states-n_frozen, first_kpt:last_kpt), &
-      source = this%groundstate(:, n_frozen + 1 : n_active_states, :) )
+    call last_occupied_for_all_ranks( occupations, occs_tol, mpiglobal, n_occupied_states )
+    allocate( this%active(n_gnd_states_sv, n_occupied_states-n_frozen, first_kpt:last_kpt), source = zzero )
+    do i = 1, n_occupied_states - n_frozen
+      this%active(i + n_frozen, i, :) = zone
+    end do
     if ( save_needed ) allocate( this%active_save, source = this%active )
-    if ( n_frozen > 0 ) allocate( this%frozen(n_gnd_states, n_frozen, first_kpt:last_kpt), &
-      source = this%groundstate(:, 1 : n_frozen, :) )
+    if ( n_frozen > 0 ) then
+      allocate( this%frozen(n_gnd_states, n_frozen, first_kpt:last_kpt), source = zzero )
+      do i = 1, n_frozen
+        this%frozen(i, i, :) = zone
+      end do
+    end if
   end subroutine
 
   !> Save current active component into the save component
@@ -255,7 +276,7 @@ contains
 
     call wrapper_normalize_vectors( S%array, this%active )
     if ( local_normalize_all ) then
-      call wrapper_normalize_vectors( S%array, this%groundstate )
+      call wrapper_normalize_vectors( S%array, this%groundstate_lapwlo )
       if ( this%has_frozen() ) call wrapper_normalize_vectors( S%array, this%frozen )
       if ( allocated( this%active_save ) ) call wrapper_normalize_vectors( S%array, this%active_save )
     end if
@@ -266,7 +287,7 @@ contains
         
         integer(i32) :: ik
 
-        call assert( size( overlap, 3 ) == size( vectors, 3 ), "Incompatible size" )
+        CALL_ASSERT( size( overlap, 3 ) == size( vectors, 3 ), "Incompatible size" )
         do ik = 1, size( vectors, 3 )
           call normalize_vectors( S=overlap(:, :, ik), vectors=vectors(:, :, ik) )
         end do
@@ -274,16 +295,24 @@ contains
   end subroutine
 
   !> Tells whether the set is expanded over the LAPW+lo basis
-  logical function wavefunction_set_expanded_in_lapwlo( this ) result( expanded_in_lapwlo )
+  pure logical function wavefunction_set_expanded_in_lapwlo( this ) result( expanded_in_lapwlo )
     class(wavefunction_set), intent(in) :: this
     
-    select type( this )
-    type is( wavefunction_set_lapwlo_basis )
-    expanded_in_lapwlo = .true.
-    type is( wavefunction_set_ks_basis )
     expanded_in_lapwlo = .false.
-    class default
-      call assert( .false., 'unrecognized type passed to expanded_in_lapwlo' )
+    select type( this )
+      type is( wavefunction_set_lapwlo_basis )
+        expanded_in_lapwlo = .true.
+    end select
+  end function
+
+  !> Tells whether the set is expanded over the (second-variational) groundstate KS basis
+  pure logical function wavefunction_set_expanded_in_ks( this ) result( expanded_in_ks )
+    class(wavefunction_set), intent(in) :: this
+
+    expanded_in_ks = .false.
+    select type( this )
+      type is( wavefunction_set_ks_basis )
+      expanded_in_ks = .true.
     end select
   end function
 
@@ -292,6 +321,13 @@ contains
     class(wavefunction_set), intent(in) :: this
 
     has_frozen = allocated( this%frozen )
+  end function
+
+  !> Return `.true.` if there is a second-variational wavefunction
+  pure logical function wavefunction_set_has_second_variation( this ) result( has_second_variation )
+    class(wavefunction_set), intent(in) :: this
+
+    has_second_variation = allocated( this%groundstate_second_variation )
   end function
 
   !> Returns the number of frozen states
@@ -306,7 +342,7 @@ contains
   pure integer(i32) function wavefunction_set_n_empty( this ) result( n_empty )
     class(wavefunction_set), intent(in) :: this
     
-    n_empty = size( this%groundstate, 2 ) - this%n_occupied()
+    n_empty = size( this%groundstate_lapwlo, 2 ) - this%n_occupied()
   end function
 
   !> Returns the number of occupied states
@@ -327,14 +363,15 @@ contains
   integer(i32) function wavefunction_set_n_kpts( this ) result( n_kpts )
     class(wavefunction_set), intent(in) :: this
 
-    call assert( size( this%active, 3 ) == size( this%groundstate, 3 ), &
-      "active and groundstate must have the same number of elements along 3rd dim." )
+    CALL_ASSERT( size( this%active, 3 ) == size( this%groundstate_lapwlo, 3 ),  "active and groundstate must have the same number of elements along 3rd dim." )
 
-    if( allocated( this%active_save ) ) call assert( size( this%active, 3 ) == size( this%active_save, 3 ), &
-      "active and active_save must have the same number of elements along 3rd dim." )
+    if( allocated( this%active_save ) ) then
+      CALL_ASSERT( size( this%active, 3 ) == size( this%active_save, 3 ),  "active and active_save must have the same number of elements along 3rd dim." )
+    end if
 
-    if ( this%has_frozen() ) call assert( size( this%active, 3 ) == size( this%frozen, 3 ), &
-      "active and frozen must have the same number of elements along 3rd dim." )
+    if ( this%has_frozen() ) then
+      CALL_ASSERT( size( this%active, 3 ) == size( this%frozen, 3 ),  "active and frozen must have the same number of elements along 3rd dim." )
+    end if
 
     n_kpts = size( this%active, 3 )
   end function
@@ -393,9 +430,9 @@ contains
 
     associate( ki => this%first_kpt(), kf => this%last_kpt() )
     call read_wavefunction( t, ki, this%kset%vkl(:, ki:kf), this%active, &
-      mpi_env, handler )
+      mpi_env=mpi_env, handler=handler )
     if( allocated( this%active_save ) ) call read_wavefunction( t_minus_dt, &
-      ki, this%kset%vkl(:, ki:kf), this%active_save, mpi_env, handler )
+      ki, this%kset%vkl(:, ki:kf), this%active_save, mpi_env=mpi_env, handler=handler )
     end associate
   end subroutine
 
@@ -463,7 +500,7 @@ contains
     class(overlap_set), intent(in) :: overlap
     complex(dp), allocatable, intent(out) :: proj(:, :, :)
 
-    call obtain_projection_coefficients( this%groundstate, overlap%array, this%active, proj )
+    call obtain_projection_coefficients( this%groundstate_lapwlo, overlap%array, this%active, proj )
   end subroutine
 
   !> See [[project_active_onto_gs]]
@@ -529,8 +566,8 @@ contains
     complex(dp), allocatable :: aux(:, :)
 
     associate( mx => size( x, 2 ), my => size( y, 1 ), n => size( y, 2 ), k => size( y, 3 ))
-      call assert( size(S, 3) == k, 'S and y must have same size along 3rd dim.')
-      call assert( size(x, 3) == k, 'x and y must have same size along 3rd dim.')
+      CALL_ASSERT( size(S, 3) == k, 'S and y must have same size along 3rd dim.')
+      CALL_ASSERT( size(x, 3) == k, 'x and y must have same size along 3rd dim.')
 
       allocate( aux(my, n) )
       allocate( proj_coeff(mx, n, k) )
@@ -560,13 +597,12 @@ contains
     real(dp), parameter :: tol = 1.e-8_dp
     
     associate( m => size(proj, 1), n => size(proj, 2), dim_k => size(proj, 3))
-      call assert( size( occ_gnd, 2) == dim_k , 'occ_gnd and proj must have compatible dimensions' )
-      call assert( size( occ_gnd, 1) == n , 'occ_gnd and proj must have compatible dimensions' )
-      call assert( n <= m , 'n must be <= m' )
+      CALL_ASSERT( size( occ_gnd, 2) == dim_k , 'occ_gnd and proj must have compatible dimensions' )
+      CALL_ASSERT( size( occ_gnd, 1) == n , 'occ_gnd and proj must have compatible dimensions' )
+      CALL_ASSERT( n <= m , 'n must be <= m' )
       do ik = 1, dim_k
         ! \sum_{i=1}^m |p_{ijk}|^2 must be <= 1 (is equal to 1 only if the basis |\phi^0_{ik}\rangle is complete)
-        call assert( maxval( sum(abs(proj(:, :, ik))**2, dim=1) ) <= 1._dp + tol , &
-          'proj cannot represent projection factors along ik = ' // to_char(ik) )
+        CALL_ASSERT( maxval( sum(abs(proj(:, :, ik))**2, dim=1) ) <= 1._dp + tol ,  'proj cannot represent projection factors along ik = ' // to_char(ik) )
       end do
 
       allocate( occ(m, dim_k) )
@@ -603,7 +639,7 @@ contains
     !> Minimal value of occupation for the state to be 'occupied'
     real(dp), intent(in) :: occs_tol
     !> MPI environment
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Index of the last occupied state for all MPI ranks
     integer(i32), intent(out) :: last_occupied
 
@@ -614,6 +650,34 @@ contains
     call xmpi_allgather( mpi_env, last_occupied, buffer )
     last_occupied = maxval( buffer )
   end subroutine
+
+  !> Project the frozen valence states out of the active states:
+  !> Given the projection coefficients \(p_{ij\mathbf{k}}\) of \(|\Psi_{j\mathbf{k}}\rangle\) onto
+  !> \(|\Psi^0_{i\mathbf{k}}\rangle\) as:
+  !> \[ |\Psi_{j\mathbf{k}}\rangle = |\Psi_{j\mathbf{k}}\rangle - \sum_{i=1}^{n_{\rm frozen}} p_{ij\mathbf{k}} |\Psi^0_{i\mathbf{k}}\rangle, 
+  !> \quad j = n_{\rm frozen} + 1, \ldots, n \]
+  !> where:
+  !> \[ p_{ij\mathbf{k}} = \langle \Psi^0_{i\mathbf{k}} |\Psi_{j\mathbf{k}}\rangle \]
+  subroutine wavefunction_set_orthogonalize_against_frozen( this, overlap )
+    class(wavefunction_set), intent(inout) :: this
+    !> Object that encapsulates the overlap matrix S
+    class(overlap_set), intent(in) :: overlap
+
+    complex(dp), allocatable :: proj_coeff(:, :, :)
+    complex(dp), allocatable :: correction(:, :)
+    integer(i32) :: ik, shift
+
+    if ( this%has_frozen() ) then
+      call obtain_projection_coefficients( this%frozen, overlap%array, this%active, proj_coeff )
+      allocate( correction(this%n_basis(), this%n_active()) )
+
+      shift = 1 - this%first_kpt()
+      do ik = this%first_kpt(), this%last_kpt()
+        call matrix_multiply( this%frozen(:, :, ik), proj_coeff(:, :, ik + shift), correction )
+          this%active(:, :, ik) = this%active(:, :, ik) - correction
+      end do
+    end if
+  end subroutine wavefunction_set_orthogonalize_against_frozen
 
 end module rttddft_Wavefunction
 

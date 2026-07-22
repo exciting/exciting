@@ -1,5 +1,5 @@
 module projection
-  use asserts, only: assert
+#include "asserts.fpp"
   use math_utils, only: is_positive_definite
   use precision, only: dp, i32
   use xlapack, only: hermitian_matrix_multiply, matrix_multiply
@@ -34,9 +34,9 @@ subroutine project_y_onto_x_with_aux( y, x, S, proj, aux )
   !> improve performance, as it avoids successive allocations and deallocations
   complex(dp), contiguous, intent(inout) :: aux(:, :)
 
-  call assert( is_positive_definite(S), "S must be positive definite")
+  CALL_ASSERT( is_positive_definite(S), "S must be positive definite")
   associate( m => size(S, 1), n => size(y, 2) )
-    call assert( all( shape(aux) == [m, n] ), "aux must be an m x n array")
+    CALL_ASSERT( all( shape(aux) == [m, n] ), "aux must be an m x n array")
   end associate
   call hermitian_matrix_multiply( S, y, aux )
   call matrix_multiply( x, aux, proj, trans_A='C' )

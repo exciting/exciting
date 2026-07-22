@@ -1,7 +1,7 @@
 module block_data_file
   use iso_fortran_env, only: int64
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi
 
   implicit none
@@ -73,8 +73,22 @@ module block_data_file
       ! set file path
       this%path = trim(file_path)
       ! set rank and dimensions of data block
-      this%block_rank = size(block_shape)
-      this%block_shape = block_shape
+      if (all( block_shape >= 0 )) then
+        this%block_rank = size(block_shape)
+        this%block_shape = block_shape
+      else
+        inquire(iolength=record_length) this%block_rank
+        this%record_length = record_length
+        call this%open( mpiglobal )
+        call read_rank( this, 1, this%block_rank )
+        call this%close( mpiglobal )
+        allocate( this%block_shape(this%block_rank) )
+        inquire(iolength=record_length) this%block_rank, this%block_shape
+        this%record_length = record_length
+        call this%open( mpiglobal )
+        call read_rank_and_shape( this, 1, this%block_rank, this%block_shape )
+        call this%close( mpiglobal )
+      end if
       ! set data type dummy element
       this%type_dummy = type_dummy
       ! set record length
@@ -87,14 +101,15 @@ module block_data_file
       this%record_length = this%record_length + product(this%block_shape)*(storage_size(this%type_dummy)/8) ! for data block
 #else
       ! for serial i/o the record length is the block size in compiler dependent units
-      inquire(iolength=this%record_length) this%block_rank, this%block_shape ! for rank and dimensions
+      inquire(iolength=record_length) this%block_rank, this%block_shape ! for rank and dimensions
+      this%record_length = record_length
       dummytype: select type( t => this%type_dummy)
         type is(integer)
-          inquire( iolength=record_length) t
+          inquire(iolength=record_length) t
         type is(real(dp))
-          inquire( iolength=record_length) t
+          inquire(iolength=record_length) t
         type is(complex(dp))
-          inquire( iolength=record_length) t
+          inquire(iolength=record_length) t
         class default
           call terminate_if_false( .false., &
                  '(setup_block_data_file_type) Unsupported data dype.')
@@ -107,7 +122,6 @@ module block_data_file
     !> if file doesn't exist, it will be created
     subroutine block_data_file_open(this, mpi_comm, delete_existing, mpi_access_mode)
       use file_utils, only: file_is_open
-      use m_getunit
       class(block_data_file_type), intent(inout) :: this
       !> MPI communicator
       type(mpiinfo), intent(inout) :: mpi_comm
@@ -119,6 +133,7 @@ module block_data_file
       logical :: delete
       integer :: ierr, mode
       character(:), allocatable :: errmsg
+      character(len=256) :: iomsg
 
       errmsg = ''
 
@@ -127,7 +142,7 @@ module block_data_file
 
       ! return if file was already opened
       call terminate_if_false( .not. this%is_open(), '(block_data_file_open) &
-        The file you try to has already been opened.' )
+        The file you try to open has already been opened.' )
 
       ! delete existing file if necessary
       if (delete .and. this%exists()) call this%delete(mpi_comm)
@@ -139,9 +154,9 @@ module block_data_file
       call MPI_file_open( mpi_comm%comm, trim(this%path), mode, MPI_INFO_NULL, this%fid, ierr)
 #else
       ! open file for serial i/o
-      call getunit(this%fid)
-      open(this%fid, file=trim(this%path), action='readwrite', form='unformatted', &
-           access='direct', recl=this%record_length, iostat=ierr)
+      open(newunit=this%fid, file=trim(this%path), action='readwrite', form='unformatted', &
+           access='direct', recl=this%record_length, iostat=ierr, iomsg=iomsg)
+      errmsg = trim(iomsg)
 #endif
 
       call mpi_error_to_string('Failed to open file.', ierr, errmsg)
@@ -262,7 +277,7 @@ module block_data_file
         type is(integer)
           exit dummytype
         class default
-          call assert( .false., 'block_data_file_type object not set up to handle data of type integer.')
+          CALL_ASSERT( .false., 'block_data_file_type object not set up to handle data of type integer.')
       end select dummytype
 
       n = product(this%block_shape)
@@ -270,13 +285,10 @@ module block_data_file
       ! check block size
       allocate( shp, source=shape( data_block ) )
       if (check_size) then
-        call assert( product( shp ) == n, &
-          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+        CALL_ASSERT( product( shp ) == n,  'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
       else
-        call assert( size( shp ) == this%block_rank, &
-          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-        call assert( all( shp == this%block_shape ), &
-          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+        CALL_ASSERT( size( shp ) == this%block_rank,  'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        CALL_ASSERT( all( shp == this%block_shape ),  'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
       end if
 
       ! write rank and shape
@@ -320,7 +332,7 @@ module block_data_file
         type is(real(dp))
           exit dummytype
         class default
-          call assert( .false., 'block_data_file_type object not set up to handle data of type double.')
+          CALL_ASSERT( .false., 'block_data_file_type object not set up to handle data of type double.')
       end select dummytype
 
       n = product(this%block_shape)
@@ -328,13 +340,10 @@ module block_data_file
       ! check block size
       allocate( shp, source=shape( data_block ) )
       if (check_size) then
-        call assert( product( shp ) == n, &
-          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+        CALL_ASSERT( product( shp ) == n,  'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
       else
-        call assert( size( shp ) == this%block_rank, &
-          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-        call assert( all( shp == this%block_shape ), &
-          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+        CALL_ASSERT( size( shp ) == this%block_rank,  'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        CALL_ASSERT( all( shp == this%block_shape ),  'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
       end if
 
       ! write rank and shape
@@ -378,7 +387,7 @@ module block_data_file
         type is(complex(dp))
           exit dummytype
         class default
-          call assert( .false., 'block_data_file_type object not set up to handle data of type double complex.')
+          CALL_ASSERT( .false., 'block_data_file_type object not set up to handle data of type double complex.')
       end select dummytype
 
       n = product(this%block_shape)
@@ -386,13 +395,10 @@ module block_data_file
       ! check block size
       allocate( shp, source=shape( data_block ) )
       if (check_size) then
-        call assert( product( shp ) == n, &
-          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+        CALL_ASSERT( product( shp ) == n,  'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
       else
-        call assert( size( shp ) == this%block_rank, &
-          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-        call assert( all( shp == this%block_shape ), &
-          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+        CALL_ASSERT( size( shp ) == this%block_rank,  'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        CALL_ASSERT( all( shp == this%block_shape ),  'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
       end if
 
       ! write rank and shape
@@ -445,13 +451,10 @@ module block_data_file
       ! check block size
       allocate( shp, source=shape( data_block ) )
       if (check_size) then
-        call assert( product( shp ) == n, &
-          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+        CALL_ASSERT( product( shp ) == n,  'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
       else
-        call assert( size( shp ) == this%block_rank, &
-          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-        call assert( all( shp == this%block_shape ), &
-          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+        CALL_ASSERT( size( shp ) == this%block_rank,  'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        CALL_ASSERT( all( shp == this%block_shape ),  'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
       end if
 
       ! read block rank and shape
@@ -504,13 +507,10 @@ module block_data_file
       ! check block size
       allocate( shp, source=shape( data_block ) )
       if (check_size) then
-        call assert( product( shp ) == n, &
-          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+        CALL_ASSERT( product( shp ) == n,  'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
       else
-        call assert( size( shp ) == this%block_rank, &
-          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-        call assert( all( shp == this%block_shape ), &
-          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+        CALL_ASSERT( size( shp ) == this%block_rank,  'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        CALL_ASSERT( all( shp == this%block_shape ),  'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
       end if
 
       ! read block rank and shape
@@ -563,13 +563,10 @@ module block_data_file
       ! check block size
       allocate( shp, source=shape( data_block ) )
       if (check_size) then
-        call assert( product( shp ) == n, &
-          'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
+        CALL_ASSERT( product( shp ) == n,  'Size of `data_block` does not match size defined for `block_data_file_type` object.' )
       else
-        call assert( size( shp ) == this%block_rank, &
-          'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
-        call assert( all( shp == this%block_shape ), &
-          'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
+        CALL_ASSERT( size( shp ) == this%block_rank,  'Rank of `data_block` does not match rank defined for `block_data_file_type` object.' )
+        CALL_ASSERT( all( shp == this%block_shape ),  'Shape of `data_block` does not match shape defined for `block_data_file_type` object.' )
       end if
 
       ! read block rank and shape
@@ -628,7 +625,7 @@ module block_data_file
 
       errmsg = ''
 
-      ! read rank and shape
+      ! write rank and shape
 #ifdef MPI
       call MPI_type_size(MPI_INTEGER, intsize, ierr)
       file_offset = (record-1)*this%record_length
@@ -644,6 +641,49 @@ module block_data_file
       call terminate_if_false( ierr == 0, '(write_rank_and_shape) Failed to write record rank and shape.')
 #endif
     end subroutine write_rank_and_shape
+
+    !> read block rank for a given record
+    subroutine read_rank(this, record, block_rank)
+      use precision, only: str_32, str_1024
+      !> block data file object
+      class(block_data_file_type), intent(inout) :: this
+      !> record number / index of data block
+      integer, intent(in) :: record
+      !> block rank
+      integer, intent(out) :: block_rank
+
+#ifdef MPI
+      integer(kind=MPI_OFFSET_KIND) :: file_offset
+#endif
+      integer :: ierr, intsize
+      character(len=str_32) :: frmt
+      character(len=str_1024) :: msg
+      character(:), allocatable :: errmsg
+
+      errmsg = ''
+
+      ! read rank
+#ifdef MPI
+      call MPI_type_size(MPI_INTEGER, intsize, ierr)
+      file_offset = (record-1)*this%record_length
+      call MPI_file_read_at(this%fid, file_offset, block_rank, 1, MPI_INTEGER, MPI_STATUS_IGNORE, ierr)
+      call mpi_error_to_string('Failed to read record rank.', ierr, errmsg)
+      call terminate_if_false( ierr == 0, '(read_rank) '//errmsg)
+#else
+      read(this%fid, rec=record, iostat=ierr) block_rank
+      call terminate_if_false( ierr == 0, '(read_rank) Failed to read record rank.' // this%path)
+#endif
+
+      ! sanity check
+      write(frmt, '("(a,a,a,i6,a,",i4,"i4,5x,",i4,"i4)")') 1, 1
+      write(msg, trim(frmt)) &
+        'Data blocks in file and in block_data_file_type object have different ranks.', &
+        new_line('a')//' file: '//trim(this%path), &
+        new_line('a')//' record: ', record, &
+        new_line('a')//' rank (file object / file): ', this%block_rank, block_rank
+      call terminate_if_false( this%block_rank == block_rank, &
+        '(read_rank) '//new_line('a')//trim(msg))
+    end subroutine read_rank
 
     !> read block rank and shape for a given record
     subroutine read_rank_and_shape(this, record, block_rank, block_shape)
@@ -669,12 +709,9 @@ module block_data_file
 
       ! read rank and shape
 #ifdef MPI
+      call read_rank( this, record, block_rank )
       call MPI_type_size(MPI_INTEGER, intsize, ierr)
-      file_offset = (record-1)*this%record_length
-      call MPI_file_read_at(this%fid, file_offset, block_rank, 1, MPI_INTEGER, MPI_STATUS_IGNORE, ierr)
-      call mpi_error_to_string('Failed to read record rank.', ierr, errmsg)
-      call terminate_if_false( ierr == 0, '(read_rank_and_shape) '//errmsg)
-      file_offset = file_offset + intsize
+      file_offset = (record-1)*this%record_length + intsize
       call MPI_file_read_at(this%fid, file_offset, block_shape, block_rank, MPI_INTEGER, MPI_STATUS_IGNORE, ierr)
       call mpi_error_to_string('Failed to read record shape.', ierr, errmsg)
       call terminate_if_false( ierr == 0, '(read_rank_and_shape) '//errmsg)
@@ -684,7 +721,7 @@ module block_data_file
 #endif
 
       ! sanity check
-      write(frmt, '("(a,a,a,i6,a,",i4,"i4,""/"",",i4,"i4)")') 1, 1
+      write(frmt, '("(a,a,a,i6,a,",i4,"i4,5x,",i4,"i4)")') 1, 1
       write(msg, trim(frmt)) &
         'Data blocks in file and in block_data_file_type object have different ranks.', &
         new_line('a')//' file: '//trim(this%path), &
@@ -693,7 +730,7 @@ module block_data_file
       call terminate_if_false( this%block_rank == block_rank, &
         '(read_rank_and_shape) '//new_line('a')//trim(msg))
       
-      write( frmt, '("(a,a,a,i6,a,",i4,"i9,""/"",",i4,"i9)")') this%block_rank, block_rank
+      write( frmt, '("(a,a,a,i6,a,",i4,"i9,5x,",i4,"i9)")') this%block_rank, block_rank
       write( msg, trim(frmt)) &
         'Data blocks in file and in block_data_file_type object have different shapes.', &
         new_line('a')//' file: '//trim(this%path), &

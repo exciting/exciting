@@ -38,6 +38,9 @@ module unit_conversion
     ! Conversion from Hartree to Joules (CODATA 2018)
     real(dp), public, parameter :: hartree_to_j = 4.3597447222071e-18_dp
 
+    ! Conversion from Bohr radius to m (CODATA 2018)
+    real(dp), public, parameter :: bohr_to_m = 5.29177210544e-11_dp
+
     !> Radians to degrees
     real(dp), public, parameter :: radians_to_degrees = 180._dp / pi
 

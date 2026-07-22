@@ -3,7 +3,7 @@
 !> DSTEDC
 module diagonalize_tridiagonal
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
   use math_utils, only: is_square, is_unitary
   use lapack_f95_interfaces, only: dstedc
@@ -77,7 +77,7 @@ module diagonalize_tridiagonal
     real(dp), allocatable :: subdiagonal(:), eigenvectors_dummy(:, :)
 
     N = size(diagonal_in)
-    call assert(size(subdiagonal_in) == N-1, 'Size of subdiagonal is not smaller by 1 then size of diagonal.')
+    CALL_ASSERT(size(subdiagonal_in) == N-1, 'Size of subdiagonal is not smaller by 1 then size of diagonal.')
     eigenvalues_out = diagonal_in
     subdiagonal = subdiagonal_in
 
@@ -93,8 +93,8 @@ module diagonalize_tridiagonal
 
     ! Calculate eigenvalues and eigenvectors of the symmetric matrix that was tridiagonalized
     elseif(present(eigenvectors_out) .and. present(transformation_matrix_in)) then
-      call assert(all(shape(transformation_matrix_in) == [N, N]), 'transformation_matrix has not shape [N, N].')
-      call assert(is_unitary(transformation_matrix_in), 'tranformation_matrix is not orthogonal.')
+      CALL_ASSERT(all(shape(transformation_matrix_in) == [N, N]), 'transformation_matrix has not shape [N, N].')
+      CALL_ASSERT(is_unitary(transformation_matrix_in), 'tranformation_matrix is not orthogonal.')
       eigenvectors_out = transformation_matrix_in
       call xstedc('V', N, eigenvalues_out, subdiagonal, eigenvectors_out)
     end if
@@ -147,7 +147,7 @@ module diagonalize_tridiagonal
     real(dp), allocatable :: work(:)
     integer, allocatable :: iwork(:)
 
-    call assert(any(compz == allowed_compz), 'compz is not one of the allowed chracters ("N", "I", "V").')
+    CALL_ASSERT(any(compz == allowed_compz), 'compz is not one of the allowed chracters ("N", "I", "V").')
 
     if (present(lwork_in) .and. present(liwork_in)) then
       lwork = lwork_in
@@ -208,7 +208,7 @@ module diagonalize_tridiagonal
     integer :: info, iwork(1)
     real(dp) :: work(1)
 
-    call assert(any(compz == allowed_compz), 'compz is not one of the allowed chracters ("N", "I", "V").')
+    CALL_ASSERT(any(compz == allowed_compz), 'compz is not one of the allowed chracters ("N", "I", "V").')
 
     lwork = -1
     liwork = -1

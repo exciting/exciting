@@ -18,7 +18,7 @@ def run_single_reference(job_dir: str, execution_cmd: str, settings, my_env):
      file name and exciting outputs to be ignored (hence deleted) by the test suite.
     :param my_env: An instance of the shell environment.
     """
-    success, err_mess, timing = execute(job_dir, execution_cmd, settings.max_time, my_env=my_env)
+    success, out_mess, err_mess, timing = execute(job_dir, execution_cmd, settings.max_time, my_env=my_env)
 
     if success:
         print('%s: Run exited cleanly' % job_dir)
@@ -28,5 +28,6 @@ def run_single_reference(job_dir: str, execution_cmd: str, settings, my_env):
 
     else:
         print('%s: Run failed' % job_dir)
-        print(*(err for err in err_mess), sep='\n')
+        print(f"Stdout: {out_mess}")
+        print(f"Stderr: {err_mess}")
         print('Time (s): %.1f' % timing)

@@ -2,12 +2,12 @@ from os.path import dirname
 
 import numpy as np
 
-from excitingtools import parse
+from excitingtools.exciting_dict_parsers.groundstate_parser import parse_info_out
 
 TUTORIAL_HOW_TO_START_AN_EXCITING_CALCULATION_RUNDIR = "../run_tutorial_start_exciting_calculation"
 
 def test_tutorial1(converged_results):
-    """Automatically test results of 01_getting_started notebook, diamond bulk calculation.
+    """Test results for groundstate calculation in main output file INFO.OUT.
     """
     assert np.isclose(converged_results['Total energy'], -75.88903685), (
         f"Total energy in Ha is {converged_results['Total energy']}")
@@ -59,7 +59,7 @@ def test_tutorial1(converged_results):
         f"Estimated fundamental gap in Ha is {converged_results['Estimated fundamental gap']}")
 
 def main():
-    results = parse(f"{dirname(__file__)}/{TUTORIAL_HOW_TO_START_AN_EXCITING_CALCULATION_RUNDIR}/INFO.OUT")
+    results = parse_info_out(f"{dirname(__file__)}/{TUTORIAL_HOW_TO_START_AN_EXCITING_CALCULATION_RUNDIR}/INFO.OUT")
     max_scf = max([int(i) for i in results['scl'].keys()])
     assert max_scf <= 13, "Expect max 13 SCF iterations to converge"
     converged_results = results['scl'][str(max_scf)]

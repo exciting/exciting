@@ -1,8 +1,7 @@
 !> Module provides type for Brillouin zone paths.
 module bz_path
   use precision, only: dp
-  use asserts, only: assert
-
+#include "asserts.fpp"
   implicit none
   private
 
@@ -108,12 +107,9 @@ contains
     offset = 0.0_dp
     if( present( gamma_offset ) ) offset = gamma_offset
 
-    call assert( size( vertices ) > 0, &
-      'No vertices given.' )
-    call assert( num_points >= size( vertices ), &
-      'Number of points must not be smaller than number of vertices.' )
-    call assert( (size( vertices ) == 1 .and. num_points == 1) .or. (size( vertices ) > 1), &
-      'Number of points must equal 1 of only 1 vertex is given.' )
+    CALL_ASSERT( size( vertices ) > 0,  'No vertices given.' )
+    CALL_ASSERT( num_points >= size( vertices ),  'Number of points must not be smaller than number of vertices.' )
+    CALL_ASSERT( (size( vertices ) == 1 .and. num_points == 1) .or. (size( vertices ) > 1),  'Number of points must equal 1 of only 1 vertex is given.' )
 
     this%num_points = num_points
     this%num_vertices = size( vertices )
@@ -157,11 +153,8 @@ contains
       end do
     end if
     verts(nv)%break = .true.
-    call assert( this%num_points >= nv, &
-      'Number of points must not be smaller than number of vertices. &
-      (Additional vertices have been added due to Gamma point offset.)' )
-    call assert( .not. (all( [(verts(iv)%break, iv=1, nv)] ) .and. this%num_points /= nv), &
-      'All vertices are isolated. Number of points must equal number of vertices.' )
+    CALL_ASSERT( this%num_points >= nv,  'Number of points must not be smaller than number of vertices.  (Additional vertices have been added due to Gamma point offset.)' )
+    CALL_ASSERT( .not. (all( [(verts(iv)%break, iv=1, nv)] ) .and. this%num_points /= nv),  'All vertices are isolated. Number of points must equal number of vertices.' )
 
     ! set points and segments
     iv = 1; is = 0; np = 0; length = 0.0_dp; break_before = .true.

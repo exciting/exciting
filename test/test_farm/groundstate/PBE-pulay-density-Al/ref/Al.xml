@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <sp chemicalSymbol="Al" name="aluminium" z="-13.0000" mass="49184.33493">
+    <muffinTin rmin="0.100000E-04" radius="2.0000" rinf="28.7360" radialmeshPoints="300"/>
+    <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
+    <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
+    <atomicState n="2" l="1" kappa="1" occ="2.00000" core="false"/>
+    <atomicState n="2" l="1" kappa="2" occ="4.00000" core="false"/>
+    <atomicState n="3" l="0" kappa="1" occ="2.00000" core="false"/>
+    <atomicState n="3" l="1" kappa="1" occ="1.00000" core="false"/>
+    <basis>
+      <default type="lapw" trialEnergy="0.1500" searchE="false"/>
+      <custom l="0" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <custom l="1" type="apw+lo" trialEnergy="0.1500" searchE="true"/>
+      <lo l="1">
+        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="0" trialEnergy="-2.5724" searchE="true"/>
+      </lo>
+    </basis>
+  </sp>
+</spdb>

@@ -381,6 +381,7 @@ CONTAINS
 
 !-------------------------------------------------------------------------------
     subroutine generate_k_vectors(self,bvec,ngridk,vkloff,reduce,uselibzint)
+        use m_genppts_interface, only: genppts
         use modmain, only: nsymcrys, symlat, lsplsymc
         implicit none
         type(k_set), intent(OUT) :: self
@@ -1374,7 +1375,7 @@ CONTAINS
         type(Gk_set), intent(INOUT) :: self
 
         if (allocated(self%ngk)) deallocate(self%ngk)
-        if (allocated(self%igigk)) deallocate(self%igkig)
+        if (allocated(self%igigk)) deallocate(self%igigk)
         if (allocated(self%igkig)) deallocate(self%igkig)
         if (allocated(self%vgkl)) deallocate(self%vgkl)
         if (allocated(self%vgkc)) deallocate(self%vgkc)

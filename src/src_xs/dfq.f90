@@ -39,7 +39,6 @@ subroutine dfq(iq)
   use m_dftim
   use m_gettetcw
   use m_putx0
-  use m_getunit
   use m_writevars
   use m_filedel
   use m_genfilname
@@ -932,8 +931,7 @@ subroutine dfq(iq)
 
     ! Write out static (\omega = 0) screening for current q to text file
     ! eps = 1 - chi0
-    call getunit(un)
-    open(un, file=trim(fnscreen), form='formatted', action='write', status='replace')
+    open(newunit=un, file=trim(fnscreen), form='formatted', action='write', status='replace')
     call putscreen(un, tq0, n, chi0(:, :, 1), chi0h(:, :, 1), chi0w(:, :, :, 1))
     close(un)
 

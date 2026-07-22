@@ -1,7 +1,7 @@
 !> Module to encapsulate arrays used in RT-TDDFT
 ! TODO(Ronaldo): Extend to distributed arrays for Scalapack
 module rttddft_arrays
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zzero
   use precision, only: dp, i32
 
@@ -62,7 +62,7 @@ contains
   subroutine matrix_set_assert_allocated( this )
     class(matrix_set), intent(in) :: this
 
-    call assert( allocated(this%array), "array must be allocated")
+    CALL_ASSERT( allocated(this%array), "array must be allocated")
   end subroutine
 
   subroutine matrix_set_copy( this, other )
@@ -81,10 +81,11 @@ contains
     integer(i32) :: j, k, ji, jf, ki, kf
 
     call this%assert_allocated()
-    call assert( all([size(this%array, 1), size(this%array, 3) ] == shape(diagonal)), "shape mismatch" )
-    call assert( size(this%array, 1) == size(this%array, 2), "not square" )
+    CALL_ASSERT( all([size(this%array, 1), size(this%array, 3) ] == shape(diagonal)), "shape mismatch" )
+    CALL_ASSERT( size(this%array, 1) == size(this%array, 2), "not square" )
     ki = lbound(this%array, 3); kf = ubound(this%array, 3)
     ji = lbound(this%array, 1); jf = ubound(this%array, 1) 
+    this%array = zzero
     do k = ki, kf
       do j = ji, jf
         this%array(j, j, k) = cmplx( diagonal(j-ji+1, k-ki+1), kind = dp )
@@ -99,8 +100,8 @@ contains
     integer(i32) :: j, k, ji, jf, ki, kf
 
     call this%assert_allocated()
-    call assert( all([size(this%array, 1), size(this%array, 3) ] == shape(diagonal)), "shape mismatch" )
-    call assert( size(this%array, 1) == size(this%array, 2), "not square" )
+    CALL_ASSERT( all([size(this%array, 1), size(this%array, 3) ] == shape(diagonal)), "shape mismatch" )
+    CALL_ASSERT( size(this%array, 1) == size(this%array, 2), "not square" )
     ki = lbound(this%array, 3); kf = ubound(this%array, 3)
     ji = lbound(this%array, 1); jf = ubound(this%array, 1) 
     do k = ki, kf
@@ -116,7 +117,7 @@ contains
 
     call this%assert_allocated()
     call other%assert_allocated()
-    call assert( all(shape(this%array) == shape(other%array)), "shape mismatch" )
+    CALL_ASSERT( all(shape(this%array) == shape(other%array)), "shape mismatch" )
     this%array = this%array - other%array
   end subroutine
 end module

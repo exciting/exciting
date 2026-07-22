@@ -5,7 +5,7 @@ subroutine kintw()
     use modmain, only: evalcr, efermi, natmtot, nspecies, natoms, idxas, nstfv
     use modgw,   only: kiw, ciw, kwfer, fdebug, kset, kqset
     use mod_bands, only: metallic, evalfv
-    use mod_core_states, only: ncmax, ncore
+    use mod_core_states, only: ncmax, ncore, core_state_indices
     use mod_kpointset
 
     implicit none
@@ -14,6 +14,7 @@ subroutine kintw()
     integer(4) :: ias
     integer(4) :: is
     integer(4) :: ist
+    integer(4) :: core_state
     integer(4) :: ik, ikp
     real(8), allocatable :: bandpar(:,:)
     real(8), allocatable :: cwpar(:,:)
@@ -61,7 +62,8 @@ subroutine kintw()
         do ia = 1, natoms(is)
           ias = idxas(ia,is)
           do ist = 1, ncore(is)
-            bandpar(1,:) = evalcr(ist,ias)
+            core_state = core_state_indices(ist,is)
+            bandpar(1,:) = evalcr(core_state,ias)
             call tetiw(kqset%nkpt, kqset%ntet, 1, bandpar, &
                        kqset%tnodes, kqset%wtet, kqset%tvol, efermi, &
                        cwpar)

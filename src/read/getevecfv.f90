@@ -19,6 +19,8 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
   use mod_eigenvalue_occupancy, only: nstfv
   use mod_spin, only: nspnfv
   use mod_names, only: filetag_evecfv
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
+  use precision, only: i32, dp, long_int, str_256
   use constants, only: twopi
 ! !DESCRIPTION:
 !   The file where the (first-variational) eigenvectors are stored is
@@ -48,7 +50,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 !   $N_{\rm spfv}$ & integer & 1 & first-variational spins \\
 !    &  &  & (2 for spin-spirals, 1 otherwise)
 !         \\ \hline
-!   $\Phi$ & complex(8) & $N_{\rm mat}\times N_{\rm stfv}\times N_{\rm spfv}$ &
+!   $\Phi$ & complex(dp) & $N_{\rm mat}\times N_{\rm stfv}\times N_{\rm spfv}$ &
 !        (first-variational) eigenvector array \\
 !   \hline
 !   \end{tabular}\newline\newline
@@ -62,39 +64,31 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 !BOC
       Implicit None
   ! arguments
-      Real (8), Intent (In) :: vpl(3)
-      Real (8), Intent (In) :: vgpl(3,ngkmax_ptr,nspnfv)
-      Complex (8), Intent (Out) :: evecfv(nmatmax_ptr,nstfv,nspnfv)
+      real(dp), Intent (In) :: vpl(3)
+      real(dp), Intent (In) :: vgpl(3,ngkmax_ptr,nspnfv)
+      complex(dp), Intent (Out) :: evecfv(nmatmax_ptr,nstfv,nspnfv)
   ! local variables
       Logical :: exist
-      integer :: isym, ispn, i, ik
-      Integer :: recl, nmatmax_, nstfv_, nspnfv_, koffset
-      Real (8) :: vkl_ (3), t1
-  ! allocatable arrays
-#ifdef XS
-  ! added feature to access arrays for only a subset of bands
-      Complex (8), Allocatable :: evecfv_ (:, :, :)
-#endif
-      Character (256) :: filetag
-      Character (256), External :: outfilenamestring
-      complex(8), external :: getdlmm
+      integer(i32) :: isym, ispn, i, ik, nmatmax_, nstfv_, nspnfv_, &
+        koffset, io_unit
+      real(dp) :: vkl_ (3), t1
+      complex(dp), Allocatable :: evecfv_ (:, :, :)
+      character (len=str_256) :: filetag
+      character (len=str_256), External :: outfilenamestring
+      complex(dp), external :: getdlmm
+      integer(long_int) ::reclength
 
   ! find the equivalent k-point number and crystal symmetry element
       Call findkpt(vpl, isym, ik)
 
-  ! find the record length
-#ifdef XS
-      Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_
-#else
-      Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
-#endif
-  !$OMP CRITICAL
+      call inquire_large( reclength, vkl_, [nmatmax_, nstfv_, nspnfv_] )
+
+!$OMP CRITICAL
       filetag = trim (filetag_evecfv)
       Do i = 1, 10
          Inquire (File=outfilenamestring(filetag, ik), Exist=Exist)
          If (exist) Then
-            Open (70, File=outfilenamestring(filetag, ik), Action='READ&
-           &', Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+            call open_direct_unformatted_large( io_unit, outfilenamestring(filetag, ik), "read", reclength, "old" )
             Exit
          Else
             Call system ('sync')
@@ -108,9 +102,9 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
       Else
          koffset = ik
       End If
-#ifdef XS
-      Read (70, Rec=1) vkl_, nmatmax_, nstfv_, nspnfv_
-      Close (70)
+
+      Read (io_unit, Rec=1) vkl_, nmatmax_, nstfv_, nspnfv_
+      Close (io_unit)
       If (nstfv .Gt. nstfv_) Then
          Write (*,*)
          Write (*, '("Error(getevecfv): invalid nstfv for k-point ", I8&
@@ -122,18 +116,15 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
          Stop
       End If
       Allocate (evecfv_(nmatmax_, nstfv_, nspnfv_))
-      Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv_
-      Open (70, File=outfilenamestring(filetag, ik), Action='READ', &
-     & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
-      Read (70, Rec=koffset) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv_
+      call inquire_large( reclength, vkl_, [nmatmax_, nstfv_, nspnfv_], evecfv_ )
+      call open_direct_unformatted_large( io_unit, outfilenamestring(filetag, ik), "read", reclength, "old" )
+
+      Read (io_unit, Rec=koffset) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv_
   ! retreive subset
       evecfv (:, :, :) = evecfv_ (:, :nstfv, :)
       Deallocate (evecfv_)
-#else
-      Read (70, Rec=koffset) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
-#endif
-      Close (70)
-  !$OMP END CRITICAL
+      Close (io_unit)
+!$OMP END CRITICAL
       t1 = Abs (vkl_ptr(1, ik)-vkl_(1)) + &
            Abs (vkl_ptr(2, ik)-vkl_(2)) + &
            Abs (vkl_ptr(3, ik)-vkl_(3))
@@ -199,7 +190,7 @@ End Subroutine getevecfv
 !> `isym` which rotates \({\bf p}\) into \({\bf p}'\), i.e., 
 !> \({\bf p}' = {\bf S}^\top \cdot {\bf p}\). 
 subroutine rotate_evecfv( isym, vpl, vprl, ngp, vgpl, vgprl, evecfv, ld, nst)
-  use precision, only: dp
+  use precision, only: i32, dp
   use modinput
   use constants, only: zzero, twopi
   use mod_symmetry, only: lsplsymc, isymlat, symlat, symlatc, vtlsymc, ieqatom
@@ -209,7 +200,7 @@ subroutine rotate_evecfv( isym, vpl, vprl, ngp, vgpl, vgprl, evecfv, ld, nst)
   use mod_atoms, only: nspecies, natoms, idxas
 
   !> global index of symmetry operation
-  integer, intent(in) :: isym
+  integer(i32), intent(in) :: isym
   !> k-point \({\bf p}\) in lattice coordinates
   real(dp), intent(in) :: vpl(3)
   !> rotated k-point \({\bf p}' = {\bf S}^\top \cdot {\bf p}\) in lattice coordinates
@@ -221,18 +212,18 @@ subroutine rotate_evecfv( isym, vpl, vprl, ngp, vgpl, vgprl, evecfv, ld, nst)
   !> \(\bf G+p}'\) vectors at \({bf p}'\)
   real(dp), intent(in) :: vgprl(3,*)
   !> leading dimension of `evecfv`
-  integer, intent(in) :: ld
+  integer(i32), intent(in) :: ld
   !> on input: eigenvectors at \({\bf p}\);
   !> on output: eigenvectors at \({\bf p}'\)
   complex(dp), intent(inout) :: evecfv(ld,*)
   !> number of states
   integer, intent(in) :: nst
 
-  integer :: lspl, ilspl, igp, igpr, i, j, is, ia, ja, ias, jas, l, m, m1, lm, lm1, ilo, ist
+  integer(i32) :: lspl, ilspl, igp, igpr, i, j, is, ia, ja, ias, jas, l, m, m1, lm, lm1, ilo, ist
   real(dp) :: sl(3,3), sc(3,3), v(3), v1(3), t1, t2
   complex(dp) :: zt1
 
-  integer, allocatable :: idxlom(:)
+  integer(i32), allocatable :: idxlom(:)
   real(dp), allocatable :: dotp(:)
   complex(dp), allocatable :: evecfvt(:,:), dlmm(:), ztv(:)
 
@@ -324,75 +315,75 @@ subroutine rotate_evecfv( isym, vpl, vprl, ngp, vgpl, vgprl, evecfv, ld, nst)
 end subroutine
 
 
-!
-Module m_getevecfvr
-      Implicit None
-Contains
-!
-!
-      Subroutine getevecfvr (fname, isti, istf, vpl, vgpl, evecfv)
-         Use modmain
-         Implicit None
-    ! arguments
-         Character (*), Intent (In) :: fname
-         Integer, Intent (In) :: isti, istf
-         Real (8), Intent (In) :: vpl (3)
-         Real (8), Intent (In) :: vgpl(3,ngkmax_ptr,nspnfv)
-         Complex (8), Intent (Out) :: evecfv (:, :, :)
-    ! local variables
-         Integer :: err
-         Complex (8), Allocatable :: evecfvt (:, :, :)
-         Character (256) :: str1
-    ! check correct shapes
-         err = 0
-         If ((isti .Lt. 1) .Or. (istf .Gt. nstfv) .Or. (istf .Le. &
-        & isti)) Then
-            Write (*,*)
-            Write (*, '("Error(getevecfvr): inconsistent limits for ban&
-           &ds:")')
-            Write (*, '(" band limits  : ", 2i6)') isti, istf
-            Write (*, '(" maximum value: ", i6)') nstfv
-            Write (*,*)
-            err = err + 1
-         End If
-         If (size(evecfv, 2) .Ne. (istf-isti+1)) Then
-            Write (*,*)
-            Write (*, '("Error(getevecfvr): output array does not match&
-           & for bands:")')
-            Write (*, '(" band limits 	     : ", 2i6)') isti, istf
-            Write (*, '(" requested number of bands: ", i6)') istf - &
-           & isti + 1
-            Write (*, '(" array size		     : ", i6)') size (evecfv, 2)
-            Write (*,*)
-            err = err + 1
-         End If
-         If (size(evecfv, 1) .Ne. nmatmax_ptr) Then
-            Write (*,*)
-            Write (*, '("Error(getevecfvr): output array does not match&
-           & for nmatmax:")')
-            Write (*, '(" nmatmax   : ", i6)') nmatmax_ptr
-            Write (*, '(" array size: ", i6)') size (evecfv, 1)
-            Write (*,*)
-            err = err + 1
-         End If
-         If (size(evecfv, 3) .Ne. nspnfv) Then
-            Write (*,*)
-            Write (*, '("Error(getevecfvr): output array does not match&
-           & for nspnfv:")')
-            Write (*, '(" nspnfv    : ", i6)') nspnfv
-            Write (*, '(" array size: ", i6)') size (evecfv, 3)
-            Write (*,*)
-            err = err + 1
-         End If
-         If (err .Ne. 0) Stop
-         Allocate (evecfvt(nmatmax_ptr, nstfv, nspnfv))
-         filetag_evecfv = trim (fname)
-         str1 = trim (filext)
-         filext = ''
-         Call getevecfv (vpl, vgpl, evecfvt)
-         filetag_evecfv = 'EVECFV'
-         filext = trim (str1)
-         evecfv (:, :, :) = evecfvt (:, isti:istf, :)
-         Deallocate (evecfvt)
-      End Subroutine getevecfvr
-End Module m_getevecfvr
+! !
+! Module m_getevecfvr
+!       Implicit None
+! Contains
+! !
+! !
+!       Subroutine getevecfvr (fname, isti, istf, vpl, vgpl, evecfv)
+!          Use modmain
+!          Implicit None
+!     ! arguments
+!          Character (*), Intent (In) :: fname
+!          Integer, Intent (In) :: isti, istf
+!          real(dp), Intent (In) :: vpl (3)
+!          real(dp), Intent (In) :: vgpl(3,ngkmax_ptr,nspnfv)
+!          complex(dp), Intent (Out) :: evecfv (:, :, :)
+!     ! local variables
+!          integer(i32) :: err
+!          complex(dp), Allocatable :: evecfvt (:, :, :)
+!          character (len=str_256) :: str1
+!     ! check correct shapes
+!          err = 0
+!          If ((isti .Lt. 1) .Or. (istf .Gt. nstfv) .Or. (istf .Le. &
+!         & isti)) Then
+!             Write (*,*)
+!             Write (*, '("Error(getevecfvr): inconsistent limits for ban&
+!            &ds:")')
+!             Write (*, '(" band limits  : ", 2i6)') isti, istf
+!             Write (*, '(" maximum value: ", i6)') nstfv
+!             Write (*,*)
+!             err = err + 1
+!          End If
+!          If (size(evecfv, 2) .Ne. (istf-isti+1)) Then
+!             Write (*,*)
+!             Write (*, '("Error(getevecfvr): output array does not match&
+!            & for bands:")')
+!             Write (*, '(" band limits 	     : ", 2i6)') isti, istf
+!             Write (*, '(" requested number of bands: ", i6)') istf - &
+!            & isti + 1
+!             Write (*, '(" array size		     : ", i6)') size (evecfv, 2)
+!             Write (*,*)
+!             err = err + 1
+!          End If
+!          If (size(evecfv, 1) .Ne. nmatmax_ptr) Then
+!             Write (*,*)
+!             Write (*, '("Error(getevecfvr): output array does not match&
+!            & for nmatmax:")')
+!             Write (*, '(" nmatmax   : ", i6)') nmatmax_ptr
+!             Write (*, '(" array size: ", i6)') size (evecfv, 1)
+!             Write (*,*)
+!             err = err + 1
+!          End If
+!          If (size(evecfv, 3) .Ne. nspnfv) Then
+!             Write (*,*)
+!             Write (*, '("Error(getevecfvr): output array does not match&
+!            & for nspnfv:")')
+!             Write (*, '(" nspnfv    : ", i6)') nspnfv
+!             Write (*, '(" array size: ", i6)') size (evecfv, 3)
+!             Write (*,*)
+!             err = err + 1
+!          End If
+!          If (err .Ne. 0) Stop
+!          Allocate (evecfvt(nmatmax_ptr, nstfv, nspnfv))
+!          filetag_evecfv = trim (fname)
+!          str1 = trim (filext)
+!          filext = ''
+!          Call getevecfv (vpl, vgpl, evecfvt)
+!          filetag_evecfv = 'EVECFV'
+!          filext = trim (str1)
+!          evecfv (:, :, :) = evecfvt (:, isti:istf, :)
+!          Deallocate (evecfvt)
+!       End Subroutine getevecfvr
+! End Module m_getevecfvr

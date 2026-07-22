@@ -4,8 +4,7 @@ module tensor_contractions
     use constants, only: zone, zzero, real_zero, real_one
     use lapack_f95_interfaces, only: zgemm
     use general_matrix_multiplication, only: gemm_parameters
-    use asserts, only: assert
-
+#include "asserts.fpp"
     implicit none
 
     private
@@ -143,9 +142,7 @@ contains
         rank_C = size(shape_C)
 
         ! Check: rank_C = rank_A + rank_B - 2*n_contracted
-        call assert(mod(rank_A + rank_B - rank_C, 2) == 0,&
-                        'Ranks of arrays are not correct: &
-                         mod(rank_A + rank_B - rank_C, 2) /= 0.')
+        CALL_ASSERT(mod(rank_A + rank_B - rank_C, 2) == 0, 'Ranks of arrays are not correct:  mod(rank_A + rank_B - rank_C, 2) /= 0.')
 
         n_contracted = (rank_A + rank_B - rank_C) / 2
 
@@ -271,8 +268,7 @@ contains
         rank_C = size(shape_C)
 
         ! Check: rank_C = rank_A + rank_B - 2*n_contracted
-        call assert(mod(rank_A + rank_B - rank_C, 2) == 0,&
-                        'Ranks of arrays are not correct.')
+        CALL_ASSERT(mod(rank_A + rank_B - rank_C, 2) == 0, 'Ranks of arrays are not correct.')
 
         n_contracted = (rank_A + rank_B - rank_C) / 2
 
@@ -346,7 +342,7 @@ contains
 
         rank_A = size(shape_A)
 
-        call assert(rank_A >= 2, 'rank_A < 2') 
+        CALL_ASSERT(rank_A >= 2, 'rank_A < 2') 
 
        if (contracted_dims_are_trailing) then
             n_combined_leading = product(shape_A(1:rank_A - n_contracted_dims))

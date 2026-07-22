@@ -1,8 +1,7 @@
 module rttddft_solve_fields
-  use asserts, only: assert
+
   use constants, only: fourpi, pi
   use modmpi, only: terminate
-  use mod_charge_and_moment, only: chgval
   use mod_lattice, only: omega
   use physical_constants, only: c
   use precision, only: dp
@@ -24,7 +23,7 @@ contains
 !> \[
 !>  \frac{d^2\mathbf{A}_{ind}}{dt^2} = 4 \pi c \mathbf{J}(t).
 !>  \]
-subroutine update_a_ind_and_p_vec( t, dt, j_t_minus_dt, j_para_t, vec_pot, p_vec )
+subroutine update_a_ind_and_p_vec( t, dt, j_t_minus_dt, j_para_t, vec_pot, p_vec, active_charge )
   !> Time \( t \)
   real(dp), intent(in) :: t
   !> Time step \( \Delta t \)
@@ -39,11 +38,13 @@ subroutine update_a_ind_and_p_vec( t, dt, j_t_minus_dt, j_para_t, vec_pot, p_vec
   !> In: Polarization vector at time \(t-\Delta t\)
   !> Out: Polarization vector at time \(t\)
   class(Polarization), intent(inout) :: p_vec
+  !> Total charge of active electrons
+  real(dp), intent(in) :: active_charge
 
   real(dp) :: beta, fac, den, k1(3,2), k2(3,2), k3(3,2), k4(3,2), j_para_mid(3), &
     j_ind_mid(3), j_ind_t(3), a_mid(3), smid(3), a_applied_t(3), a_save(3), a_ext_t_minus_t(3)
 
-  beta = chgval / c / omega
+  beta = active_charge / c / omega
   select case( vec_pot%vector_potential_solver )
     case( euler ) ! Euler
       call vec_pot%a_ind%add_vector( fourpi*c*dt*p_vec%components )

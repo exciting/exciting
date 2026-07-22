@@ -175,6 +175,7 @@ contains
       use mod_bands, only: nstdf, nomax, numin, eveckpalm, eveckalm, eveck, eveckp
       use mod_eigenvalue_occupancy, only: nstfv
       use mod_eigensystem, only: nmatmax 
+      use mod_get_eigenvectors_times_matchingcoefficients, only: get_eigenvectors_times_matchingcoefficients
       use iso_c_binding,         only: c_ptr, c_loc, c_f_pointer, c_sizeof, c_size_t
       use mod_device_offload,    only: device_world
       use mod_pointer_remapping, only: remap_fortran_pointer
@@ -274,8 +275,8 @@ contains
         deallocate(evecfv)
 
         ! compute products \sum_G C_{k}n * A_{lm}
-        call expand_evec(ik,'t')
-        call expand_evec(jk,'c')
+        call get_eigenvectors_times_matchingcoefficients(ik, 't', eveck, eveckalm)
+        call get_eigenvectors_times_matchingcoefficients(jk, 'c', eveckp, eveckpalm)
 
         OMP_OFFLOAD target update to(eveck, eveckp, eveckalm, eveckpalm)
 

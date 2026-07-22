@@ -54,7 +54,7 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
       complex(8) :: zsum
  
       real(8) :: oldsum,newsum,time1,time2
-      integer :: ndiv,nblocks,calls,npw,is,ia,ias,nsize,nadd,ilo,m,if1,nloall,n_local,npw_local,nusedsingular,l
+      integer :: ndiv,nblocks,calls,npw,is,ia,ias,nsize,nadd,ilo,m,if1,nloall,n_local,npw_local,nusedsingular,l, page
       complex(8), external :: zdotc
       complex(8), allocatable :: zfftcf(:),zfftveff(:),zfftmeff(:)
       type(fftmap_type) :: fftmap
@@ -69,6 +69,13 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
       nloall=n-npw
       npw_local=npw 
       n_local=nloall+npw_local
+
+! What if we store just a set of singular components just for one k-vector?
+! No problem, we will refer through page
+      page = ik
+      if ( allocated( singular ) ) then
+        if ( size( singular, 3 ) == 1) page = 1
+      endif
 
 ! Diagonal elements of the Hamiltonian and overlap matrices
       allocate(sdiag(n_local))
@@ -190,9 +197,18 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
       endif
 
 
-
-
-      nusedsingular=nsingular 
+      ! Dynamically determine how many singular components are actually valid
+      ! for this k-point by checking our zero-padded singular array directly.
+      nusedsingular = 0
+      if (allocated(singular)) then
+        do i = 1, nsingular
+          ! If the vector is not completely zero, it is a valid component.
+          ! (sum(abs()) is highly robust for checking complex arrays)
+          if (sum(abs(singular(1:npw_local, i, page))) > 0.0_8) then
+            nusedsingular = nusedsingular + 1
+          end if
+        end do
+      end if
       ndiv=nst
       nblocks=12 ! Expand the subspace up to 12 times
       calls=0
@@ -230,7 +246,7 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
 
 ! -> 2. singular components
        if (nusedsingular.ne.0) then
-         trialvec(1:npw_local,nsize+1:nsize+nusedsingular)=singular(1:npw_local,1:nusedsingular,ik)
+         trialvec(1:npw_local,nsize+1:nsize+nusedsingular)=singular(1:npw_local,1:nusedsingular,page)
          nsize=nsize+nusedsingular
          call GSortho(n_local,0,nsize-nloall,trialvec(:,nloall+1:))
        endif
@@ -242,7 +258,7 @@ Subroutine davidson (system, nst, evecfv, evalfv,ik)
        else
 !       or just a guess
          if (4d0*nst.ge.npw) then
-           write(*,*) 'The number of required eigenvalues is too high for the davidson eigensolver'
+           write(*,*) 'The number of required eigenvalues is too high for the Davidson eigensolver'
            write(*,*) 'The allowed maximum is one fourth of the number of LAPWs.'
            call terminate_mpi_env(mpiglobal)
          endif
@@ -379,10 +395,12 @@ call timesec(time2)
 
             if ((input%groundstate%outputlevel.eq."high").and.(mpiglobal%rank.eq.0))  write(*,*) nadd,maxresid,sum(rd(nstart:nstart-1+ndiv)),calls
 
-          elseif (mpiglobal%rank.eq.0) then
-            write(*,*) 'Subspace diagonalisation failed in davidson.f90.'
-            write(*,*) 'Is the subspace linearly dependent?'
-            write(*,*) 'info=',info
+          else
+            if (mpiglobal%rank.eq.0) then
+              write(*,*) 'Subspace diagonalisation failed in davidson.f90.'
+              write(*,*) 'Is the subspace linearly dependent?'
+              write(*,*) 'info=',info
+            end if
             call terminate_mpi_env(mpiglobal) 
           endif
           deallocate(BlockS,BlockH)

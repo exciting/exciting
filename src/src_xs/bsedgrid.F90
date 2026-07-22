@@ -16,7 +16,6 @@ Subroutine bsedgrid ()
    Use modxs
    use modinput
    Use m_genfilname
-   Use m_getunit
    Use m_genwgrid
    Use m_genloss
    Use m_gensigma
@@ -71,8 +70,7 @@ Subroutine bsedgrid ()
   &    scrtype=input%xs%screening%screentype, nar= .Not. &
   &    input%xs%bse%aresbse, dotext=dotext, filnam=fnexc)
   ! read oscillator strengths
-      Call getunit (unexc)
-      Open (unexc, File=fnexc, Form='formatted', Action='read', Status='old')
+      Open (newunit=unexc, File=fnexc, Form='formatted', Action='read', Status='old')
       Do ivck = 1, hamsiz
          Read (unexc, '(i8, 5g18.10)') idum, bse_en(ivck), rdum, rdum, real_p, imag_p
   !      Write (unexc, '(i8, 5g18.10)') s2, &
@@ -159,8 +157,8 @@ Subroutine bsedgrid ()
       Call gensumrls (w, spectr, sumrls)
   ! write optical functions to file
       Call writeeps (1, oct1, oct2, w, spectr, trim(fneps))
-      Call writeloss (1, w, loss(oct1, oct2, :), trim(fnloss))
-      Call writesigma (1, w, sigma, trim(fnsigma))
+      Call writeloss (1, w, loss(oct1, oct2, :), trim(fnloss), oct1, oct2)
+      Call writesigma (1, w, sigma, trim(fnsigma), oct1, oct2)
       Call writesumrls (1, sumrls, trim(fnsumrules))
      enddo
    end do

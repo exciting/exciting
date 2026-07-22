@@ -4,7 +4,7 @@ module iterative_solver_test
   use unit_test_framework, only: unit_test_type
   use math_utils, only: all_close
   use modmpi, only: mpiinfo
-  use asserts
+#include "asserts.fpp"
   use iterative_solver, only: lanczos
   use xlapack, only: diagonalize_symtridiag
 
@@ -111,8 +111,8 @@ module iterative_solver_test
 
       complex(dp), parameter :: diagonal(5) = zone * [1, 2, 3, 4, 5]
 
-      call assert(size(v_in) == 5)
-      call assert(size(v_out) == 5)
+      CALL_ASSERT(size(v_in) == 5)
+      CALL_ASSERT(size(v_out) == 5)
 
       v_out = v_in * diagonal
     end subroutine mock_diagonal

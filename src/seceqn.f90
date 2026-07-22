@@ -24,6 +24,9 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv, cdft_maximum_overlap)
       Use modinput
       Use modmain
       Use modmpi
+      use precision, only: dp
+      use ghost_band_filter, only: detect_ghost_bands, filter_ghost_bands, reshape_sv_arrays, restore_shape_sv_arrays, &
+                                  & set_default_ghost_band_parameters
 #ifdef USEOMP
       use omp_lib
 #endif
@@ -31,22 +34,26 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv, cdft_maximum_overlap)
       !> k-point index
       Integer, Intent (In) :: ik
       !> first-variational eigenvalues
-      Real (8), Intent (Out) :: evalfv (nstfv, nspnfv)
+      Real (dp), Intent (Out) :: evalfv (nstfv, nspnfv)
       !> first-variational eigenvectors
-      Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv, nspnfv)
+      Complex (dp), Intent (Out) :: evecfv (nmatmax, nstfv, nspnfv)
       !> second-variational eigenvectors
-      Complex (8), Intent (Out) :: evecsv (nstsv, nstsv)
+      Complex (dp), Intent (Out) :: evecsv (nstsv, nstsv)
       !> If `.true.`, the maximum overlap method is employed within a constrained DFT calculation
       logical, optional, intent(in) :: cdft_maximum_overlap
-
   ! local variables
       Integer :: ispn!,ib
+      ! number of ghost states
+      Integer :: n_ghost_states
+      ! temporary second-variational eigenvectors expanded to match shape of first-variational eigenvectors
+      Complex (dp) :: evecsv_temp(1, nstsv, nstsv)
+      Real (dp) :: evalsv_temp (nstsv, 1)
   ! time
-      Real (8) :: ts0,ts1
+      Real (dp) :: ts0,ts1
       logical  :: is_maximum_overlap_method_used
 !
   ! allocatable arrays
-      Complex (8), Allocatable :: apwalm (:, :, :, :, :)
+      Complex (dp), Allocatable :: apwalm (:, :, :, :, :)
 
 #ifdef USEOMP
       ! It is really a bad idea from a programer point of view to execute this from more than
@@ -80,6 +87,16 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv, cdft_maximum_overlap)
         &  is_maximum_overlap_method_used, &
         & evalfv(:,ispn), evecfv(:,:,ispn))
       End Do
+
+      call set_default_ghost_band_parameters
+
+      call detect_ghost_bands(lorbe0, apwe0, nstfv, evalfv(1:nstfv, 1:nspnfv), &
+                              & input%groundstate%GhostBands%toleranceSmallestAllowedEval, n_ghost_states)
+
+      if ( (input%groundstate%GhostBands%filterGhostBands) .and. (n_ghost_states > 0) ) then
+        call filter_ghost_bands(nstfv, n_ghost_states, evalfv(1:nstfv, 1:nspnfv), evecfv(1:nmatmax, 1:nstfv, 1:nspnfv))
+      end if
+
       If (isspinspiral()) Then
      ! solve the spin-spiral second-variational secular equation
          Call seceqnss (ik, apwalm, evalfv, evecfv, evecsv)
@@ -91,7 +108,19 @@ Subroutine seceqn (ik, evalfv, evecfv, evecsv, cdft_maximum_overlap)
           Call seceqnsv (ik, apwalm, evalfv, evecfv, evecsv)
         endif
       End If
-!
+
+      ! reshape arrays, so that they fit the input of detect_ghost_bands
+      call reshape_sv_arrays(evalsv, evecsv, nstsv, ik, evalsv_temp, evecsv_temp)
+
+      call detect_ghost_bands(lorbe0, apwe0, nstsv, evalsv_temp(1:nstsv, 1:1), &
+                              & input%groundstate%GhostBands%toleranceSmallestAllowedEval, n_ghost_states)
+
+      if ( (input%groundstate%GhostBands%filterGhostBands) .and. (n_ghost_states > 0) ) then
+        call filter_ghost_bands(nstsv, n_ghost_states, evalsv_temp(1:nstsv, 1:1), evecsv_temp(1:1, 1:nstsv, 1:nstsv))
+        ! restore the original shape of the arrays
+        call restore_shape_sv_arrays(evalsv_temp, evecsv_temp, nstsv, ik, evalsv, evecsv)
+      end if
+
       Deallocate (apwalm)
 End Subroutine seceqn
 !EOC

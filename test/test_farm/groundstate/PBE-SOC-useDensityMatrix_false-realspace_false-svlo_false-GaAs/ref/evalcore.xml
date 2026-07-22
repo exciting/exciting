@@ -2,24 +2,24 @@
 <evalcore>
   <species is="1" chemicalSymbol="Ga">
     <atom ia="1">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-3.754585853579e2"/>
-      <state ist="2" n="2" l="0" k="0" eigenvalue="-4.598296820645e1"/>
-      <state ist="3" n="2" l="1" k="1" eigenvalue="-4.066002376314e1"/>
-      <state ist="4" n="2" l="1" k="1" eigenvalue="-3.964370597008e1"/>
-      <state ist="5" n="3" l="0" k="0" eigenvalue="-5.086452258897e0"/>
-      <state ist="6" n="3" l="1" k="1" eigenvalue="-3.367672051379e0"/>
-      <state ist="7" n="3" l="1" k="1" eigenvalue="-3.235282767097e0"/>
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-3.754585853579e2"/>
+      <state ist="2" n="2" l="0" k="1" eigenvalue="-4.598296820646e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-4.066002376315e1"/>
+      <state ist="4" n="2" l="1" k="2" eigenvalue="-3.964370597009e1"/>
+      <state ist="5" n="3" l="0" k="1" eigenvalue="-5.086452258906e0"/>
+      <state ist="6" n="3" l="1" k="1" eigenvalue="-3.367672051388e0"/>
+      <state ist="7" n="3" l="1" k="2" eigenvalue="-3.235282767106e0"/>
     </atom>
   </species>
   <species is="2" chemicalSymbol="As">
     <atom ia="1">
-      <state ist="1" n="1" l="0" k="0" eigenvalue="-4.300135807197e2"/>
-      <state ist="2" n="2" l="0" k="0" eigenvalue="-5.408264361518e1"/>
-      <state ist="3" n="2" l="1" k="1" eigenvalue="-4.825991993112e1"/>
-      <state ist="4" n="2" l="1" k="1" eigenvalue="-4.691639639679e1"/>
-      <state ist="5" n="3" l="0" k="0" eigenvalue="-6.481484157358e0"/>
-      <state ist="6" n="3" l="1" k="1" eigenvalue="-4.526466696246e0"/>
-      <state ist="7" n="3" l="1" k="1" eigenvalue="-4.342495737644e0"/>
+      <state ist="1" n="1" l="0" k="1" eigenvalue="-4.300135807197e2"/>
+      <state ist="2" n="2" l="0" k="1" eigenvalue="-5.408264361518e1"/>
+      <state ist="3" n="2" l="1" k="1" eigenvalue="-4.825991993113e1"/>
+      <state ist="4" n="2" l="1" k="2" eigenvalue="-4.691639639679e1"/>
+      <state ist="5" n="3" l="0" k="1" eigenvalue="-6.481484157364e0"/>
+      <state ist="6" n="3" l="1" k="1" eigenvalue="-4.526466696251e0"/>
+      <state ist="7" n="3" l="1" k="2" eigenvalue="-4.342495737649e0"/>
     </atom>
   </species>
 </evalcore>

@@ -15,7 +15,6 @@ Subroutine idfgather
 #endif    
     Use modmpi
     Use m_filedel
-    Use m_getunit
     Use m_genfilname
     Implicit None
     ! local variables
@@ -27,7 +26,6 @@ Subroutine idfgather
     Logical, External :: tqgamma
     Allocate (mdf1(nwdf))
     Inquire (IoLength=Recl) mdf1 (1)
-    Call getunit (unit1)
     ! loop over q-points
     Do iq = 1, nqpt
         tq0 = tqgamma (iq)
@@ -60,7 +58,7 @@ Subroutine idfgather
                         oc1=oct1, oc2=oct2, iqmt=iq, procs=procs, &
                         rank=iproc, filnam=filnam2)
                         if(rank.eq.iproc)then
-                            Open (unit1, File=trim(filnam2), Form='unformatted'&
+                            Open (newunit=unit1, File=trim(filnam2), Form='unformatted'&
                             , Action='read', Status='old', Access='direct', &
                             Recl=Recl)
                             Do iw = wpari, wparf
@@ -79,7 +77,7 @@ Subroutine idfgather
                     fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
                     oc1=oct1, oc2=oct2, iqmt=iq, filnam=filnam)
                     if(rank.eq.0.or.(firstinnode.and. .not.input%sharedfs))then
-                        Open (unit1, File=trim(filnam), Form='unformatted', &
+                        Open (newunit=unit1, File=trim(filnam), Form='unformatted', &
                         Action='write', Status='replace', Access='direct', &
                         Recl=Recl)
                         Do iw = 1, nwdf

@@ -13,13 +13,12 @@ module mod_wannier_disentangle
 contains
 
     subroutine wfdis_gen
-      use m_getunit
       use mod_manopt, only: manopt_stiefel_lbfgs, manopt_stiefel_cg
 
       integer :: convun, minit, maxit, memlen
       real(8) :: gradnorm, minstep
 
-      integer :: ik, n, nik, nok, dyo(2)
+      integer :: ik, n, nik, nok, dyo(2), wf_group_
       real(8) :: omegai0, omegai, t0, t1
       character(256) :: convfname
 
@@ -27,11 +26,14 @@ contains
       real(8), allocatable :: sval(:)
       complex(8), allocatable :: projm(:,:), lsvec(:,:), rsvec(:,:), auxmat(:,:), auxmat2(:,:), Y(:,:,:)
 
-      minit    = input%properties%wannier%grouparray( wf_group)%group%minitdis
-      maxit    = input%properties%wannier%grouparray( wf_group)%group%maxitdis
-      gradnorm = input%properties%wannier%grouparray( wf_group)%group%epsdis
-      minstep  = input%properties%wannier%grouparray( wf_group)%group%minstepdis
-      memlen   = input%properties%wannier%grouparray( wf_group)%group%memlendis
+      ! new group index to adress wannier grouparray for spindis
+      wf_group_ = wf_group
+      if ( wf_spin_dis ) wf_group_ = mod( wf_group - 1, size( input%properties%wannier%grouparray, dim=1 ) ) + 1
+      minit    = input%properties%wannier%grouparray( wf_group_)%group%minitdis
+      maxit    = input%properties%wannier%grouparray( wf_group_)%group%maxitdis
+      gradnorm = input%properties%wannier%grouparray( wf_group_)%group%epsdis
+      minstep  = input%properties%wannier%grouparray( wf_group_)%group%minstepdis
+      memlen   = input%properties%wannier%grouparray( wf_group_)%group%memlendis
 
       write( wf_info, '(" disentangle optimal subspace...")')
       call timesec( t0)
@@ -118,13 +120,12 @@ contains
       !* MINIMIZATION
       !****************************
       convun = 0
-      if( input%properties%wannier%grouparray( wf_group)%group%writeconv) then
-        call getunit( convun)
+      if( input%properties%wannier%grouparray( wf_group_)%group%writeconv) then
         write( convfname, '("dis_conv_",i3.3,".dat")') wf_group
-        open( convun, file=trim( convfname), action='write', form='formatted')
+        open( newunit=convun, file=trim( convfname), action='write', form='formatted')
       end if
 
-      if( input%properties%wannier%grouparray( wf_group)%group%optim .eq. 'cg') then
+      if( input%properties%wannier%grouparray( wf_group_)%group%optim .eq. 'cg') then
         call manopt_stiefel_cg( Y, dyo, wf_kset%nkpt, dy, &
                cost=wfdis_omegai, &
                grad=wfdis_gradient, &
@@ -136,7 +137,7 @@ contains
                epsgrad=gradnorm, minit=minit, maxit=maxit, stdout=convun, minstep=minstep, memlen=memlen)
       end if
 
-      if( input%properties%wannier%grouparray( wf_group)%group%writeconv) close( convun)
+      if( input%properties%wannier%grouparray( wf_group_)%group%writeconv) close( convun)
 
       !****************************
       !* FINALIZATION
@@ -160,7 +161,7 @@ contains
 
       write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
       write( wf_info, '(5x,"iterations: ",T40,7x,I6)') maxit
-      write( wf_info, '(5x,"convergence cutoff: ",T40,E13.6)') input%properties%wannier%grouparray( wf_group)%group%epsdis
+      write( wf_info, '(5x,"convergence cutoff: ",T40,E13.6)') input%properties%wannier%grouparray( wf_group_)%group%epsdis
       write( wf_info, '(5x,"norm of gradient: ",T40,E13.6)') gradnorm
       write( wf_info, '(5x,"Omega_I before: ",T40,F13.6)') omegai0
       write( wf_info, '(5x,"Omega_I after: ",T40,F13.6)') omegai

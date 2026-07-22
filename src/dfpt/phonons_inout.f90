@@ -67,7 +67,7 @@ module phonons_inout
     !> generate directory for independent \(({\bf q},I)\) part
     subroutine ph_io_genqidir(iq, iirrep, qidirname, &
         comm )
-      use os_utils, only: make_directory
+      use os_utils, only: make_directory_pure
       !> index of \({\bf q}\) point
       integer, intent(in) :: iq
       !> index of the irrep
@@ -85,7 +85,7 @@ module phonons_inout
 
       call ph_io_irrep_fxt( iq, iirrep, 0, qidirname )
       qidirname = './'//qidirname//'/'
-      i = make_directory( qidirname, comm=mpi ) 
+      i = make_directory_pure( qidirname, comm=mpi )
 
       if( i /= 0 ) then
         if( mpi%rank == 0 ) then
@@ -463,7 +463,8 @@ module phonons_inout
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias = idxas(ia, is)
-          write( un, '("#",x,a,x,i3)' ) trim( adjustl( spsymb(is) ) ), ia
+          write( un, '("#",x,a,x,i3)', iostat=stat ) trim( adjustl( spsymb(is) ) ), ia
+          success = success .and. (stat == 0)
           do ip = 1, 3
             row = dforce(ip, ias, :)
             where( abs( dble( row ) ) < 1e-12 ) row = cmplx( 0.0_dp, aimag( row ), dp )
@@ -481,6 +482,7 @@ module phonons_inout
     !> patterns and density / potential response) from file.
     subroutine ph_io_read_dforce_const( dforce, success )
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
+      use os_utils, only: path_exists
       !> constant part of fore response
       complex(dp), intent(out) :: dforce(3, natmtot, 3)
       !> `.true.` on success
@@ -490,14 +492,18 @@ module phonons_inout
       character(256) :: line
       real(dp) :: row(6)
 
+      success = path_exists( trim( prefix_upper )//'_DFORCE_CONST.OUT' )
+      if (.not. success) return
+
       open( newunit=un, file=trim( prefix_upper )//'_DFORCE_CONST.OUT', action='read', form='formatted', iostat=stat )
       success = (stat == 0)
-      if( .not. success ) return
+      if (.not. success) return
 
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias = idxas(ia, is)
-          read( un, * ) line
+          read( un, *, iostat=stat ) line
+          success = success .and. (stat == 0)
           do ip = 1, 3
             read( un, *, iostat=stat ) row
             dforce(ip, ias, :) = cmplx( row(1::2), row(2::2), dp )
@@ -507,6 +513,8 @@ module phonons_inout
       end do
 
       close( un )
+
+      if (.not. success) dforce = cmplx( 0, 0, dp )
     end subroutine ph_io_read_dforce_const
 
     !> Write Born effective charge column to file.

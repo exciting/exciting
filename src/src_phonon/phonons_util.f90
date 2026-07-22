@@ -1,6 +1,6 @@
 module phonons_util
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
 
   implicit none
@@ -16,7 +16,7 @@ module phonons_util
       use math_utils, only: is_square
       use m_linalg, only: zhediag
       !> list of reciprocal space points \({\bf p}\) in lattice coordinates
-      real(dp), intent(in) :: vpl(:, :)
+      real(dp), intent(in) :: vpl(:,:)
       !> dynamical matrices \({\bf D}({\bf p})\)
       complex(dp), intent(inout) :: dynp(:,:,:)
 
@@ -26,11 +26,12 @@ module phonons_util
       real(dp), allocatable :: eval(:)
       complex(dp), allocatable :: dyn0(:,:), evec(:,:)
 
-      call assert( size( vpl, dim=1 ) == 3, 'Wavevectors are not 3-dimensional.' )
+      CALL_ASSERT( size( vpl, dim=1 ) == 3, 'Wavevectors are not 3-dimensional.' )
       np = size( vpl, dim=2 )
-      call assert( is_square( dynp(:,:,1) ), 'Dynamical matrices are not square.' )
-      call assert( size( dynp, dim=3 ) == np, 'Different number of dynamical matrices and wavevectors.' )
+      CALL_ASSERT( is_square( dynp(:,:,1) ), 'Dynamical matrices are not square.' )
+      CALL_ASSERT( size( dynp, dim=3 ) == np, 'Different number of dynamical matrices and wavevectors.' )
       n = size( dynp, dim=1 )
+      CALL_ASSERT( mod( n, 3 ) == 0, 'Size of dynamical matrices must be multiple of 3.' )
 
       allocate( eval(n), dyn0(n,n), evec(n,n) )
 
@@ -56,6 +57,132 @@ module phonons_util
       deallocate( eval, dyn0, evec, ip_idx, isym_idx )
     end subroutine ph_util_sumrule_dyn
 
+    !> Impose the acoustic sum rule on a set of interatomic force constants \({\bf \Phi}({\bf p})\).
+    !>
+    !> This implementation is based on Appendix A in the [Master thesis](https://dspace.mit.edu/entities/publication/1bb185c4-ae41-4901-8f82-69fa7556a9d5) 
+    !> of Nicolas Mounet (2005).  
+    !> This implementation imposes index symmetry and translational invariance, but not rotational invariance.
+    subroutine ph_util_sumrule_ifc( vrl, irneg, rmul, ifc )
+      use math_utils, only: is_square
+      !> real-space lattice vectors \({\bf R}\)
+      integer, intent(in) :: vrl(:,:)
+      !> index to negative lattice vector \(-{\bf R}\) for each lattice vector
+      integer, intent(in) :: irneg(:)
+      !> multiplicity for each lattice vector
+      integer, intent(in) :: rmul(:)
+      !> interatomic force constants (IFCs)
+      complex(kind=dp), intent(inout) :: ifc(:,:,:)
+    
+      real(kind=dp), parameter :: isqrt2 = 1.0_dp / sqrt(2.0_dp)
+
+      integer :: nr, nat, ia, ja, ias, jas, i, j, ir, nbi, nbt, ibi, ibt, nb, n
+      real(kind=dp) :: dotp, norm
+
+      integer, allocatable :: iw(:,:), iu(:)
+      real(kind=dp), allocatable :: u(:,:,:,:), ifc_o(:,:,:)
+
+      real(8), external :: dnrm2, ddot
+
+      CALL_ASSERT( size( vrl, dim=1 ) == 3, 'Lattice vectors are not 3-dimensional.' )
+      nr = size( vrl, dim=2 )
+      CALL_ASSERT( is_square( ifc(:,:,1) ), 'IFCs are not square.' )
+      CALL_ASSERT( size( irneg ) == nr, 'Different number of lattice vectors and negative indices.' )
+      CALL_ASSERT( size( rmul ) == nr, 'Different number of lattice vectors and multiplicities.' )
+      CALL_ASSERT( size( ifc, dim=3 ) == nr, 'Different number of IFCs and lattice vectors.' )
+      nat = size( ifc, dim=1 ) / 3
+      CALL_ASSERT( size( ifc, dim=1 ) == 3*nat, 'Size of IFCs must be multiple of 3.' )
+
+      n = (3*nat)**2 * nr
+
+      ! index symmetry
+      nbi = 3 * nat * ((nat+1) * nr - 1)
+      allocate( iw(3, nbi), source=0 )
+      ibi = 0
+      do ir = 1, nr
+        do ia = 1, nat
+          do i = 1, 3
+            ias = (ia - 1) * 3 + i
+            do ja = ia, nat
+              do j = i, 3
+                jas = (ja - 1) * 3 + j
+                if (all(vrl(:, ir) == 0) .and. ias == jas) cycle
+                ibi = ibi + 1 
+                iw(:, ibi) = [ias, jas, ir]
+              end do
+            end do
+          end do
+        end do
+      end do
+
+      ! translational ASR
+      nbt = 9 * nat
+      allocate( u(3*nat, 3*nat, nr, nbt), source=0.0_dp )
+      ibt = 0
+      do ia = 1, nat
+        do i = 1, 3
+          ias = (ia - 1) * 3 + i
+          do j = 1, 3
+            ibt = ibt + 1
+            do ja = 1, nat
+              jas = (ja - 1) * 3 + j
+              do ir = 1, nr
+                u(ias, jas, ir, ibt) = 1.0_dp / rmul(ir)
+              end do
+            end do
+          end do
+        end do
+      end do
+
+      ! orthonormalize basis
+      allocate( iu(nbt), source=0 )
+      nb = 0
+      do ibt = 1, nbt
+        do ibi = 1, nbi
+          dotp = (u(iw(1, ibi), iw(2, ibi), iw(3, ibi), ibt) - u(iw(2, ibi), iw(1, ibi), irneg(iw(3, ibi)), ibt)) * isqrt2
+          u(iw(1, ibi), iw(2, ibi), iw(3, ibi), ibt) = u(iw(1, ibi), iw(2, ibi), iw(3, ibi), ibt) - dotp * isqrt2 
+          u(iw(2, ibi), iw(1, ibi), irneg(iw(3, ibi)), ibt) = u(iw(2, ibi), iw(1, ibi), irneg(iw(3, ibi)), ibt) + dotp * isqrt2 
+        end do
+        do ibi = 1, nb
+          dotp = ddot( n, u(:, :, :, ibt), 1, u(:, :, :, iu(ibi)), 1 )
+          call daxpy( n, -dotp, u(:, :, :, iu(ibi)), 1, u(:, :, :, ibt), 1 )
+        end do
+        norm = dnrm2( n, u(:, :, :, ibt), 1 )
+        if (norm > 1e-6_dp) then
+          nb = nb + 1 
+          iu(nb) = ibt
+          call dscal( n, 1.0_dp/norm, u(:, :, :, ibt), 1 )
+        end if
+      end do
+
+      ! check orthonormality of basis vectors
+      !do ibt = 1, nb
+      !  do ibi = 1, nbi
+      !    dotp = (u(iw(1, ibi), iw(2, ibi), iw(3, ibi), iu(ibt)) - u(iw(2, ibi), iw(1, ibi), irneg(iw(3, ibi)), iu(ibt))) * isqrt2
+      !    if (abs(dotp) > 1e-6_dp) print *, '(ASR) basis vectors not orthogonal', ibt, iu(ibt), ibi, dotp
+      !  end do
+      !  do ibi = 1, nb
+      !    dotp = ddot( n, u(:, :, :, iu(ibt)), 1, u(:, :, :, iu(ibi)), 1 )
+      !    if (iu(ibt) /= iu(ibi) .and. abs(dotp) > 1e-6_dp) print *, '(ASR) basis vectors not orthogonal', ibt, iu(ibt), ibi, iu(ibi), dotp
+      !    if (iu(ibt) == iu(ibi) .and. abs(dotp - 1.0_dp) > 1e-6_dp) print *, '(ASR) basis vector not normalized', dotp
+      !  end do
+      !end do
+
+      ! subtract orthogonal complement
+      allocate( ifc_o(3*nat, 3*nat, nr), source=0.0_dp )
+      do ibi = 1, nbi
+        dotp = (ifc(iw(1, ibi), iw(2, ibi), iw(3, ibi))%re - ifc(iw(2, ibi), iw(1, ibi), irneg(iw(3, ibi)))%re) * isqrt2
+        ifc_o(iw(1, ibi), iw(2, ibi), iw(3, ibi)) = ifc_o(iw(1, ibi), iw(2, ibi), iw(3, ibi)) + dotp * isqrt2 
+        ifc_o(iw(2, ibi), iw(1, ibi), irneg(iw(3, ibi))) = ifc_o(iw(2, ibi), iw(1, ibi), irneg(iw(3, ibi))) - dotp * isqrt2 
+      end do
+      do ibt = 1, nb
+        dotp = ddot( n, ifc, 2, u(:, :, :, iu(ibt)), 1 )
+        call daxpy( n, dotp, u(:, :, :, iu(ibt)), 1, ifc_o, 1 )
+      end do
+      !print *, 'ASR correction: ', dnrm2( n, ifc_o, 1 )
+      call daxpy( n, -1.0_dp, ifc_o, 1, ifc, 2 )
+      ifc%im = 0.0_dp
+    end subroutine ph_util_sumrule_ifc
+
     !> Impose acoustic sum rule on a set of Born effective charge tensos \({\bf Z}^\ast_\kappa\).
     !>
     !> On exit, the charge tensors sum up to zero.
@@ -74,7 +201,7 @@ module phonons_util
       end do
     end subroutine ph_util_sumrule_borncharge
 
-    !> Symmetrize a dynamical matrix \({\bf D}({\bf p}\) with a given
+    !> Symmetrize a dynamical matrix \({\bf D}({\bf p})\) with a given
     !> set of crystal symmetries.
     !> See also [[ph_util_symapp_dyn(subroutine)]].
     subroutine ph_util_symmetrize_dyn( vpl, dyn, nsym, isym )
@@ -92,7 +219,7 @@ module phonons_util
       integer :: n, jsym
       complex(dp), allocatable :: tmp(:,:)
 
-      call assert( is_square(dyn), 'Dynamical matrix is not square.' )
+      CALL_ASSERT( is_square(dyn), 'Dynamical matrix is not square.' )
       n = size( dyn, dim=1 )
 
       ! make Hermitian
@@ -147,8 +274,9 @@ module phonons_util
 
       direction = 1
       if( present( dir ) ) direction = dir
+      m = 'G'
       if( present( matrix ) ) m = matrix
-      if( m /= 'G' .or. m /= 'T') m = 'G'
+      if (all( m /= ['G', 'T'] )) m = 'G'
 
       allocate( aux(3*natmtot, 3*natmtot) )
 
@@ -177,7 +305,7 @@ module phonons_util
     end subroutine ph_util_symapp_dyn
 
     !> Get the symmetry matrix \({\bf \Gamma}({\bf p})\) for a given
-    !> symmetry opertation
+    !> symmetry operation
     !>
     !> according to *Maradudin, Vosko, Rev. Mod. Phys. **40**, 1 (1968)*.
     !> Note: In exciting, the translation is applied before the rotation!
@@ -191,7 +319,7 @@ module phonons_util
       integer, intent(in) :: isym
       !> reciprocal space point \({\bf p}\)
       real(dp), intent(in) :: vpl(3)
-      !> symemtry matrix
+      !> symmetry matrix
       complex(dp), allocatable :: G(:,:)
 
       integer :: lspl, ilspl, is, ia, ias, ja, jas, i, j
@@ -246,7 +374,7 @@ module phonons_util
       integer, intent(in) :: isym
       !> reciprocal space point \({\bf p}\)
       real(dp), intent(in) :: vpl(3)
-      !> symemtry matrix
+      !> symmetry matrix
       complex(dp), allocatable :: T(:,:)
 
       integer :: lspl, ias
@@ -295,7 +423,7 @@ module phonons_util
       use m_linalg, only: zhediag, zhegauge
       !> dynamical matrix \({\bf D}\)
       complex(dp), intent(in) :: dyn(:,:)
-      !> phonon freuqncies \(\omega_\nu\)
+      !> phonon frequencies \(\omega_\nu\)
       real(dp), intent(out) :: w(:)
       !> phonon eigenvectors \({\bf e}_\nu\)
       complex(dp), intent(out) :: evec(:,:)
@@ -456,24 +584,11 @@ module phonons_util
       end if
 
       ! symmetrize dynamical matrices
-      if( symm ) then
+      if (symm) then
         do iq = 1, nq
           call find_equivalent_wavevectors( 3, vql(:, iq), vql(:, iq:iq), 1, symlat(:, :, lsplsymc(1:nsymcrys)), nsymcrys, iq_idx, isym_idx )
           call ph_util_symmetrize_dyn( vql(:, iq), dynq(:, :, iq), size( isym_idx ), isym_idx )
         end do
-      end if
-
-      ! apply accoustic sum rule
-      if( smrl ) &
-        call ph_util_sumrule_dyn( vql(:, 1:nq), dynq )
-
-      ! subtract non-analytic part for polar materials
-      if( present( dielten ) .and. present( borncharge ) ) then
-        if( elphbolt ) then
-          call ph_util_dynmat_lr_elphbolt( bvec, nq, vql, dielten, borncharge, -zone, dynq, ngridq, 14.0_dp )
-        else
-          call ph_util_dynmat_lr( bvec, nq, vql, dielten, borncharge, -zone, dynq )
-        end if
       end if
 
       ! set up interpolation object
@@ -486,7 +601,7 @@ module phonons_util
         right_centers=reshape( [((atposc(:, i, j), i=1, natoms(j)), j=1, nspecies)], [3, natmtot] ), &
         coordinates='cartesian' )
 
-      ! set dynamical matrices of q-grid
+      ! set dynamical matrices on full q-grid
       allocate( dynq_full(3*natmtot, 3*natmtot, mfi%np), source=zzero )
       do iq = 1, mfi%np
         write( buff, '(3f13.6)' ) mfi%vpl(:, iq)
@@ -496,14 +611,30 @@ module phonons_util
         call ph_util_symapp_dyn( isym_idx(1), vql(:, iq_idx(1)), dynq(:, :, iq_idx(1)), dynq_full(:, :, iq) )
       end do
 
-      ! generate dynamical matrices in real space
+      ! generate dynamical matrices in real space (IFCs) including long-range part
       allocate( dynmatr(3*natmtot, 3*natmtot, mfi%nr) )
       call mfi%transform_p2R( [3*natmtot, 3*natmtot], 1, dynq_full, (3*natmtot)**2, 1, dynmatr, (3*natmtot)**2, 1 )
 
+      ! apply acoustic sum rule to IFCs
+      if (smrl) &
+        call ph_util_sumrule_ifc( mfi%vrl, mfi%rneg, mfi%rmul, dynmatr )
+
+      ! subtract non-analytic part for polar materials (in reciprocal space)
+      if( present( dielten ) .and. present( borncharge ) ) then
+        call mfi%transform_R2p( [3*natmtot, 3*natmtot], 1, dynmatr, (3*natmtot)**2, 1, dynq_full, (3*natmtot)**2, 1, mfi%vpl )
+        if (elphbolt) then
+          call ph_util_dynmat_lr_elphbolt( bvec, mfi%np, mfi%vpl, dielten, borncharge, -zone, dynq_full, ngridq, 14.0_dp )
+        else
+          call ph_util_dynmat_lr( bvec, mfi%np, mfi%vpl, dielten, borncharge, -zone, dynq_full )
+        end if
+        ! generate dynamical matrices in real space (IFCs) not including long-range part
+        call mfi%transform_p2R( [3*natmtot, 3*natmtot], 1, dynq_full, (3*natmtot)**2, 1, dynmatr, (3*natmtot)**2, 1 )
+      end if
+
       ! clean up
       deallocate( dynq, dynq_full, vql_full )
-      if( allocated( iq_idx ) ) deallocate( iq_idx )
-      if( allocated( isym_idx ) ) deallocate( isym_idx )
+      if (allocated(iq_idx)) deallocate( iq_idx )
+      if (allocated(isym_idx)) deallocate( isym_idx )
     end subroutine ph_util_setup_interpolation
 
     !> Interpolate dynamical matrix on an arbitrary set of \({\bf q}\)-points.
@@ -519,10 +650,15 @@ module phonons_util
     subroutine ph_util_interpolate( nq, vql, mfi, dynmatr, &
         dynmatq, &
         minimal_distances, symmetrize, dielten, borncharge, elphbolt_compatible )
-      use constants, only: zone
+      use constants, only: zone, zzero
       use matrix_fourier_interpolation, only: mfi_type
       use mod_atoms, only: natmtot
       use mod_symmetry, only: symlat, lsplsymc, nsymcrys, find_equivalent_wavevectors
+      use modinput, only: input, TSvdWparameters_type, DFTD2parameters_type
+      use mod_semiempirical_vdw_dynmat, only: vdW_dynmat_TS, vdW_dynmat_DFTD2
+
+      
+
       !> number of \({\bf q}\)-points
       integer, intent(in) :: nq
       !> lattice coordinates of \({\bf q}\)-points
@@ -547,6 +683,8 @@ module phonons_util
 
       integer :: iq
       logical :: symm, mindist, elphbolt
+     
+      complex(dp), allocatable :: dynmat_vdw(:,:,:), dynmat_vdw_DFTD2(:,:,:)
       
       integer, allocatable :: iq_idx(:), isym_idx(:)
 
@@ -569,6 +707,43 @@ module phonons_util
         else
           call ph_util_dynmat_lr( mfi%bvec, nq, vql, dielten, borncharge, zone, dynmatq )
         end if
+      end if
+
+      ! semiemmpirical vdW-contribution to the dynamical matrix - TS
+      if (input%groundstate%vdWcorrection=="TSvdW") then
+         allocate(dynmat_vdw(3*natmtot,3*natmtot, nq), source=zzero)
+
+         call vdW_dynmat_TS(input%groundstate%TSvdWparameters%s6, &
+                         input%groundstate%TSvdWparameters%sr6, &
+                         input%groundstate%TSvdWparameters%d, &
+                         input%groundstate%TSvdWparameters%cutoff, &
+                         nq, &
+                         vql, &
+                         dynmat_vdw) 
+         
+         ! Adding VdW contribution to the dynamical matrix
+         dynmatq = dynmatq + dynmat_vdw
+         
+         deallocate(dynmat_vdw)
+      end if
+
+      ! semiempirical vdW-contribution to the dynamical matrix - DFTD2
+      if ( input%groundstate%vdWcorrection=="DFTD2" ) then
+        allocate(dynmat_vdw_DFTD2(3*natmtot, 3*natmtot, nq), source=zzero)
+
+        ! DFTD2parameters
+        call vdW_dynmat_DFTD2(input%groundstate%DFTD2parameters%s6, &
+                              input%groundstate%DFTD2parameters%sr6, &
+                              input%groundstate%DFTD2parameters%d, &
+                              input%groundstate%DFTD2parameters%cutoff, &
+                              nq, &
+                              vql, &
+                              dynmat_vdw_DFTD2)
+        
+        dynmatq = dynmatq + dynmat_vdw_DFTD2 
+
+        deallocate(dynmat_vdw_DFTD2)
+
       end if
 
       ! symmetrize dynamical matrices

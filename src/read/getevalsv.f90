@@ -11,6 +11,8 @@ subroutine getevalsv(vpl, evalsvp)
   use modmain
   use modinput
   use modmpi
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
+  use precision, only: i32, dp, long_int, str_256
 ! !DESCRIPTION:
 !   The file where the (second-variational) eigenvalues are stored is
 !    {\tt EVALSV.OUT}.
@@ -46,38 +48,28 @@ subroutine getevalsv(vpl, evalsvp)
   implicit none
 
   ! Arguments
-  real(8), intent(in) :: vpl(3)
-  real(8), intent(out) :: evalsvp(nstsv)
+  real(dp), intent(in) :: vpl(3)
+  real(dp), intent(out) :: evalsvp(nstsv)
 
   ! Local variables
   logical :: lexist
-  integer :: isym, ik, koffset, i
-  integer :: reclen, nstsv_
-  real(8) :: vkl_(3), t1
-  character(256) :: filetag
+  integer(i32) :: io_unit, isym, ik, koffset, i, nstsv_
+  integer(long_int) :: reclen
+  real(dp) :: vkl_(3), t1
+  character(str_256) :: filetag
 
   ! External functions
-  character(256), external :: outfilenamestring
+  character(str_256), external :: outfilenamestring
 
-#ifdef XS
+
   ! Added feature to access arrays for only a subset of bands
-  real(8), allocatable :: evalsv_(:)
-#endif
+  real(dp), allocatable :: evalsv_(:)
 
   ! Find the k-point number
   call findkpt(vpl, isym, ik)
 
   ! Find the record length
-
-#ifdef XS
-  inquire(iolength=reclen) vkl_, nstsv_
-#endif
-
-!!<-- Basically dead code, since XS is virtually always specified
-#ifndef XS
-  inquire(iolength=reclen) vkl_, nstsv_, evalsvp
-#endif
-!!-->
+  call inquire_large( reclen, vkl_, [nstsv_] )
 
   ! mod_names:filetag_evalsv is 'EVALSV'
   filetag = trim(filetag_evalsv)
@@ -88,8 +80,7 @@ subroutine getevalsv(vpl, evalsvp)
   do i = 1, 100
     inquire(file=outfilenamestring(filetag, ik), exist=lexist)
     if(lexist) then
-      open(70, file=outfilenamestring(filetag, ik), action='read',&
-        & form='unformatted', access='direct', recl=reclen)
+      call open_direct_unformatted_large( io_unit, outfilenamestring(filetag, ik), "read", reclen, "old" )
       exit
     else
       call system('sync')
@@ -105,10 +96,9 @@ subroutine getevalsv(vpl, evalsvp)
      koffset = ik
   end if
 
-#ifdef XS
   ! Get dimensions of stored file
-  read(70, rec=1) vkl_, nstsv_
-  close(70)
+  read(io_unit, rec=1) vkl_, nstsv_
+  close(io_unit)
 
   if(nstsv .gt. nstsv_) then
      write(*,*)
@@ -122,26 +112,17 @@ subroutine getevalsv(vpl, evalsvp)
 
   allocate(evalsv_(nstsv_))
 
-  inquire(iolength=reclen) vkl_, nstsv_, evalsv_
+  call inquire_large( reclen, vkl_, [nstsv_], evalsv_ )
 
-  open(70, file=outfilenamestring(filetag, ik), action='read',&
-    & form='unformatted', access='direct', recl=reclen)
+  call open_direct_unformatted_large( io_unit, outfilenamestring(filetag, ik), "read", reclen, "old" )
 
-  read(70, rec=koffset) vkl_, nstsv_, evalsv_
+  read(io_unit, rec=koffset) vkl_, nstsv_, evalsv_
 
   ! Retrieve subset
   evalsvp(:) = evalsv_ (:nstsv)
   deallocate(evalsv_)
 
-#endif
-
-!!<-- Basically dead code, since XS is virtually always specified
-#ifndef XS
-  read(70, rec=koffset) vkl_, nstsv_, evalsvp
-#endif
-!!-->
-
-  close(70)
+  close(io_unit)
 
   t1 = abs(vkl(1, ik)-vkl_(1)) + abs(vkl(2, ik)-vkl_(2)) + abs(vkl(3, ik)-vkl_(3))
 
@@ -155,21 +136,6 @@ subroutine getevalsv(vpl, evalsvp)
     stop
   end if
 
-!!<-- Basically dead code, since XS is virtually always specified
-#ifndef XS
-  if(nstsv .ne. nstsv_) then
-    write(*,*)
-    write(*, '("Error(getevalsv): differing nstsv for k-point ",i8)') ik
-    write(*, '(" current    : ",i8)') nstsv
-    write(*, '(" evalsv.out : ",i8)') nstsv_
-    write(*, '(" file       : ",a      )') trim(outfilenamestring(filetag, ik))
-    write(*,*)
-    stop
-  end if
-#endif
-!!-->
-
-  return
 end subroutine getevalsv
 !EOC
 
@@ -181,19 +147,20 @@ module m_getevalsvr
 
     subroutine getevalsvr(fname, isti, istf, vpl, evalsvp)
        use modmain
+       use precision, only: i32, dp, str_256
 
        implicit none
 
        ! Arguments
        character(*), intent(in) :: fname
-       integer, intent(in) :: isti, istf
-       real(8), intent(in) :: vpl(3)
-       real(8), intent(out) :: evalsvp(:)
+       integer(i32), intent(in) :: isti, istf
+       real(dp), intent(in) :: vpl(3)
+       real(dp), intent(out) :: evalsvp(:)
 
        ! Local variables
-       integer :: chkerr
-       real(8), allocatable :: evalsvt(:)
-       character(256) :: tmpstr
+       integer(i32) :: chkerr
+       real(dp), allocatable :: evalsvt(:)
+       character(str_256) :: tmpstr
 
        ! Check correct shapes
        chkerr = 0

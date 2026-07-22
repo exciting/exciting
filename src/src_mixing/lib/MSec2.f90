@@ -1,6 +1,8 @@
       subroutine MSEC2(Y,S,SY,F,STEP,MAXMIX,MEMORY,DMIX,IFAIL,DELTA)
 
            implicit real*8 (a-h,o-z)
+           implicit integer (i-n)
+           integer*8 MAXMIX, J
            dimension STEP(MAXMIX),F(MAXMIX)
            dimension Y(MAXMIX,MEMORY),S(MAXMIX,MEMORY)
            dimension SY(MEMORY,MEMORY)

@@ -54,10 +54,10 @@
         <invertEpsilon>
           <qpoints qi="1" qf="-1"/>
         </invertEpsilon>
-        <sigmac>
+        <sigmac MPIDomainsQpoints="2">
           <kpoints ki="1" kf="-1"/>
         </sigmac>
-        <sigmax>
+        <sigmax MPIDomainsKpoints="2">
           <kpoints ki="1" kf="-1"/>
         </sigmax>
         <vxc>
@@ -83,4 +83,3 @@
           fgrid="gauleg2" freqmax="1.0d0" freqmin="0.0d0"/>
    </gw>
 </input>
-

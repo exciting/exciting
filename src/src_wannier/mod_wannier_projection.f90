@@ -1,6 +1,7 @@
 module mod_wannier_projection
   use mod_wannier_variables
   use mod_wannier_helper
+
   use mod_atoms
   use mod_eigensystem
   use mod_APW_LO
@@ -27,7 +28,7 @@ module mod_wannier_projection
   
   integer, allocatable :: wfpro_nst(:), wfpro_states(:,:,:), wfpro_projst(:,:), wfpro_projused(:), wfpro_nn(:,:), wfpro_vn(:,:,:,:)
   real(8), allocatable :: wfpro_radfun(:,:)
-  complex(8), allocatable :: wfpro_proj(:,:,:)
+  complex(8), allocatable :: wfpro_proj(:,:,:,:)
 
 ! methods
   contains
@@ -38,10 +39,10 @@ module mod_wannier_projection
       integer :: i, j, k, is, ia, ias, jas, igroup, vi(3)
       real(8) :: a(3,3), b(3,3), d, vac1(3), val1(3), vac2(3), val2(3), vd(3), vr1(3), vr2(3), vr(3), aposc( 3, natmtot)
       integer(4) :: natom, nbond, nlbond
-      real(8) :: btol, d0, dist( natmtot, natmtot), bondv( 3, 27*natmtot)
+      real(8) :: btol, d0
       logical :: added
       integer(4), allocatable :: atoms(:), acell(:,:), bonds(:,:), lbonds(:)
-      real(8), allocatable :: lbondv(:,:)
+      real(8), allocatable :: dist(:,:), lbondv(:,:), bondv(:,:)
 
       btol = 0.2d0
 
@@ -53,7 +54,7 @@ module mod_wannier_projection
       wfpro_vn = 0
       wfpro_nn = 0
 
-      allocate( atoms(27*natmtot), acell(3, 27*natmtot), bonds(2, 27*natmtot), lbonds(27*natmtot), lbondv(3, 27*natmtot) )
+      allocate( dist(natmtot, natmtot), atoms(27*natmtot), acell(3, 27*natmtot), bonds(2, 27*natmtot), lbonds(27*natmtot), lbondv(3, 27*natmtot), bondv(3, 27*natmtot) )
 
       added = .false.
       do igroup = 1, wf_ngroups
@@ -160,7 +161,8 @@ module mod_wannier_projection
               added = .true.
             end if
             nbond = nbond + 1
-            bonds( :, nbond) = (/ias, lbonds(i)/)
+            bonds(1, nbond) = ias
+            bonds(2, nbond) = lbonds(i)
             bondv( :, nbond) = lbondv(:,i)
             do j = 1, natom
               if( atoms(j) .eq. lbonds(i) .and. sum( abs( acell(:,j)-nint( vr))) .eq. 0) exit
@@ -460,17 +462,15 @@ module mod_wannier_projection
     end subroutine wfpro_genradfun
 
     subroutine wfpro_projection
-      use m_getunit
-      integer :: ik, iproj, is, ias, io, ilo, l, m, lm, ig, ir, nr
+      integer :: ik, iproj, is, ias, io, ilo, l, m, lm, ig, ir, nr, ispn
       real(8) :: t0, t1
       real(8) :: fr( nrmtmax), gr( nrmtmax), cf( 3, nrmtmax)
 
       real(8), allocatable :: rolpi(:,:)
-      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), auxmat(:,:)
+      complex(8), allocatable :: evec(:,:,:), apwalm(:,:,:,:), auxmat(:,:)
 
       if( input%properties%wannier%printproj) then
-        call getunit( wfpro_un)
-        open( wfpro_un, file=trim( wf_filename)//"_PROJECTION"//trim(filext), action='write', form='formatted')
+        open( newunit=wfpro_un, file=trim( wf_filename)//"_PROJECTION"//trim(filext), action='write', form='formatted')
       end if
         
       call timesec( t0)
@@ -486,11 +486,12 @@ module mod_wannier_projection
       call wfpro_getstates
       call wfpro_genradfun
       call wfpro_removeldprojf( wfpro_epsld)
-            
+
       if( mpiglobal%rank .eq. 0) then
         write( wf_info, '(" calculate projection overlap matrices...")')
       end if
       !write(*,*) "rolpi"
+      ! radial overlap integrals between APW and LO basis functions and projector radial functions
       allocate( rolpi( wf_nprojtot, apwordmax+nlomax))
       rolpi(:,:) = 0.d0
       do iproj = 1, wf_nprojtot
@@ -519,17 +520,18 @@ module mod_wannier_projection
         end do
       end do
 
+      ! Projection overlaps <Psi|g> for all k-points
       if( allocated( wfpro_proj)) deallocate( wfpro_proj)
-      allocate( wfpro_proj( wf_fst:wf_lst, wf_nprojtot, wf_kset%nkpt))
+      allocate( wfpro_proj( wf_fst:wf_lst, wf_nprojtot, nspinor, wf_kset%nkpt))
 
-      allocate( evecfv( nmatmax_ptr, nstfv, nspinor))
-      allocate( apwalm( ngkmax_ptr, apwordmax, lmmaxapw, natmtot, nspinor))
+      allocate( evec( nmatmax_ptr, nstsv, nspinor))
+      allocate( apwalm( ngkmax_ptr, apwordmax, lmmaxapw, natmtot))
       allocate( auxmat( nmatmax_ptr, wf_nprojtot))
 
       auxmat = zzero
       do ik = firstofset( mpiglobal%rank, wf_kset%nkpt), lastofset( mpiglobal%rank, wf_kset%nkpt)
-        call wfhelp_getevec( ik, evecfv)
-        call match( wf_Gkset%ngk( 1, ik), wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm(:, :, :, :, 1))
+        call wfhelp_getevec( ik, evec)
+        call match( wf_Gkset%ngk( 1, ik), wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm)
 
         ! projection matrices 
         auxmat(:,:) = zzero
@@ -539,7 +541,7 @@ module mod_wannier_projection
           lm = idxlm( wf_projst( 5, iproj), wf_projst( 6, iproj))
           do io = 1, apword( wf_projst( 5, iproj), is)
             auxmat( 1:wf_Gkset%ngk( 1, ik), iproj) = auxmat( 1:wf_Gkset%ngk( 1, ik), iproj) + &
-                conjg( apwalm( 1:wf_Gkset%ngk( 1, ik), io, lm, ias, 1))*cmplx( rolpi( iproj, io), 0.d0, 8)
+                conjg( apwalm( 1:wf_Gkset%ngk( 1, ik), io, lm, ias))*cmplx( rolpi( iproj, io), 0.d0, 8)
           end do
           do ilo = 1, nlorb( is)
             l = lorbl( ilo, is)
@@ -554,16 +556,18 @@ module mod_wannier_projection
           end do
         end do
 
-        call zgemm( 'c', 'n', wf_nst, wf_nprojtot, wf_Gkset%ngk( 1, ik)+nlotot, zone, &
-               evecfv( 1, wf_fst, 1), nmatmax_ptr, &
-               auxmat, nmatmax_ptr, zzero, &
-               wfpro_proj( wf_fst, 1, ik), wf_nst)
+        do ispn = 1, nspinor
+          call zgemm( 'c', 'n', wf_nst, wf_nprojtot, wf_Gkset%ngk( 1, ik)+nlotot, zone, &
+                 evec( 1, wf_fst, ispn), nmatmax_ptr, &
+                 auxmat, nmatmax_ptr, zzero, &
+                 wfpro_proj( wf_fst, 1, ispn, ik), wf_nst)
+        end do
 
       end do
-      call xmpi_allgatherv( mpiglobal, wfpro_proj, wf_nst * wf_nprojtot * &
+      call xmpi_allgatherv( mpiglobal, wfpro_proj, wf_nst * wf_nprojtot * nspinor * &
         (lastofset( mpiglobal%rank, wf_kset%nkpt ) - firstofset( mpiglobal%rank, wf_kset%nkpt ) + 1) )
 
-      deallocate( evecfv, apwalm, auxmat)
+      deallocate( evec, apwalm, auxmat)
       deallocate( rolpi)
 
       call wfpro_selectprojf
@@ -573,7 +577,7 @@ module mod_wannier_projection
         write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
         write( wf_info, '(5x,"#k-points: ",T40,7x,I6)') wf_kset%nkpt
         write( wf_info, '(5x,"#states: ",T40,7x,I6)') wf_nst
-        write( wf_info, '(5x,"#projection functions: ",T40,7x,I6)') wf_nprojtot
+        write( wf_info, '(5x,"#projection functions: ",T40,7x,I6)') wf_nprojtot*nspinor
         write( wf_info, *)
         call flushifc( wf_info)
       end if
@@ -695,7 +699,7 @@ module mod_wannier_projection
     ! construct a set of orthonormal projection functions from local orbitals
     subroutine wfpro_selectprojf
       use m_linalg, only: zhegdiag
-      integer :: igroup, nproj1, nproj2, iproj1, iproj2, ik, i, j, k, l, n, fst, lst, nwf, is, ia, ias, nadd, in, iat
+      integer :: igroup, jgroup, nproj1, nproj2, iproj1, iproj2, ik, i, j, k, l, n, fst, lst, nst, nwf, is, ia, ias, nadd, in, iat, ispn, jspn
       real(8) :: s
 
       integer, allocatable :: npat(:), apdat(:,:,:)
@@ -708,184 +712,214 @@ module mod_wannier_projection
         allocate( apdat( 5, wfpro_nprojtot_n, wf_ngroups))
         apchar = 0.d0
       end if
+
+      ! igroup - index of group in code
+      ! jgroup - index of group in input file
+      ! ispn - spin index of group (1=down, 2=up; only if spin dis)
+      ! jspn - spin index of projector spinor (1=down, 2=up)
       do igroup = 1, wf_ngroups
-        
-        nproj1 = size( input%properties%wannier%grouparray( igroup)%group%projectorarray, 1)
-        nproj2 = input%properties%wannier%grouparray( igroup)%group%nproj
-        if( nproj2 .eq. 0) then
-          wf_groups( igroup)%nproj = wf_nprojtot
+        if (wf_spin_dis) then
+          ispn = 1 + (igroup - 1) / size(input%properties%wannier%grouparray)
         else
-          wf_groups( igroup)%nproj = nproj2
+          ispn = 1
+        end if
+        jgroup = igroup - (ispn - 1) * size(input%properties%wannier%grouparray)
+
+        nproj1 = size( input%properties%wannier%grouparray(jgroup)%group%projectorarray, dim=1 )
+        nproj2 = input%properties%wannier%grouparray(jgroup)%group%nproj
+        if( nproj2 .eq. 0) then
+          wf_groups(igroup)%nproj = wf_nprojtot * nspinor
+        else
+          wf_groups(igroup)%nproj = nproj2 * nspinor
         end if
         if( nproj1 .gt. 0) then
-          wf_groups( igroup)%nproj = nproj1
+          wf_groups(igroup)%nproj = nproj1 * nspinor
         end if
-        wf_groups( igroup)%projused = 0
+        wf_groups(igroup)%projused = 0
 
         ! if special projectors are defined use only them
-        if( (wf_groups( igroup)%method .eq. "pro") .or. (wf_groups( igroup)%method .eq. "promax")) then
-          if( wf_groups( igroup)%nproj .ne. wf_groups( igroup)%nwf) then
+        if( (wf_groups(igroup)%method .eq. "pro") .or. (wf_groups(igroup)%method .eq. "promax")) then
+          if( wf_groups(igroup)%nproj .ne. wf_groups(igroup)%nwf) then
             if( mpiglobal%rank .eq. 0) then
               write(*,*)
-              write( *, '("Error (wfpro_selectprojf): The number of projectors must be equal to the number of Wannier functions for group ",I2,".")') igroup
+              write( *, '("Error (wfpro_selectprojf): The number of projectors must be equal to the number of Wannier functions for group ",I2,".")') jgroup
             end if
             stop
           end if
           do iproj1 = 1, nproj1
-            if( (input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj1)%projector%nr .lt. 1) .or. &
-                (input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj1)%projector%nr .gt. wf_nprojtot)) then
+            if( (input%properties%wannier%grouparray(jgroup)%group%projectorarray(iproj1)%projector%nr .lt. 1) .or. &
+                (input%properties%wannier%grouparray(jgroup)%group%projectorarray(iproj1)%projector%nr .gt. wf_nprojtot)) then
               if( mpiglobal%rank .eq. 0) then
                 write(*,*)
                 write( *, '("Error (wfpro_selectprojf): ",I4," is not a valid index for projection local-orbitals in group ",I2,".")') &
-                    input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj1)%projector%nr, igroup
+                    input%properties%wannier%grouparray(jgroup)%group%projectorarray(iproj1)%projector%nr, jgroup
                 write(*, '(" Here is a list of local-orbitals that can be used for projection:")')
-                call wfpro_writepro_lo( 6)
+                call wfpro_writepro_lo(6)
               end if
               stop
             end if
-            wf_groups( igroup)%projused( input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj1)%projector%nr) = 1
+            wf_groups(igroup)%projused(input%properties%wannier%grouparray(jgroup)%group%projectorarray(iproj1)%projector%nr) = 1
           end do
-        else if( wf_groups( igroup)%method .eq. 'opf' .or. &
-                 wf_groups( igroup)%method .eq. 'opfmax' .or. &
-                 wf_groups( igroup)%method .eq. 'disSMV' .or. &
-                 wf_groups( igroup)%method .eq. 'disFull') then
-          if( wf_groups( igroup)%nproj .lt. wf_groups( igroup)%nwf) then
+        else if( wf_groups(igroup)%method .eq. 'opf' .or. &
+                 wf_groups(igroup)%method .eq. 'opfmax' .or. &
+                 wf_groups(igroup)%method .eq. 'disSMV' .or. &
+                 wf_groups(igroup)%method .eq. 'disFull') then
+          if( wf_groups(igroup)%nproj .lt. wf_groups(igroup)%nwf) then
             if( mpiglobal%rank .eq. 0) then
               write(*,*)
-              write( *, '("Error (wfpro_selectprojf): The number of projectors must be greater or equal to the number of Wannier functions for group ",I2,".")') igroup
+              write( *, '("Error (wfpro_selectprojf): The number of projectors must be greater or equal to the number of Wannier functions for group ",I2,".")') jgroup
             end if
             stop
           end if
           do iproj1 = 1, nproj1
-            if( (input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj1)%projector%nr .lt. 1) .or. &
-                (input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj1)%projector%nr .gt. wf_nprojtot)) then
+            if( (input%properties%wannier%grouparray(jgroup)%group%projectorarray(iproj1)%projector%nr .lt. 1) .or. &
+                (input%properties%wannier%grouparray(jgroup)%group%projectorarray(iproj1)%projector%nr .gt. wf_nprojtot)) then
               if( mpiglobal%rank .eq. 0) then
                 write(*,*)
                 write( *, '("Error (wfpro_selectprojf): ",I4," is not a valid index for projection local-orbitals in group ",I2,".")') &
-                    input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj1)%projector%nr, igroup
+                    input%properties%wannier%grouparray(jgroup)%group%projectorarray(iproj1)%projector%nr, jgroup
                 write(*, '(" Here is a list of local-orbitals that can be used for projection:")')
-                call wfpro_writepro_lo( 6)
+                call wfpro_writepro_lo(6)
               end if
               stop
             end if
-            wf_groups( igroup)%projused( input%properties%wannier%grouparray( igroup)%group%projectorarray( iproj1)%projector%nr) = 1
+            wf_groups(igroup)%projused(input%properties%wannier%grouparray(jgroup)%group%projectorarray(iproj1)%projector%nr) = 1
           end do
         end if
 
         ! construct set of orthonormal atomic projectors
         if( nproj1 .le. 0) then
-          wf_groups( igroup)%nproj = 0
-          wf_groups( igroup)%projused = 1
-          fst = wf_groups( igroup)%fst
-          lst = wf_groups( igroup)%lst
-          nwf = wf_groups( igroup)%nwf
+          wf_groups(igroup)%nproj = 0
+          wf_groups(igroup)%projused = 1
+          fst = wf_groups(igroup)%fst
+          lst = wf_groups(igroup)%lst
+          nst = wf_groups(igroup)%nst
+          nwf = wf_groups(igroup)%nwf
 
           nadd = 0
           do is = 1, nspecies
             do ia = 1, natoms( is)
               n = 0
               do i = 1, wf_nprojtot
-                if( wf_groups( igroup)%projused( i) .eq. 0 .or. &
-                    wf_projst( 1, i) .ne. is .or. &
-                    wf_projst( 2, i) .ne. ia) cycle
-                n = n+1
+                if( wf_groups(igroup)%projused(i) .eq. 0 .or. &
+                    wf_projst(1, i) .ne. is .or. &
+                    wf_projst(2, i) .ne. ia) cycle
+                n = n + 1
               end do
-              nadd = max( nadd, n)
+              nadd = max( nadd, n )
             end do
           end do
-          allocate( npat( sum( wfpro_nn(:,igroup))))
-          allocate( auxmat( fst:lst, nadd, wf_kset%nkpt, sum( wfpro_nn(:,igroup))))
+          allocate( npat(sum(wfpro_nn(:, igroup))) )
+          allocate( auxmat(fst:lst, nadd, wf_kset%nkpt, sum(wfpro_nn(:, igroup))) )
           auxmat = zzero
 
           iat = 0
           do is = 1, nspecies
-            do ia = 1, natoms( is)
-              ias = idxas( ia, is)
+            do ia = 1, natoms(is)
+              ias = idxas(ia, is)
 
               n = 0
               do i = 1, wf_nprojtot
-                if( wf_groups( igroup)%projused( i) .eq. 0 .or. &
-                    wf_projst( 1, i) .ne. is .or. &
-                    wf_projst( 2, i) .ne. ia) cycle
-                n = n+1
+                if( wf_groups(igroup)%projused(i) .eq. 0 .or. &
+                    wf_projst(1, i) .ne. is .or. &
+                    wf_projst(2, i) .ne. ia) cycle
+                n = n + 1
               end do
+              n = n * nspinor
 
-              allocate( zmat(n,n), pmat( fst:lst, n, wf_kset%nkpt), smat(nwf,n), omat(n,n), cmat(n,n), eval(n))
-              allocate( aux1(n,n), aux2(n,n))
-              do in = 1, wfpro_nn( ias, igroup)
+              allocate( zmat(n,n), pmat(fst:lst, n, wf_kset%nkpt), smat(nwf,n), omat(n,n), cmat(n,n), eval(n) )
+              allocate( aux1(n,n), aux2(n,n) )
+              do in = 1, wfpro_nn(ias, igroup)
                 iat = iat + 1
                 ! projection on (rotated) KS states
                 zmat = zzero
                 pmat = zzero
                 do ik = 1, wf_kset%nkpt
-                  s = -twopi*dot_product( wf_kset%vkl(:,ik), dble( wfpro_vn(:,in,ias,igroup)))
+                  s = -twopi*dot_product( wf_kset%vkl(:, ik), dble(wfpro_vn(:, in, ias, igroup)) )
                   j = 0
                   do i = 1, wf_nprojtot
-                    if( wf_groups( igroup)%projused( i) .eq. 0 .or. &
-                        wf_projst( 1, i) .ne. is .or. &
-                        wf_projst( 2, i) .ne. ia) cycle
+                    if( wf_groups(igroup)%projused(i) .eq. 0 .or. &
+                        wf_projst(1, i) .ne. is .or. &
+                        wf_projst(2, i) .ne. ia) cycle
                     j = j + 1
-                    pmat( :, j, ik) = cmplx( cos( s), sin( s), 8)*wfpro_proj( fst:lst, i, ik)
+                    do jspn = 1, nspinor
+                      if (wf_spin_dis) then
+                        call zgemv( 'c', wf_groups(igroup)%nst_ks, nst, cmplx(cos(s), sin(s), 8), &
+                          wf_groups(igroup)%sz_eigenvector(:, :, ik), wf_groups(igroup)%nst_ks, &
+                          wfpro_proj(wf_groups(igroup)%fst_ks, i, jspn, ik), 1, zzero, &
+                          pmat(fst, (jspn-1)*(n/nspinor)+j, ik), 1 )
+                      else
+                        pmat( :, (jspn-1)*(n/nspinor)+j, ik) = cmplx(cos( s), sin( s), 8) * wfpro_proj(fst:lst, i, jspn, ik)
+                      end if
+                    end do
                   end do
-                  call zgemm( 'c', 'n', nwf, n, lst-fst+1, zone, &
-                         wf_transform( fst, wf_groups( igroup)%fwf, ik), wf_nst, &
-                         pmat( fst, 1, ik), lst-fst+1, zzero, &
+                  call zgemm( 'c', 'n', nwf, n, nst, zone, &
+                         wf_transform(fst, wf_groups(igroup)%fwf, ik), wf_nst, &
+                         pmat(fst, 1, ik), nst, zzero, &
                          smat, nwf)
-                  call zgemm( 'c', 'n', n, n, nwf, zone, &
-                         smat, nwf, &
-                         smat, nwf, zone, &
+                  !call zgemm( 'c', 'n', n, n, nwf, zone, &
+                  !       smat, nwf, &
+                  !       smat, nwf, zone, &
+                  !       zmat, n)
+                  call zgemm( 'c', 'n', n, n, nst, zone, &
+                         pmat(fst, 1, ik), nst, &
+                         pmat(fst, 1, ik), nst, zone, &
                          zmat, n)
                 end do
-                zmat = zmat/dble( wf_kset%nkpt)
+                zmat = zmat / dble(wf_kset%nkpt)
 
                 ! projection function overlaps
+                omat = zzero
                 i = 0
                 do k = 1, wf_nprojtot
-                  if( wf_groups( igroup)%projused( k) .eq. 0 .or. &
-                      wf_projst( 1, k) .ne. is .or. &
-                      wf_projst( 2, k) .ne. ia) cycle
+                  if( wf_groups(igroup)%projused(k) .eq. 0 .or. &
+                      wf_projst(1, k) .ne. is .or. &
+                      wf_projst(2, k) .ne. ia) cycle
                   i = i + 1
                   j = 0
                   do l = 1, wf_nprojtot
-                    if( wf_groups( igroup)%projused( l) .eq. 0 .or. &
-                        wf_projst( 1, l) .ne. is .or. &
-                        wf_projst( 2, l) .ne. ia) cycle
+                    if( wf_groups(igroup)%projused(l) .eq. 0 .or. &
+                        wf_projst(1, l) .ne. is .or. &
+                        wf_projst(2, l) .ne. ia) cycle
                     j = j + 1
-                    omat(j,i) = cmplx( wf_projolp(l,k), 0.d0, 8)
+                    do jspn = 1, nspinor
+                      omat((jspn-1)*(n/nspinor)+j, (jspn-1)*(n/nspinor)+i) = cmplx(wf_projolp(l, k), 0.d0, 8)
+                    end do
                   end do
                 end do
 
-                ! construct projection matrix
-                call zhegdiag( zmat, omat, eval, evec=cmat)
+                ! construct projection matrix 
+                ! NOTE differences between serial and multithreaded run start here for spinor wfs
+                call zhegdiag( zmat, omat, eval, evec=cmat )
 
                 npat( iat) = 0
                 if( nproj2 .eq. 0) then
                   do while( .true.)
                     if( npat( iat) .ge. n) exit
-                    if( eval( n-npat( iat)) .le. input%properties%wannier%grouparray( igroup)%group%epsproj) exit
+                    if( eval( n-npat( iat)) .le. input%properties%wannier%grouparray(jgroup)%group%epsproj) exit
                     npat( iat) = npat( iat) + 1
                   end do
                 else
-                  npat( iat) = nproj2
+                  npat( iat) = nproj2 / size( npat )
                 end if
                 npat( iat) = max( 1, npat( iat))
 
                 do ik = 1, wf_kset%nkpt
-                  call zgemm( 'n', 'n', lst-fst+1, npat( iat), n, zone, &
-                         pmat( fst, 1, ik), lst-fst+1, &
+                  call zgemm( 'n', 'n', nst, npat( iat), n, zone, &
+                         pmat( fst, 1, ik), nst, &
                          cmat( 1, n-npat( iat)+1), n, zzero, &
-                         auxmat( fst, 1, ik, iat), lst-fst+1)
+                         auxmat( fst, 1, ik, iat), nst)
                 end do
 
                 ! compute atomic projector angular character
                 if( input%properties%wannier%printproj) then
                   do i = 1, npat( iat)
-                    apdat( 1, wf_groups( igroup)%nproj+i, igroup) = is
-                    apdat( 2, wf_groups( igroup)%nproj+i, igroup) = ia
-                    apdat( 3:5, wf_groups( igroup)%nproj+i, igroup) = wfpro_vn(:,in,ias,igroup)
+                    apdat( 1, wf_groups(igroup)%nproj+i, igroup) = is
+                    apdat( 2, wf_groups(igroup)%nproj+i, igroup) = ia
+                    apdat( 3:5, wf_groups(igroup)%nproj+i, igroup) = wfpro_vn(:,in,ias,igroup)
                     j = 0
                     do iproj1 = 1, wf_nprojtot
-                      if( wf_groups( igroup)%projused( iproj1) .eq. 0 .or. &
+                      if( wf_groups(igroup)%projused( iproj1) .eq. 0 .or. &
                           wf_projst( 1, iproj1) .ne. is .or. &
                           wf_projst( 2, iproj1) .ne. ia) cycle
                       j = j+1
@@ -893,31 +927,31 @@ module mod_wannier_projection
                       if( l .gt. 4) cycle
                       k = 0
                       do iproj2 = 1, wf_nprojtot
-                        if( wf_groups( igroup)%projused( iproj2) .eq. 0 .or. &
+                        if( wf_groups(igroup)%projused( iproj2) .eq. 0 .or. &
                             wf_projst( 1, iproj2) .ne. is .or. &
                             wf_projst( 2, iproj2) .ne. ia) cycle
                         k = k+1
                         if( wf_projst( 5, iproj2) .ne. l) cycle
-                        apchar( l, wf_groups( igroup)%nproj+i, igroup) = apchar( l, wf_groups( igroup)%nproj+i, igroup) + &
+                        apchar( l, wf_groups(igroup)%nproj+i, igroup) = apchar( l, wf_groups(igroup)%nproj+i, igroup) + &
                           dble( conjg( cmat( j, n-npat( iat)+i))*cmat( k, n-npat( iat)+i)*omat(j,k))
                       end do
                     end do
                   end do
                 end if
 
-                wf_groups( igroup)%nproj = wf_groups( igroup)%nproj + npat( iat)
+                wf_groups(igroup)%nproj = wf_groups(igroup)%nproj + npat( iat)
               end do
               deallocate( zmat, pmat, smat, omat, cmat, eval)
               deallocate( aux1, aux2)
             end do
           end do
 
-          if( wf_groups( igroup)%nproj .lt. wf_groups( igroup)%nwf) then
+          if( wf_groups(igroup)%nproj .lt. wf_groups(igroup)%nwf) then
             if( mpiglobal%rank .eq. 0) then
               write(*,*)
-              write(*,'("Error (wfpro_selectprojf): The number of projection functions is smaller than the number of Wannier functions for group ",i2,".")') igroup
-              write(*,'(4x,"projection functions: ",i6)') wf_groups( igroup)%nproj
-              write(*,'(4x,"Wannier functions:    ",i6)') wf_groups( igroup)%nwf
+              write(*,'("Error (wfpro_selectprojf): The number of projection functions is smaller than the number of Wannier functions for group ",i2,".")') jgroup
+              write(*,'(4x,"projection functions: ",i6)') wf_groups(igroup)%nproj
+              write(*,'(4x,"Wannier functions:    ",i6)') wf_groups(igroup)%nwf
               write(*,'("Consider the following options:")')
               write(*,'(4x,"- smaller eigenvalue cutoff (attribute epsproj)")')
               write(*,'(4x,"- larger number of unoccpied states per atom (attribute nunocc)")')
@@ -925,12 +959,12 @@ module mod_wannier_projection
             end if
             stop
           end if
-          if( allocated( wf_groups( igroup)%projection)) deallocate( wf_groups( igroup)%projection)
-          allocate( wf_groups( igroup)%projection( fst:lst, wf_groups( igroup)%nproj, wf_kset%nkpt))
+          if (allocated(wf_groups(igroup)%projection)) deallocate( wf_groups(igroup)%projection )
+          allocate( wf_groups(igroup)%projection(fst:lst, wf_groups(igroup)%nproj, wf_kset%nkpt) )
           nadd = 0
-          do iat = 1, sum( wfpro_nn(:,igroup))
+          do iat = 1, sum(wfpro_nn(:, igroup))
             do ik = 1, wf_kset%nkpt
-              wf_groups( igroup)%projection( :, (nadd+1):(nadd+npat( iat)), ik) = auxmat( :, 1:npat( iat), ik, iat)
+              wf_groups(igroup)%projection(:, (nadd+1):(nadd+npat(iat)), ik) = auxmat(:, 1:npat(iat), ik, iat)
             end do
             nadd = nadd + npat( iat)
           end do
@@ -938,18 +972,28 @@ module mod_wannier_projection
         
         ! if special projectors are given, use them
         else
-          if( allocated( wf_groups( igroup)%projection)) deallocate( wf_groups( igroup)%projection)
-          allocate( wf_groups( igroup)%projection( fst:lst, wf_groups( igroup)%nproj, wf_kset%nkpt))
+          if( allocated( wf_groups(igroup)%projection)) deallocate( wf_groups(igroup)%projection)
+          allocate( wf_groups(igroup)%projection(fst:lst, wf_groups(igroup)%nproj, wf_kset%nkpt))
           j = 0
           do i = 1, wf_nprojtot
-            if( wf_groups( igroup)%projused( i) .eq. 0) cycle
-            j = j + 1
+            if( wf_groups(igroup)%projused(i) .eq. 0) cycle
             do ik = 1, wf_kset%nkpt
-              wf_groups( igroup)%projection( :, j, ik) = wfpro_proj( fst:lst, i, ik)
+              do jspn = 1, nspinor
+                if (wf_spin_dis) then
+                  call zgemv( 'c', wf_groups(igroup)%nst_ks, lst-fst+1, cmplx(cos(s), sin(s), 8), &
+                    wf_groups(igroup)%sz_eigenvector(:, :, ik), wf_groups(igroup)%nst_ks, &
+                    wfpro_proj(wf_groups(igroup)%fst_ks, i, jspn, ik), 1, zzero, &
+                    wf_groups(igroup)%projection(fst, j+jspn, ik), 1 )
+                else
+                  wf_groups(igroup)%projection(:, j+jspn, ik) = wfpro_proj(fst:lst, i, jspn, ik)
+                end if
+              end do
             end do
+            j = j + nspinor
           end do
         end if
-      end do
+
+      end do ! igroup
 
       if( input%properties%wannier%printproj) then
         call wfpro_writepro_ap( wfpro_un, apdat, apchar)

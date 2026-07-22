@@ -6,6 +6,7 @@ Subroutine rewritesorted
       Use m_sorteval
       Use modmain
       Use modxs
+      use mod_getoccsv, only: getoccsv
 ! !DESCRIPTION:
 !   In a collinear spin calculation, the second variational hamiltonian is
 !   block diagonalized in subroutine seceqnsv. This leads to block-sorted
@@ -29,7 +30,7 @@ Subroutine rewritesorted
      ! read files
             Call getevecsv (vkl(1, ik), evecsv)
             Call getevalsv (vkl(1, ik), evalsv(1, ik))
-            Call getoccsv (vkl(1, ik), occsv(1, ik))
+            Call getoccsv (vkl(:, ik), occsv(:, ik))
      ! sort arrays
             Call sorteval (vkl(1, ik), ra=evalsv(1:nstsv, ik))
             Do ist=1, nstsv

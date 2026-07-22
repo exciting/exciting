@@ -76,6 +76,7 @@ contains
       Use modmain
       Use modxs
       Use m_genfilname
+      use mod_getoccsv, only: getoccsv
       Implicit None
   ! arguments
       Integer, intent (in) :: iq, ik, ikq, l1, u1
@@ -86,7 +87,7 @@ contains
       iqt = iq
       Allocate (o0(nstsv), o(nstsv))
   ! eigenvalues and occupancies for k+q-point
-      Call getoccsv (vkl(1, ikq), o)
+      Call getoccsv (vkl(:, ikq), o)
   ! eigenvalues and occupancies for k-point
       Call getoccsv0 (vkl0(1, ik), o0)
   ! loop over band ranges    

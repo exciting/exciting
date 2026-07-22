@@ -4,6 +4,7 @@
 ! See the file COPYING for license details.
 
 subroutine phinterp(ngridp,vploff,reducep,tfbz,twrev,fname)
+  use m_genppts_interface, only: genppts
   implicit none
   ! arguments
   integer, intent(in) :: ngridp(3)
@@ -18,6 +19,7 @@ subroutine phinterp(ngridp,vploff,reducep,tfbz,twrev,fname)
   Real (8), Allocatable :: vqli (:, :)
   Real (8), Allocatable :: vqci (:, :)
   Real (8), Allocatable :: wqpti (:)
+
   If (allocated(vqli)) deallocate (vqli)
   Allocate (vqli(3, ngridp(1)*ngridp(2)*ngridp(3)))
   Allocate (ivqi(3, ngridp(1)*ngridp(2)*ngridp(3)))

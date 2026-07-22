@@ -6,9 +6,10 @@
 Subroutine stepbound (reduction)
       Use modmixermsec, Only: SCHARGE, splane, dbase, qmx_input, qmx, &
      & qtot
+      Use precision, Only: i32, dp
       Implicit None
-      Real (8), Intent (Out) :: reduction
-      Real (8) :: limit, DSlope, PFACT
+      Real (dp), Intent (Out) :: reduction
+      Real (dp) :: limit, DSlope, PFACT
 !
 !       Simpler form
 !       Set the limiting term based upon the maximum of
@@ -17,13 +18,13 @@ Subroutine stepbound (reduction)
 !               Scharge:        The CLM difference
 !               dbase:          Lower Bound
 !
-      Parameter (DSlope=2.0D0)! How much to reduce exponentially
-      Parameter (PFACT=3.5D0)! Controls reduction in terms of limit
+      Parameter (DSlope=2.0_dp)! How much to reduce exponentially
+      Parameter (PFACT=3.5_dp)! Controls reduction in terms of limit
       limit = DSlope * Max (qtot, splane/PFACT)
-      reduction = 0.1 + Exp (-limit)
+      reduction = 0.1_dp + Exp (-limit)
       qmx = qmx_input * reduction
       If (qmx .Lt. dbase) qmx = dbase
-      qmx = Min (qmx, qmx_input, 1.0D0)
+      qmx = Min (qmx, qmx_input, 1.0_dp)
 !
       Return
 End

@@ -7,6 +7,10 @@
 # Option to enable or disable ELPA support
 option(ELPA "Enables ELPA support" OFF)
 
+if (ELPA AND NOT SCALAPACK)
+    message(FATAL_ERROR "ELPA requires SCALAPACK")
+endif()
+
 # Check if ELPA support is enabled
 if(ELPA)
 

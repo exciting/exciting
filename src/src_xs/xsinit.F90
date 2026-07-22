@@ -13,22 +13,24 @@ subroutine xsinit(j, plan)
   use modmpi
   use modxs,only: calledxs, init0symonly, cputim0i, cntrate, &
                 & systim0i, systimcum, xsfileout, &
-                & fnchi0_t, unitout, maxproc, &
+                & fnchi0_t, unitout, &
                 & lmmaxemat, lmmaxapwwf, lmmaxdielt, tordf, &
                 & tscreen, nwdf, fxcdescr, fxcspin, &
                 & torfxc, escale, tleblaik, tgqmaxg, &
                 & tfxcbse, temat, fnresume
   use modfxcifc,only: getfxcdata
-  use m_getunit,only: getunit
   use m_genfilname,only: genfilname
+#ifdef _OPENMP
+  use omp_lib
+#endif
 
   implicit none
   integer, intent(in) :: j
   type(plan_type), intent(in) :: plan
   ! local variables
   character(10) :: dat, tim
-  character(500) :: taskname
-  integer :: i, task
+  character(500) :: taskname, error_msg
+  integer :: i, task, omp_threads
   real(8) :: tv(3)
   real(8), parameter :: eps=1.d-7
   character(77) :: string
@@ -67,11 +69,10 @@ subroutine xsinit(j, plan)
   call genfilname(basename='X0', procs=procs, rank=rank, filnam=fnchi0_t)
 
   ! reset or append to output file
-  call getunit(unitout)
   if(input%xs%tappinfo .or. (calledxs .gt. 1)) then
-    open(unitout, file=trim(xsfileout), action='write', position='append')
+    open(newunit=unitout, file=trim(xsfileout), action='write', position='append')
   else
-    open(unitout, file=trim(xsfileout), action='write', status='replace')
+    open(newunit=unitout, file=trim(xsfileout), action='write', status='replace')
   end if
   
   ! write to info file
@@ -82,6 +83,12 @@ subroutine xsinit(j, plan)
     write(string,'("version hash id: ",a)') githash
     call printtext(unitout,"=",string)
   end if
+  ! Get OpenMP max thread count
+#ifdef _OPENMP
+  omp_threads = omp_get_max_threads()
+  write(string,'("OpenMP version using ",i6," thread(s)")') omp_threads
+  call printtext(unitout,"=",string)
+#endif
 #ifdef MPI
   write(string,'("MPI version using ",i6," processor(s)")') procs
   call printtext(unitout,"=",string)
@@ -105,6 +112,7 @@ subroutine xsinit(j, plan)
   call printtext(unitout,"=",string)
   write(string,'("Time (hh:mm:ss)   : ", a2, ":", a2, ":", a2)')&
     & tim(1:2), tim(3:4), tim(5:6)
+  call printtext(unitout,"=",string)
   call printline(unitout,"=")
   call flushifc(unitout)
 
@@ -123,19 +131,15 @@ subroutine xsinit(j, plan)
   !-----------------------------------!
   !     parallelization variables     !
   !-----------------------------------!
-  if((procs .lt. 1) .or. (procs .gt. maxproc)) then
-    write(unitout,*)
-    write(unitout, '("Error(xsinit): Error in parallel &
-      &initialization: number of processes out of range: ", i6)') procs
-    write(unitout,*)
-    call terminate
+  if(procs < 1) then
+    write(error_msg, '("Error(xsinit): Error in parallel &
+      &initialization: number of processes less than one: ", i0)') procs
+    call terminate_if_false(.false., error_msg)
   end if
   if((rank .gt. procs) .or. (rank .lt. 0)) then
-    write(unitout,*)
-    write(unitout, '("Error(xsinit): Error in parallel &
+    write(error_msg, '("Error(xsinit): Error in parallel &
       &initialization: rank out of range: ", i6)') rank
-    write(unitout,*)
-    call terminate
+    call terminate_if_false(.false., error_msg)
   end if
 
   !------------------------!
@@ -143,24 +147,33 @@ subroutine xsinit(j, plan)
   !------------------------!
   ! no spin-spirals
   if(isspinspiral()) then
-    write(unitout,*)
-    write(unitout, '("Error(xsinit): xs-part not working&
+    write(error_msg, '("Error(xsinit): xs-part not working&
       & for spin-spirals")')
-    write(unitout,*)
-    call terminate
+    call terminate_if_false(.false., error_msg)
   end if
 
   !-----------------------------!
   !     Core Non-TDA calc.s     !
   !-----------------------------!
   if((input%xs%BSE%xas .or. input%xs%BSE%xes) .and. (input%xs%BSE%coupling)) then
-    write(unitout,*)
-    write(unitout, '("Error(xsinit): Calculations of Core BSE&
+    write(error_msg, '("Error(xsinit): Calculations of Core BSE&
       & spectra beyond the Tamm-Dancoff approximation not implemented yet. &
       &Please contact the developers at exciting-code.org")')
-    write(unitout,*)
-    call terminate
+    call terminate_if_false(.false., error_msg)
   end if
+
+  !-----------------------------!
+  !   q-dep without ScaLAPACK   !
+  !-----------------------------!
+#ifdef MPI
+#ifndef SCAL
+  if(size(input%xs%qpointset%qpoint, 2) > 1) then
+    write(error_msg, '("Error(xsinit): MPI parallelized calculations over &
+    &multiple q-points in the qpointset require the usage of ScaLAPACK.")')
+    call terminate_if_false(.false., error_msg)
+  end if
+#endif
+#endif
 
   !------------------------------------!
   !     angular momentum variables     !
@@ -170,24 +183,18 @@ subroutine xsinit(j, plan)
   lmmaxemat = (input%xs%lmaxemat+1) ** 2
   lmmaxdielt = (input%xs%bse%lmaxdielt+1) ** 2
   if(input%xs%lmaxapwwf .gt. input%groundstate%lmaxapw) then
-    write(unitout,*)
-    write(unitout, '("Error(xsinit): lmaxapwwf > lmaxapw: ", i6)') input%xs%lmaxapwwf
-    write(unitout,*)
-    call terminate
+    write(error_msg, '("Error(xsinit): lmaxapwwf > lmaxapw: ", i6)') input%xs%lmaxapwwf
+    call terminate_if_false(.false., error_msg)
   end if
   if(input%xs%lmaxemat .gt. input%groundstate%lmaxapw) then
-    write(unitout,*)
-    write(unitout, '("Error(xsinit): lmaxemat > lmaxapw: ", i6)')&
+    write(error_msg, '("Error(xsinit): lmaxemat > lmaxapw: ", i6)')&
       & input%xs%lmaxemat
-    write(unitout,*)
-    call terminate
+    call terminate_if_false(.false., error_msg)
   end if
   if(input%xs%tddft%lmaxalda .gt. input%groundstate%lmaxapw) then
-    write(unitout,*)
-    write(unitout, '("Error(xsinit): lmaxalda > lmaxapw: ", i6)')&
+    write(error_msg, '("Error(xsinit): lmaxalda > lmaxapw: ", i6)')&
       & input%xs%tddft%lmaxalda
-    write(unitout,*)
-    call terminate
+    call terminate_if_false(.false., error_msg)
   end if
   if(input%xs%lmaxemat .gt. input%xs%lmaxapwwf) then
      write(unitout,*)
@@ -235,11 +242,9 @@ subroutine xsinit(j, plan)
   if((task .ge. 400) .and. (task .le. 499)) tscreen = .true.
   ! tetrahedron method not implemented for analytic continuation
   if(input%xs%tetra%tetradf .and. input%xs%tddft%acont) then
-    write(unitout,*)
-    write(unitout, '("Error(xsinit): tetrahedron method does not work&
+    write(error_msg, '("Error(xsinit): tetrahedron method does not work&
      & in combination with analytic continuation")')
-    write(unitout,*)
-    call terminate
+    call terminate_if_false(.false., error_msg)
   end if
 
   if(input%xs%tddft%acont) then
@@ -277,11 +282,9 @@ subroutine xsinit(j, plan)
   tfxcbse = .false.
   if(input%xs%tddft%fxctypenumber .eq. 5) then
     if(input%groundstate%gmaxvr .lt. 2.d0*input%xs%gqmax) then
-      write(unitout,*)
-      write(unitout, '("Error(xsinit): 2*gqmax > gmaxvr", 2g18.10)')&
+      write(error_msg, '("Error(xsinit): 2*gqmax > gmaxvr", 2g18.10)')&
        & 2.d0 * input%xs%gqmax, input%groundstate%gmaxvr
-      write(unitout,*)
-      call terminate
+      call terminate_if_false(.false., error_msg)
     end if
   end if
 
@@ -302,13 +305,9 @@ subroutine xsinit(j, plan)
     tv(:) = dble(input%xs%screening%ngridk(:)) / dble(ngridq(:))
     tv(:) = tv(:) - int(tv(:))
     if(sum(tv) .gt. input%structure%epslat) then
-      write(unitout,*)
-      write(unitout, '("Error(xsinit): ngridkscr must be an&
-        & integer multiple of ngridq")')
-      write(unitout, '(" ngridkscr : ", 3i6)') input%xs%screening%ngridk
-      write(unitout, '(" ngridq    : ", 3i6)') ngridq
-      write(unitout,*)
-      call terminate
+      write(error_msg, '("Error(xsinit): ngridkscr must be an integer multiple of ngridq.", &
+        & " ngridkscr : ", 3i6, ", ngridq    : ", 3i6)') input%xs%screening%ngridk, ngridq
+      call terminate_if_false(.false., error_msg)
     end if
   else if((task .ge. 440) .and. (task .le. 459)) then
     ! bse
@@ -321,13 +320,9 @@ subroutine xsinit(j, plan)
     write(unitout, '("Info(xsinit): mapping BSE-specific parameters")')
     write(unitout,*)
     if(any(input%groundstate%ngridk .ne. ngridq)) then
-      write(unitout,*)
-      write(unitout, '("Error(xsinit): ngridk must be equal ngridq&
-        & for the BSE-hamiltonian")')
-      write(unitout, '(" ngridk : ", 3i6)') input%groundstate%ngridk
-      write(unitout, '(" ngridq : ", 3i6)') ngridq
-      write(unitout,*)
-      call terminate
+      write(error_msg, '("Error(xsinit): ngridk must be equal ngridq for the BSE-hamiltonian.", &
+        & " ngridk : ", 3i6, ", ngridq : ", 3i6)') input%groundstate%ngridk, ngridq
+      call terminate_if_false(.false., error_msg)
     end if
   end if
 

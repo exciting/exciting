@@ -10,7 +10,6 @@ Subroutine emattest
       Use modmain
       use modmpi
       Use modxs
-      Use m_getunit
       Use m_getpmat
       Use m_getemat
       Use m_genfilname
@@ -63,9 +62,8 @@ Subroutine emattest
       Allocate (pmat(3, nstsv, nstsv, nkpt))
       Allocate (scis12(nst1, nst2))
       Allocate (scis21(nst2, nst1))
-      Call getunit (unit1)
       Call genfilname (basename='emat_pmat', iqmt=iq, filnam=filename)
-      Open (unit1, File=trim(filename), Action='write', Status='replace&
+      Open (newunit=unit1, File=trim(filename), Action='write', Status='replace&
      &')
   ! annotate magnitude of q-vector
       Write (*,*) 'Info(emattest): length of q-vector:', gqc (1, iq)
@@ -102,6 +100,4 @@ Subroutine emattest
       Deallocate (deou, deuo, docc12, docc21, scis12, scis21, xiou, &
      & xiuo, pmat, x, d)
       Close (unit1)
-      Close (unit3)
-      Close (unit4)
 End Subroutine emattest

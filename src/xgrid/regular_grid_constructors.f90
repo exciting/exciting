@@ -2,7 +2,7 @@
 
 module regular_grid_constructors
   use precision, only: dp
-  use asserts, only: assert
+#include "asserts.fpp"
   use math_utils, only: all_close
   use grid_utils, only: mesh_1d
   use unit_cell_utils, only: reciprocal_lattice
@@ -40,8 +40,8 @@ module regular_grid_constructors
     tol_local = default_tolerance
     if (present(tol)) tol_local = tol
 
-    call assert(all(offset >= 0._dp), 'offset < 0.0')
-    call assert(all(offset < 1._dp / real(sampling, dp)), 'offset >= 1 / sampling.')
+    CALL_ASSERT(all(offset >= 0._dp), 'offset < 0.0')
+    CALL_ASSERT(all(offset < 1._dp / real(sampling, dp)), 'offset >= 1 / sampling.')
 
     this = regular_grid_type( &
               sampling = sampling, &
@@ -70,8 +70,8 @@ module regular_grid_constructors
     tol_local = default_tolerance
     if (present(tol)) tol_local = tol
 
-    call assert(all(offset >= 0._dp), 'offset < 0.0')
-    call assert(all(offset < 1._dp ), 'offset >= 1.0')
+    CALL_ASSERT(all(offset >= 0._dp), 'offset < 0.0')
+    CALL_ASSERT(all(offset < 1._dp ), 'offset >= 1.0')
 
     this = regular_grid_type( &
               sampling = sampling, &

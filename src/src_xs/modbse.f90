@@ -13,7 +13,7 @@ module modbse
 #ifdef USEOMP
   use omp_lib
 #endif
-  use modinput, only: input
+  use modinput, only: input, input_type
   use unit_conversion, only: hartree_to_ev
   use modxs, only: unitout, totalqlmt
   use modxs, only: evalsv0, occsv0
@@ -21,11 +21,12 @@ module modbse
                  & isto0, isto, istu0, istu, ksgapval, qgap, iqmtgamma
   use modxas, only: ncg
   use mod_eigenvalue_occupancy, only: evalsv, occsv, nstsv
+  use mod_getoccsv, only: getoccsv
   use mod_kpoint, only: nkptnr, nkpt
-  use m_getunit
   use mod_wannier_bse, only: wfbse_usegwwannier, wfbse_eval, wfbse_init, wfbse_ordereval
   use mod_wannier_interpolate, only: wfint_eval
   use sorting, only: sortidx
+  use os_utils, only: make_directory
 
   implicit none
 
@@ -1082,18 +1083,13 @@ module modbse
       if(present(dirname)) then
         fdir = trim(dirname)//'/'//trim(fdir)
       end if
-      if(mpiglobal%rank == 0) then
-        syscommand = 'test ! -d '//trim(adjustl(fdir))&
-         &//' && mkdir -p '//trim(adjustl(fdir))
-        call system(trim(adjustl(syscommand)))
-      end if
+      call make_directory(fdir, mpiglobal)
       write(fiqmt,*) iqmt
       fext = '_QMT'//trim(adjustl(fiqmt))//'.OUT'
 
       ! Write bse index map
-      call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'BSE_SINDEX'//fext
-      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      open(newunit=un, file=trim(adjustl(fname)), action='write', status='replace')
       write(un,'("# Combined BSE index @ Q =", 3(E10.3,1x))')&
         &  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("# s iu io ik iu_rel io_rel ik_rel occ")')
@@ -1104,9 +1100,8 @@ module modbse
       close(un)
 
       ! Write ranges of occupied/unoccupied states involved at ik
-      call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'KOU'//fext
-      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      open(newunit=un, file=trim(adjustl(fname)), action='write', status='replace')
       write(un,'("# k-o-u ranges used in combined BSE index @ iqmt =", i3)')&
         & iqmt
       write(un,'("# u ranges refer to k_-, o ranges refer to k_+")')
@@ -1119,9 +1114,8 @@ module modbse
       close(un)
 
       ! Write IP/QP transition energies
-      call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'EKSTRANS'//fext
-      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      open(newunit=un, file=trim(adjustl(fname)), action='write', status='replace')
       write(un,'("# KS transition energies associated with each combined index&
         & @ iqmt =", i3)') iqmt
       write(un,'("# s de de+sci")')
@@ -1131,9 +1125,8 @@ module modbse
       end do
       close(un)
       ! Same but energy-sorted
-      call getunit(un)
       fname = trim(adjustl(fdir))//'/'//'EKSTRANS_sorted'//fext
-      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      open(newunit=un, file=trim(adjustl(fname)), action='write', status='replace')
       write(un,'("# KS transition energies (eV) associated with each combined index&
         & @ iqmt =", i3)') iqmt
       write(un,'("# s de de+sci")')
@@ -1168,10 +1161,7 @@ module modbse
       if(present(dirname)) then
         fdir = trim(dirname)//'/'//trim(fdir)
       end if
-      if(mpiglobal%rank == 0) then
-        syscommand = 'test ! -d '//trim(adjustl(fdir))//' && mkdir -p '//trim(adjustl(fdir))
-        call system(trim(adjustl(syscommand)))
-      end if
+      call make_directory(fdir, mpiglobal)
 
       ! Generate file name
       if(input%xs%bse%coupling) then
@@ -1206,13 +1196,12 @@ module modbse
         alphamaxar = maxloc(measuresar,1)
       end if
 
-      call getunit(un)
 
       call genfilname(basename='Coupling_Measures', iqmt=iqmt,&
         & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
         & nar= .not. input%xs%bse%aresbse, filnam=fname, dirname=trim(fdir))
 
-      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      open(newunit=un, file=trim(adjustl(fname)), action='write', status='replace')
       write(un,'("# Measures for excitions @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("#")')
       write(un,'("# RR: Max_{a,b} |V_ab - W^rr_ab|/dE^ip_a")')
@@ -1242,13 +1231,11 @@ module modbse
 
       close(un)
 
-      call getunit(un)
-
       call genfilname(basename='VW_diff', iqmt=iqmt,&
         & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
         & nar= .not. input%xs%bse%aresbse, filnam=fname, dirname=trim(fdir))
 
-      open(un, file=trim(adjustl(fname)), action='write', status='replace')
+      open(newunit=un, file=trim(adjustl(fname)), action='write', status='replace')
       write(un,'("# max per row of |V-W| @ Q =", 3(E10.3,1x))')  input%xs%qpointset%qpoint(:, iqmt)
       write(un,'("# alpha, ipen, VWdiff_rr, VWdiff_ra")')
 
@@ -1397,6 +1384,170 @@ module modbse
       i1 = s - (i2-1)*n1
     end subroutine subhamidx_back
     !EOC
+
+    !BOP
+    ! !ROUTINE: select_bse_solver
+    ! !INTERFACE:
+    subroutine select_bse_solver(input_object)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! Inout:
+    ! type(input_type) :: input_object    ! input.xml file
+    !
+    ! !DESCRIPTION:
+    !   This routine checks the validity of the bsesolver input
+    !   against the available build options.
+    !   Selects the bsesolver when 'auto' is requested.
+    !   Modifies the input file in place.
+    !
+    !EOP
+    !BOC
+      implicit none
+      type(input_type), intent(inout) :: input_object
+
+      ! LAPACK is always available.
+      if (input_object%xs%bse%bsesolver == 'lapack') then
+        return
+      end if
+
+      if ( input%xs%bse%bsesolver == 'elpa1StageSolver' .or. input%xs%bse%bsesolver == 'elpa2StageSolver' ) then
+#ifdef _ELPA_
+        return
+#else
+        call terminate_if_false(.false.,&
+                &'Error(select_bse_solver): ELPA requested but not available Rebuild with -DELPA=ON.')
+#endif
+      end if
+
+      if ( input%xs%bse%bsesolver == 'scalapackPzheevx' .or. input%xs%bse%bsesolver == 'scalapackPzheevd' ) then
+#ifdef SCAL
+        return
+#else
+        call terminate_if_false(.false.,&
+                &'Error(select_bse_solver): ScaLAPACK requested but not available Rebuild with -DSCAL=ON.')
+#endif
+      end if
+
+      ! bsesolver selection must be 'auto' here
+#ifdef _ELPA_
+      input%xs%bse%bsesolver = 'elpa1StageSolver'
+      return
+#endif
+#ifdef SCAL
+      input%xs%bse%bsesolver = 'scalapackPzheevx'
+      return
+#endif
+      input%xs%bse%bsesolver = 'lapack'
+
+    end subroutine select_bse_solver
+    !EOC
+
+    function create_exciton_filename(input, bse_type) result(fnexc)
+      use m_genfilname
+      ! Generate exciton file name
+      type(input_type), intent(in) :: input
+      character(*), intent(in) :: bse_type
+
+      character(256) :: fnexc
+
+      character(256) :: tdastring, bsetypestring, scrtypestring
+
+      if(input%xs%bse%coupling) then
+        tdastring=''
+      else
+        if(input%xs%bse%chibarq) then
+          tdastring="-TDA-BAR"
+        else
+          tdastring="-TDA"
+        end if
+      end if
+      if(bse_type == "IP") then
+        tdastring=''
+      end if
+      bsetypestring = '-'//trim(bse_type)//trim(tdastring)
+      scrtypestring = '-'//trim(input%xs%screening%screentype)
+      ! check only first file for OC11
+      call genfilname(basename='EXCITON', tq0=.true., oc1=1, oc2=1,&
+      & bsetype=trim(bsetypestring), scrtype=trim(scrtypestring),&
+      & nar= .not. input%xs%bse%aresbse, filnam=fnexc)
+      fnexc='EXCITON/'//trim(fnexc)
+
+    end function create_exciton_filename
+
+    !BOP
+    ! !ROUTINE: setup_bse_type_list
+    ! !INTERFACE:
+    subroutine setup_bse_type_list(input, bse_type_list, skip_done_bse)
+    ! !INPUT/OUTPUT PARAMETERS:
+    ! In:
+    ! type(input_type) :: input_object    ! input.xml file
+    ! logical, optional :: skip_done_bse  ! check if EXCITON file(s) are present and skip bse type
+    ! Out:
+    ! character(len=256), allocatable :: array with all BSE types to compute
+    !
+    ! !DESCRIPTION:
+    !   Determines the BSE types to compute. If the newer BseTypeSet input is
+    !   not present, use the legacy input%xs%bse%bsetype input.
+    !   If a BseTypeSet is present, initialize the BSE type list and check its validity.
+    !   The list must not be empty and each BSE type must be present only once.
+    !
+    !EOP
+    !BOC
+      implicit none
+      type(input_type), intent(in) :: input
+      character(len=256), allocatable, intent(out) :: bse_type_list(:)
+      logical, intent(in), optional :: skip_done_bse
+
+      integer :: idx_bse_type, num_bse_types, to_do_bse_types
+      logical :: my_skip_done_bse
+      character(len=256), allocatable :: potential_bse_type_list(:)
+      character(len=256) :: bse_type
+      character(256) :: fnexc
+      logical :: fexists
+
+      my_skip_done_bse = .false.
+      if (present(skip_done_bse)) my_skip_done_bse = skip_done_bse
+
+      if (.not. associated(input%xs%BseTypeSet)) then
+        bse_type_list = [ input%xs%bse%bsetype ]
+      else
+        call terminate_if_false(size(input%xs%BseTypeSet%typearray)>0, "BseTypeSet is present but no type is defined.")
+
+        num_bse_types = size(input%xs%BseTypeSet%typearray)
+        allocate(potential_bse_type_list(num_bse_types))
+        to_do_bse_types = num_bse_types
+
+        if (my_skip_done_bse) then
+          to_do_bse_types = 0
+          do idx_bse_type = 1, num_bse_types
+            bse_type = trim(adjustl(input%xs%BseTypeSet%typearray(idx_bse_type)%type%name))
+            fnexc = create_exciton_filename(input, bse_type)
+            ! check if present
+            inquire(file=trim(fnexc), exist=fexists)
+            if (fexists) then
+              write(unitout, '("Info(setup_bse_type_list): Skipping BSE for done BSE type ",a)') trim(bse_type)
+            else
+              to_do_bse_types = to_do_bse_types + 1
+              potential_bse_type_list(to_do_bse_types) = bse_type
+            end if
+          end do
+        else
+          do idx_bse_type = 1, num_bse_types
+            potential_bse_type_list(idx_bse_type) = trim(adjustl(input%xs%BseTypeSet%typearray(idx_bse_type)%type%name))
+          end do
+        end if
+
+        allocate(bse_type_list(to_do_bse_types))
+        do idx_bse_type = 1, to_do_bse_types
+          bse_type_list(idx_bse_type) = potential_bse_type_list(idx_bse_type)
+        end do
+
+        do idx_bse_type = 1, size(bse_type_list)
+            call terminate_if_false(count(bse_type_list == bse_type_list(idx_bse_type)) == 1, "Modbse: More than one bsetype &
+                    element with name "// trim(adjustl(bse_type_list(idx_bse_type)))//".")
+        end do
+      end if
+
+    end subroutine setup_bse_type_list
 
 end module modbse
 !EOC

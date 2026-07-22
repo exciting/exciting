@@ -2,21 +2,23 @@
 subroutine task_chi0_r
     use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
     use modinput
+    use mod_large_io, only: inquire_large, open_direct_unformatted_large
     use modmain,               only : zzero, efermi
     use modmpi, only: distribute_loop, mpiglobal, rank
     use modgw
     use mod_mpi_gw
     use modmpi, only: rank, mpiglobal, barrier
-    use m_getunit
     use mod_hdf5
     use mod_rpath
     use mod_coulomb_potential, only: barc
     use mod_bands, only: evalfv, numin, nstdf
+    use precision, only: i32, long_int
             
     implicit none
-    integer(4) :: ikp, iq, fid, ik
+    integer(4) :: ikp, iq, ik
+    integer(i32) :: fid
     real(8)    :: t0, t1
-    integer(4) :: recl
+    integer(long_int) :: recl
     integer :: im, iom, npt, ir, ir0, theta0
     
     ! mapping array 
@@ -217,8 +219,7 @@ if (.false.) then
     
     ! overwrite existing files
     if (rank==0) then
-      call getunit(fid)
-      open(fid,File='CHI0.OUT',form='UNFORMATTED',status='REPLACE')
+      open(newunit=fid,File='CHI0.OUT',form='UNFORMATTED',status='REPLACE')
       close(fid)
     endif
     call barrier
@@ -233,10 +234,8 @@ if (.false.) then
         call hdf5_write(fgwh5,path,"chi0", &
         &               chi0(1,1,iomstart,iq),(/matsizmax,matsizmax,iomend-iomstart+1/))
 #endif
-        call getunit(fid)
-        inquire(iolength=recl) chi0(:,:,:,iq)
-        open(fid,File="CHI0.OUT",Action='Write',Form='Unformatted',&
-        &    Access='Direct',Status='Old',Recl=recl)
+        call inquire_large( recl, chi0(:,:,:,iq) )
+        call open_direct_unformatted_large( fid, "CHI0.OUT", "write", recl, "old" )
         write(fid,rec=iq) chi0(:,:,:,iq)
         close(fid)
       end if ! rank

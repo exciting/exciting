@@ -2,30 +2,26 @@
 subroutine putevalqp(fname, kset, ib, nb, eks, efks, eqp, efqp)
 
     use mod_kpointset
-    use m_getunit
+    use mod_large_io, only: inquire_large, open_direct_unformatted_large
+    use precision, only: i32, dp, long_int
     implicit none
     character(*), intent(in) :: fname
     type(k_set),  intent(in) :: kset
-    integer(4),   intent(in) :: ib
-    integer(4),   intent(in) :: nb
-    real(8),      intent(in) :: eks(ib:nb,kset%nkpt)
-    real(8),      intent(in) :: efks
-    real(8),      intent(in) :: eqp(ib:nb,kset%nkpt)
-    real(8),      intent(in) :: efqp
+    integer(i32), intent(in) :: ib
+    integer(i32), intent(in) :: nb
+    real(dp),     intent(in) :: eks(ib:nb,kset%nkpt)
+    real(dp),     intent(in) :: efks
+    real(dp),     intent(in) :: eqp(ib:nb,kset%nkpt)
+    real(dp),     intent(in) :: efqp
     ! local
-    integer(4) :: recl
-    integer(4) :: ik
-    integer(4) :: fid
+    integer(long_int) :: recl
+    integer(i32) :: ik
+    integer(i32) :: fid
 
-    inquire(IoLength=recl) kset%nkpt, ib, nb, &
-                           kset%vkl(:,1), &
-                           eqp(ib:nb,1), &
-                           eks(ib:nb,1), &
-                           efqp, efks
+    call inquire_large( recl, [kset%nkpt, ib, nb], kset%vkl(:,1), &
+                        eqp(ib:nb,1), eks(ib:nb,1), [efqp, efks] )
 
-    call getunit(fid)
-    open(fid, File=trim(fname), Action='WRITE', Form='UNFORMATTED', &
-         Access='DIRECT', status='REPLACE', Recl=recl)
+    call open_direct_unformatted_large( fid, trim(fname), "write", recl, "replace" )
     do ik = 1, kset%nkpt
         write(fid, Rec=ik) kset%nkpt, ib, nb, &
                            kset%vkl(:,ik), &

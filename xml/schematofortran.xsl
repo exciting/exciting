@@ -148,7 +148,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 </xsl:text>
 
       </xsl:when>
-      <xsl:when test="$type='xs:integer'">
+      <xsl:when test="$type='xs:integer' or $type='xs:positiveInteger'">
         <xsl:text> integer</xsl:text>
         <xsl:text>::</xsl:text>
         <xsl:value-of select="$varname"/>
@@ -193,8 +193,8 @@ type </xsl:text>
               <xsl:when test="@type">
                 <xsl:value-of select="./@type"/>
               </xsl:when>
-              <xsl:when test="./xs:simpleType/xs:restriction/@base='xs:string'">
-                <xsl:value-of select="'xs:string'"/>
+              <xsl:when test="./xs:simpleType/xs:restriction/@base">
+                <xsl:value-of select="./xs:simpleType/xs:restriction/@base"/>
               </xsl:when>
               <xsl:otherwise/>
 
@@ -424,7 +424,7 @@ np=>getAttributeNode(thisnode,"</xsl:text>
 <xsl:text>
 endif
 </xsl:text>
-<xsl:if test="./*/xs:restriction/xs:enumeration"> 
+<xsl:if test="./*/xs:restriction[@base='xs:string']/xs:enumeration"> 
 <xsl:text>getstruct</xsl:text><xsl:value-of select="../../@name"/>
 <xsl:text>%</xsl:text><xsl:value-of select="@name|@ref"/><xsl:text disable-output-escaping="yes">number= &amp;
   stringtonumber</xsl:text>
@@ -593,7 +593,7 @@ type(Node),pointer::thisnode
 <xsl:text>)
 end function</xsl:text>
 </xsl:for-each>
- <xsl:for-each select="//xs:restriction[xs:enumeration]">
+ <xsl:for-each select="//xs:restriction[@base='xs:string'][xs:enumeration]">
  <xsl:text>
  integer function  stringtonumber</xsl:text>
 <xsl:value-of select="../../../../@name"/><xsl:value-of select="../../@name"/>

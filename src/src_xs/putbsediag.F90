@@ -8,15 +8,13 @@
 !
 Subroutine putbsediag (fname)
       Use modxs
-      Use m_getunit
       use unit_conversion, only: hartree_to_ev
       Implicit None
   ! arguments
       Character (*), Intent (In) :: fname
   ! local variables
       Integer :: un
-      Call getunit (un)
-      Open (un, File=trim(fname), Action='write', Form='formatted', &
+      Open (newunit=un, File=trim(fname), Action='write', Form='formatted', &
      & Status='replace')
       Write (un, '(2g18.10, " : BSE kernel diagonal mean value")') bsed
       Write (un, '(2g18.10, " : BSE kernel diagonal lower limit")') &

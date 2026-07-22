@@ -1,7 +1,6 @@
 !> I/O utility procedures for phonon related tasks.
 module phonons_io_util
   use precision, only: dp
-  use asserts, only: assert
 
   implicit none
   private
@@ -239,7 +238,7 @@ contains
       do ia = 1, natoms(is)
         ias = idxas(ia, is)
         call r3mv( ainv, atposc(:, ia, is), vl )
-        write( un, '("# species ",i2," atom ",i3," (",a,i3") : ",3f13.6)' ) is, ia, trim( spsymb(is) ), ia, vl
+        write( un, '("# species ",i2," atom ",i3," (",a,i3,") : ",3f13.6)' ) is, ia, trim( spsymb(is) ), ia, vl
         do ip = 1, 3
           write( un, '(3f20.10)', iostat=ierr ) borncharge(ip, :, ias)
           success = (ierr == 0)

@@ -12,20 +12,34 @@ from ..tester.compare import ErrorFinder
 
 
 class TestResults:
-    def __init__(self, name: str, completed: bool, err_msg: str, timing: float, test_results: Optional[dict] = None):
+    def __init__(
+            self,
+            name: str,
+            completed: bool,
+            out_mess: str,
+            err_msg: str,
+            timing: float,
+            additional_output: str = "",
+            test_results: Optional[dict] = None
+    ):
         """
         Initialise NewTest class to store the assertion results for a set of regression-tested files,
         for a given test case.
 
         :param str name: Test case name
         :param bool completed: Test case completed execution
+        :param str out_mess: Test case output message
         :param str err_msg: Error message if test case failed to complete
+        :param float timing: Time taken to complete test case (in seconds)
+        :param str additional_output: Additional output from the test case
         :param dict test_results: Dictionary of errors and tolerances for each tested file in the test case.
         """
         self.test_name = name
         self.completed = completed
+        self.out_mess = out_mess
         self.err_msg = err_msg
         self.timing = timing
+        self.additional_output = additional_output
 
         self.file_names: List[str] = []
         self.n_files = 0
@@ -76,7 +90,10 @@ class TestResults:
         print('Time (s): %.1f' % self.timing)
 
         if not self.completed:
-            print('Test execution failed to complete')
+            print(f"Test execution failed to complete.\nStdout: {self.out_mess}\nStderr: {self.err_msg}")
+            if self.additional_output:
+                print('Last lines from main output file:')
+                print(self.additional_output)
             return
 
         assert self.results is not None, "results in TestResults must be filled before calling print_results"
@@ -104,7 +121,7 @@ class TestResults:
         :param bool fail_if_unevaluated: If true, unevaluated files count as a failure
         """
         if not handle_errors:
-            assert self.completed, f"Test execution failed to complete with error: {self.err_msg}"
+            assert self.completed, "Test execution failed to complete."
             if fail_if_unevaluated:
                 assert (len(self.files_with_errors) == 0) and (len(self.unevaluated_files) == 0), "Test case failed"
             else:

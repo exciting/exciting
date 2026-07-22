@@ -12,6 +12,7 @@ module mod_xsgrids
   use mod_kpointset
   use mod_Gvector, only: intgv 
   use mod_lattice, only: bvec
+  use os_utils, only: make_directory
 
   implicit none
   private
@@ -199,20 +200,21 @@ module mod_xsgrids
 
       ! Info
       if(input%xs%BSE%outputlevelnumber == 1) then 
-        write(*,*) "Info(xsgrids_init):"
-        write(*,'(a, 3i5)') "  ngridk = ", ngridk
-        write(*,'(a, 3E10.3)') "  kvkloff = ", k_kqmtp%kset%vkloff
-        write(*,'(a, 3E10.3)') "  vqmtl*ngridk = ", vqmtl*ngridk
-        write(*,'(a, 3E10.3)') "  kqmtpvkloff = ", k_kqmtp%kqmtset%vkloff
-        write(*,'(a, 3E10.3)') "  kqmtmvkloff = ", k_kqmtm%kqmtset%vkloff
-        write(*,'(a, E10.3)') "  gkmax = ", gkmax
-        write(*,'(a, E10.3)') "  gqmax = ", gqmax
-        write(*,'(a, E10.3)') "  gmaxvr = ", gmaxvr
-        write(*,'(a, L)') "  reducek = ", reducek
-        write(*,'(a, L)') "  reduceq = ", reduceq
-        write(*,'(a, i5)') "  ngkmax = ", g_k%ngkmax
-        write(*,'(a, i5)') "  ngkqmtpmax = ", g_kqmtp%ngkmax
-        write(*,'(a, i5)') "  ngkqmtmmax = ", g_kqmtm%ngkmax
+        write(unitout,*) "Info(xsgrids_init):"
+        write(unitout,'(a, 3i5)') "  ngridk = ", ngridk
+        write(unitout,'(a, 3E10.3)') "  kvkloff = ", k_kqmtp%kset%vkloff
+        write(unitout,'(a, 3E10.3)') "  vqmtl*ngridk = ", vqmtl*ngridk
+        write(unitout,'(a, 3E10.3)') "  kqmtpvkloff = ", k_kqmtp%kqmtset%vkloff
+        write(unitout,'(a, 3E10.3)') "  kqmtmvkloff = ", k_kqmtm%kqmtset%vkloff
+        write(unitout,'(a, E10.3)') "  gkmax = ", gkmax
+        write(unitout,'(a, E10.3)') "  gqmax = ", gqmax
+        write(unitout,'(a, E10.3)') "  gmaxvr = ", gmaxvr
+        write(unitout,'(a, L)') "  reducek = ", reducek
+        write(unitout,'(a, L)') "  reduceq = ", reduceq
+        write(unitout,'(a, i5)') "  ngkmax = ", g_k%ngkmax
+        write(unitout,'(a, i5)') "  ngkqmtpmax = ", g_kqmtp%ngkmax
+        write(unitout,'(a, i5)') "  ngkqmtmmax = ", g_kqmtm%ngkmax
+        write(unitout,*) " "
       end if
 
       ! Set module flag. 
@@ -272,8 +274,6 @@ module mod_xsgrids
     ! !ROUTINE: xsgrids_write_grids
     ! !INTERFACE:
     subroutine xsgrids_write_grids(iqmt)
-    ! !USES:
-      use m_getunit
     ! !INPUT/OUTPUT PARAMETERS:
     ! In:
     ! integer(4) :: iqmt ! Considered Q-point
@@ -293,7 +293,7 @@ module mod_xsgrids
       write(fiqmt,*) iqmt
       fext = trim(adjustl(fiqmt))//'.out'
       fdir = 'XSGRIDS/'
-      call system('test ! -e XSGRIDS && mkdir XSGRIDS')
+      call make_directory(fdir, mpiglobal)
 
       if( .not. initialized) then
         write(*,*) "Error(mod_xsgrids::xsgrids_write_grids):&
@@ -303,22 +303,19 @@ module mod_xsgrids
 
       ! k grids
 
-      call getunit(un)
       fname = trim(adjustl(fdir))//'k_kqmtp_qmt'//fext
-      open(unit=un, file=trim(fname), action='write', status='replace')
+      open(newunit=un, file=trim(fname), action='write', status='replace')
       call print_kkqmt_vectors(k_kqmtp, g, un) 
       close(un)
 
-      call getunit(un)
       fname = trim(adjustl(fdir))//'k_kqmtm_qmt'//fext
-      open(unit=un, file=trim(fname), action='write', status='replace')
+      open(newunit=un, file=trim(fname), action='write', status='replace')
       call print_kkqmt_vectors(k_kqmtm, g, un) 
       close(un)
 
       ! km kp map
-      call getunit(un)
       fname = trim(adjustl(fdir))//'kqmtm_kqmtp_qmt'//fext
-      open(unit=un, file=trim(fname), action='write', status='replace')
+      open(newunit=un, file=trim(fname), action='write', status='replace')
       write(un,*) 'Mapping from k-qmt/2 to k+qmt/2 grid k index: < ikm2ikp_nr >'
       write(un,*) '< ikmnr    ikm2ikp_nr>'
       do ikm = 1, k_kqmtp%kset%nkptnr
@@ -328,50 +325,44 @@ module mod_xsgrids
 
       ! g grid
 
-      call getunit(un)
       fname = trim(adjustl(fdir))//'g.out'
-      open(unit=un, file=trim(fname), action='write', status='replace')
+      open(newunit=un, file=trim(fname), action='write', status='replace')
       call print_G_vectors(g, un)
       close(un)
 
       ! q grid
 
-      call getunit(un)
       fname = trim(adjustl(fdir))//'q.out'
-      open(unit=un, file=trim(fname), action='write', status='replace')
+      open(newunit=un, file=trim(fname), action='write', status='replace')
       call print_q_vectors(q, k_kqmtp%kset, k_kqmtp%kset, g, un) 
       close(un)
 
       ! p grid
 
-      call getunit(un)
       fname = trim(adjustl(fdir))//'p_qmt'//fext
-      open(unit=un, file=trim(fname), action='write', status='replace')
+      open(newunit=un, file=trim(fname), action='write', status='replace')
       call print_p_vectors(pqmt, k_kqmtm%kqmtset, k_kqmtp%kqmtset, g, un) 
       close(un)
 
       ! G+k 
       if(makegk) then
 
-        call getunit(un)
         fname = trim(adjustl(fdir))//'g_k.out'
-        open(unit=un, file=trim(fname), action='write', status='replace')
+        open(newunit=un, file=trim(fname), action='write', status='replace')
         do i=1, k_kqmtp%kset%nkpt
           call print_Gk_vectors(g_k, i, un)
         end do
         close(un)
 
-        call getunit(un)
         fname = trim(adjustl(fdir))//'g_kqmtp_qmt'//fext
-        open(unit=un, file=trim(fname), action='write', status='replace')
+        open(newunit=un, file=trim(fname), action='write', status='replace')
         do i=1, k_kqmtp%kqmtset%nkpt
           call print_Gk_vectors(g_kqmtp, i, un)
         end do
         close(un)
 
-        call getunit(un)
         fname = trim(adjustl(fdir))//'g_kqmtm_qmt'//fext
-        open(unit=un, file=trim(fname), action='write', status='replace')
+        open(newunit=un, file=trim(fname), action='write', status='replace')
         do i=1, k_kqmtm%kqmtset%nkpt
           call print_Gk_vectors(g_kqmtm, i, un)
         end do
@@ -383,34 +374,30 @@ module mod_xsgrids
       if(makegq) then 
 
         ! G+q
-        call getunit(un)
         fname = trim(adjustl(fdir))//'g_q.out'
-        open(unit=un, file=trim(fname), action='write', status='replace')
+        open(newunit=un, file=trim(fname), action='write', status='replace')
         do i=1, q%qset%nkpt 
           call print_Gk_vectors(g_q, i, un)
         end do
         close(un)
 
-        call getunit(un)
         fname = trim(adjustl(fdir))//'g_q_nr.out'
-        open(unit=un, file=trim(fname), action='write', status='replace')
+        open(newunit=un, file=trim(fname), action='write', status='replace')
         do i=1, q%qset%nkptnr 
           call print_Gknr_vectors(g_q, i, un)
         end do
         close(un)
 
         ! G+p
-        call getunit(un)
         fname = trim(adjustl(fdir))//'g_pqmt_qmt'//fext
-        open(unit=un, file=trim(fname), action='write', status='replace')
+        open(newunit=un, file=trim(fname), action='write', status='replace')
         do i=1, pqmt%pset%nkpt
           call print_Gk_vectors(g_pqmt, i, un)
         end do
         close(un)
 
-        call getunit(un)
         fname = trim(adjustl(fdir))//'g_pqmt_nr_qmt'//fext
-        open(unit=un, file=trim(fname), action='write', status='replace')
+        open(newunit=un, file=trim(fname), action='write', status='replace')
         do i=1, pqmt%pset%nkptnr
           call print_Gknr_vectors(g_pqmt, i, un)
         end do
@@ -418,7 +405,6 @@ module mod_xsgrids
 
       end if
 
-      return
     end subroutine xsgrids_write_grids
     !EOC
 

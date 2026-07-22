@@ -20,7 +20,6 @@ module m_write_hdf5
       use modxs, only: ivgmt, vqlmt, vgcmt, vqcmt
       use modxs, only: sptclg, ivgigq
       use fox_wxml
-      use m_getunit
       use mod_hdf5
       use os_utils
 
@@ -127,7 +126,6 @@ module m_write_hdf5
       use modxs, only: ivgmt, vqlmt, vgcmt, vqcmt
       use modxs, only: sptclg, ivgigq
       use fox_wxml
-      use m_getunit
       use mod_hdf5
       use xhdf5, only: xhdf5_type
       use os_utils, only: join_paths

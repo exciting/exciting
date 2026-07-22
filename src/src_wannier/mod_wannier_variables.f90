@@ -7,6 +7,7 @@ module mod_wannier_variables
 
   type wannier_group
     integer                 :: fst, lst, nst, fwf, lwf, nwf
+    integer                 :: fst_ks, lst_ks, nst_ks
     integer                 :: nproj
     integer, allocatable    :: projused(:)
     logical                 :: neighcells
@@ -14,7 +15,11 @@ module mod_wannier_variables
     real(8)                 :: win_i(2), win_o(2)
     integer, allocatable    :: win_ii(:,:), win_io(:,:)
     integer, allocatable    :: win_ni(:), win_no(:)
+    integer, allocatable    :: win_ni_ks(:), win_no_ks(:)
     complex(8), allocatable :: projection(:,:,:)
+    complex(8), allocatable :: sz_eigenvector(:,:,:)
+  contains
+    procedure, public :: print => print_group
   end type wannier_group
 
 ! module variables
@@ -34,11 +39,14 @@ module mod_wannier_variables
   real(8) :: wf_efermi
   logical :: wf_fermizero
   logical :: wf_fixphases = .false.
+  logical :: wf_spin_dis = .false.
+  character(32) :: wf_spin_dis_method
 
   type( wannier_group), allocatable :: wf_groups(:)
   integer :: wf_ngroups
   integer :: wf_group
   
+  integer, allocatable    :: wf_index_map(:,:)          ! index map that sorts states accoridng to their energies in ascending order at every k-point
   integer, allocatable    :: wf_projst(:,:)             ! n, l, m, atom of local-orbitals for projection
   complex(8), allocatable :: wf_evecphases(:,:,:)       ! phase correction of eigenvectors
   complex(8), allocatable :: wf_transform(:,:,:)        ! unitary transformation matrices
@@ -120,4 +128,30 @@ module mod_wannier_variables
       if( allocated( group%win_ii)) deallocate( group%win_ii)
       if( allocated( group%win_io)) deallocate( group%win_io)
     end subroutine wannier_destroy_group
+
+    subroutine print_group( self )
+      class(wannier_group), intent(in) :: self
+
+      write( *, '(a)' ) '--------------------------------------------------------------------------------'
+
+      write( *, '(a30,3i4," (",3i4,")")' ) 'state range (original):', self%fst, self%lst, self%nst, self%fst_ks, self%lst_ks, self%nst_ks
+      write( *, '(a30,3i4)' ) 'WF range:', self%fwf, self%lwf, self%nwf
+      write( *, '(a30,i4)' ) 'number of projectors:', self%nproj
+      write( *, '(a30,l)' ) 'neighboring cells:', self%nproj
+      write( *, '(a30,a)' ) 'method:', trim(self%method)
+      write( *, '(a30,2f13.6,a,2i4)', advance='no' ) 'inner window:', self%win_i, ' number of states (original):', minval(self%win_ni), maxval(self%win_ni)
+      if (allocated(self%win_ni_ks)) then
+        write( *, '(" (",2i4")")' ) minval(self%win_ni_ks), maxval(self%win_ni_ks)
+      else
+        write( *, * )
+      end if
+      write( *, '(a30,2f13.6,a,2i4)', advance='no' ) 'outer window:', self%win_o, ' number of states (original):', minval(self%win_no), maxval(self%win_no)
+      if (allocated(self%win_no_ks)) then
+        write( *, '(" (",2i4")")' ) minval(self%win_no_ks), maxval(self%win_no_ks)
+      else
+        write( *, * )
+      end if
+
+      write( *, '(a)' ) '--------------------------------------------------------------------------------'
+    end subroutine print_group
 end module mod_wannier_variables

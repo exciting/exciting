@@ -80,6 +80,11 @@ default_files_under_test:
       - "fastBSE_absorption_spectrum.out"
       - "fastBSE_exciton_energies.out"
       - "fastBSE_oscillator_strengths.out"
+   phonon:
+      - "DYN_Q??.OUT"
+      - "PHONON.OUT"
+      - "EPSINF.OUT"
+      - "ZSTAR.OUT"
 
 # Specify each new group.
 # Any test without a group is assigned NONE
@@ -92,5 +97,6 @@ group_execution:
   SIRIUS: False
   HDF5: False
   FASTBSE: False
+  SCALAPACK: False
   # Do not run (useful for disabling in the CI)
   NORUN: False

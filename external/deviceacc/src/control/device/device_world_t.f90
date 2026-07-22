@@ -428,6 +428,10 @@ contains
 #if defined(AMDGPU)
         simd_size = 64
 #endif
+#if defined(INTELGPU)
+        ! Not fixed for Intel
+        simd_size = -1
+#endif 
     end function simd_size
 
     !> Returns the underlying stream for control

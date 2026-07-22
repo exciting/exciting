@@ -4,7 +4,7 @@
 !--------------------------------!
 
 module mod_bands
-    use asserts, only: assert
+#include "asserts.fpp"
     use gw_info, only: write_to_gwinfo, write_to_gwinfo_boxmessage
     use modgw, only : kset, fgw, hatree_2_eV => hev
     use modmpi, only : rank, terminate
@@ -128,11 +128,11 @@ contains
       last_band = ubound( eigs, 1 )
 
       if( present(kpt_indexes) ) then 
-        call assert( size(kpt_indexes) == n_kpt, 'kpt_indexes must have nkpt elements' )
-        call assert( present(kpt_lattice_coord), 'kpt_lattice_coord must be present if kpt_indexes is present' ) 
-        call assert( size(kpt_lattice_coord, 1)==3, 'kpt_lattice_coord must have size 3 along 1st dim.' )
-        call assert( size(kpt_lattice_coord, 2)==n_kpt, 'kpt_lattice_coord must have size nkpt along 2nd dim.' )
-        call assert( .not. obtain_dos, 'test_dos must be .false. if kpt_indexes is present')
+        CALL_ASSERT( size(kpt_indexes) == n_kpt, 'kpt_indexes must have nkpt elements' )
+        CALL_ASSERT( present(kpt_lattice_coord), 'kpt_lattice_coord must be present if kpt_indexes is present' ) 
+        CALL_ASSERT( size(kpt_lattice_coord, 1)==3, 'kpt_lattice_coord must have size 3 along 1st dim.' )
+        CALL_ASSERT( size(kpt_lattice_coord, 2)==n_kpt, 'kpt_lattice_coord must have size nkpt along 2nd dim.' )
+        CALL_ASSERT( .not. obtain_dos, 'test_dos must be .false. if kpt_indexes is present')
       end if
   
       ! check Fermi energy for correspondence to the specified band range

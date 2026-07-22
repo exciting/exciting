@@ -3,7 +3,6 @@
 module wscr_isdf_kernel
   use precision, only: dp
   use constants, only: zone, zzero
-  use asserts, only: assert
 
   use math_utils, only: mod1
   use grid_utils, only: n_grid_diff, flattened_map
@@ -54,7 +53,7 @@ module wscr_isdf_kernel
 
   subroutine intialize(this, mpi_env, transitions, u_o_mu, u_u_mu, zeta_o_hat, zeta_u_hat, scaling, w_hat, Gq_indices, g_grid, k_sampling)
     class(wscr_isdf_kernel_type) :: this
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     type(transition_type), intent(in) :: transitions
     !> Periodic part of the occupied/unoccupied states wavefunctions.
     complex(dp), intent(in) :: u_o_mu(:, :),  u_u_mu(:, :)

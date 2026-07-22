@@ -76,10 +76,10 @@ class ExcitingXMLInput(AbstractExcitingInput, ABC):
 
     # Convert python data to string, formatted specifically for exciting
     _attributes_to_input_str = {
-        int: lambda x: str(x),
-        np.int64: lambda x: str(x),
-        np.float64: lambda x: str(x),
-        float: lambda x: str(x),
+        int: str,
+        np.int64: str,
+        np.float64: str,
+        float: str,
         bool: lambda x: str(x).lower(),
         str: lambda x: x,
         list: list_to_str,

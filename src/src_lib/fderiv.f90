@@ -30,17 +30,18 @@ Subroutine fderiv (m, n, x, f, g, cf)
 !   Created May 2002 (JKD)
 !EOP
 !BOC
+      use precision, only: dp, i32
       Implicit None
 ! arguments
-      Integer, Intent (In) :: m
-      Integer, Intent (In) :: n
-      Real (8), Intent (In) :: x (n)
-      Real (8), Intent (In) :: f (n)
-      Real (8), Intent (Out) :: g (n)
-      Real (8), Intent (Out) :: cf (3, n)
+      Integer(i32), Intent (In) :: m
+      Integer(i32), Intent (In) :: n
+      Real (dp), Intent (In) :: x (n)
+      Real (dp), Intent (In) :: f (n)
+      Real (dp), Intent (Out) :: g (n)
+      Real (dp), Intent (Out) :: cf (3, n)
 ! local variables
       Integer :: i
-      Real (8) :: dx
+      Real (dp) :: dx
 !      Real (8):: cf2 (4, n)
       If (n .Le. 0) Then
          Write (*,*)

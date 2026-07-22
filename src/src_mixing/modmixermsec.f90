@@ -5,27 +5,26 @@
 
 Module modmixermsec
 
-      Real (8), Allocatable :: residual (:), last_outputp (:), work2 &
-     & (:), work3 (:)
-      Real (8), Allocatable :: PWHIST (:), FHIST (:), CLMHIST (:), &
-     & yhist (:)
-      Integer :: record_of_last_iter, noldstepsin_file, noldsteps, &
-     & MUSE, IDSCALE, noldstepsmax
-      Integer, Parameter :: icond = 1, dbase = 0.005D0
-      Real (8) :: scl_plane, qmx, RedOld, RedPred, qmx_input, PM1, &
-     & DIAG, dmix_last, dmixout (4)
-      Real (8) :: MSECINFO (20), rtrap, SCHARGE, TCharge, splane, &
-     & tplane, qtot
-      Real (8) :: dmix
+      use precision, only: i32, long_int, dp, str_256
+
+      real(dp), allocatable :: residual(:), last_outputp(:), work2(:), work3(:)
+      real(dp), allocatable :: PWHIST(:), FHIST(:), CLMHIST(:), yhist(:)
+      integer(i32) :: noldstepsin_file, noldsteps, MUSE, IDSCALE, noldstepsmax
+      integer(long_int) :: record_of_last_iter
+      integer(i32), parameter :: icond = 1
+      real(dp), parameter :: dbase = 0.005_dp
+      real(dp) :: scl_plane, qmx, RedOld, RedPred, qmx_input, PM1, DIAG, dmix_last, dmixout(4)
+      real(dp) :: MSECINFO(20), rtrap, SCHARGE, TCharge, splane, tplane, qtot
+      real(dp) :: dmix
 
 Contains
 
       Subroutine initmixermsec (n,nmax)
-         Use modmain, Only: CHGIR, CHGMTTOT, input
+         use modmain, only: CHGIR, CHGMTTOT, input
          implicit none
-         Integer, Intent (In) :: n
-         Integer, Intent (In) :: nmax
-         Integer :: niter
+         integer(long_int), Intent (In) :: n
+         integer(i32), Intent (In) :: nmax
+         integer(i32) :: niter
          noldstepsmax=nmax
 !         noldstepsmax=input%groundstate%msecStoredSteps
          if (allocated(residual)) deallocate(residual)
@@ -56,28 +55,28 @@ Contains
          scl_plane = 4
          RedOld = 1
          RedPred = 1
-         qmx_input = .2
+         qmx_input = 0.2_dp
          qmx = qmx_input
          PM1 = 1
          IDSCALE = 1
-         DIAG = 5D-4
+         DIAG = 5e-4_dp
          noldstepsin_file = 0
          noldsteps = 0
-         rtrap = 0.1
+         rtrap = 0.1_dp
          SCHARGE = CHGIR
          TCharge = CHGMTTOT
-         splane = .000001
-         tplane = .000001
+         splane = 0.000001_dp
+         tplane = 0.000001_dp
          MSECINFO = 1
-         dmix = .5
-         dmix_last=0.5d0
+         dmix = 0.5_dp
+         dmix_last=0.5_dp
       End Subroutine
 
 
       Subroutine freearraysmixermsec ()
          use mod_misc, only: scrpath
-         Character (256), External :: outfilenamestring
-         Character (256) :: filetag
+         Character (str_256), External :: outfilenamestring
+         Character (str_256) :: filetag
          filetag = "BROYDEN"
          if (allocated(residual)) deallocate(residual)
          if (allocated(last_outputp)) deallocate(last_outputp)

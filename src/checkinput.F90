@@ -4,14 +4,15 @@
 ! See the file COPYING for license details.
 
 subroutine checkinput
-  use modmain
-  use modinput
+  use constants, only: maxlapw, maxspecies, maxatoms
+  use mod_LDA_LU, only: lmaxlu
+  use modinput, only: input
+  use modmpi, only: terminate_if_false
   use svlo, only: is_input_compatible_with_svlo    
   implicit none
-  integer :: is,i
+  integer :: is
   logical :: is_compatible_with_svlo
   character(:), allocatable :: incompatibility_with_svlo_message
-  character(1024) :: message
 
   if (input%structure%epslat.le.0.d0) then
     write(*,*)
@@ -71,9 +72,9 @@ subroutine checkinput
     end if
   end if
   if (associated(input%groundstate))then
-    if (input%groundstate%APWprecision.lt.0.d0) then 
+    if (input%groundstate%useAPWprecision .and. (input%groundstate%APWprecision.le.0.d0)) then 
       write(*,*)
-      write(*,'("Error(checkinput): invalid /input/groundstate/@APWprecision < 0: ",G18.10)') input%groundstate%APWprecision
+      write(*,'("Error(checkinput): invalid /input/groundstate/@APWprecision <= 0: ",G18.10)') input%groundstate%APWprecision
       write(*,*)
       stop
     end if
@@ -118,7 +119,7 @@ subroutine checkinput
     if (input%groundstate%lmaxapw.ge.maxlapw) then
       write(*,*)
       write(*,'("Error(checkinput): /input/groundstate/@lmaxapw too large : ",I8)') input%groundstate%lmaxapw
-      write(*,'("Adjust maxlapw in modmain and recompile code")')
+      write(*,'("Adjust maxlapw in src/constants.f90 and recompile code")')
       write(*,*)
       stop
     end if
@@ -261,16 +262,16 @@ subroutine checkinput
     if (size(input%structure%speciesarray).gt.maxspecies) then ! (nspecies > maxspecies)
       write(*,*)
       write(*,'("Error(checkinput): number of species too large : ",I8)') size(input%structure%speciesarray)
-      write(*,'("Adjust maxspecies in modmain and recompile code")')
+      write(*,'("Adjust maxspecies in src/constants.f90 and recompile code")')
       write(*,*)
       stop
     end if
-    do is=1,nspecies
+    do is= 1, size(input%structure%speciesarray)
       if (size(input%structure%speciesarray(is)%species%atomarray).gt.maxatoms) then ! (natoms(is) > maxatoms)
         write(*,*)
         write(*,'("Error(checkinput): number of atoms too large : ",I8)') size(input%structure%speciesarray(is)%species%atomarray)
         write(*,'(" for species ",I4)') is
-        write(*,'("Adjust maxatoms in modmain and recompile code")')
+        write(*,'("Adjust maxatoms in src/constants.f90 and recompile code")')
         write(*,*)
         stop
       end if
@@ -615,4 +616,10 @@ subroutine checkinput
       end if
     end if
   end if
+
+  ! Backward compatibility feature: if the old "vha" attribute is provided, 
+  ! the code terminates and notifies that the new on, "cutofftype", should be used.
+  if ( associated( input%groundstate ) ) call terminate_if_false( trim( input%groundstate%vha ) == "none", &
+    "vha attribute is deprecated. cutofftype should be used instead." )
+
 end subroutine

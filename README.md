@@ -1,8 +1,8 @@
 The exciting FP-LAPW Code
 =========================
 
-Release: exciting sodium.  
-Copyright (C) 2002-2023 The exciting team.
+Release: exciting magnesium.  
+Copyright (C) 2002-2026 The exciting team.
 
 Description
 -----------

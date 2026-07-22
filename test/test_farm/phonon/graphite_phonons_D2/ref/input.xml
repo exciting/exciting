@@ -1,0 +1,42 @@
+<input>
+    <title>Graphite DFTD2 relaxed </title>
+    <structure speciespath="." autormt="false" >
+        <crystal scale="4.65419852711739">
+            <basevect> 0.500  -0.8660254   0.0         </basevect>
+            <basevect> 0.500   0.8660254   0.0         </basevect>
+            <basevect> 0.0           0.0           2.62961372 </basevect>
+        </crystal>
+
+        <species speciesfile="C.xml" rmt="1.25">
+            <atom coord="0.00000000  0.00000000  0.0"/>
+            <atom coord="0.66666667  0.33333333  0.0"/>
+            <atom coord="0.66666667  0.33333333  0.5"/>
+            <atom coord="0.33333333  0.66666667  0.5"/>
+        </species>
+
+        </structure>
+
+    <groundstate
+        do="skip"
+        gmaxvr="25"
+        ngridk="24 24 8"
+        rgkmax="8"
+        swidth="0.01"
+        xctype="GGA_PBE"
+        vdWcorrection="DFTD2"
+        lmaxapw="12"
+        lmaxmat="12"
+	lmaxvr="12">
+    <DFTD2parameters />
+    </groundstate>
+    <phonons
+        do="skip"
+        method="dfpt"
+        polar="false"
+        ngridq="1 1 2">
+    <qpointset>
+    <qpoint> 0.0 0.0 0.0 </qpoint>
+    <qpoint> 0.0 0.0 0.5 </qpoint>
+    </qpointset>
+    </phonons>
+    </input>

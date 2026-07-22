@@ -30,7 +30,7 @@
       useExcitonCoefficients="false"
       useExternalFile="false"
       startDensityAndPotentialFromFile="false"
-      skipgnd="false">
+      groundstateRun="scf">
       <occupationChanges>
         <newOccupation kPointIndex="1" stateIndex="2" occupation="0.666666666667"/>
         <newOccupation kPointIndex="1" stateIndex="3" occupation="0.666666666667"/>

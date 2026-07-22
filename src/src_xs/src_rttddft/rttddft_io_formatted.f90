@@ -1,5 +1,5 @@
 module rttddft_io_formatted
-  use asserts, only: assert
+#include "asserts.fpp"
   use file_utils, only: add_default_extension, copy_text_file, delete_file, read_last_and_penultimate_lines_from_file
   use mod_misc, only: filext, githash, versionname
   use mod_rgrid, only: rgrid, gen_3d_rgrid
@@ -118,14 +118,14 @@ contains
 
     character(len=str_256) :: last_line, penultimate_line, file_name
     if( present( field_t_minus_dt ) ) then 
-      call assert( same_type_as( field_t, field_t_minus_dt ), '2nd argument must be of type(Vector_Field)')
+      CALL_ASSERT( same_type_as( field_t, field_t_minus_dt ), '2nd argument must be of type(Vector_Field)')
     end if
     select type( field_t )
       type is( Vector_Potential_Field )
         file_name = filename_avec
-        call assert( present( a_tot_t ), "a_tot_t must be passed" )
+        CALL_ASSERT( present( a_tot_t ), "a_tot_t must be passed" )
         if( present( field_t_minus_dt ) ) then 
-          call assert( present( a_tot_t_minus_dt ), "a_tot_t_minus_dt must be passed")
+          CALL_ASSERT( present( a_tot_t_minus_dt ), "a_tot_t_minus_dt must be passed")
         end if
       type is( Polarization )
         file_name = filename_pvec
@@ -134,7 +134,7 @@ contains
       type is( Electric_Field )
         file_name = filename_evec
       class default
-        call assert( .false., 'unrecognized type passed to read_vector_field' )
+        CALL_ASSERT( .false., 'unrecognized type passed to read_vector_field' )
     end select
 
     call read_last_and_penultimate_lines_from_file( add_default_extension( file_name), last_line, penultimate_line )
@@ -207,14 +207,16 @@ contains
     twoArrays = present( second )
     n = size( times )
 
-    call assert( size( first ) == n, 'first array must have size = n')
-    if( twoArrays ) call assert( size( second ) == n, 'second array must have size = n')
+    CALL_ASSERT( size( first ) == n, 'first array must have size = n')
+    if( twoArrays ) then
+      CALL_ASSERT( size( second ) == n, 'second array must have size = n')
+    end if
     
     select type( first )
       type is( Vector_Potential_Field )
         unit = file_avec
-        call assert( twoArrays, '2nd argument must be passed for the case of Vector_Field')
-        call assert( same_type_as( first, second ), '2nd argument must be of type(Vector_Field)')
+        CALL_ASSERT( twoArrays, '2nd argument must be passed for the case of Vector_Field')
+        CALL_ASSERT( same_type_as( first, second ), '2nd argument must be of type(Vector_Field)')
       type is( Polarization )
         unit = file_pvec
       type is( Current_Density_Field )
@@ -222,7 +224,7 @@ contains
       type is( Electric_Field )
         unit = file_evec
       class default
-        call assert( .false., 'unrecognized type passed to write_vector_field')
+        CALL_ASSERT( .false., 'unrecognized type passed to write_vector_field')
     end select
 
     if( twoArrays ) then
@@ -294,7 +296,7 @@ contains
         & 'Coulomb pot. energy'
     end if
     associate( n => size(time_array) )
-      call assert( size(e_tot_array) == n, 'e_tot_array must contain n elements')
+      CALL_ASSERT( size(e_tot_array) == n, 'e_tot_array must contain n elements')
       do i = 1, n
         write(file_etot,'(F9.3,8F20.10)') time_array(i), &
           & e_tot_array(i)%total_energy(), e_tot_array(i)%madelung, &
@@ -334,8 +336,8 @@ contains
     character(len=*), parameter :: format_line = '(' // format_time // ',3' // format_n // ')'
 
     n = size( time_array )
-    call assert( size( n_exc_array ) == n, 'n_exc_array must have n elements')
-    call assert( size( n_gs_array ) == n, 'n_gs_array must have n elements')
+    CALL_ASSERT( size( n_exc_array ) == n, 'n_exc_array must have n elements')
+    CALL_ASSERT( size( n_gs_array ) == n, 'n_gs_array must have n elements')
 
     if ( print_header ) write( file_nexc, format_header ) 'Time','N.Elec.GS', 'N.XS', 'Sum'
     do i = 1, n
@@ -611,8 +613,8 @@ contains
     m = size( array, 1 )
     n = size( array, 2 )
     if( present(dimensions) ) then
-      call assert( size(dimensions) == n, "dimensions must have size n")
-      call assert( all( dimensions <= m ), "each element in dimensions must be <= m" )
+      CALL_ASSERT( size(dimensions) == n, "dimensions must have size n")
+      CALL_ASSERT( all( dimensions <= m ), "each element in dimensions must be <= m" )
       dims = dimensions
     else 
       allocate( dims(n), source=m )

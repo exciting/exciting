@@ -127,7 +127,7 @@ module m_plotmat
       open( 50, file=trim( fname)//".mat", action='WRITE', form='FORMATTED')
       do x = 1, sx
         do y = 1, sy
-          write( 50, '(SP,E23.16,E23.16,"i",5x)', advance='no') mat( x, y)
+          write( 50, '(SP,E23.16,E23.16,"j",5x)', advance='no') mat( x, y)
         end do
         write( 50, *)
       end do

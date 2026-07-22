@@ -18,24 +18,27 @@ module mod_wannier_maxloc
 
     subroutine wfmax_gen
       use mod_manopt, only: manopt_stiefel_cg, manopt_stiefel_lbfgs
-      use m_getunit
-      use m_plotmat
       !use mod_wannier_filehandling
       
-      integer :: convun, minit, maxit, memlen
+      integer :: convun, minit, maxit, memlen, wf_group_
       real(8) :: gradnorm, minstep
 
       integer :: ik, kxy
       real(8) :: t0, t1, omega, omegastart
       character(256) :: convfname
 
+      ! new group index to adress wannier grouparray for spindis
+      wf_group_ = wf_group
+      if ( wf_spin_dis ) wf_group_ = mod( wf_group - 1, size( input%properties%wannier%grouparray, dim=1 ) ) + 1
+
+      minit    = input%properties%wannier%grouparray( wf_group_)%group%minitmax
+      maxit    = input%properties%wannier%grouparray( wf_group_)%group%maxitmax
+      gradnorm = input%properties%wannier%grouparray( wf_group_)%group%epsmax
+      minstep  = input%properties%wannier%grouparray( wf_group_)%group%minstepmax
+      memlen   = input%properties%wannier%grouparray( wf_group_)%group%memlenmax
+
       write( wf_info, '(" minimize localization functional Omega...")')
       call timesec( t0)
-      minit    = input%properties%wannier%grouparray( wf_group)%group%minitmax
-      maxit    = input%properties%wannier%grouparray( wf_group)%group%maxitmax
-      gradnorm = input%properties%wannier%grouparray( wf_group)%group%epsmax
-      minstep  = input%properties%wannier%grouparray( wf_group)%group%minstepmax
-      memlen   = input%properties%wannier%grouparray( wf_group)%group%memlenmax
 
       !****************************
       !* PREPARATION
@@ -81,12 +84,11 @@ module mod_wannier_maxloc
       !* MINIMIZATION
       !****************************
       convun = 0
-      if( input%properties%wannier%grouparray( wf_group)%group%writeconv) then
-        call getunit( convun)
+      if( input%properties%wannier%grouparray( wf_group_)%group%writeconv) then
         write( convfname, '("maxloc_conv_",i3.3,".dat")') wf_group
-        open( convun, file=trim( convfname), action='write', form='formatted')
+        open( newunit=convun, file=trim( convfname), action='write', form='formatted')
       end if
-      if( input%properties%wannier%grouparray( wf_group)%group%optim .eq. 'cg') then
+      if( input%properties%wannier%grouparray( wf_group_)%group%optim .eq. 'cg') then
         call manopt_stiefel_cg( XY, DXYO, kxy, DXY, &
                cost=wfmax_omega, &
                grad=wfmax_gradient, &
@@ -99,7 +101,7 @@ module mod_wannier_maxloc
                update=wfmax_update, &
                epsgrad=gradnorm, minit=minit, maxit=maxit, stdout=convun, minstep=minstep, memlen=memlen)
       end if
-      if( input%properties%wannier%grouparray( wf_group)%group%writeconv) close( convun)
+      if( input%properties%wannier%grouparray( wf_group_)%group%writeconv) close( convun)
       call wfomega_diagphases( wf_transform( wf_groups( wf_group)%fst, wf_groups( wf_group)%fwf, 1), wf_nst, wf_nwf, wf_groups( wf_group)%nst)
 
       !****************************
@@ -118,10 +120,10 @@ module mod_wannier_maxloc
       write( wf_info, '(5x,"duration (seconds): ",T40,3x,F10.1)') t1-t0
       !write( wf_info, '(5x,"minimum/maximum iterations: ",T40,I6,"/",I6)') minit, maxit
       write( wf_info, '(5x,"iterations: ",T40,7x,I6)') maxit
-      write( wf_info, '(5x,"gradient cutoff: ",T40,E13.6)') input%properties%wannier%grouparray( wf_group)%group%epsmax
+      write( wf_info, '(5x,"gradient cutoff: ",T40,E13.6)') input%properties%wannier%grouparray( wf_group_)%group%epsmax
       write( wf_info, '(5x,"norm of gradient: ",T40,E13.6)') gradnorm
-      !if( input%properties%wannier%grouparray( wf_group)%group%uncertainty .gt. 0.d0) then
-      !  write( wf_info, '(5x,"aimed uncertainty: ",T40,E13.6)') input%properties%wannier%grouparray( wf_group)%group%uncertainty
+      !if( input%properties%wannier%grouparray( wf_group_)%group%uncertainty .gt. 0.d0) then
+      !  write( wf_info, '(5x,"aimed uncertainty: ",T40,E13.6)') input%properties%wannier%grouparray( wf_group_)%group%uncertainty
       !  write( wf_info, '(5x,"achieved uncertainty: ",T40,E13.6)') uncertainty
       !end if
       write( wf_info, '(5x,"Omega: ",T40,F13.6)') omega
@@ -166,11 +168,15 @@ module mod_wannier_maxloc
       complex(8), intent( inout) :: xy(dxyo(1),dxyo(2),*)
       logical, intent( out)      :: change
       
-      integer :: nw
+      integer :: nw, wf_group_
 
       change = .false.
 
-      nw = max(0, input%properties%wannier%grouparray( wf_group)%group%nwrite)
+      ! new group index to adress wannier grouparray for spindis
+      wf_group_ = wf_group
+      if ( wf_spin_dis ) wf_group_ = mod( wf_group - 1, size( input%properties%wannier%grouparray, dim=1 ) ) + 1
+
+      nw = input%properties%wannier%grouparray( wf_group_)%group%nwrite
       if (nw == 0) nw = huge(1)
       if( mod( it, nw) == 0) call wffile_writetransform
       if( mod( it, 1) /= -1) return

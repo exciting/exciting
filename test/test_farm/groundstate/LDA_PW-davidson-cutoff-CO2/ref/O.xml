@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<spdb>
+	<sp chemicalSymbol="O" name="oxygen" z="-8.0" mass="29165.12203">
+		<muffinTin rmin="1e-05" radius="1.45" rinf="17.0873" radialmeshPoints="250"/>
+		<atomicState n="1" l="0" kappa="1" occ="2.0" core="true"/>
+		<atomicState n="2" l="0" kappa="1" occ="2.0" core="false"/>
+		<atomicState n="2" l="1" kappa="1" occ="2.0" core="false"/>
+		<atomicState n="2" l="1" kappa="2" occ="2.0" core="false"/>
+		<basis>
+			<default type="lapw" trialEnergy="0.15" searchE="false"/>
+			<custom l="0" type="apw+lo" trialEnergy="0.15" searchE="true"/>
+			<custom l="1" type="apw+lo" trialEnergy="0.15" searchE="true"/>
+		</basis>
+	</sp>
+</spdb>

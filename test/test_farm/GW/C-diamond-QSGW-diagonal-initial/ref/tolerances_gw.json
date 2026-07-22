@@ -1,0 +1,56 @@
+{
+  "SIGMAC_K1.OUT": {
+    "sigmac_matrix": {
+      "tol": 1e-5,
+      "unit": "null"
+    }
+  },
+  "SIGMAX_K1.OUT": {
+    "sigmax_matrix": {
+      "tol": 1e-5,
+      "unit": "null"
+    }
+  },
+  "OPTIMIZED_VXC_K1.OUT": {
+    "optimized_potential_matrix": {
+      "tol": 1e-5,
+      "unit": "null"
+    }
+  },
+  "SIGMAC_K2.OUT": {
+    "sigmac_matrix": {
+      "tol": 1e-5,
+      "unit": "null"
+    }
+  },
+  "SIGMAX_K2.OUT": {
+    "sigmax_matrix": {
+      "tol": 1e-5,
+      "unit": "null"
+    }
+  },
+  "OPTIMIZED_VXC_K2.OUT": {
+    "optimized_potential_matrix": {
+      "tol": 1e-5,
+      "unit": "null"
+    }
+  },
+    "SIGMAC_K3.OUT": {
+    "sigmac_matrix": {
+      "tol": 1e-5,
+      "unit": "null"
+    }
+  },
+  "SIGMAX_K3.OUT": {
+    "sigmax_matrix": {
+      "tol": 1e-5,
+      "unit": "null"
+    }
+  },
+  "OPTIMIZED_VXC_K3.OUT": {
+    "optimized_potential_matrix": {
+      "tol": 1e-5,
+      "unit": "null"
+    }
+  }
+}

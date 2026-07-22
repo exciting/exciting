@@ -5,7 +5,7 @@
 module hermitian_matrix_multiplication
   use precision, only: dp, i32
   use constants, only: zone, zzero
-  use asserts, only: assert
+#include "asserts.fpp"
   use math_utils, only: is_hermitian
   use lapack_f95_interfaces, only: dsymv, zhemv, dsymm, zhemm
 
@@ -80,10 +80,10 @@ contains
     tolerance = tol_default
     if ( present(tol) ) tolerance = tol
 
-    call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
-    call assert(is_hermitian(A, tolerance), 'A needs to be a symmetric matrix.')
-    call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
-    call assert(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
+    CALL_ASSERT(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
+    CALL_ASSERT(is_hermitian(A, tolerance), 'A needs to be a symmetric matrix.')
+    CALL_ASSERT(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
+    CALL_ASSERT(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
 
     call dsymv(uplo_, size(A, dim=1), alpha_default_real_dp, A, size(A, dim=1), &
     b, storage_spacing, beta_default_real_dp, C, storage_spacing)
@@ -123,10 +123,10 @@ contains
     tolerance = tol_default
     if ( present(tol) ) tolerance = tol
 
-    call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
-    call assert(is_hermitian(A, tolerance), 'A needs to be a hermitian matrix.')
-    call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
-    call assert(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
+    CALL_ASSERT(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
+    CALL_ASSERT(is_hermitian(A, tolerance), 'A needs to be a hermitian matrix.')
+    CALL_ASSERT(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
+    CALL_ASSERT(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
 
     call zhemv(uplo_, size(A, dim=1), alpha_default_complex_dp, A, &
     size(A, dim=1), b, storage_spacing, beta_default_complex_dp, C, storage_spacing)
@@ -166,10 +166,10 @@ contains
     tolerance = tol_default
     if ( present(tol) ) tolerance = tol
 
-    call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
-    call assert(is_hermitian(A, tolerance), 'A needs to be a hermitian matrix.')
-    call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
-    call assert(size(A, dim=1) == size(c), 'Number of rows of A neecomplexds to be the same as number of elements of c.')
+    CALL_ASSERT(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
+    CALL_ASSERT(is_hermitian(A, tolerance), 'A needs to be a hermitian matrix.')
+    CALL_ASSERT(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
+    CALL_ASSERT(size(A, dim=1) == size(c), 'Number of rows of A neecomplexds to be the same as number of elements of c.')
 
     call zhemv(uplo_, size(A, dim=1), alpha_default_complex_dp, &
     cmplx(A, 0.0_dp, kind=dp), size(A, dim=1), b, storage_spacing, &
@@ -210,10 +210,10 @@ contains
     tolerance = tol_default
     if ( present(tol) ) tolerance = tol
 
-    call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
-    call assert(is_hermitian(A, tolerance), 'A needs to be a hermitian matrix.')
-    call assert(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
-    call assert(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
+    CALL_ASSERT(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
+    CALL_ASSERT(is_hermitian(A, tolerance), 'A needs to be a hermitian matrix.')
+    CALL_ASSERT(size(A, dim=2) == size(b), 'Number of columns of A needs to be the same as number of elements of b.')
+    CALL_ASSERT(size(A, dim=1) == size(c), 'Number of rows of A needs to be the same as number of elements of c.')
 
     call zhemv(uplo_, size(A, dim=1), alpha_default_complex_dp, A, &
     size(A, dim=1), cmplx(b, 0.0_dp, kind=dp), storage_spacing, &
@@ -269,21 +269,21 @@ contains
     tolerance = tol_default
     if ( present(tol) ) tolerance = tol
 
-    call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
-    call assert(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
-    call assert(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
-    call assert(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
-    call assert(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
+    CALL_ASSERT(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
+    CALL_ASSERT(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
+    CALL_ASSERT(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
+    CALL_ASSERT(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
+    CALL_ASSERT(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
 
     is_side_L = any(side_ == ['L', 'l'])
 
     if (is_side_L) then
-      call assert(is_hermitian(A, tolerance), 'A needs to be a symmetric matrix.')
+      CALL_ASSERT(is_hermitian(A, tolerance), 'A needs to be a symmetric matrix.')
       call dsymm(side_, uplo_, size(A, dim=1), size(B, dim=2), &
       alpha_default_real_dp, A, size(A, dim=1), B, size(B, dim=1), &
       beta_default_real_dp, C, size(A, dim=1))
     else 
-      call assert(is_hermitian(B, tolerance), 'B needs to be a symmetric matrix.')
+      CALL_ASSERT(is_hermitian(B, tolerance), 'B needs to be a symmetric matrix.')
       call dsymm(side_, uplo_, size(A, dim=1), size(B, dim=2), &
       alpha_default_real_dp, B, size(B, dim=2), A, size(A, dim=1), &
       beta_default_real_dp, C, size(A, dim=1))
@@ -337,21 +337,21 @@ contains
     tolerance = tol_default
     if ( present(tol) ) tolerance = tol
 
-    call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
-    call assert(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
-    call assert(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
-    call assert(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
-    call assert(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
+    CALL_ASSERT(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
+    CALL_ASSERT(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
+    CALL_ASSERT(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
+    CALL_ASSERT(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
+    CALL_ASSERT(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
 
     is_side_L = any(side_ == ['L', 'l'])
 
     if (is_side_L) then
-      call assert(is_hermitian(A, tolerance), 'A needs to be a hermitian matrix.')
+      CALL_ASSERT(is_hermitian(A, tolerance), 'A needs to be a hermitian matrix.')
       call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), &
       alpha_default_complex_dp, A, size(A, dim=1), B, size(B, dim=1), &
       beta_default_complex_dp, C, size(A, dim=1))
     else
-      call assert(is_hermitian(B, tolerance), 'B needs to be a hermitian matrix.')
+      CALL_ASSERT(is_hermitian(B, tolerance), 'B needs to be a hermitian matrix.')
       call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), &
       alpha_default_complex_dp, B, size(B, dim=2), A, size(A, dim=1), &
       beta_default_complex_dp, C, size(A, dim=1))
@@ -408,21 +408,21 @@ contains
     tolerance = tol_default
     if ( present(tol) ) tolerance = tol
 
-    call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
-    call assert(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
-    call assert(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
-    call assert(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
-    call assert(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
+    CALL_ASSERT(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
+    CALL_ASSERT(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
+    CALL_ASSERT(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
+    CALL_ASSERT(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
+    CALL_ASSERT(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
 
     is_side_L = any(side_ == ['L', 'l'])
 
     if (is_side_L) then
-      call assert(is_hermitian(A, tolerance), 'A needs to be a symmetric matrix.')
+      CALL_ASSERT(is_hermitian(A, tolerance), 'A needs to be a symmetric matrix.')
       call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), &
       alpha_default_complex_dp, cmplx(A, 0.0_dp, kind=dp), size(A, dim=1), &
       B, size(B, dim=1), beta_default_complex_dp, C, size(A, dim=1))
     else 
-      call assert(is_hermitian(B, tolerance), 'B needs to be a hermitian matrix.')
+      CALL_ASSERT(is_hermitian(B, tolerance), 'B needs to be a hermitian matrix.')
       call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), &
       alpha_default_complex_dp, B, size(B, dim=2), cmplx(A, 0.0_dp, kind=dp), &
       size(A, dim=1), beta_default_complex_dp, C, size(A, dim=1))
@@ -479,21 +479,21 @@ contains
     tolerance = tol_default
     if ( present(tol) ) tolerance = tol
 
-    call assert(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
-    call assert(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
-    call assert(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
-    call assert(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
-    call assert(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
+    CALL_ASSERT(any(uplo_ == ['U', 'u', 'L', 'l']), 'uplo needs to be one of "U", "u", "L", "l".')
+    CALL_ASSERT(any(side_ == ['L', 'l', 'R', 'r']), 'side needs to be one of "L", "l", "R" or "r".')
+    CALL_ASSERT(size(A, dim=2) == size(B, dim=1), 'Number of columns of A needs to be the same as the number of rows of B.')
+    CALL_ASSERT(size(C, dim=1) == size(A, dim=1), 'The number of rows of C must be equal to the number of rows of A.')
+    CALL_ASSERT(size(C, dim=2) == size(B, dim=2), 'The number of columns of C must be equal to the number of columns of B.')
 
     is_side_L = any(side_ == ['L', 'l'])
 
     if (is_side_L) then
-      call assert(is_hermitian(A, tolerance), 'A needs to be a symmetric matrix.')
+      CALL_ASSERT(is_hermitian(A, tolerance), 'A needs to be a symmetric matrix.')
       call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), &
       alpha_default_complex_dp, A, size(A, dim=1), cmplx(B, 0.0_dp, kind=dp), &
       size(B, dim=1), beta_default_complex_dp, C, size(A, dim=1))
     else 
-      call assert(is_hermitian(B, tolerance), 'B needs to be a symmetric matrix.')
+      CALL_ASSERT(is_hermitian(B, tolerance), 'B needs to be a symmetric matrix.')
       call zhemm(side_, uplo_, size(A, dim=1), size(B, dim=2), &
       alpha_default_complex_dp, cmplx(B, 0.0_dp, kind=dp), size(B, dim=2), A, &
       size(A, dim=1), beta_default_complex_dp, C, size(A, dim=1))

@@ -5,7 +5,6 @@
 !
 subroutine getbsediag
   use modxs, only: bsed, bsedl, bsedu, bsedd
-  use m_getunit
 
   implicit none
 
@@ -13,8 +12,7 @@ subroutine getbsediag
   integer :: un
   real(8) :: re, im
 
-  call getunit(un)
-  open(un, file='BSEDIAG.OUT', action='read',&
+  open(newunit=un, file='BSEDIAG.OUT', action='read',&
     & form='formatted', status='old')
 
   read(un,*) re, im

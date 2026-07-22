@@ -25,7 +25,7 @@ module dfpt_eigensystem
 
   use precision, only: dp
   use matrix_elements
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
 
   implicit none
@@ -37,6 +37,8 @@ module dfpt_eigensystem
   complex(dp), allocatable, public :: Hmat_mt_basis(:,:,:)
   !> characteristic function in reciprocal space
   complex(dp), allocatable, public :: cfun_ig(:)
+  !> interstitial overlap times characteristic function in reciprocal space
+  complex(dp), allocatable :: olp_cfun_ig(:)
   !> interstitial effective potential times characteristic function in reciprocal space
   complex(dp), allocatable :: pot_cfun_ig(:)
   !> interstitial (scalar relativistic) kinetic energy times characteristic function in reciprocal space
@@ -44,7 +46,7 @@ module dfpt_eigensystem
 
   public :: dfpt_eig_init, dfpt_eig_free
   public :: dfpt_eig_ks, dfpt_eig_geteval, dfpt_eig_getevec
-  public :: dfpt_eig_gen_dHmat ,dfpt_eig_prepare_dHmat
+  public :: dfpt_eig_gen_dSHmat ,dfpt_eig_prepare_dSHmat
 
   contains
 
@@ -66,7 +68,9 @@ module dfpt_eigensystem
       use mod_potential_and_density, only: pot_mt => veffmt, pot_ir => veffir
       use modinput
 
-      real(dp), allocatable :: kin_ir(:)
+      real(dp), parameter :: a2 = alpha**2 / 2
+
+      real(dp), allocatable :: fun_ir(:)
 
       ! initialize matrix elements module
       call me_init( mt_basis, dfpt_lmaxvr, dfpt_Gset )
@@ -74,25 +78,30 @@ module dfpt_eigensystem
       ! compute MT radial integrals times Gaunt coefficients
       call gen_overlap_hamiltonian_mt_basis( Smat_mt_basis, Hmat_mt_basis, pot_mt, lmax_apw=dfpt_lmaxapw, lmax_pot=dfpt_lmaxvr )
 
-      ! compute interstitial representation of characteristic function, 
+      ! compute interstitial representation of overlap, 
       ! effective potential and kinetic energy
+      allocate( fun_ir(dfpt_Gset%ngrtot) )
+      ! effective potential
       call me_ir_alloc( pot_cfun_ig )
       call me_ir_prepare( zone, pot_ir, zzero, pot_cfun_ig )
-      allocate( cfun_ig(dfpt_Gset%ngvec) )
-      allocate( kin_ir(dfpt_Gset%ngrtot) )
-      call gencfunig( dfpt_Gset%ngvec, dfpt_Gset%gc, dfpt_Gset%vgc, cfun_ig )
-      select case( input%groundstate%ValenceRelativity )
-        case( 'iora*' )
-          call terminate_if_false( .false., '(dfpt_eig_init) &
-            DFPT in combination with `iora*` valence relativity not implemented.' )
-        case( 'none' )
-          kin_ir = 0.5_dp
-        case default
-          kin_ir = 0.5_dp / (1.0_dp - 0.5_dp * alpha**2 * pot_ir )
-      end select
+      ! kinetic energy
       call me_ir_alloc( kin_cfun_ig )
-      call me_ir_prepare( zone, kin_ir, zzero, kin_cfun_ig )
-      deallocate( kin_ir )
+      select case (input%groundstate%ValenceRelativity)
+        case ('none')
+          fun_ir = 0.5_dp
+        case default
+          fun_ir = 0.5_dp / (1.0_dp - a2 * pot_ir )
+      end select
+      call me_ir_prepare( zone, fun_ir, zzero, kin_cfun_ig )
+      ! overlap
+      allocate( cfun_ig(dfpt_Gset%ngvec) )
+      call me_ir_alloc( olp_cfun_ig )
+      call gencfunig( dfpt_Gset%ngvec, dfpt_Gset%gc, dfpt_Gset%vgc, cfun_ig )
+      if (input%groundstate%ValenceRelativity == 'iora*') then
+        fun_ir = (a2 * fun_ir) / (1.0_dp - a2 * pot_ir)
+        call me_ir_prepare( zone, fun_ir, zzero, olp_cfun_ig )
+      end if
+      deallocate( fun_ir )
     end subroutine dfpt_eig_init
 
     !> This subroutine frees memory from the module variables
@@ -100,6 +109,8 @@ module dfpt_eigensystem
     subroutine dfpt_eig_free
       if( allocated( Smat_mt_basis ) ) deallocate( Smat_mt_basis )
       if( allocated( Hmat_mt_basis ) ) deallocate( Hmat_mt_basis )
+      if( allocated( cfun_ig ) ) deallocate( cfun_ig )
+      if( allocated( olp_cfun_ig ) ) deallocate( olp_cfun_ig )
       if( allocated( pot_cfun_ig ) ) deallocate( pot_cfun_ig )
       if( allocated( kin_cfun_ig ) ) deallocate( kin_cfun_ig )
     end subroutine dfpt_eig_free
@@ -122,6 +133,7 @@ module dfpt_eigensystem
       use mod_atoms, only: natmtot, nspecies, natoms, idxas
       use mod_APW_LO, only: apwordmax
       use mod_muffin_tin, only: lmmaxapw
+      use modinput
       !> index of the wavevector \({\bf p}\) in the set
       integer, intent(in) :: ip
       !> set of \({\bf p}\) vectors
@@ -166,12 +178,9 @@ module dfpt_eigensystem
       ! read result from file if possible
       if( present( feval ) .or. present( fevec ) ) then
         ! check input
-        call assert( present( p0set ), &
-          'When reference files are present so must be the reference p-point set.' )
-        call assert( present( p0set ), &
-          'When reference files are present so must be the reference G+p-point set.' )
-        call assert( present( feval ) .and. present( fevec ), &
-          'Both reference files must be present.' )
+        CALL_ASSERT( present( p0set ),  'When reference files are present so must be the reference p-point set.' )
+        CALL_ASSERT( present( Gp0set ),  'When reference files are present so must be the reference G+p-point set.' )
+        CALL_ASSERT( present( feval ) .and. present( fevec ),  'Both reference files must be present.' )
         ! check if requested p-point is in reference set
         call findkptinset( pset%vkl(:, ip), p0set, isym, ip0 )
         ! p-point is in reference set
@@ -203,6 +212,12 @@ module dfpt_eigensystem
       end do
       ! interstitial contribution
       call me_ir_mat( Gpset, ip, Gpset, ip, zone, cfun_ig, zone, S, Gset_op=Gset )
+      if (input%groundstate%ValenceRelativity == 'iora*') then
+        do i = 1, 3
+          call me_ir_mat( Gpset, ip, Gpset, ip, zone, olp_cfun_ig, zone, S, Gset_op=Gset, &
+            left_gradient=i, right_gradient=i )
+        end do
+      end if
       call me_ir_mat( Gpset, ip, Gpset, ip, zone, pot_cfun_ig, zone, H, Gset_op=Gset )
       do i = 1, 3
         call me_ir_mat( Gpset, ip, Gpset, ip, zone, kin_cfun_ig, zone, H, Gset_op=Gset, &
@@ -210,17 +225,16 @@ module dfpt_eigensystem
       end do
       !* solve eigensystem
       call zhegdiag( H, S, eval(1:n), evec=evec(1:nmatp, 1:n), irange=[1,n] )
-      ! we fix a unige gauge of the eigenvectors
-      !call zhegauge( eval(1:n), evec(1:nmatp, 1:n), eps=1e-6_dp )
       ! deallocate local variables
       deallocate( apwalm, S, H )
     end subroutine dfpt_eig_ks
 
     !> For a given effective potential response \(\delta V_{\rm eff}({\bf r})\), 
     !> this subroutine computes the radial muffin-tin integrals times Gaunt coefficients
-    !> and the reciprocal space representation of the effective potential response
+    !> for the overlap and Hamiltonian response
+    !> and the reciprocal space representation of the characteristic function and effective potential response
     !> times the characteristic function.
-    subroutine dfpt_eig_prepare_dHmat( pot_mt, pot_ir, dpot_mt, dpot_ir, dHmat_mt_basis, dpot_cfun_ig, dkin_cfun_ig, &
+    subroutine dfpt_eig_prepare_dSHmat( pot_mt, pot_ir, dpot_mt, dpot_ir, dSmat_mt_basis, dHmat_mt_basis, dolp_cfun_ig, dpot_cfun_ig, dkin_cfun_ig, &
         Gset )
       use matrix_elements
       use constants, only: zzero, zone, y00
@@ -237,8 +251,12 @@ module dfpt_eigensystem
       complex(dp), intent(in) :: dpot_mt(:,:,:)
       !> interstitial effective potential response on real space FFT grid
       complex(dp), intent(in) :: dpot_ir(:)
-      !> radial muffin-tin integrals times Gaunt coefficients
+      !> overlap response radial muffin-tin integrals times Gaunt coefficients
+      complex(dp), intent(out) :: dSmat_mt_basis(:,:,:)
+      !> Hamiltonian response radial muffin-tin integrals times Gaunt coefficients
       complex(dp), intent(out) :: dHmat_mt_basis(:,:,:)
+      !> interstitial overlap response times characteristic function in reciprocal space
+      complex(dp), intent(out) :: dolp_cfun_ig(:)
       !> interstitial effective potential response times characteristic function in reciprocal space
       complex(dp), intent(out) :: dpot_cfun_ig(:)
       !> interstitial (scalar relativistic) kinetic energy response times characteristic function in reciprocal space
@@ -246,9 +264,11 @@ module dfpt_eigensystem
       !> set of \({\bf G}\) vectors the interstitial potential response is expanded on (default: `dfpt_Gset`)
       type(G_set), optional, intent(in) :: Gset
 
+      real(dp), parameter :: a2 = alpha**2 / 2
+
       integer :: is, ia, ias, i
 
-      complex(dp), allocatable :: rfun(:,:), dkin_ir(:)
+      complex(dp), allocatable :: rfun(:,:), dfun_ir(:)
 
       allocate( rfun(1, nrmtmax) )
       do is = 1, nspecies
@@ -257,58 +277,80 @@ module dfpt_eigensystem
           ! potential
           call me_mt_prepare( is, ias, dfpt_lmaxvr, zone, dpot_mt(:, :, ias), zzero, dHmat_mt_basis(:, :, ias) )
           ! kinetic energy
-          if( input%groundstate%ValenceRelativity /= 'none' ) then
-            rfun(1, 1:nrmt(is)) = 0.5_dp * (0.5_dp * alpha**2 * dpot_mt(1, 1:nrmt(is), ias)) / (1.0_dp - 0.5_dp * alpha**2 * pot_mt(1, 1:nrmt(is), ias) * y00)**2
+          if (input%groundstate%ValenceRelativity /= 'none') then
+            rfun(1, 1:nrmt(is)) = 0.5_dp * (a2 * dpot_mt(1, 1:nrmt(is), ias)) / (1.0_dp - a2 * pot_mt(1, 1:nrmt(is), ias) * y00)**2
             do i = 1, 3
               call me_mt_prepare( is, ias, 0, zone, rfun, zone, dHmat_mt_basis(:, :, ias), &
                 left_gradient=i, right_gradient=i )
             end do
           end if
-
+          ! overlap
+          if (input%groundstate%ValenceRelativity == 'iora*') then
+            rfun(1, 1:nrmt(is)) = (2 * a2 * rfun(1, 1:nrmt(is))) / (1.0_dp - a2 * pot_mt(1, 1:nrmt(is), ias) * y00)
+            do i = 1, 3
+              call me_mt_prepare( is, ias, 0, zone, rfun, zone, dSmat_mt_basis(:, :, ias), &
+                left_gradient=i, right_gradient=i )
+            end do
+          end if
         end do
       end do
       deallocate( rfun )
 
-      if( present( Gset ) ) then
+      if (present( Gset )) then
         ! potential
         call me_ir_prepare( zone, dpot_ir, zzero, dpot_cfun_ig, Gset_op=Gset )
         ! kinetic energy
-        if( input%groundstate%ValenceRelativity == 'none' ) then
+        if (input%groundstate%ValenceRelativity == 'none') then
           dkin_cfun_ig = zzero
         else
-          allocate( dkin_ir(Gset%ngrtot) )
-          dkin_ir = 0.5_dp * (0.5_dp * alpha**2 * dpot_ir) / (1.0_dp - 0.5_dp * alpha**2 * pot_ir)**2
-          call me_ir_prepare( zone, dkin_ir, zzero, dkin_cfun_ig, Gset_op=Gset )
-          deallocate( dkin_ir )
+          allocate( dfun_ir(Gset%ngrtot) )
+          dfun_ir = 0.5_dp * (0.5_dp * alpha**2 * dpot_ir) / (1.0_dp - 0.5_dp * alpha**2 * pot_ir)**2
+          call me_ir_prepare( zone, dfun_ir, zzero, dkin_cfun_ig, Gset_op=Gset )
+        end if
+        ! overlap
+        if (input%groundstate%ValenceRelativity == 'iora*') then
+          dfun_ir = (2 * a2 * dfun_ir) / (1.0_dp - 0.5_dp * alpha**2 * pot_ir)
+          call me_ir_prepare( zone, dfun_ir, zzero, dolp_cfun_ig, Gset_op=Gset )
+          deallocate( dfun_ir )
+        else
+          dolp_cfun_ig = zzero
         end if
       else
         ! potential
         call me_ir_prepare( zone, dpot_ir, zzero, dpot_cfun_ig )
         ! kinetic energy
-        if( input%groundstate%ValenceRelativity == 'none' ) then
+        if (input%groundstate%ValenceRelativity == 'none') then
           dkin_cfun_ig = zzero
         else
-          allocate( dkin_ir(dfpt_Gset%ngrtot) )
-          dkin_ir = 0.5_dp * (0.5_dp * alpha**2 * dpot_ir) / (1.0_dp - 0.5_dp * alpha**2 * pot_ir)**2
-          call me_ir_prepare( zone, dkin_ir, zzero, dkin_cfun_ig )
-          deallocate( dkin_ir )
+          allocate( dfun_ir(dfpt_Gset%ngrtot) )
+          dfun_ir = 0.5_dp * (0.5_dp * alpha**2 * dpot_ir) / (1.0_dp - 0.5_dp * alpha**2 * pot_ir)**2
+          call me_ir_prepare( zone, dfun_ir, zzero, dkin_cfun_ig )
+        end if
+        ! overlap
+        if (input%groundstate%ValenceRelativity == 'iora*') then
+          dfun_ir = (2 * a2 * dfun_ir) / (1.0_dp - 0.5_dp * alpha**2 * pot_ir)
+          call me_ir_prepare( zone, dfun_ir, zzero, dolp_cfun_ig )
+          deallocate( dfun_ir )
+        else
+          dolp_cfun_ig = zzero
         end if
       end if
-    end subroutine dfpt_eig_prepare_dHmat
+    end subroutine dfpt_eig_prepare_dSHmat
 
-    !> This subroutine calculates the contribution to the Hamiltonian response 
+    !> This subroutine calculates the contribution to the overlap and Hamiltonian response 
     !> coming from the effective potential response, i.e.,
     !> \[ \delta H^0_{mn} = \langle \psi_{m{\bf p'}} | \delta V_{\rm eff} | \psi_{n{\bf p}} \rangle \;,\]
     !> where \({\bf p'}\) might be different from \({\bf p}\) when the perturbation carries a non-zero
     !> wavevector (e.g. phonon-like perturbation).
     !>
     !> The result is added to the input matrix!
-    subroutine dfpt_eig_gen_dHmat( ip, Gpset1, Gpset2, fst1, lst1, fst2, lst2, evec1, evec2, apwalm1, apwalm2, &
-        dHmat_mt_basis, dpot_cfun_ig, dkin_cfun_ig, dHmat, &
+    subroutine dfpt_eig_gen_dSHmat( ip, Gpset1, Gpset2, fst1, lst1, fst2, lst2, evec1, evec2, apwalm1, apwalm2, &
+        dSmat_mt_basis, dHmat_mt_basis, dolp_cfun_ig, dpot_cfun_ig, dkin_cfun_ig, dSmat, dHmat, &
         Gset, diagonal )
       use constants, only: zone
       use mod_kpointset, only: G_set, Gk_set
       use mod_atoms, only: nspecies, natoms, idxas
+      use modinput
       !> index of the wavevector \({\bf p}\) in the set
       integer, intent(in) :: ip
       !> set of \({\bf G+p}\) vectors on the left and right
@@ -321,12 +363,18 @@ module dfpt_eigensystem
       complex(dp), intent(in) :: evec1(:,:), evec2(:,:)
       !> (L)APW matching coefficients \(A^\alpha_{{\bf G+p},lm,\xi}\) on the left and right
       complex(dp), intent(in) :: apwalm1(:,:,:,:), apwalm2(:,:,:,:)
+      !> radial muffin-tin integrals of overlap response times Gaunt coefficients
+      complex(dp), intent(in) :: dSmat_mt_basis(:,:,:)
       !> radial muffin-tin integrals of effective potential response times Gaunt coefficients
       complex(dp), intent(in) :: dHmat_mt_basis(:,:,:)
+      !> interstitial overlap response times characteristic function in reciprocal space
+      complex(dp), intent(in) :: dolp_cfun_ig(:)
       !> interstitial effective potential response times characteristic function in reciprocal space
       complex(dp), intent(in) :: dpot_cfun_ig(:)
       !> interstitial (scalar relativistic) kinetic energy response times characteristic function in reciprocal space
       complex(dp), intent(in) :: dkin_cfun_ig(:)
+      !> overlap response
+      complex(dp), intent(inout) :: dSmat(:,:)
       !> Hamiltonian response
       complex(dp), intent(inout) :: dHmat(:,:)
       !> set of \({\bf G}\) vectors the interstitial potential response is expanded on (default: dfpt_Gset)
@@ -352,6 +400,14 @@ module dfpt_eigensystem
       do is = 1, nspecies
         do ia = 1, natoms(is)
           ias = idxas(ia, is)
+          ! overlap
+          if (input%groundstate%ValenceRelativity == 'iora*') then
+            call me_mt_mat( is, ias, ngk1, ngk2, apwalm1(:, :, :, ias), apwalm2(:, :, :, ias), &
+                   evec1(:, fst1:lst1), evec2(:, fst2:lst2), &
+                   zone, dSmat_mt_basis(:, :, ias), zone, dSmat, &
+                   diagonal_only=diag )
+          end if
+          ! Hamiltonian
           call me_mt_mat( is, ias, ngk1, ngk2, apwalm1(:, :, :, ias), apwalm2(:, :, :, ias), &
                  evec1(:, fst1:lst1), evec2(:, fst2:lst2), &
                  zone, dHmat_mt_basis(:, :, ias), zone, dHmat, &
@@ -360,7 +416,17 @@ module dfpt_eigensystem
       end do
 
       ! ** interstitial part
-      if( present( Gset ) ) then
+      if (present( Gset )) then
+        ! overlap
+        if (input%groundstate%ValenceRelativity == 'iora*') then
+          do i = 1, 3
+            call me_ir_mat( Gpset1, ip, Gpset2, ip, &
+                   evec1(:, fst1:lst1), evec2(:, fst2:lst2), &
+                   zone, dolp_cfun_ig, zone, dSmat, &
+                   left_gradient=i, right_gradient=i, Gset_op=Gset, diagonal_only=diag )
+          end do
+        end if
+        ! Hamiltonian
         call me_ir_mat( Gpset1, ip, Gpset2, ip, &
                evec1(:, fst1:lst1), evec2(:, fst2:lst2), &
                zone, dpot_cfun_ig, zone, dHmat, &
@@ -372,6 +438,16 @@ module dfpt_eigensystem
                  left_gradient=i, right_gradient=i, Gset_op=Gset, diagonal_only=diag )
         end do
       else
+        ! overlap
+        if (input%groundstate%ValenceRelativity == 'iora*') then
+          do i = 1, 3
+            call me_ir_mat( Gpset1, ip, Gpset2, ip, &
+                   evec1(:, fst1:lst1), evec2(:, fst2:lst2), &
+                   zone, dolp_cfun_ig, zone, dSmat, &
+                   left_gradient=i, right_gradient=i, diagonal_only=diag )
+          end do
+        end if
+        ! Hamiltonian
         call me_ir_mat( Gpset1, ip, Gpset2, ip, &
                evec1(:, fst1:lst1), evec2(:, fst2:lst2), &
                zone, dpot_cfun_ig, zone, dHmat, &
@@ -383,7 +459,7 @@ module dfpt_eigensystem
                  left_gradient=i, right_gradient=i, diagonal_only=diag )
         end do
       end if
-    end subroutine dfpt_eig_gen_dHmat
+    end subroutine dfpt_eig_gen_dSHmat
 
     subroutine dfpt_eig_geteval( vpl, feval, pset, band_range, eval )
       use block_data_file, only: block_data_file_type
@@ -482,6 +558,8 @@ module dfpt_eigensystem
       !> include effective potential contribution (default: true)
       logical, optional, intent(in) :: potential
 
+      real(dp), parameter :: a2 = alpha**2 / 2
+
       integer :: lmaxapw, lmaxpot, is, ia, ias, i
       real(dp), allocatable :: rfun(:,:)
       logical :: kin, pot
@@ -508,13 +586,21 @@ module dfpt_eigensystem
           ! overlap
           rfun = 1.0_dp / y00
           call me_mt_prepare( is, ias, 0, zone, rfun, zzero, Smat_mt_basis(:, :, ias) )
+          if (input%groundstate%ValenceRelativity == 'iora*') then
+            rfun = 0.5_dp * a2 / y00
+            rfun(1, 1:nrmt(is)) = rfun(1, 1:nrmt(is)) / (1.0_dp - a2 * pot_mt(1, 1:nrmt(is), ias) * y00)**2
+            do i = 1, 3
+              call me_mt_prepare( is, ias, 0, zone, rfun, zone, Smat_mt_basis(:, :, ias), &
+                left_gradient=i, right_gradient=i )
+            end do
+          end if
 
           ! Hamiltonian
           ! kinetic energy
           if( kin ) then
             rfun = 0.5_dp / y00
-            if( input%groundstate%ValenceRelativity /= 'none' ) &
-              rfun(1, 1:nrmt(is)) = rfun(1, 1:nrmt(is)) / (1.0_dp - 0.5_dp * alpha**2 * pot_mt(1, 1:nrmt(is), ias) * y00)
+            if (input%groundstate%ValenceRelativity /= 'none') &
+              rfun(1, 1:nrmt(is)) = rfun(1, 1:nrmt(is)) / (1.0_dp - a2 * pot_mt(1, 1:nrmt(is), ias) * y00)
             do i = 1, 3
               call me_mt_prepare( is, ias, 0, zone, rfun, zone, Hmat_mt_basis(:, :, ias), &
                 left_gradient=i, right_gradient=i )

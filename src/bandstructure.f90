@@ -4,13 +4,14 @@
 module bandstructure
   use constants, only: zzero, twopi
   use modinput, only: input
+  use mod_eigensystem, only: releasesingular
   use precision, only: dp, i32, sp, str_128, str_256
 
   implicit none
 
   private
 
-  public :: bandstr, fourintp
+  public :: bandstr, fourintp, bandstr_fourintp
 
 contains
   !>   Produce a band structure along the path in reciprocal-space which connects
@@ -31,7 +32,7 @@ subroutine bandstr
   use mod_APW_LO, only: apwordmax
   use mod_atoms, only: atposc, idxas, natoms, natmtot, nspecies, spname
   use mod_Gkvector, only: gkc, ngk, ngkmax, sfacgk, tpgkc
-  use mod_eigensystem, only: mt_hscf, MTInitAll, MTNullify, nmatmax, evalsingular, singular
+  use mod_eigensystem, only: mt_hscf, MTInitAll, MTNullify, nmatmax, singular
   use mod_eigenvalue_occupancy, only: efermi, evalsv, nstfv, nstsv
   use exciting_mpi, only: xmpi_allgatherv
   use mod_kpoint, only: nkpt, vkl
@@ -67,6 +68,7 @@ subroutine bandstr
   ! initialise global variables
   Call init0
   Call init1
+  if ( trim(input%groundstate%solver%type) == 'Davidson' ) call releasesingular
 
   !------------------------------------------------------------------
   ! In case of hybrid functionals, one is asked to use Wannier tools
@@ -123,12 +125,10 @@ subroutine bandstr
     Allocate (evecfv(nmatmax, nstfv, nspnfv))
     Allocate (evecsv(nstsv, nstsv))
     ! initialise the eigenvectors if we use the Davidson eigensolver
-    ! singular and evalsingular arrays were built for the GS k grid, and not for 
+    ! singular array was built for the GS k grid, and not for 
     ! the bandstr one, so we deallocate them
     if ( trim( input%groundstate%solver%type ) == 'Davidson' ) then
       evecfv = zzero
-      if ( allocated( singular ) ) deallocate ( singular )
-      if ( allocated( evalsingular ) ) deallocate ( evalsingular )
     end if
     ! solve the first- and second-variational secular equations
     Call seceqn (ik, evalfv, evecfv, evecsv)
@@ -181,6 +181,7 @@ subroutine bandstr
     ! end loop over k-points
   End Do
   call mt_hscf%release()
+  call releasesingular
   n_kpts_current_rank = lastofset(rank, nkpt) - firstofset(rank, nkpt) + 1
   if ( input%properties%bandstructure%character ) &
     call xmpi_allgatherv( mpiglobal, bc, (lmax + 1) * natmtot * nstsv * n_kpts_current_rank )
@@ -510,5 +511,213 @@ subroutine fourintp(f1, nk1, kvecs1, f2, nk2, kvecs2, nb)
   call matrix_multiply( smat2, coef, f2 )
     
 end subroutine
+
+! Equivalent to bandstr but uses
+! the smooth Fourier interpolation to compute the
+! bandstructure. Alternative to Wannier
+! for hybrids and QSGW runs
+subroutine bandstr_fourintp
+  use mod_eigenvalue_occupancy, only: efermi, nstfv
+  use mod_misc,                 only: task
+  use mod_kpoint,               only: nkpt, vkl
+  use mod_plotting,             only: dpp1d, dvp1d, nvp1d, vplp1d
+  use mod_potential_and_density, only: meffig, m2effig
+  use mod_spin,                 only: nspnfv
+  use modmpi,                   only: rank, terminate, mpiglobal
+  use mod_potential_and_density, only: xctype
+  use FoX_wxml,                 only: xmlf_t, xml_AddAttribute, xml_AddCharacters, xml_AddXMLPI, &
+                                       xml_Close, xml_EndElement, xml_NewElement, xml_OpenFile
+  use m_write_hdf5,             only: hdf5_bandstructure_output
+  use modinput,                 only: input
+  use precision,                only: dp, i32, str_128, str_256
+
+  implicit none
+
+  integer(i32) :: ik, ist, iv, nkpt_bp, nkpt_ks
+  real(dp)     :: emin, emax
+  real(dp), allocatable :: evalfv(:,:)
+
+  ! Ground-state k-mesh eigenvalues (shifted by Fermi energy)
+  real(dp),    allocatable :: kvecs_gs(:, :)
+  complex(dp), allocatable :: gs_evalfv(:, :)   ! (nkpt, nstfv) — complex wrapper for fourintp
+
+  ! Band-path k-points and interpolated eigenvalues
+  real(dp),    allocatable :: kvecs_bp(:, :)
+  complex(dp), allocatable :: evalfv_bp(:, :)   ! (nkpt_bp, nstfv)
+
+  character(len=str_256) :: fname
+  character(len=str_128) :: buffer
+  character(:), allocatable :: label_names
+  real(dp),    allocatable  :: label_coordinates(:, :)
+
+  type(xmlf_t), save :: xf
+
+  ! ----------------------------------------------------------------
+  ! 1.  Globals initialization, and allocation of the KS arrays
+  ! ----------------------------------------------------------------
+  call init0
+  ! Here the k-points are the KS ones
+  call init1
+  call readfermi
+  
+  nkpt_ks = nkpt
+  allocate(kvecs_gs, source = vkl)
+  allocate(gs_evalfv(nkpt_ks, nstfv))
+  allocate(evalfv(nstfv, nkpt_ks))
+  
+  emin =  1.0e5_dp
+  emax = -1.0e5_dp
+
+  do ik = 1, nkpt_ks
+    call getevalfv(kvecs_gs(:,ik), evalfv(:,ik))
+    do ist = 1, nstfv
+      evalfv(ist, ik) = evalfv(ist, ik) - efermi
+      if (evalfv(ist, ik) > 0.0_dp) &
+        evalfv(ist, ik) = evalfv(ist, ik) + input%properties%bandstructure%scissor
+      emin = min(emin, evalfv(ist, ik))
+      emax = max(emax, evalfv(ist, ik))
+      ! fourintp expects layout (nk, nb), i.e. k-index first
+      gs_evalfv(ik, ist) = cmplx(evalfv(ist, ik), 0.0_dp, kind=dp)
+    end do
+  end do
+  
+  if (allocated(meffig))  deallocate(meffig)
+  if (allocated(m2effig)) deallocate(m2effig)
+
+
+  ! Set the task to band. This sets k points globals
+  ! to the bandstructure
+  task = 20
+  call init1
+
+  ! ----------------------------------------------------------------
+  ! 2.  Build the band-path k-point list from the plotting mesh.
+  ! ----------------------------------------------------------------
+  nkpt_bp = size(dpp1d)   ! number of points along the band path
+
+  allocate(kvecs_bp, source = vplp1d)
+  allocate(evalfv_bp(nkpt_bp, nstfv))
+
+  ! ----------------------------------------------------------------
+  ! 3.  Smooth Fourier interpolation: gs k-mesh → band-path k-mesh
+  ! ----------------------------------------------------------------
+  call fourintp(gs_evalfv, nkpt_ks, kvecs_gs, evalfv_bp, nkpt_bp, kvecs_bp, nstfv)
+
+  ! ----------------------------------------------------------------
+  ! 4.  Collect interpolated eigenvalues and update emin/emax
+  ! ----------------------------------------------------------------
+  emax = emax + (maxval(real(evalfv_bp,kind=dp)) - minval(real(evalfv_bp,kind=dp))) * 0.5_dp
+  emin = emin - (maxval(real(evalfv_bp,kind=dp)) - minval(real(evalfv_bp,kind=dp))) * 0.5_dp
+
+  ! ----------------------------------------------------------------
+  ! 5.  Build label arrays (same logic as bandstr)
+  ! ----------------------------------------------------------------
+  allocate(label_coordinates(3, nvp1d))
+  label_names = trim(adjustl(input%properties%bandstructure%plot1d%path%pointarray(1)%point%label))
+  label_coordinates(:, 1) = input%properties%bandstructure%plot1d%path%pointarray(1)%point%coord
+  do iv = 2, nvp1d
+    label_names = label_names // "," // &
+      trim(adjustl(input%properties%bandstructure%plot1d%path%pointarray(iv)%point%label))
+    label_coordinates(:, iv) = input%properties%bandstructure%plot1d%path%pointarray(iv)%point%coord
+  end do
+
+  ! ----------------------------------------------------------------
+  ! 6.  HDF5 output: store the interpolated eigenvalues.
+  !     We reallocate the evalfv array (ist, ik layout) expected by the
+  !     output routine, so we transpose evalfv_bp back.
+  ! ----------------------------------------------------------------
+  deallocate(evalfv)
+  allocate(evalfv(nstfv,nkpt_bp))
+  do ik = 1, nkpt_bp
+    do ist = 1, nstfv
+      evalfv(ist, ik) = real(evalfv_bp(ik, ist), kind=dp)
+    end do
+  end do
+
+  call hdf5_bandstructure_output(mpiglobal, 'properties.h5', '/', &
+                                  evalfv(:, 1:nkpt_bp), [emin, emax], &
+                                  dpp1d, label_names, dvp1d, label_coordinates)
+
+  ! ----------------------------------------------------------------
+  ! 7.  Text / XML output  (rank-0 only, mirrors bandstr)
+  ! ----------------------------------------------------------------
+  if (rank == 0) then
+
+    call xml_OpenFile("bandstructure.xml", xf, replace=.true., pretty_print=.true.)
+    call xml_AddXMLPI(xf, "xml-stylesheet", &
+      'href="' // trim(input%xsltpath) // &
+      '/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"')
+    call xml_NewElement(xf, "bandstructure")
+    call xml_AddAttribute(xf, "interpolated", "true")
+    call xml_NewElement(xf, "title")
+    call xml_AddCharacters(xf, trim(input%title))
+    call xml_EndElement(xf, "title")
+
+    open(50, file='BAND.OUT', action='WRITE', form='FORMATTED')
+
+    do ist = 1, nstfv
+      call xml_NewElement(xf, "band")
+      do ik = 1, nkpt_bp
+        write(50, '(2G18.10)') dpp1d(ik), evalfv(ist, ik)
+        call xml_NewElement(xf, "point")
+        write(buffer, '(5G18.10)') dpp1d(ik)
+        call xml_AddAttribute(xf, "distance", trim(adjustl(buffer)))
+        write(buffer, '(5G18.10)') evalfv(ist, ik)
+        call xml_AddAttribute(xf, "eval", trim(adjustl(buffer)))
+        call xml_EndElement(xf, "point")
+      end do
+      call xml_EndElement(xf, "band")
+      write(50, '("     ")')
+    end do
+
+    close(50)
+    write(*, *)
+    write(*, '("Info(bandstr_fourintp):")')
+    write(*, '(" Interpolated band structure written to BAND.OUT")')
+
+    ! Vertex location lines
+    open(50, file='BANDLINES.OUT', action='WRITE', form='FORMATTED')
+    do iv = 1, nvp1d
+      call xml_NewElement(xf, "vertex")
+      write(buffer, '(5G18.10)') dvp1d(iv)
+      call xml_AddAttribute(xf, "distance", trim(adjustl(buffer)))
+      write(buffer, '(5G18.10)') emax
+      call xml_AddAttribute(xf, "upperboundary", trim(adjustl(buffer)))
+      write(buffer, '(5G18.10)') emin
+      call xml_AddAttribute(xf, "lowerboundary", trim(adjustl(buffer)))
+      call xml_AddAttribute(xf, "label", &
+        trim(adjustl(input%properties%bandstructure%plot1d%path%pointarray(iv)%point%label)))
+      write(buffer, '(5G18.10)') &
+        input%properties%bandstructure%plot1d%path%pointarray(iv)%point%coord
+      call xml_AddAttribute(xf, "coord", trim(adjustl(buffer)))
+      call xml_EndElement(xf, "vertex")
+      write(50, '(2G18.10)') dvp1d(iv), emin
+      write(50, '(2G18.10)') dvp1d(iv), emax
+      write(50, '("     ")')
+    end do
+    close(50)
+
+    write(*, '(" Vertex location lines written to BANDLINES.OUT")')
+    write(*, '(" Fermi energy is at zero in plot")')
+    write(*, *)
+    call xml_Close(xf)
+
+    ! bandstructure.dat (same format as bandstr, using band-path k indices)
+    open(50, file='bandstructure.dat', action='WRITE', form='FORMATTED')
+    write(50, *) "# ", 1, nstfv, nkpt_bp
+    do ist = 1, nstfv
+      do ik = 1, nkpt_bp
+        write(50, '(2I6, 3F12.6, 2G18.10)') ist, ik, kvecs_bp(:, ik), dpp1d(ik), evalfv(ist, ik)
+      end do
+      write(50, *)
+    end do
+    close(50)
+    write(*, '(" Interpolated band structure also written to bandstructure.dat")')
+
+  end if ! rank == 0
+
+  deallocate(evalfv, gs_evalfv, kvecs_gs, kvecs_bp, evalfv_bp, label_coordinates)
+
+end subroutine bandstr_fourintp
 
 end module

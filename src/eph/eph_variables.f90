@@ -7,7 +7,7 @@ module eph_variables
   implicit none
   private
 
-  public :: eph_var_init, eph_var_free, eph_var_gen_frequency_grid, eph_var_init_bz_int
+  public :: eph_var_init, eph_var_free, eph_var_read_target, eph_var_gen_frequency_grid, eph_var_init_bz_int
 
   !================================================================================ 
   ! ELECTRON QUANTITIES
@@ -20,6 +20,8 @@ module eph_variables
   logical, public :: eph_use_wannier = .true.
   !> index of first and last electronic state used for Wannierization
   integer, public :: eph_fst, eph_lst
+  !> index of first and last electronic state that is covered by used Wannier functions
+  integer, public :: eph_fst_span, eph_lst_span
   !> total number of electronic states used for Wannierization
   integer, public :: eph_nst
   !> total number of Wannier functions
@@ -28,10 +30,17 @@ module eph_variables
   integer, public :: eph_fwf, eph_lwf
   !> number of Wannier functions included in e-ph calculation
   integer, public :: eph_nwf
+  !> index map for Wannier bands that exactly describe original bands  
+  !> `map(n, ik) = i` if the `n`-th Wannier band exactly describes the `i`-th original band at k-point `ik`.  
+  !> `map(:, 0)` contains the bands that match for all k-points.  
+  !> `i` in [`wf_fst:wf_lst`] and `n` in [`wf_fwf:wf_lwf`]
+  integer, allocatable, public :: eph_wf_band_map(:,:)
   !> Fermi energy
   real(dp), public :: eph_efermi
   !> Scissor shift for (un)occupied states
   real(dp), public :: eph_scissor(2)
+  !> tolerance for degenerate electron energies
+  real(dp), public :: eph_el_degtol = 1e-4_dp
   !-------------------------------------------------------------------------------- 
 
   !================================================================================ 
@@ -45,6 +54,8 @@ module eph_variables
   integer, public :: eph_fmode, eph_lmode
   !> number of phonon modes included in e-ph calculation
   integer, public :: eph_nmode
+  !> tolerance for degenerate phonon energies
+  real(dp), public :: eph_ph_degtol = 1e-5_dp
   !-------------------------------------------------------------------------------- 
 
   !================================================================================ 
@@ -63,7 +74,7 @@ module eph_variables
   !
   !> set of reciprocal space points \({\bf p}\) for which target quantities should be computed 
   !> (can be a grid or a path)
-  type(k_set), public :: eph_pset
+  type(k_set), target, public :: eph_pset
   type(bz_path_type), public :: eph_pset_path
   !-------------------------------------------------------------------------------- 
 
@@ -82,10 +93,8 @@ contains
   subroutine eph_var_init
     use modmpi, only: terminate_if_false
     use phonons_io_util, only: ph_io_read_dielten, ph_io_read_borncharge
-    use mod_kpointset, only: generate_k_vectors
     use modinput
 
-    integer :: ip
     logical :: success
 
     ! check for <wannier> and <phonons> element
@@ -117,6 +126,17 @@ contains
     end if
 
     ! initialize target point set
+    call eph_var_read_target
+  end subroutine eph_var_init
+
+  !> Read target point set from input.
+  subroutine eph_var_read_target    
+    use mod_kpointset, only: generate_k_vectors, delete_k_vectors
+    use modinput
+    
+    integer :: ip
+
+    call delete_k_vectors( eph_pset )
     if (associated(input%eph%target)) then
       if (associated(input%eph%target%plot1d)) then
         if (eph_polar) then
@@ -136,7 +156,7 @@ contains
     else
       call generate_k_vectors( eph_pset, eph_kset_el%bvec, [1, 1, 1], [0.0_dp, 0.0_dp, 0.0_dp], .true., .false. )
     end if
-  end subroutine eph_var_init
+  end subroutine eph_var_read_target
 
   !> Free memory from global variables.
   subroutine eph_var_free
@@ -146,9 +166,11 @@ contains
     use mod_wannier_variables, only: wannier_destroy
 
     if (allocated(eph_borncharge)) deallocate( eph_borncharge )
+    if (allocated(eph_wf_band_map)) deallocate( eph_wf_band_map )
     call delete_k_vectors( eph_kset_el )
     call delete_k_vectors( eph_qset_ph )
     call delete_Gk_vectors( eph_Gkset_el )
+    call delete_k_vectors( eph_pset )
     call dfpt_var_free
     call ph_var_free
     call wannier_destroy
@@ -160,7 +182,7 @@ contains
     use mod_wannier_variables, only: wf_kset, wf_fst, wf_lst, wf_nwf, wf_efermi
     use modmpi, only: terminate_if_false
     use mod_lattice, only: bvec
-    use mod_eigenvalue_occupancy, only: nstfv
+    use mod_eigenvalue_occupancy, only: nstfv, efermi
     use mod_kpointset, only: generate_k_vectors
     use modinput
 
@@ -224,8 +246,11 @@ contains
     ! set Fermi energy (all electron energies will be given relative to the Fermi level)
     if (input%eph%efermi /= 0.0_dp) then
       eph_efermi = input%eph%efermi
-    else
+    else if (eph_use_wannier) then
       eph_efermi = wf_efermi
+    else
+      call readfermi
+      eph_efermi = efermi
     end if
 
     ! set scissor shift
@@ -237,6 +262,9 @@ contains
       case default
         eph_scissor = 0.5_dp * input%eph%scissor
     end select
+
+    ! set tolerance for degenerate electron states
+    eph_el_degtol = input%eph%epsdegel
   end subroutine eph_var_init_electrons
 
   !> Initialize variables of phonon part.
@@ -244,6 +272,7 @@ contains
     use dfpt_variables, only: dfpt_var_init
     use phonons_variables, only: ph_var_init, ph_qset
     use mod_atoms, only: natmtot
+    use modinput
 
     ! initialize general variables of DFPT module
     call dfpt_var_init
@@ -257,13 +286,17 @@ contains
     eph_fmode = 1
     eph_lmode = eph_nmode_tot
     eph_nmode = eph_nmode_tot
+
+    ! set tolerance for degenerate phonon modes
+    eph_ph_degtol = input%eph%epsdegph
   end subroutine eph_var_init_phonons
 
   !> Generate grid of frequency points.
   !>
-  !> If `energies` is given and `fgrid%type == 'density'`, the grid will be densely sampled around the given energies.
-  !> Otherwise, a uniformly sampled grid will be returned.
-  function eph_var_gen_frequency_grid( fgrid, energies ) result( freqs )
+  !> If `energies` is given and `fgrid%type == 'density'`, the grid will be densely sampled around the given energies.  
+  !> If `density` and `energies` is given, the sampling density will be a combination of both.  
+  !> If none of them is given, a uniformly sampled grid will be returned.
+  function eph_var_gen_frequency_grid( fgrid, energies, density ) result( freqs )
     use grid_utils, only: linspace, spacing_from_density
     use distributions, only: lorentzian
     use modmpi, only: terminate_if_false
@@ -272,15 +305,17 @@ contains
     type(freq_grid_type), intent(in) :: fgrid
     !> energies around frequencies should be sampled densely
     real(dp), optional, intent(in) :: energies(:)
+    !> sampling density (on uniform grid in range of `fgrid` including padding)
+    real(dp), optional, intent(in) :: density(:)
     !> frequency grid
     real(dp), allocatable :: freqs(:)
   
     integer, parameter :: nx = 4000 ! number of points for point density
-    real(dp), parameter :: ratio = 2.0_dp / (1.0_dp + sqrt( 5.0_dp )) ! mixing ratio between density based and uniform sampling
+    real(dp), parameter :: ratio = 0.99_dp ! mixing ratio between density based and uniform sampling
 
     integer :: ie
 
-    real(dp), allocatable :: x(:), y(:)
+    real(dp), allocatable :: x(:), y(:), ye(:)
 
     select case (fgrid%type)
       ! uniform sampling
@@ -288,15 +323,30 @@ contains
         freqs = linspace( fgrid%range(1)-fgrid%padding, fgrid%range(2)+fgrid%padding, fgrid%numpoints )
       ! density based sampling
       case ('density')
-        call terminate_if_false( present(energies), '(eph_var_gen_frequency_grid): &
-          If the grid type is `density`, then `energies` must be provided.' )
+        call terminate_if_false( present(energies) .or. present(density), '(eph_var_gen_frequency_grid): &
+          If the grid type is `density`, then `energies` or `density` must be provided.' )
         ! generate point density
-        x = linspace( fgrid%range(1)-fgrid%padding, fgrid%range(2)+fgrid%padding, nx )
-        allocate( y(nx), source=0.0_dp )
-        do ie = 1, size(energies)
-          y = max( y, lorentzian( x, fgrid%lorentzwidth, energies(ie) ) )
-        end do
-        y = ratio * y + (1.0_dp - ratio) * sum( y ) / nx
+        if (present(density)) then
+          x = linspace( fgrid%range(1)-fgrid%padding, fgrid%range(2)+fgrid%padding, size(density) )
+          allocate( y, source=density )
+          y = y * (nx / sum( y )) ! normalize
+        else
+          x = linspace( fgrid%range(1)-fgrid%padding, fgrid%range(2)+fgrid%padding, nx )
+          allocate( y(nx), source=0.0_dp )
+        end if
+        if (present(energies)) then
+          allocate( ye(size(y)), source=0.0_dp )
+          do ie = 1, size(energies)
+            ye = max( ye, lorentzian( x, fgrid%lorentzwidth, energies(ie) ) )
+          end do
+          ye = ye * (nx / sum( ye )) ! normalize
+          if (present(density)) then
+            y = 0.5*y + 0.5*ye ! combine 
+          else
+            y = ye
+          end if
+        end if
+        y = ratio * y + (1.0_dp - ratio) ! add fraction of uniform sampling
         ! generate frequency grid from point density
         freqs = spacing_from_density( x, y, fgrid%numpoints )
         deallocate( x, y )
@@ -304,7 +354,7 @@ contains
   end function eph_var_gen_frequency_grid
 
   !> Initialize Brillouin zone integration using tetrahedron integration.
-  subroutine eph_var_init_bz_int( ngrid, vloff, pset, tset )
+  subroutine eph_var_init_bz_int( ngrid, vloff, reduce, pset, tset )
     use mod_kpointset, only: k_set, generate_k_vectors
     use mod_opt_tetra, only: t_set, opt_tetra_init
     use mod_lattice, only: bvec
@@ -313,6 +363,8 @@ contains
     integer, intent(in) :: ngrid(3)
     !> grid offset in lattice coordinates
     real(dp), intent(in) :: vloff(3)
+    !> reduce set using symmetries
+    logical, intent(in) :: reduce
     !> set of BZ integration points
     type(k_set), intent(out) :: pset
     !> corresponding set of tetrahedra
@@ -322,8 +374,8 @@ contains
 
     stype = input%groundstate%stypenumber
     input%groundstate%stypenumber = 1 ! switch off libbzint
-    call generate_k_vectors( pset, bvec, ngrid, vloff, .false., uselibzint=.false. )
-    call opt_tetra_init( tset, pset, 2, reduce=.false. )
+    call generate_k_vectors( pset, bvec, ngrid, vloff, reduce, uselibzint=.false. )
+    call opt_tetra_init( tset, pset, 1, reduce=.false. )
     input%groundstate%stypenumber = stype
   end subroutine eph_var_init_bz_int
 

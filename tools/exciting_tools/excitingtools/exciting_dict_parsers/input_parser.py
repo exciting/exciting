@@ -35,6 +35,17 @@ def get_root_from_tag(root: ElementTree.Element, tag: Optional[str] = None) -> T
 
 
 @xml_root
+def parse_bsetypeset_xml(root: ElementTree.Element) -> dict:
+    """Parse a bsetypeset xml element into dictionary.
+
+    :param root: the xml root containing the bsetypeset tag
+    :returns: the parsed dictionary, data converted to actual data types
+    """
+    element_dict = convert_string_dict(copy.deepcopy(root.attrib))
+    return {**element_dict, "bsetypeset": [bsetype.attrib["name"] for bsetype in root]}
+
+
+@xml_root
 def parse_element_xml(root, tag: Optional[str] = None) -> dict:
     """Parse a xml element into dictionary. Can be input.xml root or a subelement of it.
     Put the attributes simply in dict and add recursively the subtrees and nested dicts.
@@ -141,7 +152,7 @@ special_tags_to_parse_map = {
     "structure": parse_structure,
     "qpointset": lambda root: [[float(x) for x in qpoint.text.split()] for qpoint in root],
     "plan": lambda root: [doonly.attrib["task"] for doonly in root],
-    "BseTypeSet": lambda root: [bsetype.attrib["name"] for bsetype in root],
+    "BseTypeSet": parse_bsetypeset_xml,
     "kstlist": lambda root: [[int(x) for x in pointstatepair.text.split()] for pointstatepair in root],
     "etCoeffComponents": lambda root: [int(x) for x in root.text.split()],
 }

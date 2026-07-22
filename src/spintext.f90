@@ -61,6 +61,9 @@ module spintexture
   ! initialise universal variables
     Call init0
     Call init1
+    ! initialisations for the Davidson eigensolver
+    if (trim( input%groundstate%solver%type ) == 'Davidson') call releasesingular
+
 
   ! check if spin is enabled
     if (.not. associated(input%groundstate%spin)) then
@@ -172,6 +175,7 @@ module spintexture
       deallocate(evalfv, evecfv, evecsv)
     End Do !iki
     call mt_hscf%release()
+    Call releasesingular 
     
     call xmpi_allgatherv( mpiglobal, stext, 3 * nst * (lastofset( rank, nkpt ) - firstofset( rank, nkpt ) + 1) )
     call xmpi_allgatherv( mpiglobal, evalsv, nstsv * (lastofset( rank, nkpt ) - firstofset( rank, nkpt ) + 1) )

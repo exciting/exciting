@@ -15,6 +15,7 @@ Subroutine forcek (ik, ffacg)
       Use modinput
       Use modmain
       Use mod_eigensystem
+      use mod_getoccsv, only: getoccsv
       Use modfvsystem
       use constants, only: zzero 
 ! !DESCRIPTION:

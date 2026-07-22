@@ -19,6 +19,7 @@ Subroutine elfplot
       use modmpi, only : rank
       use constants, only: pi
       use mod_gen_lo, only: genlofr
+      use mod_getoccsv, only: getoccsv
       use m_zfftifc, only: zfftifc
 ! !DESCRIPTION:
 !   Outputs the electron localisation function (ELF) for 1D, 2D or 3D plotting.

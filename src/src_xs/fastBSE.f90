@@ -1,7 +1,7 @@
 module fastBSE
   use precision, only: dp, i32
   use constants, only: pi, zzero
-  use asserts, only: assert 
+
   use modinput, only: input_type
   use modmpi, only: mpiinfo, terminate_if_false, distribute_loop, warn_if_false
   use seed_generation, only: set_seed
@@ -60,7 +60,7 @@ module fastBSE
   !>    Also see [[write_results]]. 
   subroutine fastBSE_main(mpi_env, input, h5file, h5path, info_unit)
     !> MPI environment.
-     type(mpiinfo), intent(inout) :: mpi_env
+     type(mpiinfo), intent(in) :: mpi_env
     !> Input file container.
     type(input_type) :: input
     !> Path to the HDF5 file. It contains input data as wave functions and
@@ -137,7 +137,7 @@ module fastBSE
   !> Setup the transitions to be considered for fastBSE.
   subroutine setup_transitions(mpi_env, input, info_unit, h5file, h5path, transition_energies, matrix_elements, transitions)
     !> MPI environment.      
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Input file container.
     type(input_type), intent(in) :: input 
     !> Unit of info file.
@@ -170,7 +170,7 @@ module fastBSE
   !> Setup decomposed \(V_{x}\) as needed for fastBSE.
   subroutine setup_exchange_kernel(mpi_env, info_unit, h5file, h5path, g_grid, omega, transitions, vexc)
     !> MPI environment.      
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Unit of info file.
     integer(i32), intent(in) :: info_unit
     !> Name of the HDF5 file to read ISDF from.
@@ -245,7 +245,7 @@ module fastBSE
   !> Setup decomposed screened interaction kernel for fastBSE.
   subroutine setup_screened_kernel(mpi_env, input, info_unit, h5file, h5path, g_grid, omega, transitions, wscr)
     !> MPI environment.      
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Input file container.
     type(input_type), intent(in) :: input 
     !> Unit of info file.
@@ -335,7 +335,7 @@ module fastBSE
   !> 3. Calculate the approximation to the exciton eigen energies and vectors.
   subroutine diagonalize(mpi_env, input, info_unit, h5file, h5path, bsh, dipole_matrix_elements)
     !> MPI environment.      
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Input file container.
     type(input_type), intent(in) :: input 
     !> Unit of info file.
@@ -548,7 +548,7 @@ module fastBSE
   !> the eigen energies, and the oscillator strengths.
   subroutine fastBSE_human_readable_output(mpi_env, input, h5file, h5path)
     !> MPI environment.
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Input file container.
     type(input_type) :: input
     !> Path to the HDF5 file. It contains input data as wave functions and
@@ -742,7 +742,7 @@ module fastBSE
   subroutine fastBSE_sanity_checks(mpi_env, input)
     use modmpi, only: terminate_mpi_env
     !> MPI environment to terminate.
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     !> Input file container to check.
     type(input_type), intent(in) :: input 
 

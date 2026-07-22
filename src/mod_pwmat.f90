@@ -10,11 +10,14 @@ module mod_pwmat
   use mod_lattice, only : bvec
   use mod_Gvector, only : ngvec, gc, cfunig, ivg, ivgig, ngrtot, ngrid, intgv
   use mod_Gkvector, only : gkmax, ngkmax_ptr
-  use mod_eigenvalue_occupancy, only : nstfv
+  use mod_eigenvalue_occupancy, only : nstsv
+  use mod_spin, only: nspinor
   use mod_misc, only : filext
   use mod_kpointset
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
   use modxs, only : fftmap_type
   use m_zfftifc, only: zfftifc
+  use precision, only: i32, long_int
 
   implicit none
   private
@@ -137,14 +140,14 @@ module mod_pwmat
 
       subroutine pwmat_prepare( ik, evec)
           integer, intent( in)      :: ik
-          complex(8), intent( in)   :: evec( nmatmax_ptr, nstfv)
+          complex(8), intent( in)   :: evec( nmatmax_ptr, nstsv, nspinor)
 
-          integer :: ngp, is, ia, ias, lm, l, lam, o, ilo, fst, lst, nst
+          integer :: ngp, is, ia, ispn, ias, lm, l, lam, o, ilo, fst, lst, nst
           integer :: ig, igp
 
           integer, allocatable :: igpig(:) 
           real(8), allocatable :: vgpl(:,:), vgpc(:,:), gpc(:), tpgpc(:,:)
-          complex(8), allocatable :: evecmt(:,:,:), evecir(:,:)
+          complex(8), allocatable :: evecmt(:,:,:,:), evecir(:,:,:)
           complex(8), allocatable :: sfacgp(:,:), apwalm(:,:,:,:), auxvec(:)
 
           fst = min( pwmat_fst1, pwmat_fst2)
@@ -152,7 +155,7 @@ module mod_pwmat
           nst = lst-fst+1
 
           call timesec( t0)
-          allocate( evecmt( nlmlammax, fst:lst, natmtot))
+          allocate( evecmt( nlmlammax, fst:lst, natmtot, nspinor))
           allocate( igpig( ngkmax_ptr), vgpl( 3, ngkmax_ptr), vgpc( 3, ngkmax_ptr), gpc( ngkmax_ptr), tpgpc( 2, ngkmax_ptr))
           allocate( sfacgp( ngkmax_ptr, natmtot))
           allocate( apwalm( ngkmax_ptr, apwordmax, lmmaxapw, natmtot))
@@ -169,23 +172,25 @@ module mod_pwmat
           do is = 1, nspecies
             do ia = 1, natoms( is)
               ias = idxas( ia, is)
-              do lm = 1, (pwmat_lmaxapw + 1)**2
-                l = lm2l( lm)
-                do lam = 1, nlam( l, is)
-                  ! lam belongs to apw
-                  if( lam2apwlo( lam, l, is) .gt. 0) then
-                    o = lam2apwlo( lam, l, is)
-                    call zgemv( 't', ngp, nst, zone, &
-                           evec( :, fst:lst), nmatmax_ptr, &
-                           apwalm( :, o, lm, ias), 1, zzero, &
-                           auxvec, 1)
-                    evecmt( idxlmlam( lm, lam, is), :, ias) = auxvec
-                  end if
-                  ! lam belongs to lo
-                  if( lam2apwlo( lam, l, is) .lt. 0) then
-                    ilo = -lam2apwlo( lam, l, is)
-                    evecmt( idxlmlam( lm, lam, is), :, ias) = evec( ngp+idxlo( lm, ilo, ias), fst:lst)
-                  end if
+              do ispn = 1, nspinor
+                do lm = 1, (pwmat_lmaxapw + 1)**2
+                  l = lm2l( lm)
+                  do lam = 1, nlam( l, is)
+                    ! lam belongs to apw
+                    if( lam2apwlo( lam, l, is) .gt. 0) then
+                      o = lam2apwlo( lam, l, is)
+                      call zgemv( 't', ngp, nst, zone, &
+                            evec( :, fst:lst, ispn), nmatmax_ptr, &
+                            apwalm( :, o, lm, ias), 1, zzero, &
+                            auxvec, 1)
+                      evecmt( idxlmlam( lm, lam, is), :, ias, ispn) = auxvec
+                    end if
+                    ! lam belongs to lo
+                    if( lam2apwlo( lam, l, is) .lt. 0) then
+                      ilo = -lam2apwlo( lam, l, is)
+                      evecmt( idxlmlam( lm, lam, is), :, ias, ispn) = evec( ngp+idxlo( lm, ilo, ias), fst:lst, ispn)
+                    end if
+                  end do
                 end do
               end do
             end do
@@ -211,14 +216,16 @@ module mod_pwmat
               call zfftifc( 3, pwmat_fftmap%ngrid, 1, pwmat_cfunir)
             end if
 
-            allocate( evecir( pwmat_fftmap%ngrtot+1, fst:lst))
+            allocate( evecir( pwmat_fftmap%ngrtot+1, fst:lst, nspinor))
             evecir = zzero
             do is = fst, lst
-              do igp = 1, ngp
-                ig = igpig( igp)
-                evecir( pwmat_fftmap%igfft( ig), is) = evec( igp, is)
+              do ispn = 1, nspinor
+                do igp = 1, ngp
+                  ig = igpig( igp)
+                  evecir( pwmat_fftmap%igfft( ig), is, 1) = evec( igp, is, ispn)
+                end do
+                call zfftifc( 3, pwmat_fftmap%ngrid, 1, evecir( :, is, ispn))
               end do
-              call zfftifc( 3, pwmat_fftmap%ngrid, 1, evecir( :, is))
             end do
             
             call timesec( t1)
@@ -427,16 +434,16 @@ module mod_pwmat
       
       subroutine pwmat_genpwmat( ik, evec1, evec2, pwmat)
           integer, intent( in)     :: ik
-          complex(8), intent( in)  :: evec1( nmatmax_ptr, *), evec2( nmatmax_ptr, *)
+          complex(8), intent( in)  :: evec1( nmatmax_ptr, nstsv, nspinor), evec2( nmatmax_ptr, nstsv, nspinor)
           complex(8), intent( out) :: pwmat( pwmat_fst1:pwmat_lst1, pwmat_fst2:pwmat_lst2, ng)
 
-          integer :: ngp, ngpq, is, ia, ias 
+          integer :: ngp, ngpq, is, ia, ias, ispn
           real(8) :: veckl(3), veckc(3), veckql(3), veckqc(3)
           integer :: shift(3), g(3), gs(3), igk, igq, ig
 
           integer, allocatable :: igpig(:), igpqig(:) 
           real(8), allocatable :: vgpql(:,:), vgpqc(:,:), gkqc(:), tpgkqc(:,:)
-          complex(8), allocatable :: auxmat(:,:), evecmt1(:,:,:), evecmt2(:,:,:), cfunmat(:,:)
+          complex(8), allocatable :: auxmat(:,:), evecmt1(:,:,:,:), evecmt2(:,:,:,:), cfunmat(:,:)
 
           pwmat = zzero
           
@@ -462,8 +469,8 @@ module mod_pwmat
           call gengpvec( veckl, veckc, ngp, igpig, vgpql, vgpqc, gkqc, tpgkqc)
           call timesec( t1)
           tgk = tgk + t1 - t0
-          allocate( evecmt1( nlmlammax, pwmat_fst1:pwmat_lst1, natmtot))
-          allocate( evecmt2( nlmlammax, pwmat_fst2:pwmat_lst2, natmtot))
+          allocate( evecmt1( nlmlammax, pwmat_fst1:pwmat_lst1, natmtot, nspinor))
+          allocate( evecmt2( nlmlammax, pwmat_fst2:pwmat_lst2, natmtot, nspinor))
           allocate( auxmat( pwmat_fst1:pwmat_lst1, nlmlammax))
           call timesec( t0)
           call pwmat_getevecmt( veckl, pwmat_fst1, pwmat_lst1, evecmt1)
@@ -474,17 +481,18 @@ module mod_pwmat
           do is = 1, nspecies
             do ia = 1, natoms( is)
               ias = idxas( ia, is)
-
-              do ig = 1, ng
-                call zgemm( 'c', 'n', pwmat_nst1, nlmlam( is), nlmlam( is), zone, &
-                       evecmt1( :, :, ias), nlmlammax, &
-                       rignt( :, :, ias, ig), nlmlammax, zzero, &
-                       auxmat, pwmat_nst1)
-                call zgemm( 'n', 'n', pwmat_nst1, pwmat_nst2, nlmlam( is), zone, &
-                       auxmat, pwmat_nst1, &
-                       evecmt2( :, :, ias), nlmlammax, zone, &
-                       pwmat( :, :, ig), pwmat_nst1)
-              end do
+              do ispn = 1, nspinor
+                do ig = 1, ng
+                  call zgemm( 'c', 'n', pwmat_nst1, nlmlam( is), nlmlam( is), zone, &
+                        evecmt1( 1, pwmat_fst1, ias, ispn), nlmlammax, &
+                        rignt( :, :, ias, ig), nlmlammax, zzero, &
+                        auxmat, pwmat_nst1)
+                  call zgemm( 'n', 'n', pwmat_nst1, pwmat_nst2, nlmlam( is), zone, &
+                        auxmat, pwmat_nst1, &
+                        evecmt2( 1, pwmat_fst2, ias, ispn), nlmlammax, zone, &
+                        pwmat( :, :, ig), pwmat_nst1)
+                end do
+            end do
             end do
           end do
           call timesec( t0)
@@ -522,15 +530,16 @@ module mod_pwmat
 #endif
             call timesec( t1)
             tgg = tgg + t1 - t0
-
-            call zgemm( 'c', 'n', pwmat_nst1, ngpq, ngp, zone, &
-                   evec1, nmatmax_ptr, &
-                   cfunmat, ngp, zzero, &
-                   auxmat, pwmat_nst1)
-            call zgemm( 'n', 'n', pwmat_nst1, pwmat_nst2, ngpq, zone, &
-                   auxmat, pwmat_nst1, &
-                   evec2, nmatmax_ptr, zone, &
-                   pwmat( :, :, ig), pwmat_nst1)
+            do ispn = 1, nspinor              
+              call zgemm( 'c', 'n', pwmat_nst1, ngpq, ngp, zone, &
+                    evec1(1, pwmat_fst1, ispn), nmatmax_ptr, &
+                    cfunmat, ngp, zzero, &
+                    auxmat, pwmat_nst1)
+              call zgemm( 'n', 'n', pwmat_nst1, pwmat_nst2, ngpq, zone, &
+                    auxmat, pwmat_nst1, &
+                    evec2(1, pwmat_fst2, ispn), nmatmax_ptr, zone, &
+                    pwmat(:, :, ig), pwmat_nst1)
+            end do
             call timesec( t0)
             tir = tir + t0 - t1
           end do
@@ -541,19 +550,20 @@ module mod_pwmat
       end subroutine pwmat_genpwmat
 
       subroutine pwmat_putevecmt( vpl, fst, lst, evecmt)
-          use m_getunit
           real(8), intent( in)    :: vpl(3)
           integer, intent( in)    :: fst, lst
-          complex(8), intent( in) :: evecmt( nlmlammax, fst:lst, natmtot)
+          complex(8), intent( in), target :: evecmt( nlmlammax, fst:lst, natmtot, nspinor)
 
-          integer :: ik, un, recl
+          integer(i32) :: ik, un
+          integer(long_int) :: recl
+          complex(8), pointer :: c64_ptr(:,:)
 
           call findkptinset( vpl, pwmat_kset, un, ik)
 
-          inquire( iolength=recl) pwmat_kset%vkl( :, ik), nlmlammax, fst, lst, evecmt
-          call getunit( un)
-          open( un, file=trim( pwmat_fname)//'MT'//trim( filext), action='write', form='unformatted', access='direct', recl=recl)
-          write( un, rec=ik) pwmat_kset%vkl( :, ik), nlmlammax, fst, lst, evecmt
+          c64_ptr(1:size(evecmt), 1:1) => evecmt
+          call inquire_large( recl, [nlmlammax, fst, lst, nspinor], pwmat_kset%vkl( :, ik), c64_ptr )
+          call open_direct_unformatted_large( un, trim( pwmat_fname)//'MT'//trim( filext), "write", recl, "unknown" )
+          write( un, rec=ik) pwmat_kset%vkl( :, ik), nlmlammax, fst, lst, nspinor, evecmt
           close( un)
           !if( ik .eq. 12) then
           !  write(*,'(3f13.6,3i)') pwmat_kset%vkl( :, ik), nlmlammax, fst, lst
@@ -561,48 +571,45 @@ module mod_pwmat
           !  write(*,*)
           !end if
 
-          return
       end subroutine pwmat_putevecmt
 
       subroutine pwmat_putevecir( vpl, fst, lst, evecir)
-          use m_getunit
           real(8), intent( in)    :: vpl(3)
           integer, intent( in)    :: fst, lst
           complex(8), intent( in) :: evecir( pwmat_fftmap%ngrtot+1, fst:lst)
 
-          integer :: ik, un, recl
+          integer(i32) :: ik, un
+          integer(long_int) :: recl
 
           call findkptinset( vpl, pwmat_kset, un, ik)
 
-          inquire( iolength=recl) pwmat_kset%vkl( :, ik), pwmat_fftmap%ngrtot+1, fst, lst, evecir
-          call getunit( un)
-          open( un, file=trim( pwmat_fname)//'IR'//trim( filext), action='write', form='unformatted', access='direct', recl=recl)
-          write( un, rec=ik) pwmat_kset%vkl( :, ik), pwmat_fftmap%ngrtot+1, fst, lst, evecir
+          call inquire_large( recl, pwmat_kset%vkl( :, ik), int([pwmat_fftmap%ngrtot+1, fst, lst, nspinor], kind=i32), evecir )
+          call open_direct_unformatted_large( un, trim( pwmat_fname)//'IR'//trim( filext), "write", recl, "unknown" )
+          write( un, rec=ik) pwmat_kset%vkl( :, ik), pwmat_fftmap%ngrtot+1, fst, lst, nspinor, evecir
           close( un)
 
-          return
       end subroutine pwmat_putevecir
 
       subroutine pwmat_getevecmt( vpl, fst, lst, evecmt)
-          use m_getunit
           real(8), intent( in)     :: vpl(3)
           integer, intent( in)     :: fst, lst
-          complex(8), intent( out) :: evecmt( nlmlammax, fst:lst, natmtot)
+          complex(8), intent( out) :: evecmt( nlmlammax, fst:lst, natmtot, nspinor)
 
-          integer :: ik, un, recl, nlmlammax_, fst_, lst_
+          integer(i32) :: ik, un, nlmlammax_, fst_, lst_, nspinor_
+          integer(long_int) :: recl
           real(8) :: vpl_(3)
           logical :: exist
 
-          complex(8), allocatable :: tmp(:,:,:)
+          complex(8), allocatable, target :: tmp(:,:,:,:)
+          complex(8), pointer :: c64_ptr(:,:)
 
           call findkptinset( vpl, pwmat_kset, un, ik)
 
           inquire( file=trim( pwmat_fname)//'MT'//trim( filext), exist=exist)
           if( exist) then
-            inquire( iolength=recl) vpl_, nlmlammax_, fst_, lst_
-            call getunit( un)
-            open( un, file=trim( pwmat_fname)//'MT'//trim( filext), action='read', form='unformatted', access='direct', recl=recl)
-            read( un, rec=1) vpl_, nlmlammax_, fst_, lst_
+            call inquire_large( recl, vpl_, int([nlmlammax_, fst_, lst_, nspinor_], kind=i32) )
+            call open_direct_unformatted_large( un, trim( pwmat_fname)//'MT'//trim( filext), "read", recl, "old" )
+            read( un, rec=1) vpl_, nlmlammax_, fst_, lst_, nspinor_
             close( un)
             if( nlmlammax_ .ne. nlmlammax) then
               write(*,*)
@@ -618,13 +625,20 @@ module mod_pwmat
               write(*,'(" file   :",2i8)') fst_, lst_
               stop
             end if
-            allocate( tmp( nlmlammax, fst_:lst_, natmtot))
-            inquire( iolength=recl) vpl_, nlmlammax_, fst_, lst_, tmp
-            call getunit( un)
-            open( un, file=trim( pwmat_fname)//'MT'//trim( filext), action='read', form='unformatted', access='direct', recl=recl)
-            read( un, rec=ik) vpl_, nlmlammax_, fst_, lst_, tmp
+            if( nspinor_ .ne. nspinor) then
+              write(*,*)
+              write(*,'("Error (pwmat_geteveshort): Different number of spinor components:")')
+              write(*,'(" current:",i8)') nspinor
+              write(*,'(" file   :",i8)') nspinor_
+            end if
+            allocate( tmp( nlmlammax, fst_:lst_, natmtot, nspinor_))
+            c64_ptr(1:size(tmp), 1:1) => tmp
+            call inquire_large( recl, [nlmlammax_, fst_, lst_, nspinor_], vpl_, c64_ptr )
+            call open_direct_unformatted_large( un, trim( pwmat_fname)//'MT'//trim( filext), "read", recl, "old" )
+            read( un, rec=ik) vpl_, nlmlammax_, fst_, lst_, nspinor_, tmp
+            
             close( un)
-            evecmt = tmp( :, fst:lst, :)
+            evecmt = tmp( :, fst:lst, :, :)
             deallocate( tmp)
             !if( ik .eq. 12) then
             !  write(*,'(3f13.6,3i)') vpl_, nlmlammax_, fst_, lst_
@@ -641,25 +655,24 @@ module mod_pwmat
       end subroutine pwmat_getevecmt
 
       subroutine pwmat_getevecir( vpl, fst, lst, evecir)
-          use m_getunit
           real(8), intent( in)     :: vpl(3)
           integer, intent( in)     :: fst, lst
-          complex(8), intent( out) :: evecir( pwmat_fftmap%ngrtot+1, fst:lst)
+          complex(8), intent( out) :: evecir( pwmat_fftmap%ngrtot+1, fst:lst, nspinor)
 
-          integer :: ik, un, recl, ngrtot_, fst_, lst_
+          integer(i32) :: ik, un, ngrtot_, fst_, lst_, nspinor_
+          integer(long_int) :: recl
           real(8) :: vpl_(3)
           logical :: exist
 
-          complex(8), allocatable :: tmp(:,:)
+          complex(8), allocatable :: tmp(:,:,:)
 
           call findkptinset( vpl, pwmat_kset, un, ik)
 
           inquire( file=trim( pwmat_fname)//'IR'//trim( filext), exist=exist)
           if( exist) then
-            inquire( iolength=recl) vpl_, ngrtot_, fst_, lst_
-            call getunit( un)
-            open( un, file=trim( pwmat_fname)//'IR'//trim( filext), action='read', form='unformatted', access='direct', recl=recl)
-            read( un, rec=1) vpl_, ngrtot_, fst_, lst_
+            call inquire_large( recl, vpl_, int([ngrtot_, fst_, lst_, nspinor_], kind=i32) )
+            call open_direct_unformatted_large( un, trim( pwmat_fname)//'IR'//trim( filext), "read", recl, "old" )
+            read( un, rec=1) vpl_, ngrtot_, fst_, lst_, nspinor_
             close( un)
             if( ngrtot_ .ne. pwmat_fftmap%ngrtot+1) then
               write(*,*)
@@ -675,12 +688,19 @@ module mod_pwmat
               write(*,'(" file   :",2i8)') fst_, lst_
               stop
             end if
-            allocate( tmp( pwmat_fftmap%ngrtot+1, fst_:lst_))
-            inquire( iolength=recl) vpl_, ngrtot_, fst_, lst_, tmp
-            call getunit( un)
-            open( un, file=trim( pwmat_fname)//'IR'//trim( filext), action='read', form='unformatted', access='direct', recl=recl)
-            read( un, rec=ik) vpl_, ngrtot_, fst_, lst_, evecir
+            if( nspinor_ .ne. nspinor) then
+              write(*,*)
+              write(*,'("Error (pwmat_geteveshort): Different number of spinor components:")')
+              write(*,'(" current:",i8)') nspinor
+              write(*,'(" file   :",i8)') nspinor_
+            end if
+            allocate( tmp( pwmat_fftmap%ngrtot+1, fst_:lst_, nspinor_))
+            call inquire_large( recl, vpl_, int([ngrtot_, fst_, lst_, nspinor_], kind=i32), tmp )
+            call open_direct_unformatted_large( un, trim( pwmat_fname)//'IR'//trim( filext), "read", recl, "old" )
+            read( un, rec=ik) vpl_, ngrtot_, fst_, lst_, nspinor_, tmp
+            evecir = tmp( :, fst:lst, :)
             close( un)
+            deallocate( tmp)
           else
             write(*,*)
             write(*,'("Error (pwmat_getevecir): File does not exist:",a)') trim( pwmat_fname)//'IR'//trim( filext)
@@ -691,21 +711,18 @@ module mod_pwmat
       end subroutine pwmat_getevecir
 
       subroutine pwmat_destroy
-          use m_getunit
           integer :: un
           logical :: exist
 
           if( mpiglobal%rank .eq. 0) then
             inquire( file=trim( pwmat_fname)//'MT'//trim( filext), exist=exist)
             if( exist) then
-              call getunit( un)
-              open( un, file=trim( pwmat_fname)//'MT'//trim( filext))
+              open( newunit=un, file=trim( pwmat_fname)//'MT'//trim( filext))
               close( un, status='delete')
             end if
             inquire( file=trim( pwmat_fname)//'IR'//trim( filext), exist=exist)
             if( exist) then
-              call getunit( un)
-              open( un, file=trim( pwmat_fname)//'IR'//trim( filext))
+              open( newunit=un, file=trim( pwmat_fname)//'IR'//trim( filext))
               close( un, status='delete')
             end if
           end if

@@ -109,3 +109,31 @@ def get_input_xml_from_notebook(nb_path: Union[str, pathlib.Path], ident: str) -
     # delete first two (containing ident and markdown formatting) and last (contain formatting) line
     cell_content = "\n".join(cell_content.split("\n")[2:-1])
     return cell_content
+
+def get_input_cfg_from_notebook(nb_path: Union[str, pathlib.Path], ident: str) -> str:
+    """Extract a cfg-style string from a Jupyter notebook Markdown cell.
+
+    Expected structure in the notebook:
+
+        <span class="{ident}"></span>
+        ```cfg
+        <content/>
+        ```
+        
+
+    :param nb_path: Notebook path without suffix.
+    :param ident: Identifier class used in the <span>.
+    :return parsed input.cfg
+    """
+    nb = read_nb(f"{nb_path}.ipynb", as_version=4)
+
+    for cell in filter(lambda x: x["cell_type"] == "markdown", nb["cells"]):
+        if ident in cell["source"]:
+            cell_content = cell["source"]
+            break
+    else:
+        raise ValueError(f"No cell with ident '{ident}' found.")
+
+    # Strip the span tag and ```cfg fence
+    lines = cell_content.splitlines()
+    return "\n".join(lines[2:-1])  # skip <span> and ```cfg start/end

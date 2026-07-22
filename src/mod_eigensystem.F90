@@ -57,7 +57,6 @@ Module mod_eigensystem
 ! singular components for the Davidson algorithm
    integer :: nsingular
    complex(8),allocatable :: singular(:,:,:)
-   real(8),allocatable :: evalsingular(:,:)
 
 
    !> Matrix-elements for muffin-tin functions
@@ -417,5 +416,11 @@ Contains
       if (allocated(this%losize)) deallocate (this%losize)
 
    end subroutine MTRelease
+   
+   !> The subroutine removes the array for storing singular components.
+   subroutine releasesingular
+      if ( allocated( singular ) ) deallocate( singular )
+   end subroutine releasesingular
+
 
 End Module

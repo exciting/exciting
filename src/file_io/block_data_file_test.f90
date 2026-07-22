@@ -21,7 +21,7 @@ module block_data_file_test
 
     !> Run tests for [[block_data_file(module)]]
     subroutine run_block_data_file_test_driver(mpiglobal, kill_on_failure)
-      use os_utils, only: make_directory, remove_directory
+      use os_utils, only: make_directory_pure, remove_directory
       !> mpi information
       type(mpiinfo), intent(inout) :: mpiglobal
       !> Kill the program before the test driver finishes
@@ -34,7 +34,7 @@ module block_data_file_test
       call test_report%init( mpiglobal)
 
       ! create test directory (test covered by `os_utils_test`)
-      call test_report%assert( make_directory(TEST_DIR, mpiglobal) == 0, &
+      call test_report%assert( make_directory_pure(TEST_DIR, mpiglobal) == 0, &
         'Expected: Returned error code 0 from `make_directory`.')
       
       ! Run and assert tests

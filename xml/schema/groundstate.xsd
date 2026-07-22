@@ -126,6 +126,52 @@
 
 
 
+  <xs:element ex:importance="expert" ex:unit="" name="MBDparameters" minOccurs="0" maxOccurs="1">
+    <xs:annotation>
+      <xs:documentation>
+        This element allows to customize parameters when either the option <pre>"MBD"</pre> of the attribute <attref>vdWcorrection</attref> is chosen, or the
+subelement <elementref>MBD</elementref> of the element <elementref>properties</elementref> is specified.
+      </xs:documentation>
+      <xs:appinfo></xs:appinfo>
+    </xs:annotation>
+    <xs:complexType>
+
+    <xs:attribute ex:importance="essential" ex:unit="" name="d" type="fortrandouble" default="6.0d0">
+      <xs:annotation>
+        <xs:documentation>
+          This damping constant determines the steepnes of the damping function for the method <pre>"MBD"</pre>.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+
+    <xs:attribute ex:importance="essential" ex:unit="atomic units" name="cutoff" type="fortrandouble" default="230.0d0">
+      <xs:annotation>
+        <xs:documentation>
+          Cutoff distance of maximum interaction radius for the method <pre>"MBD"</pre> in Bohr.
+        </xs:documentation>
+      </xs:annotation>
+     </xs:attribute>
+
+    <xs:attribute ex:importance="essential" ex:unit="" name="evalremap" type="xs:boolean" default="false">
+      <xs:annotation>
+        <xs:documentation>
+          Prevent from a physical and numerical deficiency in the method <pre>"MBD"</pre> due to highly polarizable atoms at short distances.
+        </xs:documentation>
+      </xs:annotation>
+     </xs:attribute>
+
+      <xs:attribute ex:importance="essential" ex:unit="" name="beta" type="fortrandouble" default="0.83d0">
+        <xs:annotation>
+          <xs:documentation>
+            Scaling factor for van-der-Waals radii for the method <pre>"MBD"</pre>. This factor depends on the exchange-correlation functional in use. The default value suits PBE calculations.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+
+
 	<xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>
@@ -308,17 +354,17 @@
 
           </xs:element>
 
-        <xs:element ex:importance="experimental" ex:unit="" name="constrainedDFT" minOccurs="0" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="constrainedDFT" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>
               This elements triggers a <bf>constrained DFT</bf> (CDFT) calculation, with the occupations
-              of each KS level constrained by the user. The occupations obtained in a DFT calculation 
-              must be provided through the file <pre>OCCSV.OUT</pre>.
+              of each KS level constrained by the user. If <attref>groundstateRun</attref>=<pre>"skip"</pre>, 
+              occupations obtained in a prior DFT calculation must be provided through the file <pre>OCCSV.OUT</pre>.
             </xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:all>
-              <xs:element ex:importance="experimental" ex:unit="" name="occupationChanges" 
+              <xs:element ex:importance="expert" ex:unit="" name="occupationChanges" 
                   minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                   <xs:documentation> 
@@ -365,16 +411,27 @@
                 </xs:complexType>
               </xs:element>
             </xs:all>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="skipgnd" type="xs:boolean"
-                  default="true">
+            <xs:attribute ex:importance="expert" ex:unit="" name="groundstateRun" default="scf">
               <xs:annotation>
                 <xs:documentation> 
-                  If <pre>"true"</pre>, skip a groundstate calculation that 
-                  can be performed before the actual CDFT calculation.
+                  <attref>groundstateRun</attref> controls groundstate (GS) calculation performed before the CDFT run.
+                  Possible options are:
+                  <list>
+                    <li><b>skip</b>: the GS calculation is skipped. In this case, the file <pre>OCCSV.OUT</pre> must be provided by the user.</li> 
+                    <li><b>scf</b>: a self-consistent field GS calculation is performed in the mode specified by the <attref>do</attref> attribute in <elementref>groundstate</elementref>.</li> 
+                    <li><b>singleShot</b>: a single-shot GS calculation is performed. In this case, the file <pre>STATE.OUT</pre> must be provided by the user.</li> 
+                  </list>
                 </xs:documentation>
               </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="skip"/>
+                  <xs:enumeration value="scf"/>
+                  <xs:enumeration value="singleShot"/>
+                </xs:restriction>
+              </xs:simpleType>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="startDensityAndPotentialFromFile" 
+            <xs:attribute ex:importance="expert" ex:unit="" name="startDensityAndPotentialFromFile" 
                   type="xs:boolean" default="true">
               <xs:annotation>
                 <xs:documentation> 
@@ -386,7 +443,7 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="useExcitonCoefficients" type="xs:boolean"
+            <xs:attribute ex:importance="expert" ex:unit="" name="useExcitonCoefficients" type="xs:boolean"
                   default="true">
               <xs:annotation>
                 <xs:documentation> 
@@ -395,7 +452,7 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="useExternalFile" type="xs:boolean"
+            <xs:attribute ex:importance="expert" ex:unit="" name="useExternalFile" type="xs:boolean"
                   default="true">
               <xs:annotation>
                 <xs:documentation> 
@@ -404,7 +461,7 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="fileName" type="xs:string"
+            <xs:attribute ex:importance="expert" ex:unit="" name="fileName" type="xs:string"
                 default="EXC">
               <xs:annotation>
                 <xs:documentation> 
@@ -413,7 +470,7 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="experimental" ex:unit="" name="MaximumOverlapMethod" type="xs:boolean"
+            <xs:attribute ex:importance="expert" ex:unit="" name="MaximumOverlapMethod" type="xs:boolean"
                   default="false">
               <xs:annotation>
                 <xs:documentation> Employ the maximum overlap method in CDFT.
@@ -436,12 +493,41 @@
 						(as defined in the <bf>DFT-1/2</bf> method) is calculated for each constituent
 						atomic species and written into the files <pre>VS_S*.OUT</pre>,
 						where <pre>*</pre> ranges from <bf>1</bf> to the number of atomic species.
-						The exciting run quits after the printing. In this case, a serial calculation
-						is suggested. It is useful to visualize the self-energy potential, or for
+						It is useful to visualize the self-energy potential, or for
 						debugging purposes.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+        <xs:attribute ex:importance="expert" ex:unit="" name="NSCF" type="xs:boolean"
+							default="false">
+					<xs:annotation>
+						<xs:documentation> When set to <pre>"true"</pre>, a non-self-consistent 
+              calculation is performed, using the converged KS density and wavefunctions from 
+              a previous DFT run.
+              The integral <inlinemath>\int n_{i{\bf k}}({\bf r}) V_S({\bf r})</inlinemath>
+					    is obtained for each KS level <pre>i</pre> and each <bf>k</bf>-point. 
+              The results are written into the file <pre>DFT_HALF_NSCF.OUT</pre>.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+        <xs:attribute ex:importance="expert" ex:unit="" name="printBandCharacter" 
+              type="xs:boolean" default="false">
+          <xs:annotation>
+            <xs:documentation> When set to <pre>"true"</pre>, the character of each band
+              (i.e., the projection onto atomic orbitals) is printed in the file 
+              <pre>DFT_HALF_NSCF.OUT</pre>.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute ex:importance="expert" ex:unit="" name="lmaxBandCharacter" 
+              type="xs:integer" default="2">
+          <xs:annotation>
+            <xs:documentation> When <attref>printBandCharacter</attref> is set 
+              to <pre>"true"</pre>, <attref>lmaxBandCharacter</attref> defines 
+              the maximum angular momentum printed for the character of each band.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
 			</xs:complexType>
           </xs:element>
         <xs:element ex:importance="essential" ex:unit="" name="Hybrid" minOccurs="0" maxOccurs="1">
@@ -2523,6 +2609,30 @@
           </xs:complexType>
         </xs:element>
 
+         <xs:element ex:importance="expert" ex:unit="" name="GhostBands" minOccurs="0" maxOccurs="1">
+          <xs:annotation><xs:documentation>
+            In this element, the tolerance for ghost-band detection can be set and the optional ghost-band filter
+            can be activated. This is mainly intended for cases in which ghost states are expected, for example when
+            semicore or Dirac-type local orbitals are used.
+          </xs:documentation></xs:annotation>
+          <xs:complexType>
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="toleranceSmallestAllowedEval" type="fortrandouble" default="2.0d0">
+              <xs:annotation><xs:documentation>
+                Eigenvalues below the lowest linearization energy minus this tolerance are treated as ghost bands.
+                The default value is intentionally conservative so that clearly unphysical low-lying states are flagged.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="filterGhostBands" type="xs:boolean" default="false">
+              <xs:annotation><xs:documentation>
+                If set to True, detected ghost bands are moved to the end of the first- and second-variational spectra.
+                To keep the original matrix sizes unchanged, the ghost states are not removed, but are reassigned a
+                large artificial eigenvalue above the current spectrum. This can lead to problems, for example when
+                summing over all eigenvalues.
+              </xs:documentation></xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+
       </xs:all>
 
       <xs:attribute ex:importance="expert" ex:unit="" name="vdWcorrection"  default="none">
@@ -2532,9 +2642,10 @@
 	    <list>
 	    <li><pre>"DFTD2"</pre>: This is the <bf>DFT-D2</bf> method by Stefan Grimme which is introduced in <it>Semiempirical GGA-type density functional constructed with a long-range dispersion correction</it>, J. Comput. Chem. <bf>27</bf>, 1787-1799 (2006).</li>
 	    <li><pre>"TSvdW"</pre>: This is the <bf>TS-vdW</bf> method by Alexandre Tkatchenko and Matthias Scheffler introduced in <it>Accurate molecular van-der-Waals interactions from ground-state electron density and free-atom reference data</it>, Phys. Rev. Lett. <bf>102</bf>, 073005 (2009).</li>
+	    <li><pre>"MBD"</pre>: This is the <bf>MBD@rsSCS</bf> method by Tomáš Bučko, Sébastien Lebègue, Tim Gould, and János G Ángyán introduced in <it>Many-body dispersion scheme under periodic boundary conditions</it>, J. Phys.: Condens. Matter <bf>28</bf>, 045201 (2016).</li>
 	  </list>
-	  Parameters corresponding to each method can be specified using the subelements <elementref>DFTD2parameters</elementref> and <elementref>TSvdWparameters</elementref> inside the element <elementref>groundstate</elementref>.
-	  It is also possible to decouple these van-der-Waals corrections from a complete ground-state calculation. In this case, you can use the subelements <elementref>DFTD2</elementref> and <elementref>TSvdW</elementref> inside the element <elementref>properties</elementref>.
+	  Parameters corresponding to each method can be specified using the subelements <elementref>DFTD2parameters</elementref> and <elementref>TSvdWparameters</elementref> and <elementref>MBDparameters</elementref> inside the element <elementref>groundstate</elementref>.
+	  It is also possible to decouple these van-der-Waals corrections from a complete ground-state calculation. In this case, you can use the subelements <elementref>DFTD2</elementref> and <elementref>TSvdW</elementref> and <elementref>MBD</elementref> inside the element <elementref>properties</elementref>.
 	  </xs:documentation>
 	</xs:annotation>
 	<xs:simpleType>
@@ -2542,6 +2653,7 @@
 	    <xs:enumeration value="none"/>
 	    <xs:enumeration value="DFTD2"/>
 	    <xs:enumeration value="TSvdW"/>
+	    <xs:enumeration value="MBD"/>
 	  </xs:restriction>
 	</xs:simpleType>
       </xs:attribute>
@@ -2860,6 +2972,15 @@
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="lmaxGwIbc" type="xs:integer" default="8">
+        <xs:annotation>
+          <xs:documentation>Angular momentum cut-off up to which contributions of the radial response used in the 
+          incomplete basis-set correction for GW are considered.</xs:documentation>
+          <xs:appinfo>
+            <olddefault default="8"/>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="maxscl" type="xs:integer"
         default="200">
         <xs:annotation>
@@ -2937,7 +3058,7 @@
           <xs:documentation>
           Select the mixing (relaxation) scheme for the SCF loop. One has the following options:
          <p/>
-        <bf>Linear mixer</bf> (<pre>"lin"</pre>):
+        <bf>Legacy adaptive linear mixer</bf> (<pre>"lin"</pre>):
         <p/>
    Given the input  <inlinemath>\mu^i</inlinemath> and output   <inlinemath>\nu^i</inlinemath>
    vectors of the <inlinemath>i</inlinemath>th
@@ -2949,13 +3070,53 @@
    where <inlinemath>\beta^i_j</inlinemath> is set to <inlinemath>\beta_0</inlinemath> at initialisation and increased by
    scaling with <inlinemath>\beta_{\rm inc}</inlinemath> (<inlinemath>>1</inlinemath>) if <inlinemath>f^i_j\equiv\nu^i_j-\mu^i_j</inlinemath> does
    not change sign between loops. If <inlinemath>f^i_j</inlinemath> does change sign, then <inlinemath>\beta^i_j</inlinemath>
-   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>>1</inlinemath>).
+   is scaled by <inlinemath>\beta_{\rm dec}</inlinemath> (<inlinemath>>1</inlinemath>). This keeps
+   the historical implementation and uses <attref>beta0</attref>, <attref>betainc</attref>, and
+   <attref>betadec</attref>.
           <p/>
-          <bf>Multisecant Broyden potential mixing</bf> (<pre>"msec"</pre>)
+          <bf>Legacy multisecant Broyden potential mixing</bf> (<pre>"msec"</pre>):
+          <p/>
+          This is a history-based quasi-Newton update for the effective potential, intended to
+          accelerate SCF convergence over simple linear mixing by constructing an approximate
+          inverse Jacobian from previous SCF steps. See <it>Math. Comp.</it> <bf>19</bf>, 577
+          (1965). Its history and startup behavior are controlled by <attref>msecStoredSteps</attref>
+          and <attref>PrelimLinSteps</attref>. Use this when the legacy potential-mixing path is
+          preferred but adaptive linear mixing is not robust enough.
           <p/>
           <bf>Pulay mixing</bf> (<pre>"pulay"</pre>):
           <p/>
-          Pulay's mixing scheme which uses direct inversion in the iterative subspace (DIIS). See <it>Chem. Phys. Lett.</it> <bf>73</bf>, 393 (1980).
+          This is direct inversion in the iterative subspace (DIIS), which builds the next iterate
+          from a linear combination of stored residual histories. See
+          <it>Chem. Phys. Lett.</it> <bf>73</bf>, 393 (1980). With
+          <attref>mixerswitch</attref>="1" the legacy potential-mixing implementation is used.
+          With <attref>mixerswitch</attref>="2" the density-mixing implementation with
+          Kerker-style preconditioning is used. The density-mixing variant uses
+          <attref>beta0</attref>, <attref>lambda</attref>, <attref>pulayStoredSteps</attref>,
+          and <attref>PrePKSteps</attref>, and is meant for cases where plain linear mixing is too
+          slow or unstable. The density-mixing implementation is currently not supported for
+          spin-polarized, meta-GGA, or LDA+U calculations.
+          <p/>
+          <bf>Kerker density mixing</bf> (<pre>"kerker"</pre>):
+          <p/>
+          This uses the new density-mixing implementation and is only available with
+          <attref>mixerswitch</attref>="2". It applies linear mixing to a Kerker-preconditioned
+          residual, suppressing long-wavelength charge sloshing in metallic systems. See
+          <it>Phys. Rev. B</it> <bf>23</bf>, 3082 (1981). Inputs with <pre>mixer="kerker"</pre>
+          and any other <attref>mixerswitch</attref> value are rejected at runtime. The update is
+          controlled by <attref>beta0</attref> and the Kerker screening parameter
+          <attref>lambda</attref>. It is currently not supported for spin-polarized, meta-GGA, or
+          LDA+U calculations.
+          <p/>
+          <bf>Simple linear density or potential mixing</bf> (<pre>"simplelinear"</pre>):
+          <p/>
+          This uses the new implementation and is distinct from <pre>"lin"</pre>, which keeps the
+          legacy adaptive linear mixer. In residual form the update is
+          <displaymath>x_{n+1}=x_n+\beta_0 R_n,</displaymath>
+          where <inlinemath>R_n</inlinemath> is the current residual. Its update amplitude is
+          controlled only by <attref>beta0</attref>; the choice between potential and density
+          mixing follows <attref>mixerswitch</attref>. Use this when a predictable fixed-step
+          mixer is preferred over the legacy adaptive <pre>"lin"</pre> mode. This implementation
+          is currently not supported for spin-polarized, meta-GGA, or LDA+U calculations.
           </xs:documentation>
           <xs:appinfo>
             <oldname>mixtype</oldname>
@@ -2969,6 +3130,9 @@
                 <xs:appinfo>
                   <oldnr>1</oldnr>
                 </xs:appinfo>
+                <xs:documentation>
+                  Legacy adaptive linear mixer.
+                </xs:documentation>
               </xs:annotation>
             </xs:enumeration>
             <xs:enumeration value="msec">
@@ -2976,6 +3140,9 @@
                 <xs:appinfo>
                   <oldnr>2</oldnr>
                 </xs:appinfo>
+                <xs:documentation>
+                  Legacy multisecant Broyden potential mixer.
+                </xs:documentation>
               </xs:annotation>
             </xs:enumeration>
             <xs:enumeration value="pulay">
@@ -2983,21 +3150,64 @@
                 <xs:appinfo>
                   <oldnr>3</oldnr>
                 </xs:appinfo>
+                <xs:documentation>
+                  Pulay mixing.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="kerker">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldnr>4</oldnr>
+                </xs:appinfo>
+                <xs:documentation>
+                  Kerker density mixing.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="simplelinear">
+              <xs:annotation>
+                <xs:appinfo>
+                  <oldnr>5</oldnr>
+                </xs:appinfo>
+                <xs:documentation>
+                  Simple linear density or potential mixing.
+                </xs:documentation>
               </xs:annotation>
             </xs:enumeration>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="mixerswitch" type="xs:integer" default="1">
+      <xs:attribute ex:importance="expert" ex:unit="" name="mixerswitch" default="1">
         <xs:annotation>
-          <xs:documentation>Switch between potential (1) and density (2) mixing.</xs:documentation>
+          <xs:documentation>
+            Switch between potential (1) and density (2) mixing for the mixers in the new framework.
+            It affects <pre>"simplelinear"</pre> directly.
+            For <pre>"pulay"</pre>, this also selects the implementation:
+            <pre>"1"</pre> keeps the legacy Pulay potential mixer, while <pre>"2"</pre> uses the new
+            density-mixing Pulay implementation. For <pre>"kerker"</pre>, only
+            <pre>"2"</pre> is supported. The legacy <pre>"lin"</pre> and <pre>"msec"</pre> mixers do
+            not use <attref>mixerswitch</attref> to select a different implementation. Supported
+            values are <pre>"1"</pre> and <pre>"2"</pre>. The new density-mixing framework
+            (<pre>"kerker"</pre>, <pre>"simplelinear"</pre>, and <pre>"pulay"</pre> with
+            <pre>mixerswitch="2"</pre>) is currently not supported for spin-polarized, meta-GGA,
+            or LDA+U calculations.
+          </xs:documentation>
         </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:integer">
+            <xs:enumeration value="1"/>
+            <xs:enumeration value="2"/>
+          </xs:restriction>
+        </xs:simpleType>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="msecStoredSteps" type="xs:integer"
         default="8">
         <xs:annotation>
           <xs:documentation> How many potentials from previous steps to store.
-           Used in msec mixing as choosen with <attref>mixer</attref>.
+           Used in msec mixing as choosen with <attref>mixer</attref>. Larger values give the
+           multisecant update more history, but can also make it more sensitive to noisy or
+           inconsistent SCF steps.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -3006,27 +3216,71 @@
         <xs:annotation>
           <xs:documentation> After which SCF iteration is msec mixing supposed to be turned on.
            Until then linear mixing is applied.
-           Used in msec mixing as choosen with <attref>mixer</attref>.
+           Used in msec mixing as choosen with <attref>mixer</attref>. Increasing this value can
+           help stabilise difficult starts before the multisecant history is used.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="pulayStoredSteps" type="xs:positiveInteger"
+        default="15">
+        <xs:annotation>
+          <xs:documentation> How many densities from previous steps to store.
+           Used only by the new density-mixing Pulay implementation, i.e. for
+           <pre>mixer="pulay"</pre> together with <pre>mixerswitch="2"</pre>. Larger values give
+           Pulay mixing more residual history, but may be less robust when the SCF path is still
+           highly irregular.                                                  
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="PrePKSteps" type="xs:integer"
+        default="5">
+        <xs:annotation>
+          <xs:documentation> After which SCF iteration the new density-mixing Pulay scheme is
+           supposed to be turned on. Until then Pulay with Kerker preconditioner and inverse metric
+           is applied.
+           Used only by <pre>mixer="pulay"</pre> together with <pre>mixerswitch="2"</pre>. Increasing
+           this value delays the DIIS stage and can make difficult metallic starts more stable.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="beta0" type="fortrandouble"
         default="0.4d0">
         <xs:annotation>
-          <xs:documentation>Initial value for mixing parameter. Used in linear
-            mixing as choosen with <attref>mixer</attref>.</xs:documentation>
+          <xs:documentation>
+            Base mixing amplitude.
+            Used by the legacy adaptive linear mixer <pre>"lin"</pre>, the new simple linear mixer
+            <pre>"simplelinear"</pre>, Kerker density mixing <pre>"kerker"</pre>, and the new
+            density-mixing Pulay implementation (<pre>mixer="pulay"</pre> with
+            <pre>mixerswitch="2"</pre>). Smaller values are usually more robust but slower; larger
+            values can accelerate convergence when the SCF cycle is already well behaved.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="lambda" type="fortrandouble"
+        default="0.5d0">
+        <xs:annotation>
+          <xs:documentation>Positive parameter for the Kerker preconditioner.
+          Used by <pre>mixer="kerker"</pre> and by density-mixing Pulay
+          (<pre>mixer="pulay"</pre> with <pre>mixerswitch="2"</pre>). It controls how strongly
+          long-wavelength density fluctuations are damped; tuning it is mainly relevant for systems
+          affected by charge sloshing.
+          </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="betainc" type="fortrandouble"
         default="1.1d0">
         <xs:annotation>
-          <xs:documentation>Mixing parameter increase. Used in linear mixing.</xs:documentation>
+          <xs:documentation>Mixing parameter increase. Used in adaptive linear mixing with
+            <pre>"lin"</pre>. Larger values make the local adaptive step grow faster after
+            consistently well-behaved updates.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="betadec" type="fortrandouble"
         default="0.6d0">
         <xs:annotation>
-          <xs:documentation>Mixing parameter decrease. Used in linear mixing.</xs:documentation>
+          <xs:documentation>Mixing parameter decrease. Used in adaptive linear mixing with
+            <pre>"lin"</pre>. Smaller values damp the local step more aggressively after residual
+            sign changes.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="lradstep" type="xs:integer" default="1">
@@ -3293,6 +3547,46 @@
         <xs:annotation>
           <xs:documentation>Angular momentum cut-off for the outer-most loop in the hamiltonian and
             overlap matrix setup.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="experimental" ex:unit="" name="vha" default="none">
+        <xs:annotation><xs:documentation>
+          Formerly used attribute, now replaced by <attref>cutofftype</attref>. 
+          It is kept for backward compatibility: if present, a runtime error is generated 
+          stating that <attref>cutofftype</attref> should be used instead.
+        </xs:documentation></xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="none"/>
+            <xs:enumeration value="exciting"/>
+            <xs:enumeration value="exciting0d"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="" name="cutofftype" default="none">
+        <xs:annotation><xs:documentation>
+          Trigger the usage of the Coulomb potential truncation technique
+          (S. Ismail-Beigi, Phys. Rev. B 73, 233103 (2006)).
+          <list>
+            <li><pre>none</pre> - 3D periodic crystal: no cutoff.</li>
+            <li><pre>0d</pre> - Isolated atom or molecule: a spherical cutoff.</li>
+          </list>
+        </xs:documentation></xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="none"/>
+            <xs:enumeration value="0d"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute ex:importance="expert" ex:unit="atomic units" type="fortrandouble" name="rCutCoulomb" default="0.0d0">
+        <xs:annotation>
+          <xs:documentation> The value of the Coulomb cutoff parameter used when <attref>cutofftype</attref> = <pre>0d</pre>. 
+            Providing zero or negative value triggers the automatic choice according to Phys. Rev. B 73, 233103 (2006).
+          </xs:documentation>
         </xs:annotation>
       </xs:attribute>
 

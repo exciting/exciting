@@ -5,8 +5,7 @@ module general_matrix_multiplication
   use precision, only: dp
   use constants, only: zone, zzero
   use lapack_f95_interfaces, only: dgemv, zgemv, dgemm, zgemm
-  use asserts, only: assert
-
+#include "asserts.fpp"
   implicit none
   
   private
@@ -76,8 +75,7 @@ contains
     trans_A_ = default_trans_char
     if (present(trans_A)) trans_A_ = trans_A
     
-    call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
-               'The number of elements of c must be equal the number of rows of op(A).')
+    CALL_ASSERT(size(c) == integer_gemv(shape(A), size(b), trans_A_),  'The number of elements of c must be equal the number of rows of op(A).')
 
     call dgemv(trans_A_, size(A, dim=1), size(A, dim=2), 1.0_dp, A, size(A, dim=1), b, 1, 0.0_dp, c, 1)
   end subroutine matrix_vector_multiplication_real_dp
@@ -120,8 +118,7 @@ contains
     trans_A_ = default_trans_char
     if (present(trans_A)) trans_A_ = trans_A
     
-    call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
-               'The number of elements of c must be equal the number of rows of op(A).')
+    CALL_ASSERT(size(c) == integer_gemv(shape(A), size(b), trans_A_),  'The number of elements of c must be equal the number of rows of op(A).')
 
     call zgemv(trans_A_, size(A, dim=1), size(A, dim=2), zone, A, size(A, dim=1), b, 1, zzero, c, 1)
   end subroutine matrix_vector_multiplication_complex_dp
@@ -159,8 +156,7 @@ contains
     trans_A_ = default_trans_char
     if (present(trans_A)) trans_A_ = trans_A
     
-    call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
-               'The number of elements of c must be equal the number of rows of op(A).')
+    CALL_ASSERT(size(c) == integer_gemv(shape(A), size(b), trans_A_),  'The number of elements of c must be equal the number of rows of op(A).')
 
     call zgemv(trans_A_, size(A, dim=1), size(A, dim=2), zone, cmplx(A, 0.0_dp, kind=dp), size(A, dim=1), b, 1, zzero, c, 1)
   end subroutine matrix_vector_multiplication_real_complex_dp
@@ -203,8 +199,7 @@ contains
     trans_A_ = default_trans_char
     if (present(trans_A)) trans_A_ = trans_A
     
-    call assert(size(c) == integer_gemv(shape(A), size(b), trans_A_), &
-               'The number of elements of c must be equal the number of rows of op(A).')
+    CALL_ASSERT(size(c) == integer_gemv(shape(A), size(b), trans_A_),  'The number of elements of c must be equal the number of rows of op(A).')
 
     call zgemv(trans_A_, size(A, dim=1), size(A, dim=2), zone, A, size(A, dim=1), cmplx(b, 0.0_dp, kind=dp), 1, zzero, c, 1)
   end subroutine matrix_vector_multiplication_complex_real_dp
@@ -264,8 +259,7 @@ contains
                
     call gemm_parameters(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
 
-    call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
-               and the number of culomns must be equal to the number of columns of op(B).')
+    CALL_ASSERT(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A)  and the number of culomns must be equal to the number of columns of op(B).')
 
     call dgemm(trans_A_, trans_B_, M, N, K, 1.0_dp, A, LDA, B, LDB, 0.0_dp, C, LDC)
   end subroutine matrix_matrix_multiplication_real_dp
@@ -333,8 +327,7 @@ contains
                
     call gemm_parameters(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
 
-    call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
-               and the number of culomns must be equal to the number of columns of op(B).')
+    CALL_ASSERT(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A)  and the number of culomns must be equal to the number of columns of op(B).')
 
     call zgemm(trans_A_, trans_B_, M, N, K, zone, A, LDA, B, LDB, zzero, C, LDC)
   end subroutine matrix_matrix_multiplication_complex_dp
@@ -398,8 +391,7 @@ contains
                
     call gemm_parameters(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
 
-    call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
-               and the number of culomns must be equal to the number of columns of op(B).')
+    CALL_ASSERT(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A)  and the number of culomns must be equal to the number of columns of op(B).')
 
     call zgemm(trans_A_, trans_B_, M, N, K, zone, cmplx(A, 0.0_dp, kind=dp), LDA, B, LDB, zzero, C, LDC)
   end subroutine matrix_matrix_multiplication_real_complex_dp
@@ -464,8 +456,7 @@ contains
                
     call gemm_parameters(shape(A), shape(B), trans_A_, trans_B_,  M, N, K, LDA, LDB, LDC)
 
-    call assert(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A) &
-               and the number of culomns must be equal to the number of columns of op(B).')
+    CALL_ASSERT(all(shape(C) == [M, N]), 'The number of rows of C must be equal to the number of rows of op(A)  and the number of culomns must be equal to the number of columns of op(B).')
 
     call zgemm(trans_A_, trans_B_, M, N, K, zone, A, LDA, cmplx(B, 0.0_dp, kind=dp), LDB, zzero, C, LDC)
   end subroutine matrix_matrix_multiplication_complex_real_dp
@@ -483,18 +474,15 @@ contains
     !> Integers for *func_matrix_multiply call
 
     if (any(trans_A == ['N', 'n'])) then
-      call assert(shape_A(2) == size_B, &
-                 'Number of columns of A must be the same as number of elements of B.')
+      CALL_ASSERT(shape_A(2) == size_B,  'Number of columns of A must be the same as number of elements of B.')
       integer_gemv = shape_A(1)
 
     else if (any(trans_A == ['T', 't', 'C', 'c'])) then
-      call assert(shape_A(1) == size_B, &
-                 'Number of columns of A**T must be the same as number of elements of B.')
+      CALL_ASSERT(shape_A(1) == size_B,  'Number of columns of A**T must be the same as number of elements of B.')
       integer_gemv = shape_A(2)
 
     else
-      call assert(.false., &
-                 'trans_A must be one of "N", "n", "T", "t", "C", "c".')
+      CALL_ASSERT(.false.,  'trans_A must be one of "N", "n", "T", "t", "C", "c".')
     end if
  
   end function integer_gemv
@@ -515,35 +503,31 @@ contains
     trans_B_ = any(trans_B == ['T', 't', 'C', 'c'])
 
     if ((.not. trans_A_) .and. (.not. trans_B_)) then
-      call assert(shape_A(2) == shape_B(1), &
-                  'Number of columns of A must be the same as number of rows of B.')
+      CALL_ASSERT(shape_A(2) == shape_B(1),  'Number of columns of A must be the same as number of rows of B.')
 
       M = shape_A(1); K = shape_A(2); N = shape_B(2)
       LDA = M; LDB = K; LDC = M
 
     else if ((.not. trans_A_) .and. trans_B_) then
-      call assert(shape_A(2) == shape_B(2), &
-                  'Number of columns of A must be the same as number of rows of B**T.')
+      CALL_ASSERT(shape_A(2) == shape_B(2),  'Number of columns of A must be the same as number of rows of B**T.')
 
       M = shape_A(1); K = shape_A(2); N = shape_B(1)
       LDA = M; LDB = N; LDC = M
 
     else if (trans_A_ .and. (.not. trans_B_)) then
-      call assert(shape_A(1) == shape_B(1), &
-                 'Number of columns of A**T must be the same as number of rows of B.')
+      CALL_ASSERT(shape_A(1) == shape_B(1),  'Number of columns of A**T must be the same as number of rows of B.')
 
       M = shape_A(2); K = shape_A(1); N = shape_B(2)
       LDA = K; LDB = K; LDC = M
 
     else if (trans_A_  .and. trans_B_) then
-      call assert(shape_A(1) == shape_B(2), &
-                 'Number of columns of A**T must be the same as number of rows of B**T.')
+      CALL_ASSERT(shape_A(1) == shape_B(2),  'Number of columns of A**T must be the same as number of rows of B**T.')
 
       M = shape_A(2);  K = shape_A(1); N = shape_B(1)
       LDA = K; LDB = N; LDC = M
 
     else
-      call assert(.false., 'trans_A must be one of "N", "n", "T", "t" "C", "c".')
+      CALL_ASSERT(.false., 'trans_A must be one of "N", "n", "T", "t" "C", "c".')
     end if
   end subroutine gemm_parameters
 

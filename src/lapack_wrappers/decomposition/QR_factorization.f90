@@ -1,7 +1,7 @@
 !> Interfaces for QR factorization. The interfaces combine wrappers for the LAPACK routines
 !> DGEQP3, ZGEQP3
 module qr_factorization
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
   use precision, only: dp
   use constants, only: zzero
@@ -91,13 +91,13 @@ contains
 
 ! This preprocessor usage is deliberate, to prevent if statements being evaluated in production code.
 #ifdef USE_ASSERT
-    call assert(m >= n, 'A has m < n.')
+    CALL_ASSERT(m >= n, 'A has m < n.')
     if (present(R)) then
-      call assert(all(shape(R) == [m, min(m, n)]), 'R must be of shape [m, min(m, n)].')
+      CALL_ASSERT(all(shape(R) == [m, min(m, n)]), 'R must be of shape [m, min(m, n)].')
     end if 
 
     if (present(Q)) then
-      call assert(all(shape(Q) == [m, m]), 'Q must be a square matrix of size m.')
+      CALL_ASSERT(all(shape(Q) == [m, m]), 'Q must be a square matrix of size m.')
     end if
 #endif
 
@@ -139,11 +139,9 @@ contains
 
     m = size(A, dim=1); n = size(A, dim=2)
 
-    call assert(m >= n, 'A has m < n.')
-    call assert(size(jpvt) == n, &
-               'The number of elements of jpvt is not equal to the number of culumns of A.')
-    call assert(size(tau) == min(m, n), &
-               'The number of elements of taus is not equal to the mininum of number of rows and culomns of A.')
+    CALL_ASSERT(m >= n, 'A has m < n.')
+    CALL_ASSERT(size(jpvt) == n,  'The number of elements of jpvt is not equal to the number of culumns of A.')
+    CALL_ASSERT(size(tau) == min(m, n),  'The number of elements of taus is not equal to the mininum of number of rows and culomns of A.')
 
     lwork = -1; allocate(work(1))
     call dgeqp3(m, n, A, m, jpvt, tau, work, lwork, info)
@@ -173,7 +171,7 @@ contains
 
     m = size(A, dim=1); n = size(A, dim=2); k = size(tau)
 
-    call assert(m >= n, 'A has m < n.')
+    CALL_ASSERT(m >= n, 'A has m < n.')
 
     lwork = -1; allocate(work(1))
     call dorgqr(m, n, k, A, m, tau, work, lwork, info)
@@ -213,11 +211,11 @@ contains
 ! This preprocessor usage is deliberate, to prevent if statements being evaluated in production code.
 #ifdef USE_ASSERT
     if (present(R)) then
-      call assert(all(shape(R) == [m, min(m, n)]), 'R must be of shape [m, min(m, n)].')
+      CALL_ASSERT(all(shape(R) == [m, min(m, n)]), 'R must be of shape [m, min(m, n)].')
     end if 
 
     if (present(Q) .and. m > n) then
-      call assert(all(shape(Q) == [m, m]), 'Q must be a square matrix of size m.')
+      CALL_ASSERT(all(shape(Q) == [m, m]), 'Q must be a square matrix of size m.')
     end if
 #endif
 
@@ -260,11 +258,9 @@ contains
 
     m = size(A, dim=1); n = size(A, dim=2)
 
-    !call assert(m >= n, 'A has m < n.')
-    call assert(size(jpvt) == n, &
-               'The number of elements of jpvt is not equal to the number of culumns of A.')
-    call assert(size(tau) == min(m, n), &
-               'The number of elements of taus is not equal to the mininum of number of rows and culomns of A.')
+    !CALL_ASSERT(m >= n, 'A has m < n.')
+    CALL_ASSERT(size(jpvt) == n,  'The number of elements of jpvt is not equal to the number of culumns of A.')
+    CALL_ASSERT(size(tau) == min(m, n),  'The number of elements of taus is not equal to the mininum of number of rows and culomns of A.')
 
     lwork = -1; allocate(work(1)); allocate(rwork(2 * n))
     call zgeqp3(m, n, A, m, jpvt, tau, work, lwork, rwork, info)
@@ -294,7 +290,7 @@ contains
 
     m = size(A, dim=1); n = size(A, dim=2); k = size(tau)
 
-    call assert(m >= n, 'A has m < n.')
+    CALL_ASSERT(m >= n, 'A has m < n.')
 
     lwork = -1; allocate(work(1))
     call zungqr(m, n, k, A, m, tau, work, lwork, info)
@@ -325,9 +321,8 @@ contains
     k = min(m, n)
     l = max(m, n)
 
-    call assert(m >= n, 'A has m < n.')
-    call assert(all(shape(R) == [max(m, n), min(m, n)]), &
-               'R must be of shape [max(m, n), min(m, n)].')
+    CALL_ASSERT(m >= n, 'A has m < n.')
+    CALL_ASSERT(all(shape(R) == [max(m, n), min(m, n)]),  'R must be of shape [max(m, n), min(m, n)].')
 
     do i=1, k-1
       R(1 : i, i) = A(1 : i, i)
@@ -358,8 +353,7 @@ contains
     k = min(m, n)
     l = max(m, n)
 
-    call assert(all(shape(R) == [max(m, n), min(m, n)]), &
-               'R must be of shape [max(m, n), min(m, n)].')
+    CALL_ASSERT(all(shape(R) == [max(m, n), min(m, n)]),  'R must be of shape [max(m, n), min(m, n)].')
 
     do i=1, k-1
       R(1 : i, i) = A(1 : i, i)

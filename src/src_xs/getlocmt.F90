@@ -17,7 +17,6 @@ Contains
          Use modmain
          Use modinput
          Use modxs
-         Use m_getunit
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq, ik, isti, istf
@@ -63,9 +62,8 @@ Contains
     !     get parameters     !
     !------------------------!
          Inquire (IoLength=Recl) vql_, vkl_, nstfv_, nlomax_, lolmax_
-         Call getunit (un)
 !write(*,*) 'LOCMT'//trim(filext)
-         Open (un, File='LOCMT'//trim(filext), Action='read', Form='unf&
+         Open (newunit=un, File='LOCMT'//trim(filext), Action='read', Form='unf&
         &ormatted', Status='old', Access='direct', Recl=Recl)
          Read (un, Rec=1) vql_, vkl_, nstfv_, nlomax_, lolmax
          Close (un)
@@ -107,8 +105,7 @@ Contains
     ! read data from file
          Inquire (IoLength=Recl) vql_, vkl_, nstfv_, nlomax_, lolmax_, &
         & lolmt
-         Call getunit (un)
-         Open (un, File='LOCMT'//trim(filext), Action='read', Form='unf&
+         Open (newunit=un, File='LOCMT'//trim(filext), Action='read', Form='unf&
         &ormatted', Status='old', Access='direct', Recl=Recl)
          Read (un, Rec=ik) vql_, vkl_, nstfv_, nlomax_, lolmax_, lolmt
          Close (un)

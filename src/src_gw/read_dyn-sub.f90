@@ -326,7 +326,6 @@ END SUBROUTINE print_ev2
 SUBROUTINE print_ev3 (ev,nq,vkl,str)
   !
   USE mod_dynmat, ONLY : ndynmat, RY_TO_THZ, RY_TO_CMM1
-  USE m_getunit
   !
   IMPLICIT NONE
   !
@@ -337,9 +336,8 @@ SUBROUTINE print_ev3 (ev,nq,vkl,str)
   CHARACTER(1)           :: str
 
 
-  CALL getunit (fid)
-  IF (str .EQ. 'd') OPEN(fid,file='ph-dense.OUT',action='Write',status='Unknown')
-  IF (str .EQ. 'c') OPEN(fid,file='ph-coarse.OUT',action='Write',status='Unknown')
+  IF (str .EQ. 'd') OPEN(newunit=fid,file='ph-dense.OUT',action='Write',status='Unknown')
+  IF (str .EQ. 'c') OPEN(newunit=fid,file='ph-coarse.OUT',action='Write',status='Unknown')
 
   DO iq=1, nq
     WRITE(fid,*)'  ' 

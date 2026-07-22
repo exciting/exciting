@@ -13,7 +13,9 @@
 Subroutine packeff (tpack, n, nu)
 ! !USES:
       use mixer_pack, only: pack_fun, unpack_fun
-      Use modmain
+      use modmpi, only: terminate_if_false
+      use modmain
+      use precision, only: dp, i32, long_int
 ! !INPUT/OUTPUT PARAMETERS:
 !   tpack : .true. for packing, .false. for unpacking (in,logical)
 !   n     : total number of real values stored (out,integer)
@@ -30,14 +32,15 @@ Subroutine packeff (tpack, n, nu)
 !   Modified Aug 2022 (SeTi)
 !EOP
 !BOC
-      Implicit None
+      implicit none
 ! arguments
-      Logical, Intent (In) :: tpack
-      Integer, Intent (Out) :: n
-      Real (8), Intent (Inout) :: nu (*)
+      logical, intent (in) :: tpack
+      integer(long_int), intent (inout) :: n
+      real(dp), intent (inout) :: nu (*)
 ! local variables
-      Integer :: idm, ias, lm1, lm2
-      Integer :: ispn, jspn
+      integer(long_int) :: nmax
+      integer(i32) :: idm, ias, lm1, lm2, ispn, jspn
+      nmax = n
       n = 0
 !      density for mixing 
 !      only tested for spin unpolarized
@@ -47,6 +50,7 @@ Subroutine packeff (tpack, n, nu)
         else
           call unpack_fun( rhomt, input%groundstate%lmaxvr, 1, rhoir, n, nu)
         end if
+        call terminate_if_false(n .le. nmax, 'Error(packeff): mixing vector too small for density packing')
 !      potential and magnetic field for mixing
       Else
         if( tpack) then
@@ -60,6 +64,7 @@ Subroutine packeff (tpack, n, nu)
             call unpack_fun( bxcmt(:,:,:,idm), input%groundstate%lmaxvr, 1, bxcir(:,idm), n, nu)
           end do
         end if
+        call terminate_if_false(n .le. nmax, 'Error(packeff): mixing vector too small for potential packing')
        ! pack the LDA+U potential if required
        If (ldapu .Ne. 0) Then
          Do ias = 1, natmtot
@@ -85,6 +90,7 @@ Subroutine packeff (tpack, n, nu)
             End Do
          End Do
        End If
+       call terminate_if_false(n .le. nmax, 'Error(packeff): mixing vector too small for LDA+U packing')
       End If
       Return
 End Subroutine

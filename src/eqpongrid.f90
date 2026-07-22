@@ -1,19 +1,21 @@
 subroutine eqpongrid
   Use modinput
   Use modmain
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
   use mod_wannier
+  use precision, only: i32, dp, long_int
 
   implicit none
 
-  integer :: nv, ik, nk, ib, nb, iknr, is, iv, m, ix, iy, iz
-  integer :: nkp, ibgw, nbgw
-  real(8) :: s(3), v1(3), dt, vk(3)
-  real(8) :: eferqp, eferks
-  real(8), allocatable :: eval2(:,:), vvl(:,:), ongrid(:,:)
-  real(8), allocatable :: kvecs(:,:), eqp(:,:), eks(:,:)
+  integer(i32) :: nv, ik, nk, ib, nb, iknr, is, iv, m, ix, iy, iz, unit
+  integer(i32) :: nkp, ibgw, nbgw
+  real(dp) :: s(3), v1(3), dt, vk(3)
+  real(dp) :: eferqp, eferks
+  real(dp), allocatable :: eval2(:,:), vvl(:,:), ongrid(:,:)
+  real(dp), allocatable :: kvecs(:,:), eqp(:,:), eks(:,:)
   logical :: exist
   character(30) :: fname
-  integer(4)    :: recl
+  integer(long_int) :: recl
 
   !-----------------------------------------------------------------------------
   ! Read the file
@@ -26,29 +28,26 @@ subroutine eqpongrid
     stop
   end if
       
-  inquire(IoLength=recl) nkp, ibgw, nbgw
-  open(70, File=fname, Action='READ', Form='UNFORMATTED', &
-  &    Access='DIRECT', Recl=recl)
-  read(70, Rec=1) nkp, ibgw, nbgw
-  close(70)
+  call inquire_large( recl, [nkp, ibgw, nbgw] )
+  call open_direct_unformatted_large( unit, fname, "read", recl, "old" )
+  read(unit, Rec=1) nkp, ibgw, nbgw
+  close(unit)
       
   allocate(kvecs(1:3,nkp))
   allocate(eqp(ibgw:nbgw,nkp))
   allocate(eks(ibgw:nbgw,nkp))
   
-  inquire(IoLength=recl) nkp, ibgw, nbgw, kvecs(1:3,1), &
-  &       eqp(ibgw:nbgw,1), eks(ibgw:nbgw,1), &
-  &       eferqp, eferks
+  call inquire_large( recl, [nkp, ibgw, nbgw], kvecs(1:3,1), &
+                      eqp(ibgw:nbgw,1), eks(ibgw:nbgw,1), [eferqp, eferks] )
   
-  open(70, File=fname, Action='READ', Form='UNFORMATTED', &
-  &    Access='DIRECT', Recl=recl)
+  call open_direct_unformatted_large( unit, fname, "read", recl, "old" )
   
   do ik = 1, nkp
-    read(70, Rec=ik) nk, ib, nb, kvecs(:,ik), &
+    read(unit, Rec=ik) nk, ib, nb, kvecs(:,ik), &
     &    eqp(ibgw:nbgw,ik), eks(ibgw:nbgw,ik), &
     &    eferqp, eferks
   end do
-  close(70)
+  close(unit)
   do ik = 1, nkp
     call findkpt( kvecs( :, ik), is, iv)
     eks( ibgw:nbgw, iv) = eqp( ibgw:nbgw, ik)

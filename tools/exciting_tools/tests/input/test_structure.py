@@ -221,7 +221,7 @@ def test_optional_species_attributes_xml(lattice_and_atoms_CdS):
         "Cd": {"rmt": 3.0, "LDAplusU": {"J": 1.5, "U": 2.4, "l": 2}},
         "S": {
             "rmt": 4.0,
-            "dfthalfparam": {"ampl": 1.2, "cut": 1.9, "exponent": 5, "shell": [{"ionization": 0.8, "number": 1}]},
+            "dfthalfparam": {"shell": [{"ionization": 0.8, "number": 1, "ampl": 1.2, "cut": 1.9, "exponent": 5}]},
         },
     }
 
@@ -260,19 +260,17 @@ def test_optional_species_attributes_xml(lattice_and_atoms_CdS):
     dfthalfparam_xml = species_s_elements[0]
     assert dfthalfparam_xml.tag == "dfthalfparam"
 
-    assert set(dfthalfparam_xml.keys()) == {"ampl", "cut", "exponent"}
-    assert dfthalfparam_xml.get("ampl") == "1.2"
-    assert dfthalfparam_xml.get("cut") == "1.9"
-    assert dfthalfparam_xml.get("exponent") == "5"
-
     dfthalfparam_elements = list(dfthalfparam_xml)
     assert len(dfthalfparam_elements) == 1
     shell_xml = dfthalfparam_elements[0]
     assert shell_xml.tag == "shell"
 
-    assert set(shell_xml.keys()) == {"ionization", "number"}
+    assert set(shell_xml.keys()) == {"ionization", "number", "ampl", "cut", "exponent"}
     assert shell_xml.get("ionization") == "0.8"
     assert shell_xml.get("number") == "1"
+    assert shell_xml.get("ampl") == "1.2"
+    assert shell_xml.get("cut") == "1.9"
+    assert shell_xml.get("exponent") == "5"
 
 
 ref_dict = {

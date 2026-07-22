@@ -5,7 +5,7 @@
 #
 # The first test case is an example of explicitly specifying all test properties, as documented below, however
 # in most cases, only the test name is required. In this case, defaults defined in `defaults_config.yml` and
-# `src/runner/configire_tests.py` are used. The test name is specified like:
+# `src/runner/configure_tests.py` are used. The test name is specified like:
 #   ```
 #   method_directory/test_name:
 #   ```
@@ -39,6 +39,39 @@
 #  cmd_line_args:      Specify command line arguments to pass to exciting.
 #
 # ---------------------------------------------------------------------------------------------------------------
+groundstate/LDA05_PW_GaN:
+    inputs:
+      - "input.xml"
+      - "N.xml"
+      - "Ga.xml"
+    files_under_test:
+      - "atoms.xml"
+      - "eigval.xml"
+      - "evalcore.xml"
+      - "INFO.OUT"
+      - "VS_??.OUT"
+
+groundstate/LDA05_PW_MgO_NSCF:
+    inputs:
+      - "input.xml"
+      - "Mg.xml"
+      - "O.xml"
+    files_under_test:
+      - "atoms.xml"
+      - "eigval.xml"
+      - "evalcore.xml"
+      - "INFO.OUT"
+      - "DFT_HALF_NSCF.OUT"
+groundstate/LDA_PW-cdft-davidson:
+    inputs:
+      - "input.xml"
+      - "C.xml"
+      - "O.xml"
+    files_under_test:
+      - "INFO_CDFT.OUT"
+      - "evalcore.xml"
+      - "eigval.xml"
+      - "atoms.xml"
 
 groundstate/LDA_PW-cdft-maximumOverlapMethod-N2:
     inputs:
@@ -173,11 +206,77 @@ groundstate/PBE-Al:
       - !Build intelLLVM_mpiandsmp
       - !Build flang_mpiandsmp
 
-groundstate/PBE-lin-Al:
+groundstate/PBE-lin-potential-Al:
 
-groundstate/PBE-msec-Al:
+groundstate/PBE-kerker-Al:
+   inputs:
+      - "input.xml"
+      - "Al.xml"
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
 
-groundstate/PBE-pulay-Al:
+groundstate/PBE-lin-density-Al:
+   inputs:
+      - "input.xml"
+      - "Al.xml"
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
+groundstate/PBE-msec-potential-Al:
+
+groundstate/PBE-msec-density-Al:
+   inputs:
+      - "input.xml"
+      - "Al.xml"
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
+groundstate/PBE-pulay-potential-Al:
+
+groundstate/PBE-pulay-density-Al:
+   inputs:
+      - "input.xml"
+      - "Al.xml"
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
+groundstate/PBE-simplelinear-density-Al:
+   inputs:
+      - "input.xml"
+      - "Al.xml"
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
+
+groundstate/PBE-simplelinear-potential-Al:
+   inputs:
+      - "input.xml"
+      - "Al.xml"
+   files_under_test:
+      - "INFO.OUT"
+      - "evalcore.xml"
+      - "geometry.xml"
+      - "eigval.xml"
+      - "atoms.xml"
 
 groundstate/PBE-spin-cdft-diamond:
     inputs:
@@ -206,6 +305,8 @@ groundstate/GGA_PBE_SOL-automatic_trial_energies-NaCl:
       - "LO_RECOMMENDATION.OUT"
 
 groundstate/PBE_SOL-BN:
+
+groundstate/PBE_SOL-MBD-asymmetric-BN:
 
 groundstate/PBE-libxc-Al:
    group: !Group LIBXC
@@ -237,13 +338,75 @@ groundstate/mGGA_TPSS-Si:
 
 groundstate/LDA_PW-inversion-symmetry-CO2:
 
+groundstate/LDA_PW-davidson-cutoff-CO2:
+
 BSE/PBE_SOL-LiF:
     failing_builds:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
 
+BSE/PBE_SOL-BN-XAS-N-K-edge_LAPACK:
+    failing_builds:
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
+
+BSE/PBE_SOL-BN-XAS-N-K-edge_ScaLAPACK_pzheevx:
+    group: !Group SCALAPACK
+    failing_builds:
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
+
+BSE/PBE_SOL-BN-XAS-N-K-edge_ScaLAPACK_pzheevd:
+    group: !Group SCALAPACK
+    failing_builds:
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
+
+# Failing builds are because multiple q points
+# require the usage of ScaLAPACK when requesting MPI parallelism.
+BSE/PBE_SOL-LiF-q-dep:
+   failing_builds:
+      - !Build flang_mpiandsmp
+      - !Build gcc_mpiandsmp
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
+
+BSE/PBE_SOL-LiF-chibar_full:
+    failing_builds:
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
+
+# Failing builds are because multiple q points
+# require the usage of ScaLAPACK when requesting MPI parallelism.
+BSE/PBSE_SOL-Lif-chibar_full-q_dep:
+   failing_builds:
+      - !Build flang_mpiandsmp
+      - !Build gcc_mpiandsmp
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
+
+# Failing builds are because multiple q points
+# require the usage of ScaLAPACK when requesting MPI parallelism.
+BSE/PBE_SOL-LiF-q-dep-beyond-TDA:
+   failing_builds:
+      - !Build flang_mpiandsmp
+      - !Build gcc_mpiandsmp
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
+
 BSE/PBE-LiF-phononscreening:
+   failing_builds:
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
    files_under_test:
       - "EPSILON_??.OUT"
       - "EXCITON_??.OUT"
@@ -257,6 +420,10 @@ BSE/PBE-LiF-phononscreening:
 # Test with ifx 2025.0.0 give too large errors, in
 # order of 2.0e-3 for oscillator strengths in DICHROIC file
 BSE/PBE-MoS2-dichroism:
+   failing_builds:
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
    files_under_test:
       - "EPSILON_??.OUT"
       - "EXCITON_??.OUT"
@@ -306,6 +473,20 @@ BSE/PBE-PbI2-emat_with_BSE:
      - !Build gcc_mpiandsmp
      - !Build intelLLVM_mpiandsmp
      - !Build flang_mpiandsmp
+     - !Build intelLLVM_serial
+     - !Build intelLLVM_smp
+
+BSE/PBE_SOL-XANES-BN:
+   failing_builds:
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
+
+BSE/PBE_SOL-XANES-TiO2:
+    failing_builds:
+      - !Build intelLLVM_mpiandsmp
+      - !Build intelLLVM_serial
+      - !Build intelLLVM_smp
 
 GW/ZnO-PBESOL:
    files_under_test:
@@ -336,6 +517,14 @@ GW/ZnO-PBESOL-nodeg:
       - "input.xml"
       - "Zn.xml"
       - "O.xml"
+
+GW/C-mixed-core-ordering:
+   files_under_test:
+      - "SGI_Q1.OUT"
+      - "BARC_Q1.OUT"
+   inputs:
+      - "input.xml"
+      - "C.xml"
 
 GW/graphite-PBE-band:
    files_under_test:
@@ -456,7 +645,7 @@ GW/MoS2-LDA-sigmax:
       - "BARC_Q1.OUT"
       - "BARC_Q2.OUT"
 
-GW/MoS2-LDA-vxc:
+GW/MoS2-LDA05-vxc:
    files_under_test:
       - "VXCNN.DAT"
    inputs:
@@ -485,6 +674,51 @@ GW/MoS2-LDA-taskGroup:
       - "input.xml"
       - "Mo.xml"
       - "S.xml"
+GW/MoS2-LDA-evGW0-taskGroup:
+   files_under_test:
+      - "EVALQP.DAT"
+      - "GW_INFO.OUT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+GW/MoS2-LDA-evGW0-auto-fallback:
+   files_under_test:
+      - "EVALQP.DAT"
+      - "GW_INFO.OUT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+      - "EVALQP_EVGW001.OUT"
+      - "VXCNN.DAT"
+      - "SIGMAX_K1.OUT"
+      - "SGI_Q1.OUT"
+      - "SGI_Q2.OUT"
+      - "BARC_Q1.OUT"
+      - "BARC_Q2.OUT"
+      - "INVERSE-EPSILON_Q1.OUT"
+      - "INVERSE-EPSILON_Q2.OUT"
+      - "INVERSE-EPSH.OUT"
+      - "INVERSE-EPSW1.OUT"
+      - "INVERSE-EPSW2.OUT"
+GW/MoS2-LDA-evGW0-sigmac-resume-subset:
+   files_under_test:
+      - "GW_INFO.OUT"
+   inputs:
+      - "input.xml"
+      - "Mo.xml"
+      - "S.xml"
+      - "EVALQP_EVGW001.OUT"
+      - "SGI_Q1.OUT"
+      - "SGI_Q2.OUT"
+      - "BARC_Q1.OUT"
+      - "BARC_Q2.OUT"
+      - "INVERSE-EPSILON_Q1.OUT"
+      - "INVERSE-EPSILON_Q2.OUT"
+      - "INVERSE-EPSH.OUT"
+      - "INVERSE-EPSW1.OUT"
+      - "INVERSE-EPSW2.OUT"
 GW/Si-symmetry:
     files_under_test:
       - "INVERSE-EPSILON_Q1.OUT"
@@ -662,6 +896,24 @@ GW/ZrO2-PBESOL:
       - "O.xml"
       - "STATE.OUT"
       - "EFERMI.OUT"
+
+GW/He-cc4s:
+   failing_builds:
+      - !Build intel_mpiandsmp
+      - !Build intelLLVM_mpiandsmp
+      - !Build gcc_mpiandsmp
+      - !Build flang_mpiandsmp
+
+   files_under_test:
+      - BARC_Q1.OUT
+      - coulomb_vertex_q0001.test
+   inputs:
+      - "input.xml"
+      - "He.xml"
+      - "STATE.OUT"
+      - "STATE_PBE.OUT"
+      - "EVALFV.OUT"
+      - "EVECFV.OUT"
    
 
 hybrid/EXX-C:
@@ -697,6 +949,8 @@ hybrid/PBEH-Si:
 properties/LDA-PW-core_properties-Si:
 
 properties/LDA_PW-bandstructure-Si:
+
+properties/LDA_PW-bandstructure-Si-Davidson:
 
 properties/LDA_PW-dos-Si:
 
@@ -781,25 +1035,35 @@ properties/LDA_PW-transport-Si:
    comments: 'Test is flakey when run in the CI with GCC builds: Test outputs are not written.\n
      Results with Intel for THERMALCOND_11 and ELECTCOND_11 have large absolute errors.'
 
-# TODO(Sebastian) Issue 40
 properties/LDA_PZ-wannier-SiC:
-   failing_builds:
-      - !Build intel_mpiandsmp
-      - !Build intel_serial
-      - !Build intel_smp
-      - !Build gcc_mpiandsmp
-      - !Build gcc_serial
-      - !Build gcc_smp
-      - !Build intelLLVM_mpiandsmp
-      - !Build intelLLVM_serial
-      - !Build intelLLVM_smp
-      - !Build flang_mpiandsmp
-      - !Build flang_serial
-      - !Build flang_smp
+    files_under_test:
+      - "TDOS_WANNIER.OUT"
+      - "WANNIER_INFO.OUT"
+    inputs:
+      - "input.xml"
+      - "Si.xml"
+      - "C.xml"
+
+properties/GGA_PBE-wannier-SiC-spinorb_true:
+    files_under_test:
+#      - "TDOS_WANNIER.OUT"    ### until further notice excluded from testing since spinor wannier function convergence behaviour is complex
+      - "WANNIER_INFO.OUT"
+    inputs:
+      - "input.xml"
+      - "Si.xml"
+      - "C.xml"
 
 properties/PBE_SOL-core_overlap-BN:
    files_under_test:
       - "coreoverlap.xml"
+
+properties/PBE_SOL-MBD-BN:
+   inputs:
+      - "input.xml"
+      - "B.xml"
+      - "N.xml"
+   files_under_test:
+      - "MBD.OUT"
 
 # The direct comparison of wf real and imaginary parts
 # is a bad idea due to the phase. Thus, we only 
@@ -991,7 +1255,25 @@ RT-TDDFT/GGA_PBE-Ehrenfest-Si-restart:
       - "TOTENERGY_RTTDDFT.OUT.SAVE"
       - "VECTOR_POTENTIAL.OUT.SAVE"
 
+RT-TDDFT/GGA_PBE-SOC-GaAs-unperturbedKS-updateSOC:
+    files_under_test:
+      - "atoms.xml"
+      - "eigval.xml"
+      - "evalcore.xml"
+      - "CURRENT.OUT"
+      - "EIGVAL_30.OUT"
+      - "N_EXCITATIONS.OUT"
+      - "PROJECTION_COEFFS_30.OUT"
+      - "OCCSV_TXT_30.OUT"
+      - "TOTENERGY_RTTDDFT.OUT"
+    inputs:
+      - "input.xml"
+      - "Ga.xml"
+      - "As.xml"
+
 RT-TDDFT/LDA_PW-C-kick-RK4-frozen-tdH:
+
+RT-TDDFT/LDA_PW-C-kick-RK4-frozen-tdH-scissor:
 
 RT-TDDFT/LDA_PW-Ehrenfest-C:
    repeat: False
@@ -1061,15 +1343,12 @@ RT-TDDFT/LDA_PW-Si-sinSq-CFM4-berry-phase-scissor:
 
 
 # Test with ifx 2025.0.0 give too large errors, but almost within tolerance.
+# Is the TDDFT using BSE kernels
 TDDFT/PBE-LiF:
   failing_builds:
       - !Build intelLLVM_mpiandsmp
       - !Build intelLLVM_serial
       - !Build intelLLVM_smp
-
-XANES/PBE_SOL-BN:
-
-XANES/PBE_SOL-TiO2:
 
 sirius/GaN:
    group: !Group SIRIUS
@@ -1096,3 +1375,150 @@ fastBSE/PBE_SOL-diamond:
       - "fastBSE_exciton_energies.out"
       - "fastBSE_oscillator_strengths.out"
    comments: 'Only runs for builds linked to HDF5 and FFTW3.'
+   
+# The gcc serial and smp are deactivated
+# because they take too long
+# The reference is generated with gcc_serial
+GW/C-diamond-QSGW-diagonal-initial:
+    inputs:
+        - "C.xml"
+        - "input.xml"
+        - "EVALFV_GW.OUT"
+        - "EVALSV_GW.OUT"
+        - "EVECFV_GW.OUT"
+        - "EVECSV_GW.OUT"
+        - "SOVERLAP_K1.OUT"
+        - "SOVERLAP_K2.OUT"
+        - "SOVERLAP_K3.OUT"
+        - "SOVERLAP_K4.OUT"
+        - "SOVERLAP_K5.OUT"
+        - "SOVERLAP_K6.OUT"
+        - "SOVERLAP_K7.OUT"
+        - "SOVERLAP_K8.OUT"
+        - "STATE.OUT"
+    files_under_test:
+        - "OPTIMIZED_VXC_K1.OUT"
+        - "OPTIMIZED_VXC_K2.OUT"
+        - "OPTIMIZED_VXC_K3.OUT"
+        - "SIGMAC_K1.OUT"
+        - "SIGMAC_K2.OUT"
+        - "SIGMAC_K3.OUT"
+        - "SIGMAX_K1.OUT"
+        - "SIGMAX_K2.OUT"
+        - "SIGMAX_K3.OUT"
+    failing_builds:
+        - !Build gcc_serial
+        - !Build gcc_smp
+        
+GW/C-diamond-QSGW-diagonal-final:
+    inputs:
+        - "C.xml"
+        - "input.xml"
+        - "CURRENT_OPTIMIZED_VXC_K1.OUT"
+        - "CURRENT_OPTIMIZED_VXC_K2.OUT"
+        - "CURRENT_OPTIMIZED_VXC_K3.OUT"
+        - "STATE_INITIAL_GS.OUT"
+        - "STATE_PREVIOUS_GS.OUT"
+        - "GW_ITERATION.OUT"
+        - "GW_INFO.OUT"
+    files_under_test:
+        - "INFO.OUT"
+        - "eigval.xml"
+
+GW/C-diamond-QSGW-offdiagonal-gamma-0:
+    inputs:
+        - "C.xml"
+        - "input.xml"
+        - "EVALFV_GW.OUT"
+        - "EVALSV_GW.OUT"
+        - "EVECFV_GW.OUT"
+        - "EVECSV_GW.OUT"
+        - "STATE.OUT"
+        - "SOVERLAP_K1.OUT"
+    files_under_test:
+        - "OPTIMIZED_VXC_K1.OUT"
+        - "SIGMAC_K1.OUT"
+        - "SIGMAC_OFFDIAGONAL_K1.OUT"
+        - "SIGMAX_K1.OUT"
+        - "SIGMAX_OFFDIAGONAL_K1.OUT"
+
+
+phonon/graphite_phonons_TSvdW:
+   inputs: 
+      - "C.xml"
+      - "input.xml"
+      - "DYN_Q0000_0000_0000_S01_A001_P1.OUT"
+      - "DYN_Q0000_0000_0000_S01_A001_P2.OUT"
+      - "DYN_Q0000_0000_0000_S01_A001_P3.OUT"
+      - "DYN_Q0000_0000_0000_S01_A002_P1.OUT"
+      - "DYN_Q0000_0000_0000_S01_A002_P2.OUT"
+      - "DYN_Q0000_0000_0000_S01_A002_P3.OUT"
+      - "DYN_Q0000_0000_0000_S01_A003_P1.OUT"
+      - "DYN_Q0000_0000_0000_S01_A003_P2.OUT"
+      - "DYN_Q0000_0000_0000_S01_A003_P3.OUT"
+      - "DYN_Q0000_0000_0000_S01_A004_P1.OUT"
+      - "DYN_Q0000_0000_0000_S01_A004_P2.OUT"
+      - "DYN_Q0000_0000_0000_S01_A004_P3.OUT"
+      - "DYN_Q0000_0000_0102_S01_A001_P1.OUT"
+      - "DYN_Q0000_0000_0102_S01_A001_P2.OUT"
+      - "DYN_Q0000_0000_0102_S01_A001_P3.OUT"
+      - "DYN_Q0000_0000_0102_S01_A002_P1.OUT"
+      - "DYN_Q0000_0000_0102_S01_A002_P2.OUT"
+      - "DYN_Q0000_0000_0102_S01_A002_P3.OUT"
+      - "DYN_Q0000_0000_0102_S01_A003_P1.OUT"
+      - "DYN_Q0000_0000_0102_S01_A003_P2.OUT"
+      - "DYN_Q0000_0000_0102_S01_A003_P3.OUT"
+      - "DYN_Q0000_0000_0102_S01_A004_P1.OUT"
+      - "DYN_Q0000_0000_0102_S01_A004_P2.OUT"
+      - "DYN_Q0000_0000_0102_S01_A004_P3.OUT"
+   files_under_test:
+      - "PHONON.OUT"
+
+phonon/graphite_phonons_D2:
+   inputs:
+      - "C.xml"
+      - "input.xml"
+      - "DYN_Q0000_0000_0000_S01_A001_P1.OUT"
+      - "DYN_Q0000_0000_0000_S01_A001_P2.OUT"
+      - "DYN_Q0000_0000_0000_S01_A001_P3.OUT"
+      - "DYN_Q0000_0000_0000_S01_A002_P1.OUT"
+      - "DYN_Q0000_0000_0000_S01_A002_P2.OUT"
+      - "DYN_Q0000_0000_0000_S01_A002_P3.OUT"
+      - "DYN_Q0000_0000_0000_S01_A003_P1.OUT"
+      - "DYN_Q0000_0000_0000_S01_A003_P2.OUT"
+      - "DYN_Q0000_0000_0000_S01_A003_P3.OUT"
+      - "DYN_Q0000_0000_0000_S01_A004_P1.OUT"
+      - "DYN_Q0000_0000_0000_S01_A004_P2.OUT"
+      - "DYN_Q0000_0000_0000_S01_A004_P3.OUT"
+      - "DYN_Q0000_0000_0102_S01_A001_P1.OUT"
+      - "DYN_Q0000_0000_0102_S01_A001_P2.OUT"
+      - "DYN_Q0000_0000_0102_S01_A001_P3.OUT"
+      - "DYN_Q0000_0000_0102_S01_A002_P1.OUT"
+      - "DYN_Q0000_0000_0102_S01_A002_P2.OUT"
+      - "DYN_Q0000_0000_0102_S01_A002_P3.OUT"
+      - "DYN_Q0000_0000_0102_S01_A003_P1.OUT"
+      - "DYN_Q0000_0000_0102_S01_A003_P2.OUT"
+      - "DYN_Q0000_0000_0102_S01_A003_P3.OUT"
+      - "DYN_Q0000_0000_0102_S01_A004_P1.OUT"
+      - "DYN_Q0000_0000_0102_S01_A004_P2.OUT"
+      - "DYN_Q0000_0000_0102_S01_A004_P3.OUT"
+   files_under_test:
+      - "PHONON.OUT"
+phonon/LDA_PZ-nonpolar-C:
+   inputs:
+      - "C.xml"
+      - "input.xml"
+   files_under_test:
+      - "DYN_Q??.OUT"
+      - "PHONON.OUT"
+
+phonon/PBE_SOL-polar-BN:
+   inputs:
+      - "B.xml"
+      - "N.xml"
+      - "input.xml"
+   files_under_test:
+      - "DYN_Q??.OUT"
+      - "PHONON.OUT"
+      - "EPSINF.OUT"
+      - "ZSTAR.OUT"

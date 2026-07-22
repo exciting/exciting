@@ -1,7 +1,7 @@
 !> Routines to generate first and second variation wavefunction
 Module generation_wavefunction
   Use precision, only: dp 
-  Use asserts, only: assert
+#include "asserts.fpp"
   Use constants, only: zzero
   Use modinput, only: input, issvlo
   Use modmpi, only: mpiglobal
@@ -86,18 +86,13 @@ contains
 
     If (issvlo()) Then
        call terminate_if_true(mpiglobal,nlotot==0, "SVLO does not work with nlotot = 0")
-       call assert(num_of_basis_functions_sv == nstfv + nlotot, "For svlo basis, &
-            & expect total number of basis functions to be equal to & 
-            & first variational states plus total number of local &
-            & orbitals")
+       CALL_ASSERT(num_of_basis_functions_sv == nstfv + nlotot, "For svlo basis,   expect total number of basis functions to be equal to   first variational states plus total number of local   orbitals")
        call generate_basisfunction_secondvariation_MT_APW(lmax, &
             & lmmax, ia, is, ngp, apwalm, evecfv(:,1:nstfv), wfmtfv(:,:,1:nstfv))
        call generate_basisfunction_secondvariation_MT_lo(lmmax, &
             & ia, is, wfmtfv(:,:,nstfv+1:num_of_basis_functions_sv))
     Else
-       call assert(num_of_basis_functions_sv == nstfv , "For standard sv &
-            & basis, expect total number of basis functions to be &
-            & equal to first variational states ")
+       CALL_ASSERT(num_of_basis_functions_sv == nstfv , "For standard sv   basis, expect total number of basis functions to be   equal to first variational states ")
        call generate_wavefunction_firstvariation_MT_APW_and_lo(lmax,&
             & lmmax, ia, is, ngp, apwalm ,evecfv, wfmtfv) 
     End If

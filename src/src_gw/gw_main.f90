@@ -1,4 +1,4 @@
-
+!> Run the selected GW task.
 subroutine gw_main()
     use gw_info, only: fgw, open_gwinfo
     use modinput
@@ -6,15 +6,16 @@ subroutine gw_main()
     use modgw
     use modmpi
     use mod_mpi_gw
-    use m_getunit
     use mod_hdf5
     use mod_aaa_approximant
     use mod_gw_degeneracies, only: ibgw_including_degeneracy, nbgw_including_degeneracy
+    use evgw0_task_group_driver, only: execute_evgw0_task_group
     use task_group, only: execute_task_group
 
     implicit none
     
     real(8) :: tstart, tend
+    logical :: is_evgw0
 
     !--------------------------------------------
     ! Skip initializing and running any GW task
@@ -31,8 +32,7 @@ subroutine gw_main()
     if (rank == 0) then
         call open_gwinfo
         if (input%gw%debug) then
-            call getunit(fdebug)
-            open(fdebug, File='debug.info', Action='Write')
+            open(newunit=fdebug, File='debug.info', Action='Write')
         end if
     end if
 
@@ -114,7 +114,12 @@ subroutine gw_main()
 
         ! Calculate and store the (q,\omega)-dependent dielectric function
         case('taskGroup')
-            call execute_task_group()
+            is_evgw0 = associated(input%gw%evGW0)
+            if (is_evgw0) then
+                call execute_evgw0_task_group()
+            else
+                call execute_task_group()
+            end if
 
         ! Calculate and store the (q,\omega)-dependent dielectric function
             ! case('epsilon')

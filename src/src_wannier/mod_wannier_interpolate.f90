@@ -3,7 +3,6 @@ module mod_wannier_interpolate
   use modmain
   use mod_wannier
   use m_linalg
-  use m_plotmat
   use mod_opt_tetra
   implicit none
 
@@ -16,7 +15,7 @@ module mod_wannier_interpolate
   type( t_set)  :: wfint_tetra                      ! tetrahedra for tetrahedron integration
   real(8)       :: wfint_vvbm(3), wfint_evbm
   real(8)       :: wfint_vcbm(3), wfint_ecbm
-
+  integer       :: n_spin_channel = 1               ! number of spin channels (default 1, 2 for spin-disentanglement used)
   real(8), allocatable    :: wfint_eval(:,:)        ! interpolated eigenenergies
   complex(8), allocatable :: wfint_transform(:,:,:) ! corresponding expansion coefficients
   integer, allocatable    :: wfint_bandmap(:)       ! map from interpolated bands to original bands
@@ -36,7 +35,7 @@ module mod_wannier_interpolate
     !
     subroutine wfint_init( int_kset, evalin, serial)
       ! !USES:
-        use m_getunit 
+      use constants, only: zzero
       ! !INPUT PARAMETERS:
       !   int_kset : k-point set on which the interpolation is performed on (in, type k_set)
       ! !DESCRIPTION:
@@ -73,12 +72,12 @@ module mod_wannier_interpolate
         evalin_ = evalfv( wf_fst:wf_lst, :)
         deallocate( evalfv)
       end if
-    
+
       if( wfint_mindist) call wannier_mindist( input%structure%crystal%basevect, wf_kset, wf_nrpt, wf_rvec, wf_nwf, wf_centers, wf_wdistvec, wf_wdistmul)
       call wfint_fourierphases( wfint_kset, wf_nrpt, wf_rvec, wf_rmul, wfint_pqr, wfint_phase)
 
       allocate( wfint_eval( wf_nwf, wfint_kset%nkpt))
-      allocate( wfint_transform( wf_nwf, wf_nwf, wfint_kset%nkpt))
+      allocate( wfint_transform( wf_nwf, wf_nwf, wfint_kset%nkpt), source=zzero)
       
       if( present( serial)) then
         call wfint_interpolate_eigsys( evalin_, serial=serial)
@@ -159,7 +158,6 @@ module mod_wannier_interpolate
 
     ! generates real-space Hamiltonian in Wannier gauge H_{mn}(R)
     subroutine wfint_genhwr( evalin)
-      use m_plotmat
       real(8), intent( in) :: evalin( wf_fst:wf_lst, wf_kset%nkpt)
 
       integer :: ik, ist, jst, igroup
@@ -185,7 +183,6 @@ module mod_wannier_interpolate
       end do
       call wfint_ftk2r( hwk, wfint_hwr, 1)
       deallocate( hwk, auxmat)
-
       return
     end subroutine wfint_genhwr
 
@@ -422,7 +419,7 @@ module mod_wannier_interpolate
       real(8), intent( in)           :: evalin( wf_fst:wf_lst, wf_kset%nkpt)
       logical, optional, intent( in) :: serial
       
-      integer :: iq, q1, q2
+      integer :: iq, q1, q2, ispn, fwf_int, lwf_int
       logical :: parallel
 
       complex(8), allocatable :: hwq(:,:)
@@ -447,14 +444,24 @@ module mod_wannier_interpolate
         q2 = wfint_kset%nkpt
       end if
 #ifdef USEOMP
-!$omp parallel default( shared) private( iq, hwq)
+!$omp parallel default( shared) private( iq, hwq, ispn, fwf_int, lwf_int)
 !$omp do
 #endif
       do iq = q1, q2
         ! transform it to the q-dependent Hamiltonian in Wannier gauge
         call wfint_ftr2q( wfint_hwr, hwq, iq, 1)
         ! find the matrices that transform it to the Hamilton gauge
-        call zhediag( hwq, wfint_eval( :, iq), evec=wfint_transform( :, :, iq))
+        do ispn = 1, n_spin_channel
+          ! block diagonalize the Hamiltonian if spin disentanglement is used
+          if (n_spin_channel == 1) then
+            fwf_int = 1
+            lwf_int = wf_nwf
+          else
+            fwf_int = 1 + wf_groups( wf_ngroups/2 )%lwf*(ispn-1)        ! either 1 (ispn=1) or 1 + wf_groups( wf_ngroups/2 )%lwf (ispn=2)
+            lwf_int = wf_groups( wf_ngroups/2*ispn )%lwf                ! either wf_groups( wf_ngroups/2 )%lwf (ispn=1) or wf_nwf(=wf_groups( wf_ngroups )%lwf) (ispn=2)
+          end if
+          call zhediag( hwq(fwf_int:lwf_int, fwf_int:lwf_int), wfint_eval(fwf_int:lwf_int, iq), evec=wfint_transform(fwf_int:lwf_int, fwf_int:lwf_int, iq) )
+        end do
       end do
 #ifdef USEOMP
 !$omp end do
@@ -491,8 +498,9 @@ module mod_wannier_interpolate
       logical, optional, intent( in) :: usetetra
       !BOC
       integer :: fst, lst
-      logical :: usetetra_ = .false.
-
+      logical :: usetetra_
+      
+      usetetra_ = .false.
       if( present( usetetra)) usetetra_ = usetetra
       if( allocated( wfint_occ)) deallocate( wfint_occ)
       allocate( wfint_occ( wf_nwf, wfint_kset%nkpt))
@@ -500,8 +508,8 @@ module mod_wannier_interpolate
       fst = wf_fst
       lst = wf_fst + wf_nwf - 1
       if( allocated( wfint_bandmap)) then
-        fst = wfint_bandmap(1)
-        lst = wfint_bandmap( wf_nwf)
+        fst = minval( wfint_bandmap, dim=1)
+        lst = maxval( wfint_bandmap, dim=1)
       end if
 
       if( usetetra_) then
@@ -538,15 +546,23 @@ module mod_wannier_interpolate
 
       integer :: iq, ir, ist, jst, im, d1, d2, ndeg, sdeg, ddeg
       real(8) :: dotp, eps1, eps2, vr(3)
-      complex(8) :: ftweight, hamwk( wf_nwf, wf_nwf)
-      complex(8) :: velo( wf_nwf, wf_nwf, 3, wfint_kset%nkpt)
-      complex(8) :: dmat( wf_nwf, wf_nwf, 3, wfint_kset%nkpt)
-      complex(8) :: mass( wf_nwf, wf_nwf, 3, 3, wfint_kset%nkpt)
-      real(8) :: degeval( wf_nwf)
-      complex(8) :: degmat( wf_nwf, wf_nwf), degevec( wf_nwf, wf_nwf)
+      complex(8) :: ftweight
+      complex(8), allocatable :: hamwk(:,:)
+      complex(8), allocatable :: velo(:,:,:,:)
+      complex(8), allocatable :: dmat(:,:,:,:)
+      complex(8), allocatable :: mass(:,:,:,:,:)
+      real(8), allocatable :: degeval(:)
+      complex(8), allocatable :: degmat(:,:), degevec(:,:)
       
       real(8), allocatable :: evalin(:,:)
       complex(8), allocatable :: auxmat(:,:)
+
+      allocate(hamwk(wf_nwf, wf_nwf))
+      allocate(velo(wf_nwf, wf_nwf, 3, wfint_kset%nkpt))
+      allocate(dmat(wf_nwf, wf_nwf, 3, wfint_kset%nkpt))
+      allocate(mass(wf_nwf, wf_nwf, 3, 3, wfint_kset%nkpt))
+      allocate(degeval(wf_nwf))
+      allocate(degmat(wf_nwf, wf_nwf), degevec(wf_nwf, wf_nwf))
 
       eps1 = 1.d-4
       eps2 = 1.d-2
@@ -719,7 +735,7 @@ module mod_wannier_interpolate
 
       integer :: iq, l, m, lm, lmmax, lammax, ist, ias
       real(8), allocatable :: radolp(:,:,:,:), elm(:,:)
-      complex(8), allocatable :: dmat(:,:,:,:), radcoeffr(:,:,:,:,:), ulm(:,:,:), auxmat(:,:)
+      complex(8), allocatable :: dmat(:,:,:,:), radcoeffr(:,:,:,:,:,:), ulm(:,:,:), auxmat(:,:)
 
       lmmax = (lmax + 1)**2
 
@@ -731,14 +747,8 @@ module mod_wannier_interpolate
       call genlmirep( lmax, lmmax, elm, ulm)
 
       bc = 0.d0
-#ifdef USEOMP
-!$omp parallel default( shared) private( iq, dmat, auxmat, l, m, lm, ist, ias)
-#endif
       allocate( dmat( lmmax, lmmax, wf_nwf, natmtot))
       allocate( auxmat( lmmax, lmmax))
-#ifdef USEOMP
-!$omp do
-#endif
       do iq = firstofset( mpiglobal%rank, wfint_kset%nkpt), lastofset( mpiglobal%rank, wfint_kset%nkpt)
         call wfint_interpolate_dmat( lmax, lammax, iq, radcoeffr, radolp, dmat, diagonly=.false.)
         do ias = 1, natmtot
@@ -760,13 +770,7 @@ module mod_wannier_interpolate
           end do
         end do
       end do
-#ifdef USEOMP
-!$omp end do
-#endif
       deallocate( dmat, auxmat)
-#ifdef USEOMP
-!$omp end parallel
-#endif
       call xmpi_allgatherv( mpiglobal, bc, (lmax + 1) * natmtot * wf_nwf * &
         (lastofset( mpiglobal%rank, wfint_kset%nkpt ) - firstofset( mpiglobal%rank, wfint_kset%nkpt ) + 1) )
 
@@ -812,25 +816,28 @@ module mod_wannier_interpolate
       !EOP
       integer, intent( in) :: lmax, nsmooth, intgrid(3), neffk, nsube
       real(8), intent( in) :: ewin(2)
-      real(8), intent( out) :: tdos( nsube)
+      real(8), intent( out) :: tdos( nsube, n_spin_channel)
       ! optional arguments
       real(8), optional, intent( in)       :: scissor
       logical, optional, intent( in)       :: lonly
       character(64), optional, intent( in) :: inttype
-      real(8), optional, intent( out)      :: pdos( nsube, (lmax+1)**2, natmtot)
+      real(8), optional, intent( out)      :: pdos( nsube, (lmax+1)**2, natmtot, n_spin_channel)
       real(8), optional, intent( out)      :: jdos( nsube, 0:wf_nwf)
       integer, optional, intent( out)      :: ntrans, mtrans
       !BOC
 
       logical :: genpdos, genjdos, pdoslonly
       integer :: lmmax, ias, l, m, lm, ist, jst, iq, q1, q2, ie, nk(3), lammax, n, stype
+      Integer, dimension(2) :: sign_factor = [1, -1]
+      integer :: ispn, fwf_int, lwf_int, nwf_int
       real(8) :: dosscissor, tmpfermi
       character(64) :: integraltype
       type( k_set) :: tmp_kset
       type( t_set) :: tset
 
-      real(8), allocatable :: energies(:,:), radolp(:,:,:,:), elm(:,:), e(:), ftdos(:,:,:), fjdos(:,:), fpdos(:,:,:,:), edif(:,:,:), ejdos(:,:), ijdos(:,:,:), wjdos(:,:,:)
-      complex(8), allocatable :: ulm(:,:,:), radcoeffr(:,:,:,:,:), dmat(:,:,:,:), auxmat(:,:)
+      real(8), allocatable :: energies(:,:), radolp(:,:,:,:), elm(:,:), e(:), ftdos(:,:,:), fjdos(:,:), fpdos(:,:,:,:), edif(:,:,:), ejdos(:,:), ijdos(:,:,:), wjdos(:,:,:), &
+                              energies_tmp(:,:), ftdos_tmp(:,:,:)
+      complex(8), allocatable :: ulm(:,:,:), radcoeffr(:,:,:,:,:,:), dmat(:,:,:,:), auxmat(:,:)
 
       dosscissor = 0.d0
       if( present( scissor)) dosscissor = scissor
@@ -887,31 +894,50 @@ module mod_wannier_interpolate
       !--------------------------------------!
       allocate( ftdos( wf_nwf, wfint_kset%nkpt, nsube))
       ftdos = 1.d0
-      if( integraltype == 'trilin') then
-        call brzint( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, wf_nwf, wf_nwf, &
-             energies, &
-             ftdos(:,:,1), &
-             tdos)
-      else if( integraltype == 'trilin+') then
-        call brzint_new( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, wf_nwf, wf_nwf, &
-             energies, &
-             ftdos(:,:,1), &
-             tdos)
-      else
-        call opt_tetra_wgt_delta( wfint_tetra, wfint_kset%nkpt, wf_nwf, energies, nsube, e, ftdos)
-        tdos = 0.d0
+      do ispn = 1, n_spin_channel
+        ! first half of wf_groups is down-spin, second half is up-spin. Set fwf_int, lwf_int, nwf_int accordingly if spin-disentanglement is utilized.
+        ! TODO comment is not correct anymore with current implementation
+        if (n_spin_channel == 1) then
+          fwf_int = 1
+          lwf_int = wf_nwf
+          nwf_int = wf_nwf
+        else
+          fwf_int = 1 + wf_groups( wf_ngroups/2 )%lwf*(ispn-1)        ! either 1 (ispn=1) or 1 + wf_groups( wf_ngroups/2 )%lwf (ispn=2)
+          lwf_int = wf_groups( wf_ngroups/2*ispn )%lwf                ! either wf_groups( wf_ngroups/2 )%lwf (ispn=1) or wf_nwf(=wf_groups( wf_ngroups )%lwf) (ispn=2)
+          nwf_int = lwf_int - fwf_int + 1
+        end if
+        if( integraltype == 'trilin') then
+          call brzint( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, nwf_int, nwf_int, &
+              energies(fwf_int:lwf_int, :), &
+              ftdos(fwf_int:lwf_int, :, 1), &
+              tdos(:, ispn))
+        else if( integraltype == 'trilin+') then 
+          call brzint_new( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, nwf_int, nwf_int, &
+              energies(fwf_int:lwf_int, :), &
+              ftdos(fwf_int:lwf_int, :, 1), &
+              tdos(:, ispn))
+        else
+          allocate( energies_tmp( nwf_int, wfint_kset%nkpt), ftdos_tmp( nwf_int, wfint_kset%nkpt, nsube))
+          energies_tmp = energies( fwf_int:lwf_int, :)
+          ftdos_tmp = ftdos( fwf_int:lwf_int, :, :)
+          call opt_tetra_wgt_delta( wfint_tetra, wfint_kset%nkpt, nwf_int, energies_tmp, nsube, e, ftdos_tmp)
+          tdos(:, ispn) = 0.d0
 #ifdef USEOMP
 !$omp parallel default( shared) private( ie)
 !$omp do
 #endif
-        do ie = 1, nsube
-          tdos( ie) = sum( ftdos( :, :, ie))
-        end do
+          do ie = 1, nsube
+            tdos( ie, ispn) = sum( ftdos_tmp( :, :, ie))
+          end do
 #ifdef USEOMP
 !$omp end do
 !$omp end parallel
-#endif
-      end if
+#endif  
+          ftdos( fwf_int:lwf_int, :, :) = ftdos_tmp( :, :, :)
+          deallocate( energies_tmp, ftdos_tmp)
+        end if
+        tdos(:, ispn) = sign_factor(ispn) * tdos(:, ispn)
+      end do
 
       !--------------------------------------!
       !             partial DOS              !
@@ -923,15 +949,15 @@ module mod_wannier_interpolate
         deallocate( elm)
         allocate( fpdos( wf_nwf, lmmax, natmtot, wfint_kset%nkpt))
         fpdos(:,:,:,:) = 0.d0
-        call wfint_gen_radcoeffr( lmax, lammax, radcoeffr)
-        call wfint_gen_radolp( lmax, lammax, radolp)
+        call wfint_gen_radcoeffr( lmax, lammax, radcoeffr) !spherical harmonic+radial expansion coefficients
+        call wfint_gen_radolp( lmax, lammax, radolp) !radial overlap integrals
 
         q1 = firstofset( mpiglobal%rank, wfint_kset%nkpt)
         q2 = lastofset( mpiglobal%rank, wfint_kset%nkpt)
-        allocate( dmat( lmmax, lmmax, wf_nwf, natmtot))
+        allocate( dmat( lmmax, lmmax, wf_nwf, natmtot)) !band characters
         allocate( auxmat( lmmax, lmmax))
         do iq = q1, q2
-          call wfint_interpolate_dmat( lmax, lammax, iq, radcoeffr, radolp, dmat)
+          call wfint_interpolate_dmat( lmax, lammax, iq, radcoeffr, radolp, dmat) !band characters on q grid
           do ias = 1, natmtot
             do ist = 1, wf_nwf
               call zgemm( 'n', 'n', lmmax, lmmax, lmmax, zone, &
@@ -958,63 +984,75 @@ module mod_wannier_interpolate
         deallocate( dmat, auxmat, ulm)
         call xmpi_allgatherv( mpiglobal, fpdos, lmmax*natmtot * wf_nwf * (q2 - q1 + 1) )
 
-        do ias = 1, natmtot
-          do l = 0, lmax
-            if( pdoslonly) then
-              if( integraltype == 'trilin') then
-                call brzint( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, wf_nwf, wf_nwf, &
-                       energies, &
-                       fpdos( :, l+1, ias, :), &
-                       pdos( :, l+1, ias))
-              else if( integraltype == 'trilin+') then
-                call brzint_new( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, wf_nwf, wf_nwf, &
-                       energies, &
-                       fpdos( :, l+1, ias, :), &
-                       pdos( :, l+1, ias))
-              else
-#ifdef USEOMP
-!$omp parallel default( shared) private( ie)
-!$omp do
-#endif
-                do ie = 1, nsube
-                  pdos( ie, l+1, ias) = sum( fpdos( :, l+1, ias, :)*ftdos( :, :, ie))
-                end do
-#ifdef USEOMP
-!$omp end do
-!$omp end parallel
-#endif
-              end if
-            else
-              do m = -l, l
-                lm = idxlm( l, m)
+        do ispn = 1, n_spin_channel
+          ! first half of wf_groups is down-spin, second half is up-spin. Set fwf_int, lwf_int, nwf_int accordingly if spin-disentanglement is utilized.
+          if (n_spin_channel == 1) then
+            fwf_int = 1
+            lwf_int = wf_nwf
+            nwf_int = wf_nwf
+          else
+            fwf_int = 1 + wf_groups( wf_ngroups/2 )%lwf*(ispn-1)        ! either 1 (ispn=1) or 1 + wf_groups( wf_ngroups/2 )%lwf (ispn=2)
+            lwf_int = wf_groups( wf_ngroups/2*ispn )%lwf                ! either wf_groups( wf_ngroups/2 )%lwf (ispn=1) or wf_nwf(=wf_groups( wf_ngroups )%lwf) (ispn=2)
+            nwf_int = lwf_int - fwf_int + 1
+          end if
+          do ias = 1, natmtot
+            do l = 0, lmax
+              if( pdoslonly) then
                 if( integraltype == 'trilin') then
-                  call brzint( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, wf_nwf, wf_nwf, &
-                         energies, &
-                         fpdos( :, lm, ias, :), &
-                         pdos( :, lm, ias))
+                  call brzint( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, nwf_int, nwf_int, &
+                        energies(fwf_int:lwf_int, :), &
+                        fpdos(fwf_int:lwf_int, l+1, ias, :), &
+                        pdos( :, l+1, ias, ispn))
                 else if( integraltype == 'trilin+') then
-                  call brzint_new( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, wf_nwf, wf_nwf, &
-                         energies, &
-                         fpdos( :, lm, ias, :), &
-                         pdos( :, lm, ias))
+                  call brzint_new( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, nwf_int, nwf_int, &
+                        energies(fwf_int:lwf_int, :), &
+                        fpdos(fwf_int:lwf_int, l+1, ias, :), &
+                        pdos( :, l+1, ias, ispn))
                 else
 #ifdef USEOMP
 !$omp parallel default( shared) private( ie)
 !$omp do
 #endif
                   do ie = 1, nsube
-                    pdos( ie, lm, ias) = sum( fpdos( :, lm, ias, :)*ftdos( :, :, ie))
+                    pdos( ie, l+1, ias, ispn) = sum( fpdos( fwf_int:lwf_int, l+1, ias, :)*ftdos( fwf_int:lwf_int, :, ie))
                   end do
 #ifdef USEOMP
 !$omp end do
 !$omp end parallel
 #endif
                 end if
-              end do
-            end if
+              else
+                do m = -l, l
+                  lm = idxlm( l, m)
+                  if( integraltype == 'trilin') then
+                    call brzint( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, nwf_int, nwf_int, &
+                          energies(fwf_int:lwf_int, :), &
+                          fpdos(fwf_int:lwf_int, l+1, ias, :), &
+                          pdos( :, lm, ias, ispn))
+                  else if( integraltype == 'trilin+') then
+                    call brzint_new( nsmooth, wfint_kset%ngridk, nk, wfint_kset%ikmap, nsube, ewin, nwf_int, nwf_int, &
+                          energies(fwf_int:lwf_int, :), &
+                          fpdos(fwf_int:lwf_int, l+1, ias, :), &
+                          pdos( :, lm, ias, ispn))
+                  else
+#ifdef USEOMP
+!$omp parallel default( shared) private( ie)
+!$omp do
+#endif
+                    do ie = 1, nsube
+                      pdos( ie, lm, ias, ispn) = sum( fpdos( fwf_int:lwf_int, lm, ias, :)*ftdos( fwf_int:lwf_int, :, ie))
+                    end do
+#ifdef USEOMP
+!$omp end do
+!$omp end parallel
+#endif
+                  end if
+                end do
+              end if
+            end do
           end do
+          pdos(:, :, :, ispn) = sign_factor(ispn) * pdos(:, :, :, ispn)
         end do
-
         deallocate( fpdos)
       end if
       deallocate( ftdos)
@@ -1143,18 +1181,18 @@ module mod_wannier_interpolate
     ! needed for band character and PDOS
     subroutine wfint_interpolate_dmat( lmax, lammax, iq, radcoeffr, radolp, dmat, diagonly)
       integer, intent( in)           :: lmax, lammax, iq
-      complex(8), intent( in)        :: radcoeffr( wf_nwf, lammax, (lmax+1)**2, natmtot, wf_nrpt)
+      complex(8), intent( in)        :: radcoeffr( wf_nwf, lammax, (lmax+1)**2, natmtot, nspinor, wf_nrpt)
       real(8), intent( in)           :: radolp( lammax, lammax, 0:lmax, natmtot)
       complex(8), intent( out)       :: dmat( (lmax+1)**2, (lmax+1)**2, wf_nwf, natmtot)
       logical, optional, intent( in) :: diagonly
 
-      integer :: ir, is, ia, ias, o, l1, m1, lm1, m2, lm2, lmmax, ilo1, maxdim, ist
+      integer :: ir, is, ia, ias, ispn, o, l1, m1, lm1, m2, lm2, lmmax, ilo1, maxdim, ist
       integer :: lamcnt( 0:lmax, nspecies), o2idx( apwordmax, 0:lmax, nspecies), lo2idx( nlomax, 0:lmax, nspecies), lm2l( (lmax+1)**2)
 
       complex(8), allocatable :: radcoeffq1(:,:), radcoeffq2(:,:), U(:,:), auxmat(:,:), wgts(:,:,:)
       logical :: diag
 
-      complex(8) :: zdotc
+      complex(8), external :: zdotc
 
       diag = .false.
       if( present( diagonly)) diag = diagonly
@@ -1204,9 +1242,8 @@ module mod_wannier_interpolate
       end if
           
       dmat = zzero
-
 #ifdef USEOMP
-!$omp parallel default( shared) private( is, ia, ias, l1, lm1, m2, lm2, radcoeffq1, radcoeffq2, ir, ist, U, auxmat)
+!$omp parallel default( shared) private( is, ia, ias, ispn, l1, lm1, m2, lm2, radcoeffq1, radcoeffq2, ir, ist, U, auxmat)
 #endif
       allocate( radcoeffq1( maxdim, wf_nwf))
       allocate( radcoeffq2( maxdim, wf_nwf))
@@ -1218,52 +1255,51 @@ module mod_wannier_interpolate
 #endif
       do lm1 = 1, lmmax
         l1 = lm2l( lm1)
-
-        do is = 1, nspecies
-          do ia = 1, natoms( is)
-
-            ias = idxas( ia, is)
-            radcoeffq1 = zzero
-            do ir = 1, wf_nrpt
-              if( wfint_mindist) U = wfint_transform(:,:,iq)*wgts(:,:,ir)
-              call zgemm( 't', 'n', maxdim, wf_nwf, wf_nwf, wfint_pqr( iq, ir), &
-                     radcoeffr( :, :, lm1, ias, ir), wf_nwf, &
-                     U, wf_nwf, zone, &
-                     radcoeffq1, maxdim)
-            end do
-            if( diag) then
-              call zgemm( 't', 'n', maxdim, wf_nwf, maxdim, zone, &
-                     cmplx( radolp( :, :, l1, ias), 0, 8), maxdim, &
-                     radcoeffq1, maxdim, zzero, &
-                     auxmat, maxdim)
-              do ist = 1, wf_nwf
-                dmat( lm1, lm1, ist, ias) = zdotc( lamcnt( l1, is), radcoeffq1( :, ist), 1, auxmat( :, ist), 1) 
+        do ispn=1, nspinor 
+          do is = 1, nspecies
+            do ia = 1, natoms( is)
+              ias = idxas( ia, is)
+              radcoeffq1 = zzero
+              do ir = 1, wf_nrpt
+                if( wfint_mindist) U = wfint_transform(:,:,iq)*wgts(:,:,ir)
+                call zgemm( 't', 'n', maxdim, wf_nwf, wf_nwf, wfint_pqr( iq, ir), &
+                      radcoeffr( :, :, lm1, ias, ispn, ir), wf_nwf, &
+                      U, wf_nwf, zone, &
+                      radcoeffq1, maxdim)
               end do
-            else
-              do m2 = -l1, l1
-                lm2 = idxlm( l1, m2)
-                ! calculate q-point density coefficient
-                radcoeffq2 = zzero
-                do ir = 1, wf_nrpt
-                  if( wfint_mindist) U = wfint_transform(:,:,iq)*wgts(:,:,ir)
-                  call zgemm( 't', 'n', maxdim, wf_nwf, wf_nwf, wfint_pqr( iq, ir), &
-                         radcoeffr( :, :, lm2, ias, ir), wf_nwf, &
-                         U, wf_nwf, zone, &
-                         radcoeffq2, maxdim)
-                end do
+              if( diag) then
                 call zgemm( 't', 'n', maxdim, wf_nwf, maxdim, zone, &
-                       cmplx( radolp( :, :, l1, ias), 0, 8), maxdim, &
-                       radcoeffq1, maxdim, zzero, &
-                       auxmat, maxdim)
+                      cmplx( radolp( :, :, l1, ias), 0, 8), maxdim, &
+                      radcoeffq1, maxdim, zzero, &
+                      auxmat, maxdim)
                 do ist = 1, wf_nwf
-                  dmat( lm1, lm2, ist, ias) = zdotc( lamcnt( l1, is), radcoeffq2( :, ist), 1, auxmat( :, ist), 1) 
+                  dmat( lm1, lm1, ist, ias) = dmat( lm1, lm1, ist, ias) + zdotc( lamcnt( l1, is), radcoeffq1( :, ist), 1, auxmat( :, ist), 1) 
                 end do
-              end do
-            end if
+              else
+                do m2 = -l1, l1
+                  lm2 = idxlm( l1, m2)
+                  ! calculate q-point density coefficient
+                  radcoeffq2 = zzero
+                  do ir = 1, wf_nrpt
+                    if( wfint_mindist) U = wfint_transform(:,:,iq)*wgts(:,:,ir)
+                    call zgemm( 't', 'n', maxdim, wf_nwf, wf_nwf, wfint_pqr( iq, ir), &
+                          radcoeffr( :, :, lm2, ias, ispn, ir), wf_nwf, &
+                          U, wf_nwf, zone, &
+                          radcoeffq2, maxdim)
+                  end do
+                  call zgemm( 't', 'n', maxdim, wf_nwf, maxdim, zone, &
+                        cmplx( radolp( :, :, l1, ias), 0, 8), maxdim, &
+                        radcoeffq1, maxdim, zzero, &
+                        auxmat, maxdim)
+                  do ist = 1, wf_nwf
+                    dmat( lm1, lm2, ist, ias) = dmat( lm1, lm2, ist, ias) + zdotc( lamcnt( l1, is), radcoeffq2( :, ist), 1, auxmat( :, ist), 1)
+                  end do
+                end do
+              end if
 
+            end do
           end do
         end do
-
       end do
 #ifdef USEOMP
 !$omp end do
@@ -1361,12 +1397,12 @@ module mod_wannier_interpolate
     subroutine wfint_gen_radcoeffr( lmax, lammax, radcoeffr)
       integer, intent( in) :: lmax
       integer, intent( out) :: lammax
-      complex(8), allocatable, intent( out) :: radcoeffr(:,:,:,:,:)
+      complex(8), allocatable, intent( out) :: radcoeffr(:,:,:,:,:,:)
 
-      integer :: ik, ir, is, ia, ias, l1, m1, lm1, o, ilo1, lmmax, ngknr, maxdim
+      integer :: ik, ir, is, ia, ias, ispn, l1, m1, lm1, o, ilo1, lmmax, ngknr, maxdim
       integer :: lamcnt( 0:lmax, nspecies), o2idx( apwordmax, 0:lmax, nspecies), lo2idx( nlomax, 0:lmax, nspecies)
 
-      complex(8), allocatable :: evecfv(:,:,:), apwalm(:,:,:,:,:), radcoeffk(:,:,:,:,:)
+      complex(8), allocatable :: evec(:,:,:), apwalm(:,:,:,:), radcoeffk(:,:,:,:,:,:)
 
       lmmax = (lmax + 1)**2
 
@@ -1395,57 +1431,59 @@ module mod_wannier_interpolate
       lammax = maxdim
    
       ! build k-point density coefficients
-      allocate( radcoeffk( wf_fst:wf_lst, maxdim, lmmax, natmtot, wf_kset%nkpt))
-      allocate( evecfv( nmatmax_ptr, nstfv, nspnfv))
-      allocate( apwalm( ngkmax_ptr, apwordmax, lmmaxapw, natmtot, nspnfv))
-      radcoeffk(:,:,:,:,:) = zzero
+      allocate( radcoeffk( wf_fst:wf_lst, maxdim, lmmax, natmtot, nspinor, wf_kset%nkpt))
+      allocate( evec( nmatmax_ptr, nstsv, nspinor))
+      allocate( apwalm( ngkmax_ptr, apwordmax, lmmaxapw, natmtot))
+      radcoeffk(:,:,:,:,:,:) = zzero
 
       do ik = 1, wf_kset%nkpt
         ngknr = wf_Gkset%ngk( 1, ik)
 
         ! get matching coefficients
-        call match( ngknr, wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm( :, :, :, :, 1))
+        call match( ngknr, wf_Gkset%gkc( :, 1, ik), wf_Gkset%tpgkc( :, :, 1, ik), wf_Gkset%sfacgk( :, :, 1, ik), apwalm( :, :, :, :))
           
         ! read eigenvector      
-        call wfhelp_getevec( ik, evecfv)
+        call wfhelp_getevec( ik, evec)
 
         do is = 1, nspecies
           do ia = 1, natoms( is)
             ias = idxas( ia, is)
-            ! APW contribution
-            do l1 = 0, lmax
-              do m1 = -l1, l1
-                lm1 = idxlm( l1, m1)
-                do o = 1, apword( l1, is)
-                  call zgemv( 't', ngknr, wf_nwf, zone, &
-                         evecfv( 1, wf_fst, 1), nmatmax_ptr, &
-                         apwalm( 1, o, lm1, ias, 1), 1, zzero, &
-                         radcoeffk( wf_fst, o2idx( o, l1, is), lm1, ias, ik), 1)
-                end do
-              end do
-            end do
-            ! LO contribution
-            do ilo1 = 1, nlorb( is)
-              l1 = lorbl( ilo1, is)
-              if( l1 .le. lmax) then
+            do ispn=1, nspinor
+              ! APW contribution
+              do l1 = 0, lmax
                 do m1 = -l1, l1
                   lm1 = idxlm( l1, m1)
-                  radcoeffk( :, lo2idx( ilo1, l1, is), lm1, ias, ik) = evecfv( ngknr+idxlo( lm1, ilo1, ias), wf_fst:wf_lst, 1)
+                  do o = 1, apword( l1, is)
+                    call zgemv( 't', ngknr, wf_nst, zone, &
+                           evec( 1, wf_fst, ispn), nmatmax_ptr, &
+                           apwalm( 1, o, lm1, ias), 1, zzero, &
+                           radcoeffk( wf_fst, o2idx( o, l1, is), lm1, ias, ispn, ik), 1)
+                  end do
                 end do
-              end if
+              end do
+              ! LO contribution
+              do ilo1 = 1, nlorb( is)
+                l1 = lorbl( ilo1, is)
+                if( l1 .le. lmax) then
+                  do m1 = -l1, l1
+                    lm1 = idxlm( l1, m1)
+                    radcoeffk( :, lo2idx( ilo1, l1, is), lm1, ias, ispn, ik) = evec( ngknr+idxlo( lm1, ilo1, ias), wf_fst:wf_lst, ispn)
+                  end do
+                end if
+              end do
             end do
           end do
         end do
       end do
 
-      deallocate( evecfv, apwalm)
+      deallocate( evec, apwalm)
 
       ! build R-point density coefficients
       if( allocated( radcoeffr)) deallocate( radcoeffr)
-      allocate( radcoeffr( wf_nwf, maxdim, lmmax, natmtot, wf_nrpt))
-      radcoeffr(:,:,:,:,:) = zzero
+      allocate( radcoeffr( wf_nwf, maxdim, lmmax, natmtot, nspinor, wf_nrpt))
+      radcoeffr(:,:,:,:,:,:) = zzero
 #ifdef USEOMP                
-!$omp parallel default( shared) private( ir, ik, is, ia, ias, lm1)
+!$omp parallel default( shared) private( ir, ik, is, ia, ias, ispn, lm1)
 !$omp do
 #endif
       do ir = 1, wf_nrpt
@@ -1453,11 +1491,13 @@ module mod_wannier_interpolate
           do is = 1, nspecies
             do ia = 1, natoms( is)
               ias = idxas( ia, is)
-              do lm1 = 1, lmmax
-                call zgemm( 't', 'n', wf_nwf, maxdim, wf_nst, wf_pkr( ik, ir)/wf_kset%nkpt, &
-                       wf_transform( :, :, ik), wf_nst, &
-                       radcoeffk( :, :, lm1, ias, ik), wf_nst, zone, &
-                       radcoeffr( :, :, lm1, ias, ir), wf_nwf)
+              do ispn=1, nspinor
+                do lm1 = 1, lmmax
+                  call zgemm( 't', 'n', wf_nwf, maxdim, wf_nst, wf_pkr( ik, ir)/wf_kset%nkpt, &
+                        wf_transform( :, :, ik), wf_nst, &
+                        radcoeffk( :, :, lm1, ias, ispn, ik), wf_nst, zone, &
+                        radcoeffr( :, :, lm1, ias, ispn, ir), wf_nwf)
+                end do
               end do
             end do
           end do
@@ -1477,10 +1517,11 @@ module mod_wannier_interpolate
 !--------------------------------------------------------------------------------------
 
     subroutine wfint_findbandmap
-      integer :: ik, ist, jst, fst, lst
+      use sorting, only: sort_index_1d 
+      integer :: ik, ist, jst, iist, jjst, njst, fst, lst, idx(wf_nwf), map_(wf_nwf)
       
       integer, allocatable :: map(:,:)
-      real(8), allocatable :: eval(:,:)
+      real(8), allocatable :: eval(:,:), eval_wfint_sort(:,:)
 
       if( allocated( wfint_bandmap)) deallocate( wfint_bandmap)
       allocate( wfint_bandmap( wf_nwf))
@@ -1494,13 +1535,37 @@ module mod_wannier_interpolate
       call wfint_init( wf_kset, evalin=eval( wf_fst:wf_lst, :))
 
       allocate( map( wf_nwf, wf_kset%nkpt))
+      allocate( eval_wfint_sort(wf_nwf, wf_kset%nkpt) )
       map = 0
       do ik = 1, wf_kset%nkpt
+        ! sort interpolated energies (for case of block diagonalization)
+        idx = sort_index_1d( wf_nwf, wfint_eval(:, ik) )
+        eval_wfint_sort(:, ik) = wfint_eval(idx, ik)
         do ist = 1, wf_nwf
           do jst = fst, lst
-            if( abs( eval( jst, ik) - wfint_eval( ist, ik)) .lt. 1.d-6) then
+            if( abs( eval( jst, ik) - eval_wfint_sort(ist, ik)) .lt. 1.d-6) then
+              ! the highest energy degegenerate state jst is assigned to map. 
               map( ist, ik) = jst
-              exit
+              if ( jst > fst ) then
+                if ( abs( eval( jst, ik) - eval( jst-1, ik)) .lt. 1.d-6 ) then
+                  ! correct map entries for degenerate states
+                  iist = 0
+                  jjst = jst
+                  njst= 0
+                  ! count energy degenerate entries before eval(jjst, ik) and set number as njst
+                  do while ( abs( eval( jjst, ik) - eval( jjst-1, ik)) .lt. 1.d-6 )
+                    njst = njst + 1
+                    jjst = jjst - 1
+                    if ( jjst == fst ) exit
+                  end do
+                  ! reduce map entry by (njst + #number of degenerate wfint_eval before entry)
+                  do while( abs( eval_wfint_sort(ist, ik) - eval_wfint_sort(ist-iist, ik)) .lt. 1.d-6 )
+                    map(ist, ik) = jst - njst + iist
+                    iist = iist + 1
+                    if ( iist == ist ) exit
+                  end do
+                end if
+              end if
             end if
           end do
         end do
@@ -1529,6 +1594,10 @@ module mod_wannier_interpolate
       do ist = fst + 1, wf_nwf
         if( wfint_bandmap( ist) .eq. 0) wfint_bandmap( ist) = wfint_bandmap( ist - 1) + 1
       end do
+      do ist = 1, wf_nwf
+        map_(idx(ist)) = wfint_bandmap(ist)
+      end do
+      wfint_bandmap = map_
 
       deallocate( eval, map)
       return
@@ -1600,5 +1669,23 @@ module mod_wannier_interpolate
       
     end subroutine wfint_matchksgw_linreal
     !EOC
+    
+    !> Sets the n_spin_channel as a global module variable in mod_wannier_interpolate.
+    !> If reset=.true., the number of spin channels is re-set to the default value of 1.
+    subroutine wfint_set_num_spin_channels(reset)
+      logical, optional, intent(in) :: reset
+      logical :: reset_
+
+      reset_ = .false.
+      if ( present( reset ) ) reset_ = reset
+      if ( wf_spin_dis ) n_spin_channel = nspinor
+      if ( reset_ ) n_spin_channel = 1
+    end subroutine wfint_set_num_spin_channels
+
+    !> Returns the number of spin channels in mod_wannier_interpolate global varialbe n_spin_channel.
+    pure function wfint_get_num_spin_channels() result(nspin)
+      integer :: nspin
+      nspin = n_spin_channel
+    end function wfint_get_num_spin_channels
 
 end module mod_wannier_interpolate

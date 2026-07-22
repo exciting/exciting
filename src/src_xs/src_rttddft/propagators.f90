@@ -1,6 +1,6 @@
 !> Module with propagators for real-time TDDFT calculations
 module propagators
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: zi
   use integration, only: RungeKutta4thOrder => ODESolver_RungeKutta4thOrder
   use matrix_exp, only: &
@@ -176,7 +176,7 @@ contains
       case('RK4')
         method = RK4
       case default
-        call assert( .false., 'Unrecognized propagator method' )
+        CALL_ASSERT( .false., 'Unrecognized propagator method' )
     end select
   end function
 
@@ -292,7 +292,7 @@ contains
     case( EHM ) 
       allocate( EHM_propagator :: prop )
     case default
-      call assert( .false., 'propagator method not recognized')
+      CALL_ASSERT( .false., 'propagator method not recognized')
     end select
     call prop%initialize( input_parameters, is_hermitian )
   end subroutine
@@ -362,17 +362,17 @@ contains
     case_H = H0_only
     if( present(list_of_H_dt) ) then
       case_H = H0_and_Hdt
-      call assert( size(list_of_H_dt, 3) == m, 'matrix has 3rd dim different from m' )
-      call assert( .not. present(list_of_H_minus_dt), "both H_dt and H_minus_dt cannot be passed at the same time")
+      CALL_ASSERT( size(list_of_H_dt, 3) == m, 'matrix has 3rd dim different from m' )
+      CALL_ASSERT( .not. present(list_of_H_minus_dt), "both H_dt and H_minus_dt cannot be passed at the same time")
     end if
     if( present(list_of_H_minus_dt) ) then
       case_H = H0_and_Hminusdt
-      call assert( size(list_of_H_minus_dt, 3) == m, 'matrix has 3rd dim different from m' )
+      CALL_ASSERT( size(list_of_H_minus_dt, 3) == m, 'matrix has 3rd dim different from m' )
     end if
-    call assert( size(list_of_S, 3) == m, 'matrix has 3rd dim different from m' )
-    call assert( size(psi, 3) == m, 'matrix has 3rd dim different from m' )
+    CALL_ASSERT( size(list_of_S, 3) == m, 'matrix has 3rd dim different from m' )
+    CALL_ASSERT( size(psi, 3) == m, 'matrix has 3rd dim different from m' )
     if( present(dims) ) then
-      call assert( size(dims) == m, 'array must have m elements')
+      CALL_ASSERT( size(dims) == m, 'array must have m elements')
       dims_ = dims
     else
       dims_ = spread( size( list_of_H_0, 1 ), dim=1, ncopies=m )
@@ -412,7 +412,7 @@ contains
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
     
-    call assert( associated(self%exp_matrix), 'exp_matrix not associated')
+    CALL_ASSERT( associated(self%exp_matrix), 'exp_matrix not associated')
     call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_0, S, x)
   end subroutine
 
@@ -434,8 +434,8 @@ contains
     
     complex(dp), allocatable :: H_aux(:, :)
 
-    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
-    call assert( associated(self%exp_matrix), 'exp_matrix not associated')
+    CALL_ASSERT( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
+    CALL_ASSERT( associated(self%exp_matrix), 'exp_matrix not associated')
     if( present(H_dt) ) then
       H_aux = 0.5_dp*( H_dt + H_0 )
     else
@@ -461,8 +461,8 @@ contains
 
     complex(dp), allocatable :: H_aux(:, :)
 
-    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
-    call assert( associated(self%exp_matrix), 'exp_matrix not associated')
+    CALL_ASSERT( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
+    CALL_ASSERT( associated(self%exp_matrix), 'exp_matrix not associated')
     allocate( H_aux, mold=H_0 )
     H_aux = 0.5_dp*H_0
     call self%exp_matrix( self%order_Taylor, -zi*self%dt, H_aux, S, x)
@@ -513,8 +513,8 @@ contains
     
     complex(dp), allocatable :: H_aux(:, :)
 
-    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
-    call assert( associated(self%exp_matrix), 'exp_matrix not associated')
+    CALL_ASSERT( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
+    CALL_ASSERT( associated(self%exp_matrix), 'exp_matrix not associated')
     if( present(H_dt) ) then
       ! a1*( (1-f2)*H_0 + f2*H_dt ) + a2*( (1-f1)*H_0 + f1*H_dt )
       H_aux = b_0*H_0 + b_dt*H_dt
@@ -546,7 +546,7 @@ contains
     complex(dp), contiguous, intent(in) :: S(:, :)
     complex(dp), contiguous, intent(inout) :: x(:, :)
     
-    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
+    CALL_ASSERT( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
     if( present(H_minus_dt) ) then
       call RungeKutta4thOrder( self%dt, zi, H_0, H_minus_dt, S, x )
     else
@@ -587,7 +587,7 @@ contains
 
     complex(dp), allocatable :: H_aux(:, :)
 
-    call assert( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
+    CALL_ASSERT( present(H_dt) .neqv. present(H_minus_dt), "only one optional argument must be present" )
     if( present(H_dt) ) then
       H_aux = 0.5_dp*( H_0(1:dim, 1:dim) + H_dt(1:dim, 1:dim) )
     else

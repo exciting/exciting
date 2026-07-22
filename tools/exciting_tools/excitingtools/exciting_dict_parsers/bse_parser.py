@@ -16,7 +16,7 @@ def parse_EPSILON_NAR(name: path_type) -> dict:
     EPSILON_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml,
     LOSS_NAR_FXCMB1_OC_QMT001.OUT.xml
     """
-    data = numpy_gen_from_txt(name, skip_header=14)
+    data = numpy_gen_from_txt(name)
     out = {
         "frequency": data[:, 0],
         "real_oscillator_strength": data[:, 1],
@@ -31,7 +31,7 @@ def parse_LOSS_NAR(name: path_type):
     LOSS_NAR_FXCMB1_OC_QMT001.OUT.xml,
     LOSS_NAR_NLF_FXCMB1_OC_QMT001.OUT.xml
     """
-    data = numpy_gen_from_txt(name, skip_header=14)
+    data = numpy_gen_from_txt(name)
     out = {"frequency": data[:, 0], "real_oscillator_strength": data[:, 1], "imag_oscillator_strength": data[:, 2]}
 
     return out
@@ -39,7 +39,7 @@ def parse_LOSS_NAR(name: path_type):
 
 def parse_EXCITON_NAR_BSE(name: path_type):
     """Parser for EXCITON_NAR_BSE-singlet-TDA-BAR_SCR-full_OC.OUT"""
-    data = numpy_gen_from_txt(name, skip_header=14)
+    data = numpy_gen_from_txt(name)
     out = {}
     out["state"] = data[:, 0]
     out["energy"] = data[:, 1]

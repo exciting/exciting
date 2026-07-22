@@ -2,6 +2,8 @@
       DELTA,NPLANE,MUSE)
 !     Projects the current residue onto prior gradient information
       implicit real*8 (a-h,o-z)
+      implicit integer (i-n)
+      integer*8 MAXMIX, J
       dimension Y(MAXMIX,MEMORY), YY(MEMORY,MEMORY), S(MAXMIX,MEMORY)
       dimension F(MAXMIX)
       real*8,allocatable :: YYINV(:,:),YPROJ(:),YTG(:), YT(:,:)
@@ -118,6 +120,7 @@
 
            real*8 Function BBProject(Y,S,YY,F,MAXMIX,MEMORY)
            implicit real*8 (a-h,o-z)
+           integer*8 MAXMIX, K
            dimension F(MAXMIX),YY(MEMORY,MEMORY)
            dimension Y(MAXMIX,MEMORY),S(MAXMIX,MEMORY)
            real*8,allocatable :: WTMP(:),ZTMP(:)
@@ -172,6 +175,7 @@
 
       Real*8 Function GBMProject(Y,S,SY,F,MAXMIX,MEMORY)
            implicit real*8 (a-h,o-z)
+           integer*8 MAXMIX, J
            dimension F(MAXMIX)
            dimension Y(MAXMIX,MEMORY),S(MAXMIX,MEMORY)
            dimension SY(MEMORY,MEMORY)
@@ -257,6 +261,7 @@
 
         real*8 function probegb(S,Y,SY,SS,F,MAXMIX,MEMORY,rtrap)
         implicit real*8 (a-h,o-z)
+        integer*8 MAXMIX
         dimension F(MAXMIX),SS(MEMORY,MEMORY)
         dimension Y(MAXMIX,MEMORY),S(MAXMIX,MEMORY),SY(MEMORY,MEMORY)
         real*8,allocatable :: SB(:)

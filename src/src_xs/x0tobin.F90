@@ -13,7 +13,6 @@ Subroutine x0tobin
       Use modxs
       Use m_getx0
       Use m_putx0
-      Use m_getunit
       Use m_genfilname
       Implicit None
   ! local variables
@@ -50,8 +49,7 @@ Subroutine x0tobin
         & tord=input%xs%tddft%torddf, markfxcbse=tfxcbse, iqmt=iq, &
         & filnam=filnam)
      ! open file to read ASCI
-         Call getunit (un)
-         Open (Unit=un, File=trim(filnama), Form='formatted', Action='r&
+         Open (newunit=un, File=trim(filnama), Form='formatted', Action='r&
         &ead', Status='old')
          Do iw = 1, nwdf
         ! read from ASCII file

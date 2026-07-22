@@ -1,5 +1,7 @@
        subroutine GBLDM(Y,S,SY,SS,F,STEP,MAXMIX,MEMORY,DMIX,IFAIL)
            implicit real*8 (a-h,o-z)
+           implicit integer (i-n)
+           integer*8 MAXMIX, J
            dimension STEP(MAXMIX),F(MAXMIX)
            dimension Y(MAXMIX,MEMORY),S(MAXMIX,MEMORY)
            dimension SS(MEMORY,MEMORY),SY(MEMORY,MEMORY)

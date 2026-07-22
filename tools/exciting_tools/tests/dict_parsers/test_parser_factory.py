@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import pytest
 from numpy.testing import assert_allclose
 
 from excitingtools.exciting_dict_parsers.parser_factory import parse
@@ -17,7 +18,7 @@ def test_parse(tmp_path: Path) -> None:
     assert_allclose(parsed_data["re"], [1.0, 0.0])
 
     file = tmp_path / "EPSILON_BSE-NAR_TDA-BAR_OC11.OUT"
-    file.write_text("a\n" * 14 + "0 0 0 1\n0 0 0 2")
+    file.write_text("# a\n" * 14 + "0 0 0 1\n0 0 0 2")
     parsed_data = parse(file.as_posix())
     assert set(parsed_data) == {
         "frequency",
@@ -38,3 +39,17 @@ def test_parse(tmp_path: Path) -> None:
     assert_allclose(parsed_data["mu"], [0.0, 0.0])
     assert_allclose(parsed_data["re"], [1.0, 3.0])
     assert_allclose(parsed_data["temperature"], [0.0, 0.0])
+
+
+def test_parse_exceptions(tmp_path: Path) -> None:
+    file = tmp_path / "FOO.OUT"
+
+    with pytest.raises(FileNotFoundError) as excinfo:
+        parse(file)
+    assert str(excinfo.value).strip("'") == f"File not found: {file}"
+
+    file.touch()
+    with pytest.raises(KeyError) as excinfo:
+        parse(file)
+
+    assert str(excinfo.value).strip("'") == f"File does not have a parser: {file.name}"

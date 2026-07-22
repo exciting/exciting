@@ -5,6 +5,7 @@
 Subroutine init2
       Use modmain
       Use modinput
+      use m_genppts_interface, only: genppts
       use modmpi
 #ifdef XS
       Use modxs

@@ -12,7 +12,6 @@ Subroutine ematgntsum (iq, igq, integrals)
       Use modinput
       Use modxs
       Use m_findgntn0
-      Use m_getunit
       Implicit None
   ! arguments
       Integer, Intent (In) :: iq, igq
@@ -61,29 +60,25 @@ Subroutine ematgntsum (iq, igq, integrals)
 !      integrals%lolo(:, :, :) = zzero
       If (input%xs%dbglev .Gt. 2) Then
      ! APW-APW
-         Call getunit (u1)
-         Open (Unit=u1, File='IRADGAUNTaa'//filext, Form='formatted', &
+         Open (newunit=u1, File='IRADGAUNTaa'//filext, Form='formatted', &
         & Action='write', Status='replace')
          Write (u1, '(a)') 'igq, ias, lm1, io1, lm3, io2,   intrgaa'
          Write (u1, '(a)') '-------------------------------------------&
         &-----------'
      ! APW-lo
-         Call getunit (u2)
-         Open (Unit=u2, File='IRADGAUNTalo'//filext, Form='formatted', &
+         Open (newunit=u2, File='IRADGAUNTalo'//filext, Form='formatted', &
         & Action='write', Status='replace')
          Write (u2, '(a)') 'igq, ias, m3, ilo, lm1, io,     intrgalo'
          Write (u2, '(a)') '-------------------------------------------&
         &-----------'
      ! lo-APW
-         Call getunit (u3)
-         Open (Unit=u3, File='IRADGAUNTloa'//filext, Form='formatted', &
+         Open (newunit=u3, File='IRADGAUNTloa'//filext, Form='formatted', &
         & Action='write', Status='replace')
          Write (u3, '(a)') 'igq, ias, m1, ilo, lm3, io,     intrgloa'
          Write (u3, '(a)') '-------------------------------------------&
         &-----------'
      ! lo-lo
-         Call getunit (u4)
-         Open (Unit=u4, File='IRADGAUNTlolo'//filext, Form='formatted', &
+         Open (newunit=u4, File='IRADGAUNTlolo'//filext, Form='formatted', &
         & Action='write', Status='replace')
          Write (u4, '(a)') 'igq, ias, m1, ilo1, m3, ilo2,   intrglolo'
          Write (u4, '(a)') '-------------------------------------------&

@@ -6,9 +6,9 @@ module xjson
   private
 
   !> format for double precision numbers
-  character(8), parameter :: FMT_REAL_DP = 'g26.16e3'
+  character(8), parameter :: FMT_REAL_DP = 'e26.16e3'
   !> format for single precision numbers
-  character(8), parameter :: FMT_REAL_SP = 'g18.8e2'
+  character(8), parameter :: FMT_REAL_SP = 'e18.8e2'
 
   public :: to_json
 
@@ -62,7 +62,7 @@ contains
     !> JSON string
     character(:), allocatable :: json
 
-    json = real_dp_tensor_to_json( [dble(a), aimag(a)], precision )
+    json = '[' // real_dp_scalar_to_json( a%re, precision ) // ', ' // real_dp_scalar_to_json( a%im, precision ) // ']'
   end function complex_dp_scalar_to_json
 
   !> convert real(dp) tensor with rank <= 5 to JSON string

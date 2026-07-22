@@ -62,6 +62,7 @@ Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
             lm3 = idxlm (l3, m3)
               Do io2 = 1, apword (l3, is)
                 if3=if3+1
+                print *, if3, io2, lm3, ias
                 apwi(if3,:)=apwalm(1:ngp, io2, lm3, ias)
                 apwi2(:,if3)=conjg(apwalm(1:ngp, io2, lm3, ias))
               End Do

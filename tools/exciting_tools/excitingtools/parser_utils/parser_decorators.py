@@ -75,7 +75,7 @@ def xml_root(func: Callable):
     an XML file name, XML string or ElementTree.Element as input
     and return the XML root.
     """
-    function_selection = {type(None): lambda x, _: func(x), str: lambda x, y: func(x, y)}
+    function_selection = {type(None): lambda x, _: func(x), str: func}
 
     @wraps(func)
     def modified_func(input: str, tag: Optional[str] = None):

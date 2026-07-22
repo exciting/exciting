@@ -15,7 +15,6 @@ Contains
          Use modmain
          Use modmpi
          Use modxs
-         Use m_getunit
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq, ik
@@ -44,8 +43,13 @@ Contains
          End If
          tarec_ = tarec
          ikr = ik
-         Call getunit (un)
          If (present(x34)) Then
+          ! I/O record length
+          Inquire (IoLength=Recl) vql (:, iq), vkl (:, ikr), &
+          & nstsv, ngq (iq), l1, h1, l2, h2, l3, h3, l4, h4, &
+          & x12, x34
+          Open (newunit=un, File=trim(filnam), Form='unformatted', &
+          & Action='write', Access='direct', Recl=Recl)
 #ifdef MPI
             tag1 = 77
             tag2 = 78
@@ -64,12 +68,7 @@ Contains
                     & iproc, tag2, MPI_COMM_WORLD, status, ierr)
                   End If
 #endif
-             ! I/O record length
-                  Inquire (IoLength=Recl) vql (:, iq), vkl (:, ikr), &
-                 & nstsv, ngq (iq), l1, h1, l2, h2, l3, h3, l4, h4, &
-                 & x12, x34
-                  Open (Unit=un, File=trim(filnam), Form='unformatted', &
-                 & Action='write', Access='direct', Recl=Recl)
+             
                   Write (un, Rec=ikr) vql (:, iq), vkl (:, ikr), nstsv, &
                  & ngq (iq), l1, h1, l2, h2, l3, h3, l4, h4, x12, x34
 #ifdef MPI
@@ -77,6 +76,17 @@ Contains
             End If
 #endif
          Else
+          ! I/O record length
+          Inquire (IoLength=Recl) vql (:, iq), vkl (:, ikr), &
+          & nstsv, ngq (iq), l1, h1, l2, h2, x12
+          write(*,*) "write k",ikr, "in file",trim(filnam)
+          write(*,*)"recl",recl
+          write(*,*)"shape(l1)",shape(l1), "shape(h1)",shape(h1)
+          write(*,*)"shape(l2)", shape(l2),"shape(h2)",shape(h2)
+          write(*,*)"shape(x12)",shape(x12)
+
+          Open (newunit=un, File=trim(filnam), Form='unformatted', &
+          & Action='write', Access='direct', Recl=Recl)
 #ifdef MPI
             tag1 = 77
             If (rank .Ne. 0) Call mpi_send (x12, size(x12), &
@@ -90,17 +100,6 @@ Contains
                     & iproc, tag1, MPI_COMM_WORLD, status, ierr)
                   End If
 #endif
-             ! I/O record length
-                  Inquire (IoLength=Recl) vql (:, iq), vkl (:, ikr), &
-                 & nstsv, ngq (iq), l1, h1, l2, h2, x12
-                 write(*,*) "write k",ikr, "in file",trim(filnam)
-                 write(*,*)"recl",recl
-                 write(*,*)"shape(l1)",shape(l1), "shape(h1)",shape(h1)
-                 write(*,*)"shape(l2)", shape(l2),"shape(h2)",shape(h2)
-                 write(*,*)"shape(x12)",shape(x12)
-
-                  Open (Unit=un, File=trim(filnam), Form='unformatted', &
-                 & Action='write', Access='direct', Recl=Recl)
                   Write (un, Rec=ikr) vql (:, iq), vkl (:, ikr), nstsv, &
                  & ngq (iq), l1, h1, l2, h2, x12
 #ifdef MPI

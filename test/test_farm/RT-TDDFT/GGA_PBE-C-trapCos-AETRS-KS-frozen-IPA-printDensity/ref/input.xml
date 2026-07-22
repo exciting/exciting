@@ -47,7 +47,8 @@
       basis="unperturbedKS"
       subtractJ0="true"
       eeInteraction="IPA"
-      numberOfFrozenStates="1">
+      numberOfFrozenStates="1"
+      orthogonalizeAgainstFrozen="true">
       <pmat readFromFile="false" writeToFile="false" forceHermitian="true" />
       <laser fieldType="total">
       <trapCos amplitude='5.d0' omega='4.d0' phase='0.d0' t0='0.0d0' riseTime='1.d0'

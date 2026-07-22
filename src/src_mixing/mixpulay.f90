@@ -26,25 +26,23 @@ Subroutine mixpulay (iscl, n, maxsd, nu, mu, f, d)
 !   Modified, October 2008 (JKD)
 !EOP
 !BOC
+      use precision, only: i32, long_int, dp
       Implicit None
 ! arguments
-      Integer, Intent (In) :: iscl
-      Integer, Intent (In) :: n
-      Integer, Intent (In) :: maxsd
-      Real (8), Intent (Inout) :: nu (n)
-      Real (8), Intent (Inout) :: mu (n, maxsd)
-      Real (8), Intent (Inout) :: f (n, maxsd)
-      Real (8), Intent (Out) :: d
+      Integer(i32), Intent (In) :: iscl
+      Integer(long_int), Intent (In) :: n
+      Integer(i32), Intent (In) :: maxsd
+      Real(dp), Intent (Inout) :: nu (n)
+      Real(dp), Intent (Inout) :: mu (n, maxsd)
+      Real(dp), Intent (Inout) :: f (n, maxsd)
+      Real(dp), Intent (Out) :: d
 ! local variables
-      Integer :: i, j, k, m, jc, jn, info
+      Integer(i32) :: i, j, k, m, jc, jn, info
 ! initial mixing parameter
-      Real (8), Parameter :: beta = 0.1d0
+      Real(dp), Parameter :: beta = 0.1_dp
 ! allocatable arrays
-      Integer, Allocatable :: ipiv (:)
-      Real (8), Allocatable :: alpha (:), a (:, :), work (:)
-! external functions
-      Real (8) :: ddot
-      External ddot
+      Integer(i32), Allocatable :: ipiv (:)
+      Real(dp), Allocatable :: alpha (:), a (:, :), work (:)
       If (n .Lt. 1) Then
          Write (*,*)
          Write (*, '("Error(mixpulay): n < 1 : ", I8)') n
@@ -59,8 +57,8 @@ Subroutine mixpulay (iscl, n, maxsd, nu, mu, f, d)
       End If
       If (iscl .Le. 1) Then
          mu (:, 1) = nu (:)
-         f (:, 1) = 0.d0
-         d = 1.d0
+         f (:, 1) = 0.0_dp
+         d = 1.0_dp
          Return
       End If
 ! current index
@@ -68,32 +66,24 @@ Subroutine mixpulay (iscl, n, maxsd, nu, mu, f, d)
 ! next index
       jn = Mod (iscl, maxsd) + 1
       If (iscl .Le. 2) Then
-         nu (:) = beta * nu (:) + (1.d0-beta) * mu (:, 1)
+         nu (:) = beta * nu (:) + (1.0_dp-beta) * mu (:, 1)
          f (:, 2) = nu (:) - mu (:, 1)
          mu (:, 2) = nu (:)
-         If (maxsd .Ge. 3) mu (:, 3) = 0.d0
-         d = 0.d0
-         Do k = 1, n
-            d = d + f (k, 2) ** 2
-         End Do
-         d = Sqrt (d/dble(n))
+         If (maxsd .Ge. 3) mu (:, 3) = 0.0_dp
+         d = norm2(f(:,2)) / sqrt(real(n, kind=dp))
          Return
       End If
 ! matrix size
       m = Min (iscl, maxsd) + 1
       Allocate (ipiv(m), alpha(m), a(m, m), work(m))
 ! compute f and RMS difference
-      d = 0.d0
-      Do k = 1, n
-         f (k, jc) = nu (k) - mu (k, jc)
-         d = d + f (k, jc) ** 2
-      End Do
-      d = Sqrt (d/dble(n))
+      f(:, jc) = nu(:) - mu(:,jc)
+      d = norm2(f(:,jc)) / sqrt(real(n, kind=dp))
 ! solve the linear system
-      a (:, :) = 0.d0
+      a (:, :) = 0.0_dp
       Do i = 1, m - 1
          Do j = i, m - 1
-            a (i, j) = a (i, j) + ddot (n, f(:, i), 1, f(:, j), 1)
+            a (i, j) = a (i, j) + dot_product (f(:, i), f(:, j))
          End Do
          a (i, m) = 1.d0
       End Do

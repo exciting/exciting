@@ -10,7 +10,7 @@
 Subroutine core_overlap
   ! !USES:
   Use modinput, only: input
-  Use mod_eigensystem, only: mt_hscf, nmatmax, MTNullify, MTInitall 
+  Use mod_eigensystem, only: mt_hscf, nmatmax, MTNullify, MTInitall, releasesingular
   Use mod_kpoint, only: nkpt
   Use mod_Gkvector, only: ngkmax, ngk, gkc, tpgkc, sfacgk
   Use mod_APW_LO, only: apwordmax
@@ -66,6 +66,9 @@ Subroutine core_overlap
   Call init0
   ! k-point setup
   Call init1
+
+  ! initialisations for the Davidson eigensolver
+  if (trim( input%groundstate%solver%type ) == 'Davidson') call releasesingular
 
   ! read density and potentials from file
   Call readstate
@@ -243,6 +246,7 @@ Subroutine core_overlap
    endif
 !endif
   call mt_hscf%release()
+  Call releasesingular
   Deallocate (apwalmt)
   Deallocate (wfmt,overlap)
   Deallocate (fr0, fr1, fr2, gr, cf)

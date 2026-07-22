@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<effmass>
+  <k-point lattice="0.000000000000e0 0.000000000000e0 0.000000000000e0" cartesian="0.000000000000e0 0.000000000000e0 0.000000000000e0"/>
+  <state n="1" eigenvalue="-2.497444451393e-1">
+    <evdk trace="2.576379820963e0" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>8.587932736556e-1 3.287370375915e-11 3.264055692398e-11</line>
+      <line>3.287370375915e-11 8.587932736531e-1 3.288480598940e-11</line>
+      <line>3.264055692398e-11 3.288480598940e-11 8.587932736544e-1</line>
+    </evdk>
+    <emt trace="3.493273750543e0" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>1.164424583559e0 2.078322923729e-12 4.120317061203e-1</line>
+      <line>-4.457294902181e-11 1.164424583470e0 6.282321904950e-11</line>
+      <line>-4.425682881589e-11 -4.458800236501e-11 1.164424583514e0</line>
+    </emt>
+  </state>
+  <state n="2" eigenvalue="1.904801791041e-1">
+    <evdk trace="-1.825949174698e1" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>-6.086497248991e0 1.837845431396e-8 1.837815455374e-8</line>
+      <line>1.837845431396e-8 -6.086497248992e0 1.837848762065e-8</line>
+      <line>1.837815455374e-8 1.837848762065e-8 -6.086497248993e0</line>
+    </evdk>
+    <emt trace="-4.928943326963e-1" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>-1.642981104027e-1 2.187389469091e-14 4.142082543336e-1</line>
+      <line>-4.961055941726e-10 -1.642981113949e-1 7.015941737323e-10</line>
+      <line>-4.960975024845e-10 -4.961064932489e-10 -1.642981108988e-1</line>
+    </emt>
+  </state>
+  <state n="3" eigenvalue="1.904801791041e-1">
+    <evdk trace="-1.133187613673e1" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>-3.777292045573e0 3.058597819461e-9 3.059397180039e-9</line>
+      <line>3.058597819461e-9 -3.777292045578e0 3.059119624282e-9</line>
+      <line>3.059397180039e-9 3.059119624282e-9 -3.777292045579e0</line>
+    </evdk>
+    <emt trace="-7.942197647950e-1" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>-2.647399213841e-1 1.389211942903e-13 4.142401357948e-1</line>
+      <line>-2.143686370583e-10 -2.647399218128e-1 3.032285100249e-10</line>
+      <line>-2.144246620237e-10 -2.144052089104e-10 -2.647399215982e-1</line>
+    </emt>
+  </state>
+  <state n="4" eigenvalue="1.904801791470e-1">
+    <evdk trace="-1.133187628045e1" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>-3.777292093479e0 -2.239277652194e-8 -2.239310958885e-8</line>
+      <line>-2.239277652194e-8 -3.777292093484e0 -2.239326502007e-8</line>
+      <line>-2.239310958885e-8 -2.239326502007e-8 -3.777292093485e0</line>
+    </evdk>
+    <emt trace="-7.942197547222e-1" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>-2.647399198103e-1 1.603385440976e-13 4.142115294016e-1</line>
+      <line>1.569447541716e-9 -2.647399166714e-1 -2.219574715006e-9</line>
+      <line>1.569470885451e-9 1.569481779192e-9 -2.647399182406e-1</line>
+    </emt>
+  </state>
+  <state n="5" eigenvalue="2.827201114111e-1">
+    <evdk trace="-6.806202171820e0" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>-2.268734057274e0 -1.151056139292e-7 -1.151044815018e-7</line>
+      <line>-1.151056139292e-7 -2.268734057275e0 -1.151047701597e-7</line>
+      <line>-1.151044815018e-7 -1.151047701597e-7 -2.268734057271e0</line>
+    </evdk>
+    <emt trace="-1.322323341681e0" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>-4.407744695898e-1 5.607266072091e-14 4.142128278593e-1</line>
+      <line>2.236296079553e-8 -4.407744248639e-1 -3.162573096554e-8</line>
+      <line>2.236274078516e-8 2.236279686623e-8 -4.407744472277e-1</line>
+    </emt>
+  </state>
+  <state n="6" eigenvalue="2.827201114111e-1">
+    <evdk trace="1.446170448646e1" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>4.820568162152e0 1.086960077501e-7 1.086962297947e-7</line>
+      <line>1.086960077501e-7 4.820568162153e0 1.086961853858e-7</line>
+      <line>1.086962297947e-7 1.086961853858e-7 4.820568162153e0</line>
+    </evdk>
+    <emt trace="6.223332808679e-1" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>2.074444316335e-1 -9.977657643912e-15 4.142136820376e-1</line>
+      <line>-4.677535878182e-9 2.074444222784e-1 6.615046839307e-9</line>
+      <line>-4.677545433470e-9 -4.677543522412e-9 2.074444269560e-1</line>
+    </emt>
+  </state>
+  <state n="7" eigenvalue="2.827201116263e-1">
+    <evdk trace="1.446170381118e1" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>4.820567937061e0 -1.085864731465e-9 -1.083555467574e-9</line>
+      <line>-1.085864731465e-9 4.820567937061e0 -1.083422240811e-9</line>
+      <line>-1.083555467574e-9 -1.083422240811e-9 4.820567937062e0</line>
+    </evdk>
+    <emt trace="6.223333099271e-1" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>2.074444365957e-1 9.094021478936e-15 4.142495772449e-1</line>
+      <line>4.672822797648e-11 2.074444366891e-1 -6.593910243383e-11</line>
+      <line>4.662885297478e-11 4.662311980161e-11 2.074444366423e-1</line>
+    </emt>
+  </state>
+  <state n="8" eigenvalue="3.075153682216e-1">
+    <evdk trace="1.788744597668e1" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>5.962481992226e0 1.000952654095e-8 1.001030369707e-8</line>
+      <line>1.000952654095e-8 5.962481992225e0 1.000883820268e-8</line>
+      <line>1.001030369707e-8 1.000883820268e-8 5.962481992227e0</line>
+    </evdk>
+    <emt trace="5.031461736759e-1" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>1.677153915069e-1 -3.336166198873e-14 4.142564453179e-1</line>
+      <line>-2.815524909203e-10 1.677153909438e-1 3.981771188170e-10</line>
+      <line>-2.815743511191e-10 -2.815331290297e-10 1.677153912253e-1</line>
+    </emt>
+  </state>
+  <state n="9" eigenvalue="4.713831585615e-1">
+    <evdk trace="9.015941994935e0" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>3.005313998308e0 5.534017688547e-10 5.528466573423e-10</line>
+      <line>5.534017688547e-10 3.005313998321e0 5.543565606558e-10</line>
+      <line>5.528466573423e-10 5.543565606558e-10 3.005313998306e0</line>
+    </evdk>
+    <emt trace="9.982317993013e-1" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>3.327439331614e-1 -5.544883463549e-13 4.134149458949e-1</line>
+      <line>-6.127182757695e-11 3.327439330388e-1 8.668282105081e-11</line>
+      <line>-6.121036644939e-11 -6.137754071694e-11 3.327439331011e-1</line>
+    </emt>
+  </state>
+  <state n="10" eigenvalue="4.746698855901e-1">
+    <evdk trace="-1.968742997477e1" description=" matrix of eigenvalue derivatives  with respect to k">
+      <line>-6.562476658259e0 6.011990905108e-9 6.010614228558e-9</line>
+      <line>6.011990905108e-9 -6.562476658253e0 6.011213748991e-9</line>
+      <line>6.010614228558e-9 6.011213748991e-9 -6.562476658255e0</line>
+    </evdk>
+    <emt trace="-4.571444831314e-1" description=" effective mass tensor  (inverse of derivative matrix)">
+      <line>-1.523814942375e-1 -4.899730382597e-14 4.141843499010e-1</line>
+      <line>-1.395991493529e-10 -1.523814945167e-1 1.973876465532e-10</line>
+      <line>-1.395671827584e-10 -1.395811036949e-10 -1.523814943771e-1</line>
+    </emt>
+  </state>
+</effmass>

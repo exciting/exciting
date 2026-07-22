@@ -1,0 +1,18 @@
+DBSV test precision for maximized species file: 5.290e-06
+
+species    l   ns    mOs   precision    max iterations 
+Ru         0   5,5   1,2   7.500e-08    15             
+Ru         0   4,4   2,3   6.500e-08    15             
+Ru         2   4,4   2,3   5.875e-06    15             
+Ru         0   4,4   1,2   2.560e-05    15             
+Ru         1   4,4   2,3   8.882e-04    14             
+Ru         2   4,4   1,2   2.433e-03    14             
+Ru         2   4,4   0,1   2.597e-03    15             
+Ru         0   5,5   0,1   6.332e-03    16             
+Ru         0   5,4   0,0   1.869e-02    17             
+Ru         1   4,4   1,2   6.448e-02    17             
+Ru         1   4,4   0,1   8.723e-02    19             
+
+Essential local orbitals:
+species    l   ns    mOs  
+Ru         0   4,4   0,1  

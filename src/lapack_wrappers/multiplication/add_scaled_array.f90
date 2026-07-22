@@ -1,6 +1,6 @@
 !> Module for operations of the form \(\alpha x + y\)
 module add_scaled_array
-  use asserts, only: assert
+#include "asserts.fpp"
   use precision, only: dp, i32
   use lapack_f95_interfaces, only: zaxpy
 
@@ -27,7 +27,7 @@ contains
     complex(dp), intent(in) :: x(:)
     complex(dp), intent(inout) :: y(:)
 
-    call assert( size(x) == size(y), "x and y must have same size" )
+    CALL_ASSERT( size(x) == size(y), "x and y must have same size" )
     call zaxpy( size(x), alpha, x, default_inc, y, default_inc )
   end subroutine
 
@@ -36,7 +36,7 @@ contains
     complex(dp), intent(in) :: x(:, :)
     complex(dp), intent(inout) :: y(:, :)
 
-    call assert( all( shape(x) == shape(y) ), "x and y must have same shape" )
+    CALL_ASSERT( all( shape(x) == shape(y) ), "x and y must have same shape" )
     call zaxpy( size(x), alpha, x, default_inc, y, default_inc )
   end subroutine
 
@@ -45,7 +45,7 @@ contains
     complex(dp), intent(in) :: x(:, :, :)
     complex(dp), intent(inout) :: y(:, :, :)
 
-    call assert( all( shape(x) == shape(y) ), "x and y must have same shape" )
+    CALL_ASSERT( all( shape(x) == shape(y) ), "x and y must have same shape" )
     call zaxpy( size(x), alpha, x, default_inc, y, default_inc )
   end subroutine
 
@@ -54,7 +54,7 @@ contains
     complex(dp), intent(in) :: x(:, :, :)
     complex(dp), intent(inout) :: y(:, :, :)
 
-    call assert( all( shape(x) == shape(y) ), "x and y must have same shape" )
+    CALL_ASSERT( all( shape(x) == shape(y) ), "x and y must have same shape" )
     ! In this case, the best option is to use Fortran array operations
     y = y + alpha*x
   end subroutine

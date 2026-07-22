@@ -219,7 +219,6 @@ module m_diagfull
     !EOC
 
     subroutine writecondition(n, abnrm, rconde, eigvalre, rcondv)
-      use m_getunit
 
       integer(4), intent(in) :: n
       real(8), intent(in) :: abnrm, rconde(n), rcondv(n), eigvalre(n)
@@ -239,9 +238,7 @@ module m_diagfull
         verrbd(i) = eps*abnrm/rcondv(i)
       end do
 
-      call getunit(un)
-
-      open(un, file='COND.OUT', status='replace', action='write', form='formatted')
+      open(newunit=un, file='COND.OUT', status='replace', action='write', form='formatted')
       write(un, '("One-norm of the matrix: ",E23.16)') abnrm
       write(un, '("Errorbound of eignevalues&
         & (modulus of difference between real an numeric)")') 

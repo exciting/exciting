@@ -1,7 +1,7 @@
 !> Evaluate the square root of the Matrix with the bare Coulomb potential, whose
 !> eigenvalues and eigenvectors are stored as `barcev` and `vmat`
 subroutine setbarcev(eig_tol, remove_g_equal_zero)
-    use asserts, only: assert
+#include "asserts.fpp"
     use constants, only: zzero
     use mod_coulomb_potential, only: barc, barcev, vmat
     use mod_product_basis, only: mbsiz, matsiz
@@ -32,8 +32,8 @@ subroutine setbarcev(eig_tol, remove_g_equal_zero)
     keep = ( barcev >= eig_tol )
     dim = size( vmat, 1 )
     n_eigs = size( vmat, 2 )
-    call assert( dim == matsiz, 'dim must be equal to the global variable matsiz' )
-    call assert( n_eigs == size( barcev ), 'barcev must have n_eigs elements' )
+    CALL_ASSERT( dim == matsiz, 'dim must be equal to the global variable matsiz' )
+    CALL_ASSERT( n_eigs == size( barcev ), 'barcev must have n_eigs elements' )
     
     if (remove_g_equal_zero) then
       allocate( wi0(dim), source=zzero )

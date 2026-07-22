@@ -1,3 +1,15 @@
+"""Produce plot of the spin texture.
+
+Located at `excitingscripts/plot/spintext.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.spintext -b ib -c context 
+```
+Where <code>ib</code> defines the band index for the plot and <code>context</code> defines the context of the contour plot. Choises are <code>energy</code> and <code>spin_z</code>.
+"""
+
 import os
 import pathlib
 from argparse import ArgumentParser
@@ -11,7 +23,7 @@ from matplotlib import gridspec
 
 
 def triple_product(a: np.ndarray, b: np.ndarray, c: np.ndarray):
-    """ Vector triple product, defined as \mathbf{a} \cdot (\mathbf{b} \wedge \mathbf{c}).
+    r""" Vector triple product, defined as \mathbf{a} \cdot (\mathbf{b} \wedge \mathbf{c}).
 
     :param a: Vector a
     :param b: Vector b
@@ -45,7 +57,7 @@ def plane_transformation(rec_lat_vec: np.ndarray, plot_vec: np.ndarray):
 
 
 def reciprocal_lattice_vectors(lat_vec: np.ndarray):
-    """Get the reciprocal lattice vectors of real-space lattice vectors \{\mathbf{a}\}:
+    r"""Get the reciprocal lattice vectors of real-space lattice vectors \{\mathbf{a}\}:
 
     \mathbf{b}_0 = 2 \pi \frac{\mathbf{a}_1 \wedge \mathbf{a}_2} {\mathbf{a}_0 \cdot (\mathbf{a}_1 \wedge \mathbf{a}_2)}
     \mathbf{b}_1 = 2 \pi \frac{\mathbf{a}_2 \wedge \mathbf{a}_3} {\mathbf{a}_0 \cdot (\mathbf{a}_1 \wedge \mathbf{a}_2)}

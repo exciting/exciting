@@ -13,7 +13,6 @@ Contains
       Subroutine writekerr (iq, w, kerr, fn)
          use modmpi
          Use modxs
-         Use m_getunit
          Use m_writevars
          use constants, Only: pi
          Implicit None
@@ -32,8 +31,7 @@ Contains
          End If
          n1 = shape (w)
          n = n1 (1)
-         Call getunit (unit1)
-         Open (unit1, File=trim(fn), Action='write')
+         Open (newunit=unit1, File=trim(fn), Action='write')
     ! write data to file
          !Write (unit1, '(3g18.10)') (w(iw)*escale, kerr(iw)*180.d0/pi, iw=1, n)
          Write (unit1, '(3g18.10)') (w(iw)*escale, kerr(iw)*180.d0/pi, iw=2, n)

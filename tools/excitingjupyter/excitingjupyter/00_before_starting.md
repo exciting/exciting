@@ -48,7 +48,7 @@ source set_env_vars.sh
 
 ## Installing the excitingJupyter Package
 
-All Jupyter tutorials require Python 3.7 or above to run.  As a first step in running the Jupyter tutorials, it is 
+All Jupyter tutorials require Python 3.10 or above to run. As a first step in running the Jupyter tutorials, it is
 useful to create a virtual environment (venv) in which you can install and run the notebooks. Each venv has its own Python binary 
 (which matches the version of the binary that was used to create this environment) and can have its own independent set 
 of installed Python packages in its site directories. To create a venv, move to:

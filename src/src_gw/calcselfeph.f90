@@ -4,7 +4,6 @@
 !==================================================================
 subroutine calcselfeph(eval2, evalpath, ik)
     use modinput
-    use m_getunit
     use modmain, only : evalsv, idxas, evalcr, efermi, nstfv
     use modgw
     use constants, only : zzero, pi
@@ -79,8 +78,7 @@ subroutine calcselfeph(eval2, evalpath, ik)
     g2eph(:) = ( 0.05 )**2  / omega * 4.d0  
     !
     if(ik .eq. 1) then
-      call getunit(fid)
-      open(fid,file='wgkq'//ik//'.OUT',action='Write',status='Unknown')
+      open(newunit=fid,file='wgkq'//ik//'.OUT',action='Write',status='Unknown')
       do iq = 1, ngridkqtot ! loop over dense mesh for BZ integral
         do ie1 = ibeph, nbeph ! loop over states
            ekq = eval2(ie1,iq)-efnew

@@ -5,7 +5,7 @@ module xhdf5_globals
   use hdf5, only: HID_T, HSIZE_T, HSSIZE_T
 #endif
 
-  use precision, only: sp, dp 
+  use precision, only: i32, sp, dp 
 
 
   implicit none
@@ -23,9 +23,9 @@ module xhdf5_globals
   integer, parameter, public :: hdf5_size = HSIZE_T
   integer, parameter, public :: hdf5_ssize = HSSIZE_T
 #else 
-  integer, parameter, public :: hdf5_id = sp
-  integer, parameter, public :: hdf5_size = sp
-  integer, parameter, public :: hdf5_ssize = sp
+  integer, parameter, public :: hdf5_id = i32
+  integer, parameter, public :: hdf5_size = i32
+  integer, parameter, public :: hdf5_ssize = i32
 #endif
 
   !> Value for undefined HDF5 id.

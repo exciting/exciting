@@ -1,7 +1,7 @@
 !> Lanczos algorithm for the ISDF BSH as implemented for fast BSE.
 module iterative_solver
   use precision, only: dp, i32
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: terminate_if_false
   use math_utils, only: all_zero
   use xlapack, only: norm
@@ -67,9 +67,9 @@ module iterative_solver
     n_matrix = size(q_1)
     save_Q = present(Q_k)
 
-    call assert(k >= 1, 'k is smaller then 1..')
-    call assert(k <= n_matrix, 'k is larger than the size of the matrix.')
-    call assert(norm(q_1) >= zero_tol, 'norm(q_1) is zero.')
+    CALL_ASSERT(k >= 1, 'k is smaller then 1..')
+    CALL_ASSERT(k <= n_matrix, 'k is larger than the size of the matrix.')
+    CALL_ASSERT(norm(q_1) >= zero_tol, 'norm(q_1) is zero.')
 
     allocate(alpha(k))
     allocate(beta(0 : k))

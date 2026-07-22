@@ -12,14 +12,13 @@
 !
 Subroutine flushifc (fnum)
 ! !INPUT/OUTPUT PARAMETERS:
-      Use modinput
+      use, intrinsic :: iso_fortran_env, only: error_unit, output_unit
 !   fnum : unit specifier for file (in,integer)
 ! !DESCRIPTION:
-!   Interface to the Fortran {\tt flush} statement. Some compilers do not
-!   support the {\tt flush} command, which is very useful for keeping small
-!   formatted files up-to-date on the disk. The routine implimented below is a
-!   machine-independent emulation of {\tt flush}, but may be replaced with the
-!   intrinsic command if preferred.
+!   Emulate the Fortran {\tt flush} statement, which is very useful for keeping small
+!   formatted files up-to-date on the disk. {\tt flush} statement guarantees, that 
+!   the data will be available to the other processes, but not guarantees physical disk persistence.
+!   Close-open sequence is the closest thing to a "commit" one can express in pure standard Fortran.
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
@@ -27,7 +26,7 @@ Subroutine flushifc (fnum)
 !BOC
       Implicit None
 ! arguments
-      Integer, Intent (In) :: fnum
+      Integer, Intent (in) :: fnum
 ! local variables
       Logical :: named_, opened_
       Character (32) :: action_, blank_, delim_, form_
@@ -64,11 +63,14 @@ Subroutine flushifc (fnum)
          Write (*,*)
   !stop
       End If
-! close and re-open file
-      Close (fnum)
-      Open (fnum, Action=action_, Blank=blank_, Delim=delim_, &
-     & Form=form_, File=trim(name_), Position='APPEND')
-!
-      Return
+
+      if ( (fnum < 0) .or. (fnum == output_unit) .or. (fnum == error_unit) ) then
+            flush( fnum )
+      else ! old emulation for legacy positive units
+            ! close and re-open file
+            Close (fnum)
+            Open (fnum, Action=action_, Blank=blank_, Delim=delim_, &
+                  Form=form_, File=trim(name_), Position='APPEND')
+      end if
 End Subroutine
 !EOC

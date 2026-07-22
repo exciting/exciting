@@ -1,0 +1,8 @@
+{
+  "PHONON.OUT": {
+    "frequency": {
+      "tol": 2e-08,
+      "unit": "Hartree"
+    }
+  }
+}

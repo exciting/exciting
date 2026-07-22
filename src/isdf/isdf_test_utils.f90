@@ -1,6 +1,6 @@
 module isdf_test_utils
   use precision, only: dp 
-  use asserts, only: assert
+#include "asserts.fpp"
   use multi_index_conversion, only: composite_index_to_indices
   use xlapack, only: matrix_multiply
 
@@ -22,12 +22,12 @@ module isdf_test_utils
     n_u = size(wf_u, 2)
     n_k = size(wf_o, 3)
 
-    call assert(size(wf_u, 1) == n_r, 'size(u_u, 1) /= n_r.')
-    call assert(size(wf_u, 3) == n_k, 'size(u_u, 3) /= n_k.')
-    call assert(size(wf_product, 1) == n_r, 'size(wf_product, 1) /= n_r.')
-    call assert(size(wf_product, 2) == n_o, 'size(wf_product, 2) /= n_o.')
-    call assert(size(wf_product, 3) == n_u, 'size(wf_product, 3) /= n_u.')
-    call assert(size(wf_product, 4) == n_k, 'size(wf_product, 4) /= n_k.')
+    CALL_ASSERT(size(wf_u, 1) == n_r, 'size(u_u, 1) /= n_r.')
+    CALL_ASSERT(size(wf_u, 3) == n_k, 'size(u_u, 3) /= n_k.')
+    CALL_ASSERT(size(wf_product, 1) == n_r, 'size(wf_product, 1) /= n_r.')
+    CALL_ASSERT(size(wf_product, 2) == n_o, 'size(wf_product, 2) /= n_o.')
+    CALL_ASSERT(size(wf_product, 3) == n_u, 'size(wf_product, 3) /= n_u.')
+    CALL_ASSERT(size(wf_product, 4) == n_k, 'size(wf_product, 4) /= n_k.')
 
     do i_composite=1, n_k * n_u * n_o 
       call composite_index_to_indices(i_composite, [n_u, n_o, n_k], iu, io, ik)
@@ -51,13 +51,13 @@ module isdf_test_utils
     n_u = size(wf_u_isdf, 2)
     n_k = size(wf_o_isdf, 3)
 
-    call assert(size(wf_o_isdf, 1) == n_isdf, 'size(u_u, 1) /= n_isdf.')
-    call assert(size(wf_u_isdf, 1) == n_isdf, 'size(u_u, 1) /= n_isdf.')
-    call assert(size(wf_u_isdf, 3) == n_k, 'size(u_u, 3) /= n_k.')
-    call assert(size(wf_product, 1) == n_r, 'size(wf_product, 1) /= n_r.')
-    call assert(size(wf_product, 2) == n_o, 'size(wf_product, 2) /= n_o.')
-    call assert(size(wf_product, 3) == n_u, 'size(wf_product, 3) /= n_u.')
-    call assert(size(wf_product, 4) == n_k, 'size(wf_product, 4) /= n_k.')
+    CALL_ASSERT(size(wf_o_isdf, 1) == n_isdf, 'size(u_u, 1) /= n_isdf.')
+    CALL_ASSERT(size(wf_u_isdf, 1) == n_isdf, 'size(u_u, 1) /= n_isdf.')
+    CALL_ASSERT(size(wf_u_isdf, 3) == n_k, 'size(u_u, 3) /= n_k.')
+    CALL_ASSERT(size(wf_product, 1) == n_r, 'size(wf_product, 1) /= n_r.')
+    CALL_ASSERT(size(wf_product, 2) == n_o, 'size(wf_product, 2) /= n_o.')
+    CALL_ASSERT(size(wf_product, 3) == n_u, 'size(wf_product, 3) /= n_u.')
+    CALL_ASSERT(size(wf_product, 4) == n_k, 'size(wf_product, 4) /= n_k.')
 
     do i_composite=1, n_k * n_u * n_o 
       call composite_index_to_indices(i_composite, [n_u, n_o, n_k], iu, io, ik)

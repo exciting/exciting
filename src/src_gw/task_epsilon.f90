@@ -1,7 +1,7 @@
 !> This module contains classes and subroutines needed to execute the 
 !> task `epsilon`, used as an element of `taskGroup` in `gw`
 module task_epsilon
-  use asserts, only: assert
+#include "asserts.fpp"
   use constants, only: real_zero
   use calculate_dielectric_function, only: calcepsilon, epsilon_indexes
   use exciting_mpi, only: mpiinfo, xmpi_gather
@@ -127,7 +127,7 @@ subroutine execute_task_epsilon( all_q_points, idx_reduced_qpt, n_kpoints, first
   type(indexes_parallelization) :: empty_states
   type(indexes_parallelization) :: frequencies
   
-  call assert( size( all_q_points, 1 ) == 3, 'qpoints must have size 3 along 1st dimension' )
+  CALL_ASSERT( size( all_q_points, 1 ) == 3, 'qpoints must have size 3 along 1st dimension' )
   rank_to_write = mpiglobal%root
   myrank_writes_GWINFO = ( mpiglobal%rank == rank_to_write )
   write_progress = myrank_writes_GWINFO

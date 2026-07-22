@@ -9,21 +9,23 @@ subroutine getpmatkgw(ik)
     use mod_bands, only: numin, nomax, nstdf
     use mod_core_states, only: ncg
     use mod_dielectric_function, only: pmatcv, pmatvv, fname_pmatcv, fname_pmatvv
+    use mod_large_io, only: inquire_large, open_direct_unformatted_large
     use mod_symmetry, only: lsplsymc, nsymcrys, symlat, symlatc
-    use m_getunit, only: getunit
+    use precision, only: i32, long_int, dp
 
     implicit none
     
     ! input
-    integer, intent(in) :: ik
+    integer(i32), intent(in) :: ik
     ! local
-    integer :: ikp, isym, lspl, iv(3)
-    integer :: ie1, ie2, icg, ias
-    real(8) :: s(3,3), v1(3), v2(3), v3(3), t1
-    logical :: lfound, calculate_core
-    integer :: recl
-    integer :: fid_pmatvv
-    integer :: fid_pmatcv
+    integer(i32) :: ikp, isym, lspl, iv(3)
+    integer(i32) :: ie1, ie2, icg, ias
+    real(dp) :: s(3,3), v1(3), v2(3), v3(3), t1
+    logical :: lfound
+    logical(i32) :: calculate_core
+    integer(long_int) :: recl
+    integer(i32) :: fid_pmatvv
+    integer(i32) :: fid_pmatcv
     
 
     !---------
@@ -31,23 +33,17 @@ subroutine getpmatkgw(ik)
     !---------
     if (allocated(pmatvv)) deallocate(pmatvv)
     allocate(pmatvv(nomax,numin:nstdf,3))
-    inquire(iolength=recl) pmatvv
-    call getunit( fid_pmatvv )
-    open(fid_pmatvv,File=fname_pmatvv, &
-    &    Action='READ',Form='UNFORMATTED',&
-    &    Access='DIRECT',Status='OLD',Recl=recl)
+    call inquire_large( recl, pmatvv )
+    call open_direct_unformatted_large( fid_pmatvv, fname_pmatvv, "read", recl, "old" )
     !----------
     ! core-val
     !----------
     calculate_core = (input%gw%coreflag=='all')
     if ( calculate_core ) then
-      call getunit( fid_pmatcv )
       if (allocated(pmatcv)) deallocate(pmatcv)
       allocate(pmatcv(ncg,numin:nstdf,3))
-      inquire(iolength=recl) pmatcv
-      open(fid_pmatcv,File=fname_pmatcv, &
-      &    Action='READ',Form='UNFORMATTED', &
-      &    Access='DIRECT',Status='OLD',Recl=recl)
+      call inquire_large( recl, pmatcv )
+      call open_direct_unformatted_large( fid_pmatcv, fname_pmatcv, "read", recl, "old" )
     end if
     
     ikp = kset%ik2ikp(ik)

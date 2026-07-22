@@ -1,0 +1,427 @@
+ 
+================================================================================
+=                            GW input parameters                               =
+================================================================================
+ 
+ 
+ GW taskname:
+ 
+   Execute a group of tasks
+ 
+--------------------------------------------------------------------------------
+ 
+ Correlation self-energy parameters:
+ Solution of the QP equation:
+   0 - perturbative solution
+ evGW0 workflow mode: enabled
+   Maximum number of iterations:            2
+   Convergence threshold:   0.000000000000000E+000
+ Energy alignment:
+   0 - no alignment
+ Analytic continuation method:
+  PADE - Thiele's reciprocal difference method
+  Citation: H. J. Vidberg and J. W. Serence, J. Low Temp. Phys. 29, 179 (1977)
+ Scheme to treat singularities:
+  Auxiliary function method "mpb"
+  Citation: S. Massidda, M. Posternak, and A. Baldereschi, PRB 48, 5058 (1993)
+ 
+--------------------------------------------------------------------------------
+ 
+ Mixed product basis parameters:
+   MT part:
+     Angular momentum cutoff:            2
+     Linear dependence tolerance factor:   1.000000000000000E-003
+   Interstitial:
+     Plane wave cutoff (in units of Gkmax):   0.800000000000000     
+ 
+--------------------------------------------------------------------------------
+ 
+ Bare Coulomb potential parameters:
+   Plane wave cutoff (in units of Gkmax*input%gw%MixBasis%gmb):   0.50000000000000
+   Error tolerance for structure constants:   1.000000000000000E-015
+   Tolerance factor to reduce the MB size based on
+   the eigenvectors of the bare Coulomb potential:   0.500000000000000     
+   Slab (2d) cutoff is applied (vacuum along z-axis)
+ 
+--------------------------------------------------------------------------------
+ 
+ Screened Coulomb potential:
+   Full-frequency Random-Phase Approximation
+   Isotropic averaging of inverse dielectric function
+   Averaging along q-direction:    1.00000000000000        1.00000000000000        1.00000000000000     
+ 
+--------------------------------------------------------------------------------
+ 
+ Core electrons treatment:
+   all - Core states are included in all calculations
+ 
+--------------------------------------------------------------------------------
+ 
+ Interval of quasiparticle states (ibgw, nbgw):       1     24
+ 
+ Number of empty states (GW):           10
+ 
+ k/q-points grid:            2           1           1
+ 
+  Matrix block size:            5
+ 
+--------------------------------------------------------------------------------
+-                           Mixed product WF info                              -
+--------------------------------------------------------------------------------
+ 
+  Maximal number of MT wavefunctions per atom:          163
+  Total number of MT wavefunctions:                     329
+  Maximal number of PW wavefunctions:                    51
+  Total number of mixed-product wavefunctions:          380
+ 
+ 
+--------------------------------------------------------------------------------
+-                               frequency grid                                 -
+--------------------------------------------------------------------------------
+ 
+ Type: < fgrid > gauleg2                                 
+ Frequency axis: < fconv > imfreq                                  
+ Number of frequencies: < nomeg >            4
+ Cutoff frequency: < freqmax >    1.00000000000000     
+ frequency list: < #    freqs    weight > 
+   1  0.2113248654      0.5000000000    
+   2  0.7886751346      0.5000000000    
+   3   1.267949192      0.8038475773    
+   4   4.732050808       11.19615242    
+ 
+--------------------------------------------------------------------------------
+-                       Kohn-Sham eigenstates summary                          -
+--------------------------------------------------------------------------------
+ 
+ Maximum number of LAPW states:                      100
+ Minimal number of LAPW states:                       85
+ Number of states used in GW:
+     - total KS                                       24
+     - occupied                                       13
+     - unoccupied                                     10
+     - dielectric function                            24
+     - self energy                                    24
+ Energy of the highest unoccupied state:        0.386884
+ Number of valence electrons:                         26
+ Number of valence electrons treated in GW:           26
+ 
+--------------------------------------------------------------------------------
+-                          Kohn-Sham band structure                            -
+--------------------------------------------------------------------------------
+ 
+ Fermi energy:     0.0000
+ Energy range:    -2.3184    0.3869
+ Band index of VBM: 13
+ Band index of CBm: 14
+ 
+ Indirect BandGap (eV):                     2.2326
+ at k(VBM) =    0.000   0.000   0.000 ik = 1
+    k(CBm) =    0.500   0.000   0.000 ik = 2
+ Direct Bandgap at k(VBM) (eV):             2.8560
+ Direct Bandgap at k(CBm) (eV):             3.0046
+ evGW0 iteration 1
+ 
+================================================================================
+=                                 task: vxc                                    =
+================================================================================
+ 
+ 
+================================================================================
+=                               task: Coulomb                                  =
+================================================================================
+ 
+  (Coulomb): q-point cycle, iq =            1                
+ 
+================================================================================
+=                                task: sigmax                                  =
+================================================================================
+ 
+ *** Table with index map
+ *** 1st quantity is: dummy index to list k-points, with symbol: (xk)
+ *** 2nd quantity is: k-points indexes (as used in the code), with symbol: k
+ 
+ Map
+     (xk)       k                                                
+        1       1                                                
+        2       2                                                
+ 
+ 
+ *** Parallelization
+ *** Overview of how indexes are distributed among MPI processes
+ *** (xk)i, (xk)f : first, last dummy index to list k-points
+ *** qi, qf : first, last q-points indexes (as used in the code)
+  global   (xk)i   (xk)f      qi      qf 
+     ---       1       2       1       2
+
+    rank   (xk)i   (xk)f      qi      qf 
+       0       1       2       1       1 
+       1       1       2       2       2 
+
+
+ (sigmax): k-point cycle, (xk) = 1, k = 1
+ ****** completing 100.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ 
+ (sigmax): k-point cycle, (xk) = 2, k = 2
+ ****** completing 100.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ 
+ 
+================================================================================
+=                               task: epsilon                                  =
+================================================================================
+ 
+ *** Table with index map
+ *** 1st quantity is: dummy index to list q-points, with symbol: (xq)
+ *** 2nd quantity is: q-points indexes (as used in the code), with symbol: q
+ 
+ Map
+     (xq)       q                                                
+        1       1                                                
+        2       2                                                
+ 
+ 
+ *** Parallelization
+ *** Overview of how indexes are distributed among MPI processes
+ *** (xq)i, (xq)f : first, last q-points indexes (as used in the code)
+ *** ki, kf : first, last k-points indexes (as used in the code)
+ *** mi, mf : first, last unoccupied states
+  global   (xq)i   (xq)f      ki      kf      mi      mf 
+     ---       1       2       1       2      14      24
+
+    rank   (xq)i   (xq)f      ki      kf      mi      mf 
+       0       1       2       1       2      14      19 
+       1       1       2       1       2      20      24 
+
+
+ (epsilon): q-point cycle, (xq) = 1, q = 1
+ *** Reading matrix with orthogonal IPW from file
+ *** Obtaining overlap between IPW and PW
+ *** Reading Coulomb matrix from file
+ *** Calculating dielectric matrix
+ ****** Loop over k-points
+ ********* Loop over block-multiplications
+ ********* completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ********* completing 100.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ****** completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ********* Loop over block-multiplications
+ ********* completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ********* completing 100.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ****** completing 100.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ *** Writing dielectric matrix into file
+ 
+ (epsilon): q-point cycle, (xq) = 2, q = 2
+ *** Reading matrix with orthogonal IPW from file
+ *** Obtaining overlap between IPW and PW
+ *** Reading Coulomb matrix from file
+ *** Calculating dielectric matrix
+ ****** Loop over k-points
+ ********* Loop over block-multiplications
+ ********* completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ********* completing 100.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ****** completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ********* Loop over block-multiplications
+ ********* completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ********* completing 100.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ ****** completing 100.00%. Time:             0.0 (sec). Estimated total time:            0.0 (sec)
+ *** Writing dielectric matrix into file
+ 
+ 
+================================================================================
+=                            task: invertEpsilon                               =
+================================================================================
+ 
+  (invertEpsilon): q-point cycle, iq =            1                                                                              
+ 
+================================================================================
+=                                task: sigmac                                  =
+================================================================================
+ 
+ *** Table with index map
+ *** 1st quantity is: dummy index to list k-points, with symbol: (xk)
+ *** 2nd quantity is: k-points indexes (as used in the code), with symbol: k
+ 
+ Map
+     (xk)       k                                                
+        1       1                                                
+        2       2                                                
+ 
+ 
+ *** Parallelization
+ *** Overview of how indexes are distributed among MPI processes
+ *** (xk)i, (xk)f : first, last dummy index to list k-points
+ *** qi, qf : first, last q-points indexes (as used in the code)
+ *** mi, mf : first, last states (may include core states, depending on the choice given in input.xml)
+  global   (xk)i   (xk)f      qi      qf      mi      mf 
+     ---       1       2       1       2       1      65
+
+    rank   (xk)i   (xk)f      qi      qf      mi      mf 
+       0       1       2       1       2       1      33 
+       1       1       2       1       2      34      65 
+
+
+ (sigmac): k-point cycle, (xk) = 1, k = 1
+ *** completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.1 (sec)
+ *** completing 100.00%. Time:             0.1 (sec). Estimated total time:            0.1 (sec)
+ (sigmac): k-point cycle, (xk) = 2, k = 2
+ *** completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.1 (sec)
+ *** completing 100.00%. Time:             0.1 (sec). Estimated total time:            0.1 (sec)
+ 
+================================================================================
+=                            task: QPEigenvalues                               =
+================================================================================
+ 
+ 
+--------------------------------------------------------------------------------
+-        G0W0 band structure, assuming Efermi = 1.58301852652391E-01           -
+--------------------------------------------------------------------------------
+ 
+ Fermi energy:     0.1583
+ Energy range:    -1.8968    0.6860
+ Band index of VBM: 13
+ Band index of CBm: 14
+ 
+ Direct BandGap (eV):                       9.7266
+ at k      =    0.000   0.000   0.000 ik = 1
+ 
+--------------------------------------------------------------------------------
+-                           Mixed product WF info                              -
+--------------------------------------------------------------------------------
+ 
+  Maximal number of MT wavefunctions per atom:          163
+  Total number of MT wavefunctions:                     329
+  Maximal number of PW wavefunctions:                    51
+  Total number of mixed-product wavefunctions:          380
+ 
+ 
+--------------------------------------------------------------------------------
+-                               frequency grid                                 -
+--------------------------------------------------------------------------------
+ 
+ Type: < fgrid > gauleg2                                 
+ Frequency axis: < fconv > imfreq                                  
+ Number of frequencies: < nomeg >            4
+ Cutoff frequency: < freqmax >    1.00000000000000     
+ frequency list: < #    freqs    weight > 
+   1  0.2113248654      0.5000000000    
+   2  0.7886751346      0.5000000000    
+   3   1.267949192      0.8038475773    
+   4   4.732050808       11.19615242    
+ 
+--------------------------------------------------------------------------------
+-                       Kohn-Sham eigenstates summary                          -
+--------------------------------------------------------------------------------
+ 
+ Maximum number of LAPW states:                      100
+ Minimal number of LAPW states:                       85
+ Number of states used in GW:
+     - total KS                                       24
+     - occupied                                       13
+     - unoccupied                                     10
+     - dielectric function                            24
+     - self energy                                    24
+ Energy of the highest unoccupied state:        0.386884
+ Number of valence electrons:                         26
+ Number of valence electrons treated in GW:           26
+ 
+--------------------------------------------------------------------------------
+-                          Kohn-Sham band structure                            -
+--------------------------------------------------------------------------------
+ 
+ Fermi energy:     0.0000
+ Energy range:    -2.3184    0.3869
+ Band index of VBM: 13
+ Band index of CBm: 14
+ 
+ Indirect BandGap (eV):                     2.2326
+ at k(VBM) =    0.000   0.000   0.000 ik = 1
+    k(CBm) =    0.500   0.000   0.000 ik = 2
+ Direct Bandgap at k(VBM) (eV):             2.8560
+ Direct Bandgap at k(CBm) (eV):             3.0046
+ evGW0 iteration 2
+ 
+================================================================================
+=                                task: sigmac                                  =
+================================================================================
+ 
+ *** Table with index map
+ *** 1st quantity is: dummy index to list k-points, with symbol: (xk)
+ *** 2nd quantity is: k-points indexes (as used in the code), with symbol: k
+ 
+ Map
+     (xk)       k                                                
+        1       1                                                
+        2       2                                                
+ 
+ 
+ *** Parallelization
+ *** Overview of how indexes are distributed among MPI processes
+ *** (xk)i, (xk)f : first, last dummy index to list k-points
+ *** qi, qf : first, last q-points indexes (as used in the code)
+ *** mi, mf : first, last states (may include core states, depending on the choice given in input.xml)
+  global   (xk)i   (xk)f      qi      qf      mi      mf 
+     ---       1       2       1       2       1      65
+
+    rank   (xk)i   (xk)f      qi      qf      mi      mf 
+       0       1       2       1       2       1      33 
+       1       1       2       1       2      34      65 
+
+
+ (sigmac): k-point cycle, (xk) = 1, k = 1
+ *** completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.1 (sec)
+ *** completing 100.00%. Time:             0.1 (sec). Estimated total time:            0.1 (sec)
+ (sigmac): k-point cycle, (xk) = 2, k = 2
+ *** completing  50.00%. Time:             0.0 (sec). Estimated total time:            0.1 (sec)
+ *** completing 100.00%. Time:             0.1 (sec). Estimated total time:            0.1 (sec)
+ 
+================================================================================
+=                            task: QPEigenvalues                               =
+================================================================================
+ 
+ 
+--------------------------------------------------------------------------------
+-        G0W0 band structure, assuming Efermi = 1.06987095010741E-01           -
+--------------------------------------------------------------------------------
+ 
+ Fermi energy:     0.1070
+ Energy range:    -1.8501    0.7197
+ Band index of VBM: 13
+ Band index of CBm: 14
+ 
+ Direct BandGap (eV):                      14.0799
+ at k      =    0.000   0.000   0.000 ik = 1
+ evGW0 max |dE_QP| = 1.11710478083412E-01
+ evGW0 reached the maximum number of iterations without satisfying the convergence threshold
+ 
+================================================================================
+=                          GW timing info (seconds)                            =
+================================================================================
+ 
+ Initialization                             :         2.05
+     - init_scf                             :         0.60
+     - init_kpt                             :         0.01
+     - init_eval                            :         0.00
+     - init_freq                            :         0.00
+     - init_mb                              :         0.26
+ Subroutines                                : 
+     - calcpmat                             :         0.30
+     - calcbarcmb                           :         0.02
+     - BZ integration weights               :         0.00
+     Dielectric function                    :         0.04
+     - head                                 :         0.00
+     - wings                                :         0.00
+     - body                                 :         0.00
+     - inversion                            :         0.00
+     WF products expansion                  :         0.00
+     - diagsgi                              :         0.00
+     - calcmpwipw                           :         0.00
+     - calcmicm                             :         0.00
+     - calcminc                             :         0.01
+     - calcminm                             :         0.30
+     - symmetry                             :         0.00
+     Self-energy                            :         0.33
+     - calcselfx                            :         0.07
+     - calcselfc                            :         0.26
+     - calcvxcnn                            :         0.08
+     - input/output                         :         0.00
+ _________________________________________________________
+ Total                                      :         3.42
+ 

@@ -22,6 +22,9 @@ subroutine fermisurf
 ! initialise universal variables
   call init0
   call init1
+  ! initialisations for the Davidson eigensolver
+  if (trim( input%groundstate%solver%type ) == 'Davidson') call releasesingular
+
 ! read density and potentials from file
   call readstate
 ! read Fermi energy from file
@@ -59,7 +62,7 @@ subroutine fermisurf
   call mt_hscf%release()
   if (allocated(meffig)) deallocate(meffig)
   if (allocated(m2effig)) deallocate(m2effig)
-
+  Call releasesingular 
 !---------------------------------------------------
 ! OUTPUT Block  
 !---------------------------------------------------

@@ -1,21 +1,47 @@
 [project]
 name = "excitingscripts"
-description = "Executable command-line scripts for basic tasks with the exciting code."
-version = "0.0.1"
-
-requires-python = ">=3.6"
-
+description = "Executable command-line scripts for working with the exciting code."
+version = "1.2.0"
+readme = {file = "README.md", content-type = "text/markdown"}
+authors = [
+    {name="excitingscripts developers"}
+]
+maintainers = [
+    {name="Martin Kuban", email="kuban@physik.hu-berlin.de"},
+    {name="Mara Voiculescu", email="voiculem@physik.hu-berlin.de"}
+]
+requires-python = ">=3.10"
 dependencies = [
-    'numpy>=1.14.5',
-    'matplotlib>=2.2.0',
-    'scipy>=1.7.0',
+    'numpy>=1.14.5', 
+    'matplotlib>=2.2.0', 
+    'scipy>=1.7.0', 
     'excitingtools>=1.6.3',
-    'typing-extensions>=3.7'
+    'typing-extensions>=3.7',
+    'ase>=3.22.1',
+    'requests',
+    'psutil==7.2.2'
+]
+license-files = ["LICENSE"]
+classifiers=[
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: POSIX :: Linux",
 ]
 
 [build-system]
-requires = ["setuptools>=40.8.0", "wheel>=0.35.0"]
+requires = ["setuptools>=61.0", "wheel>=0.35.0"]
 build-backend = "setuptools.build_meta"
 
+[project.urls]
+Source = "https://github.com/exciting/exciting"
+Tutorials = "https://exciting-code.org/home/tutorials"
+
 [tool.setuptools]
-packages = ["excitingscripts"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where=["."]
+include=["excitingscripts*"]
+exclude=["tests*", "*cache*"]
+
+[tool.setuptools.package-data]
+excitingscripts = ["_data/*", "_data/**/*"]

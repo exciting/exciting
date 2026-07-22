@@ -3,7 +3,7 @@
 module xfftw
   use constants, only: zzero, zone, uninit_c_int
   use precision, only: dp 
-  use asserts, only: assert
+#include "asserts.fpp"
   use modmpi, only: 
   use grid_utils, only: mesh_1d
   use, intrinsic :: ISO_C_binding
@@ -57,7 +57,7 @@ module xfftw
   subroutine abort_if_not_fftw3(mpi_env, message)
     use modmpi, only: mpiinfo, terminate_mpi_env, mpiglobal
     !> MPI environment to terminate.
-    type(mpiinfo), intent(inout), optional :: mpi_env
+    type(mpiinfo), intent(in), optional :: mpi_env
     !> Message to print to the terminal
     character(*), intent(in), optional :: message
 
@@ -128,7 +128,7 @@ module xfftw
 
     integer(c_int), parameter :: effort = default_effort 
 
-    call assert(size(in_out) == product(dims), 'size(in_out) /= product(dims).')
+    CALL_ASSERT(size(in_out) == product(dims), 'size(in_out) /= product(dims).')
 
     this%dims = dims
     this%rank = size(dims)
@@ -167,8 +167,8 @@ module xfftw
     if(present(rescale_forward)) rescale_forward_local = rescale_forward
 
 #ifdef USE_ASSERT
-    call assert(c_associated(this%plan), 'execute: c_associated(this%plan) == .false.')
-    call assert(size(in_out) == product(this%dims), 'size(in_out) /= product(this%dims).')
+    CALL_ASSERT(c_associated(this%plan), 'execute: c_associated(this%plan) == .false.')
+    CALL_ASSERT(size(in_out) == product(this%dims), 'size(in_out) /= product(this%dims).')
 #endif 
 
 #ifdef FFTW3_INTERFACE

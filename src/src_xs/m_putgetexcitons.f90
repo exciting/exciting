@@ -5,7 +5,6 @@ module m_putgetexcitons
   use modscl
   use mod_kpoint, only: vkl
   use modxs, only: vkl0, vqlmt
-  use m_getunit
   use m_genfilname
   use mod_hdf5
   use xhdf5
@@ -228,8 +227,7 @@ module m_putgetexcitons
         & scrtype=trim(scrtypestring), filnam=fname)
 
         ! Open stream access file 
-        call getunit(unexc)
-        open(unexc, file=trim(fname), access='stream',&
+        open(newunit=unexc, file=trim(fname), access='stream',&
           & action='write', form='unformatted', status='replace', iostat=stat)
         if(stat /= 0) then
           write(*,*) stat
@@ -425,8 +423,7 @@ module m_putgetexcitons
         end if
 
         ! Open stream access file 
-        call getunit(unexc)
-        open(unexc, file=trim(fname), access='stream',&
+        open(newunit=unexc, file=trim(fname), access='stream',&
           & action='read', form='unformatted', status='old', iostat=stat)
         if(stat /= 0) then
           write(*,*) stat
@@ -811,8 +808,7 @@ module m_putgetexcitons
             & scrtype=trim(scrtypestring), filnam=fname)
 
           ! Open stream access file 
-          call getunit(unexc)
-          open(unexc, file=trim(fname), access='stream',&
+          open(newunit=unexc, file=trim(fname), access='stream',&
             & action='write', form='unformatted', status='replace', iostat=stat)
           if(stat /= 0) then
             write(*,*) stat

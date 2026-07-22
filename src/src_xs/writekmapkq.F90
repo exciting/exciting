@@ -9,12 +9,10 @@
 Subroutine writekmapkq (iq)
       Use modmain
       Use modxs
-      Use m_getunit
       Implicit None
       Integer, Intent (In) :: iq
       Integer :: un, ik
-      Call getunit (un)
-      Open (un, File='KMAPKQ'//trim(filext), Form='formatted', Action='&
+      Open (newunit=un, File='KMAPKQ'//trim(filext), Form='formatted', Action='&
      &write', Status='replace')
       Write (un, '(i9, a)') nkpt, ' : nkpt; k-point, ikmapikq below'
       Do ik = 1, nkpt

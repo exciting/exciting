@@ -31,7 +31,10 @@ try:
 except ImportError:
     import importlib_metadata as metadata
 
-__version__ = metadata.version("excitingtools")
+try:
+    __version__ = metadata.version("excitingtools")
+except metadata.PackageNotFoundError:
+    __version__ = "unknown"
 
 __all__ = [
     "Unit",

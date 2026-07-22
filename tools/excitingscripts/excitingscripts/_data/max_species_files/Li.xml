@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<spdb>
+	<sp chemicalSymbol="Li" name="lithium" z="-3.0" mass="12652.66897">
+		<muffinTin rmin="1e-06" radius="1.7" rinf="29.9495" radialmeshPoints="400"/>
+		<atomicState n="1" l="0" kappa="1" occ="2.0" core="false"/>
+		<atomicState n="2" l="0" kappa="1" occ="1.0" core="false"/>
+		<basis>
+			<default type="lapw" trialEnergy="0.15" searchE="false"/>
+			<custom l="0" type="lapw" n="2" searchE="false"/>
+			<lo l="0">
+				<wf matchingOrder="0" searchE="false" n="2"/>
+				<wf matchingOrder="0" searchE="false" n="1"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="0" searchE="false" n="1"/>
+				<wf matchingOrder="1" searchE="false" n="1"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="1" searchE="false" n="1"/>
+				<wf matchingOrder="2" searchE="false" n="1"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="2" searchE="false" n="1"/>
+				<wf matchingOrder="3" searchE="false" n="1"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="0" searchE="false" n="2"/>
+				<wf matchingOrder="1" searchE="false" n="2"/>
+			</lo>
+			<lo l="0">
+				<wf matchingOrder="1" searchE="false" n="2"/>
+				<wf matchingOrder="2" searchE="false" n="2"/>
+			</lo>
+		</basis>
+	</sp>
+</spdb>

@@ -216,10 +216,15 @@ subroutine xsmain(plan, nxstasks)
       case(445)
         ! Bethe-Salpeter equation
         call bselauncher
+        ! for historical reasons, create the spectrum as well
+        write(unitout, '("")')
+        write(unitout, '("Info(xsmain): Generating spectrum now.")')
+        write(unitout, '("")')
+        call bsegenspec
 
       ! Taskname 'bsegenspec'
       case(446)
-        ! regenerate BSE spectrum from exciton output
+        ! generate BSE spectrum from exciton output
         call bsegenspec
 
       ! Taskname 'writebevec'

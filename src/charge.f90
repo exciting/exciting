@@ -37,6 +37,6 @@ subroutine charge( caller_tag )
   if ( abs( chgtot / chgcalc - 1._dp ) > input%groundstate%epschg ) then
     call warning( 'Warning(charge): Charge ' // to_char( chgcalc ) // &
       ' calculated from electronic density in ' // trim( caller_tag ) // &
-      ' differs from the total charge ' // to_char( chgtot ) )
+      ' differs from the total GS charge ' // to_char( chgtot ) )
   end if
 end subroutine

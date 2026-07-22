@@ -10,6 +10,7 @@
       !
       !-------------------------------------------------------------------------
       implicit real*8 (a-h,o-z)
+      implicit integer (i-n)
       PARAMETER (NMAX=500)
       dimension A(NDIM,NDIM)
       integer   IPIV(NMAX), INDXR(NMAX), INDXC(NMAX)

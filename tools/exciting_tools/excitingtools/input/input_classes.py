@@ -5,7 +5,7 @@ from xml.etree import ElementTree
 
 import numpy as np
 
-from excitingtools.input.base_class import AbstractExcitingInput
+from excitingtools.input.base_class import AbstractExcitingInput, ExcitingXMLInput
 from excitingtools.input.dynamic_class import generate_classes_str
 from excitingtools.utils.dict_utils import check_valid_keys
 from excitingtools.utils.utils import list_to_str
@@ -111,24 +111,45 @@ class ExcitingPlanInput(AbstractExcitingInput):
         return plan
 
 
-class ExcitingBseTypeSetInput(AbstractExcitingInput):
+class ExcitingBseTypeSetInput(ExcitingXMLInput):
     """
     Class for exciting BseTypeSet Input
     """
 
     name = "BseTypeSet"
 
-    def __init__(self, bsetypeset: List[str]):
+    def __init__(self, bsetypeset: List[str], **kwargs):
         """
         BSE types are passed as a List of strings in the order exciting shall execute them:
             ['IP', 'singlet', ...]
         """
+        super().__init__(type={}, **kwargs)
+        AbstractExcitingInput.__delattr__(self, "type")  # hack
+
         check_valid_keys(bsetypeset, type_attribute_types["name"][1], self.name)
         self.bsetypeset = bsetypeset
 
+    def __setattr__(self, name: str, value):
+        """Overload the attribute setting from the base class, since here we use different attribute names than
+        defined in the schema.
+
+        No check is performed on the validity of the attributes, but they won't show up in the XML tree.
+
+        :param name: name of the attribute
+        :param value: new value, can be anything
+        """
+        AbstractExcitingInput.__setattr__(self, name, value)
+
     def to_xml(self) -> ElementTree.Element:
         """Special implementation of to_xml for the bsetypeset element."""
-        bsetypeset = ElementTree.Element(self.name)
+        valid_attributes = next(self.get_valid_attributes())
+        attributes = {
+            key: self._attributes_to_input_str[type(value)](value)
+            for key, value in vars(self).items()
+            if key in valid_attributes
+        }
+        bsetypeset = ElementTree.Element(self.name, **attributes)
+
         for bsetype in self.bsetypeset:
             ElementTree.SubElement(bsetypeset, "type", name=bsetype)
 

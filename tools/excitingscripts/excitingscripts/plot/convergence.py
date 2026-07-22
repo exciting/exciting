@@ -1,3 +1,15 @@
+"""Visualize convergence results.
+
+Located at `excitingscripts/plot/convergence.py`.
+
+Call as:
+
+```bash
+python3 -m excitingscripts.plot.convergence plot_mode
+```
+Where <code>plot_mode</code> is either <code>k</code> for plotting energy curves with varying values of the <code><span style="color:green">groundstate</span></code> attribute <code><span style="color:MediumBlue">ngridk</span></code>, <code>r</code> for varying values of the <code><span style="color:green">groundstate</span></code> attribute  <code><span style="color:MediumBlue">rgkmax</span></code> or <code>rk</code> for a 3D plot with varying values of both attributes.
+"""
+
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
@@ -59,11 +71,21 @@ def plot_convergence_rk() -> None:
     rgkmax_values = convergence_data[:, 1]
     energy_values = convergence_data[:, 2]
 
-    dk = 2
-    k_grids = np.arange(k_values[0], k_values[-1] + 1, dk)
-    rgkmax_range = np.arange(rgkmax_values[0], rgkmax_values[-1] +1)
-    energy_values = np.reshape(energy_values,
-                            (int((k_values[-1] - k_values[0] + 2) / dk), int(rgkmax_values[-1] - rgkmax_values[0] + 1)))
+    k_grids = list(sorted(np.unique(k_values).tolist()))
+    rgkmax_range = list(sorted(np.unique(rgkmax_values).tolist()))
+
+    grid_map = {
+        k_value: {
+            rgkmax_value: (k_idx, rgkmax_idx)
+            for rgkmax_idx, rgkmax_value in enumerate(rgkmax_range)
+        }
+        for k_idx, k_value in enumerate(k_grids)
+    }
+
+    energy_values = np.empty((len(k_grids), len(rgkmax_range)))
+    for k_val, rgkmax_val, energy in convergence_data:
+        array_index = grid_map[k_val][rgkmax_val]
+        energy_values[array_index[0], array_index[1]] = energy
 
     ax = plt.axes(projection='3d')
 
@@ -77,7 +99,6 @@ def plot_convergence_rk() -> None:
     ax.zaxis.set_major_formatter(plt.ScalarFormatter(useOffset=False))
     ax.tick_params(axis='z', which='major', pad=10)
 
-    ax.set_ylim(k_values[-1] + 1, k_values[0] - 1)
     ax.grid(False)
 
 def main() -> None:

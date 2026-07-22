@@ -34,6 +34,7 @@ Subroutine effmass
 ! initialise universal variables
       Call init0
       Call init1
+      if (trim( input%groundstate%solver%type ) == 'Davidson') call releasesingular
       Allocate (ipiv(nkpt))
       Allocate (a(nkpt, nkpt))
       n = 2 * input%properties%masstensor%ndspem + 1
@@ -237,5 +238,6 @@ Subroutine effmass
      & input%properties%masstensor%vklem
       Write (*,*)
       Deallocate (ipiv, a, b, c)
+      Call releasesingular 
       Return
 End Subroutine

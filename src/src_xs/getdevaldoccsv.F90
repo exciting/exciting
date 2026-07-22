@@ -10,6 +10,7 @@ subroutine getdevaldoccsv(iq, ik, ikq, l1, u1, l2, u2, devalsv, doccsv, scissv)
   use mod_kpoint, only: vkl
   use modxs, only: vkl0
   use m_genfilname
+  use mod_getoccsv, only: getoccsv
 
   implicit none
 
@@ -28,7 +29,7 @@ subroutine getdevaldoccsv(iq, ik, ikq, l1, u1, l2, u2, devalsv, doccsv, scissv)
 
   ! Eigenvalues and occupancies for k+q-point
   call getevalsv(vkl(1, ikq), e)
-  call getoccsv(vkl(1, ikq), o)
+  call getoccsv(vkl(:, ikq), o)
 
   ! Eigenvalues and occupancies for k-point
   call getevalsv0(vkl0(1, ik), e0)

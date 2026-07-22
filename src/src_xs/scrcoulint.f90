@@ -8,7 +8,7 @@
 ! TODO (Max) Issue 66: Restructure maps between q-points 
 
 subroutine scrcoulint(iqmt, fra)
-  use precision, only: sp, dp
+  use precision, only: dp, i32, long_int
   use mod_misc, only: filext
   use modinput, only: input, issvlo
   use modmpi
@@ -31,7 +31,6 @@ subroutine scrcoulint(iqmt, fra)
   use m_findgntn0
   use m_writevars
   use m_genfilname
-  use m_getunit
   use m_ematqk
   use m_putgetbsemat
   use modbse
@@ -45,6 +44,10 @@ subroutine scrcoulint(iqmt, fra)
   use mod_atoms, only: natmtot
   use modmain, only: natoms
   use unit_conversion, only: hartree_to_ev
+  use os_utils, only: make_directory
+  use m_status_report, only: status_report_t
+  use, intrinsic :: iso_fortran_env, only: output_unit
+  use mod_large_io, only: inquire_large, open_direct_unformatted_large
 ! !DESCRIPTION:
 !   Calculates the resonant-resonant or resonant-anit-resonant block of the
 !   direct term of the Bethe-Salpeter Hamiltonian for a momentum transfer 
@@ -84,45 +87,45 @@ subroutine scrcoulint(iqmt, fra)
   complex(dp), allocatable :: scieffg(:, :, :)
   complex(dp), allocatable :: phf(:, :)
   !> Symmerty maps creation 
-  integer(sp) :: sc(maxsymcrys), ivgsc(3, maxsymcrys)
-  integer(sp), allocatable :: igqmap(:)
-  integer(sp) :: jsym, jsymi
-  integer(sp) :: nsc, ivgsym(3)
+  integer(i32) :: sc(maxsymcrys), ivgsc(3, maxsymcrys)
+  integer(i32), allocatable :: igqmap(:)
+  integer(i32) :: jsym, jsymi
+  integer(i32) :: nsc, ivgsym(3)
   logical :: tphf
   !> Mappings of jk ik combinations to q points
-  integer(sp) :: ikkp, iknr, jknr, ikpnr, ikmnr, jkpnr, jkmnr, ik, jk
-  integer(sp) :: iqrnr, iqr, iq
+  integer(i32) :: ikkp, iknr, jknr, ikpnr, ikmnr, jkpnr, jkmnr, ik, jk
+  integer(i32) :: iqrnr, iqr, iq
   real(dp) :: vqr(3), vq(3)
-  integer(sp) :: numgq
+  integer(i32) :: numgq
   logical :: tq0
   !> Number of occupied/unoccupied states at ik and jk
-  integer(sp) :: ino, inu, jno, jnu
+  integer(i32) :: ino, inu, jno, jnu
   !> Number of transitions at ik and jk
-  integer(sp) :: inou, jnou
+  integer(i32) :: inou, jnou
   !> Number of (o/u)_i (o/u)_j combinations
-  integer(sp) :: noo, nuu, nou, nuo
+  integer(i32) :: noo, nuu, nou, nuo
   !> State loop indices
-  integer(sp) :: io, jo, iu, ju
+  integer(i32) :: io, jo, iu, ju
   !> Combinded loop indices 
-  integer(sp) :: jaoff, iaoff, ia, ja
+  integer(i32) :: jaoff, iaoff, ia, ja
   !> Maximal l used in the APWs and LOs
   !>   Influences quality of plane wave matrix elements
-  integer(sp) :: maxl_apwlo
+  integer(i32) :: maxl_apwlo
   !> Maximal l used in the Reghley expansion of exponential
   !>   Influences quality of plane wave matrix elements
-  integer(sp) :: maxl_e
+  integer(i32) :: maxl_e
   !> Maximal l used in the APWs and LOs in the groundstate calculations
   !>   Influences quality of eigencoefficients.
-  integer(sp) :: maxl_mat
+  integer(i32) :: maxl_mat
   !> Aux.
-  integer(sp) :: j1, j2
+  integer(i32) :: j1, j2
   complex(dp) :: pref, zt1
   real(dp) :: t1
   !> Timing vars
   real(dp) :: tscc1, tscc0
 
   !> Auxilliary strings
-  character(256) :: syscommand, fileext_scr_read, fileext_ematrad_write
+  character(256) :: fileext_scr_read, fileext_ematrad_write
   !> HDF5 variables
   character(256) :: ciq, gname, group
   !> External functions
@@ -130,8 +133,17 @@ subroutine scrcoulint(iqmt, fra)
 
   real(dp) :: vqoff(3)
   real(dp), parameter :: epslat = 1.0d-8
+  integer(long_int) :: large_gather_size
 
   logical :: fsameq, fsamekp, fsamekm
+
+  type(status_report_t) :: status_report
+
+  ! variables for opening the V file
+  integer(long_int) :: reclen
+  integer(i32) :: inquire_buffer(5)
+  complex(dp), allocatable :: inquire_zmat(:,:)
+  integer(i32) :: file_unit
 
   !> Phonon variables
   !> Fourier coefficients of the phonon screend coulomb potential W_{GG'}
@@ -155,13 +167,13 @@ subroutine scrcoulint(iqmt, fra)
   !> ik,jk block of phonon W matrix (final product)
   complex(dp), allocatable :: W_ph(:,:,:)
   !> Running index phonon mode
-  integer(sp) :: imode
+  integer(i32) :: imode
   !> Number of phonon modes
-  integer(sp) :: n_phonon_modes
+  integer(i32) :: n_phonon_modes
   !> Running index to create integer array
-  integer(sp) :: i_run
+  integer(i32) :: i_run
   !> Array containing indices of G-vectors
-  integer(sp), allocatable :: g_ids(:)
+  integer(i32), allocatable :: g_ids(:)
   !> Phasefactors for transforming reduced to non-reduced quantities
   complex(dp), allocatable :: phasefactors(:, :)
 
@@ -194,15 +206,15 @@ subroutine scrcoulint(iqmt, fra)
   !   * Generates radial functions (mod_APW_LO)
   call init2
 
+  write(unitout, '("Info(", a, "): Number of G+q-vectors considered = ", i0)') thisname, ngq(iqmt)
+  call flushifc(unitout)
+
   ! xas and xes specific init (has to come after init0 and init1)
   if(input%xs%bse%xas .or. input%xs%BSE%xes) call xasinit
   
   ! Making folder for the radial integals pertaining to the plane wave matrix elements
   ematraddir = 'EMATRAD'
-
-  syscommand = 'test ! -e '//trim(adjustl(ematraddir))&
-    & //' && mkdir '//trim(adjustl(ematraddir))//' &> /dev/null'
-  call system(trim(adjustl(syscommand)))
+  call make_directory(ematraddir, mpiglobal)
 
   ! Generate gaunt coefficients used in the construction of 
   ! the plane wave matrix elements in ematqk.
@@ -417,7 +429,15 @@ subroutine scrcoulint(iqmt, fra)
 
   write(unitout, '("Info(scrcoulint):&
     & Calculating W(G1,G2,qr) fourier coefficients")')
+  call flushifc(unitout)
   call timesec(tscc0)
+
+  call status_report%init( &
+    nreports=input%xs%BSE%BSEKernelStatusReports, &
+    niter=qparf - qpari + 1, &
+    calling_loop_name="scrcoulint_red_q", &
+    out_unit=output_unit, &
+    start_time=tscc0)
 
   do iqr = qpari, qparf ! Reduced q
 
@@ -438,20 +458,26 @@ subroutine scrcoulint(iqmt, fra)
     ! and save them to disk.
     filext = fileext_ematrad_write
     call putematrad(iqr, iqrnr)
+    call status_report%update()
   end do
+  call status_report%delete()
 
   ! Set file extesion for later read EMATRAD in getematrad
   ! (some ranks may not participate in the qr loop above)
   filext = fileext_ematrad_write
 
   ! Communicate array-parts wrt. q-points
-  call xmpi_allgatherv( mpiglobal, scieffg, ngqmax**2 * (qparf - qpari + 1) )
+  large_gather_size = int( qparf - qpari + 1, kind = long_int ) * ngqmax * ngqmax
+  call xmpi_allgatherv( mpiglobal, scieffg, large_gather_size )
 
   if(mpiglobal%rank == 0) then
     call timesec(tscc1)
     if (input%xs%BSE%outputlevelnumber == 1) &
       & write(unitout, '("  Timing (in seconds):", f12.3)') tscc1 - tscc0
   end if
+  write(unitout, '("Info(scrcoulint):&
+    & Finished calculating W(G1,G2,qr) fourier coefficients")')
+  call flushifc(unitout)
   !--------------------------------------------------------------------------------!
 
   !--------------------------------------------------------------------------------!
@@ -479,8 +505,10 @@ subroutine scrcoulint(iqmt, fra)
 
   if(mpiglobal%rank == 0) then
     write(unitout, '("Info(scrcoulint): Calculating W matrix elements")')
+    write(unitout, '("Info(scrcoulint): Number of contributing k-point combinations: ", i0)') nkkp_bse
     call timesec(tscc0)
   end if
+  call flushifc(unitout)
 
   !---------------------------------------------------
   ! Initialisation for phonon contribution to the Hamiltonian
@@ -530,6 +558,20 @@ subroutine scrcoulint(iqmt, fra)
   bsedt(1, :) = 1.d8
   bsedt(2, :) = -1.d8
   bsedt(3, :) = zzero
+
+  call status_report%init( &
+    nreports=input%xs%BSE%BSEKernelStatusReports, &
+    niter=pparf - ppari + 1, &
+    calling_loop_name="scrcoulint_kkp", &
+    out_unit=output_unit, &
+    start_time=tscc0)
+
+  ! Get large enough record length (size can depend on the BSE problem)
+  allocate(inquire_zmat(nou_bse_max, nou_bse_max))
+  call inquire_large( reclen, [iqmt], inquire_buffer, inquire_zmat )
+  if (mpiglobal%is_root) then
+    call open_direct_unformatted_large( file_unit, trim( scclifname ), "write", reclen, "unknown" )
+  end if
 
   kkploop: do ikkp = ppari, pparf
 
@@ -754,7 +796,7 @@ subroutine scrcoulint(iqmt, fra)
 
       deallocate(cmoo, cmuu)   
       ! Parallel write
-      call putbsemat(scclifname, 77, ikkp, iqmt, sccli)
+      call putbsemat(file_unit, 77, ikkp, iqmt, sccli)
 
       ! Analyze BSE diagonal
       if(iknr .eq. jknr) then
@@ -872,7 +914,7 @@ subroutine scrcoulint(iqmt, fra)
       !$OMP END PARALLEL
 
       ! Parallel write
-      call putbsemat(scclifname, 78, ikkp, iqmt, sccli)
+      call putbsemat(file_unit, 78, ikkp, iqmt, sccli)
 
     end if
 
@@ -882,10 +924,19 @@ subroutine scrcoulint(iqmt, fra)
     deallocate(wfc)
     if(allocated(wfc_ph)) deallocate(wfc_ph)
 
+    call status_report%update()
+
   ! End loop over(k,kp)-pairs
   end do kkploop
 
-  ! Gather info about resonant diagonal elements 
+  call status_report%delete()
+
+  ! close sccli file
+  if (mpiglobal%is_root) then
+    close(file_unit)
+  end if
+
+  ! Gather info about resonant diagonal elements
   !   Communicate array-parts wrt. q-points
   call xmpi_allgatherv( mpiglobal, bsedt, 3 )
   !   BSE kernel diagonal parameters

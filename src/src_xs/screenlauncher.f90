@@ -30,6 +30,7 @@ subroutine screenlauncher
   use iso_c_binding, only: c_size_t
   use precision
   use xstring
+  use os_utils, only: make_directory
 
 ! !DESCRIPTION:
 !   This is a wrapper routine for the call of \texttt{dfq.f90} in
@@ -105,22 +106,13 @@ subroutine screenlauncher
   !------------------------------------------------------------!
   ! Making folder for GQPOINTS info files
   gqdirname = 'GQPOINTS'
-  if(rank == 0) then 
-    syscommand = 'test ! -e '//trim(adjustl(gqdirname))//' && mkdir '//trim(adjustl(gqdirname))
-    call system(trim(adjustl(syscommand)))
-  end if
+  call make_directory(gqdirname, mpiglobal)
   ! Making folder for the binary screening EPS0 files
   eps0dirname = 'EPS0'
-  if(rank == 0) then 
-    syscommand = 'test ! -e '//trim(adjustl(eps0dirname))//' && mkdir '//trim(adjustl(eps0dirname))
-    call system(trim(adjustl(syscommand)))
-  end if
+  call make_directory(eps0dirname, mpiglobal)
   ! Making folder for the ascii screening SCREEN files
   scrdirname = 'SCREEN'
-  if(rank == 0) then
-    syscommand = 'test ! -e '//trim(adjustl(scrdirname))//' && mkdir '//trim(adjustl(scrdirname))
-    call system(trim(adjustl(syscommand)))
-  end if
+  call make_directory(scrdirname, mpiglobal)
   call barrier(callername=trim(thisname))
   !------------------------------------------------------------!
 

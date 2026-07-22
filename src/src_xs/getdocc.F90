@@ -8,6 +8,7 @@
 subroutine getdocc(iq, ik, ikq, l1, u1, l2, u2, docc)
 ! !USES:
   use mod_eigenvalue_occupancy, only: nstsv
+  use mod_getoccsv, only: getoccsv
   use mod_kpoint, only: vkl
   use modxs, only: vkl0
 ! !DESCRIPTION:

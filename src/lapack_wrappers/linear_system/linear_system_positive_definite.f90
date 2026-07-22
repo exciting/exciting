@@ -2,7 +2,7 @@
 !>    \[ A * x = y \]
 !> where `A` is a hermitian positive definite matrix
 module linear_system_positive_definite
-  use asserts, only: assert
+#include "asserts.fpp"
   use lapack_f95_interfaces, only: zposv
   use math_utils, only: is_positive_definite
   use precision, only: dp, i32
@@ -39,14 +39,14 @@ subroutine positive_definite_solve_complex_dp(A, y, uplo)
   complex(dp), allocatable :: A_copy(:, :)
 
   if( present(uplo) ) then
-    call assert(any(uplo == uplo_valid_values), "invalid uplo")
+    CALL_ASSERT(any(uplo == uplo_valid_values), "invalid uplo")
     uplo_local = uplo
   else
     uplo_local = uplo_default
   end if
 
-  call assert( is_positive_definite(A), "A must be positive definite")
-  call assert( size(A, 2) == size(y, 1), "A and y must have compatible sizes")
+  CALL_ASSERT( is_positive_definite(A), "A must be positive definite")
+  CALL_ASSERT( size(A, 2) == size(y, 1), "A and y must have compatible sizes")
 
   dim_system = size(A, 1)
   n_cols = size(y, 2)

@@ -85,17 +85,22 @@ module m_linalg
     end subroutine zgediag
 
     ! diagonalize complex hermitian matrix
-    subroutine zhediag( mat, eval, evec)
+    subroutine zhediag( mat, eval, evec, irange, erange)
       complex(8), intent( in) :: mat(:,:)
       real(8), intent( out) :: eval(:)
       complex(8), optional, intent( out) :: evec(:,:)
+      integer, optional, intent( in) :: irange(2)
+      real(8), optional, intent( in) :: erange(2)
 
-      integer :: m, n, info, lwork
-      character :: rv
+      integer :: m, n, i, il, iu, info, lwork
+      character :: rv, rr
+      real(8) :: vl, vu
+      integer, allocatable :: iwork(:), ifail(:)
       complex(8), allocatable :: cpy(:,:), work(:)
       real(8), allocatable :: rwork(:)
 
       m = size( mat, 1)
+      n = m
 
       if( m .le. 0) then
         write(*,'("Error (zhediag): Invalid matrix dimension (",i6,")")') m
@@ -105,37 +110,50 @@ module m_linalg
         write(*,'("Error (zhediag): The matrix must be squared.")')
         stop
       end if
-      if( size( eval, 1) .ne. m) then
-        write(*,'("Error (zhediag): The eigenvalue array must have the same dimension as the matrix.")')
+      rr = 'a'
+      if( present( erange)) then
+        vl = min( erange(1), erange(2))
+        vu = max( erange(1), erange(2))
+        rr = 'v'
+      end if
+      if( present( irange)) then
+        il = max( 1, min( irange(1), irange(2)))
+        iu = min( m, max( irange(1), irange(2)))
+        n = iu - il + 1
+        rr = 'i'
+      end if
+      if( size( eval, 1) .ne. n) then
+        write(*,'("Error (zhediag): The eigenvalue array has incorrect dimensions.")')
         stop
       end if
       rv = 'n'
       if( present( evec)) then
         rv = 'v'
-        if( (size( evec, 1) .ne. m) .or. (size( evec, 2) .ne. m)) then
-          write(*,'("Error (zhediag): The eigenvector array must have the same dimension as the matrix.")')
+        if( (size( evec, 1) .ne. m) .or. (size( evec, 2) .ne. n)) then
+          write(*,'("Error (zhediag): The eigenvector array has incorrect dimensions.")')
           stop
         end if
       end if
 
-      allocate( cpy( m, m))
-      allocate( work(1), rwork( 3*m-2))
+      allocate( cpy, source=mat)
+      allocate( work(1), rwork(7*m), iwork(5*m), ifail(m))
 
-      cpy = mat
-
-      call zheev( rv, 'u', m, cpy, m, eval, work, -1, rwork, info)
+      call zheevx( rv, rr, 'u', m, cpy, m, vl, vu, il, iu, 0.d0, i, eval, cpy, m, work, -1, rwork, iwork, ifail, info)
       lwork = nint( dble( work( 1)))
       deallocate( work)
       allocate( work( lwork))
-      call zheev( rv, 'u', m, cpy, m, eval, work, lwork, rwork, info)
-      if( rv == 'v') evec = cpy
+      if( rv == 'v') then
+        call zheevx( rv, rr, 'u', m, cpy, m, vl, vu, il, iu, 0.d0, i, eval, evec, m, work, lwork, rwork, iwork, ifail, info)
+      else
+        call zheevx( rv, rr, 'u', m, cpy, m, vl, vu, il, iu, 0.d0, i, eval, cpy, m, work, lwork, rwork, iwork, ifail, info)
+      end if
 
       if( info .ne. 0) then
-        write(*,'("Error (zhediag): Diagonalization failed. ZHEEV returned info ",i4)') info
+        write(*,'("Error (zhediag): Diagonalization failed. ZHEEVX returned info ",i4)') info
         stop
       end if
 
-      deallocate( cpy, work, rwork)
+      deallocate( cpy, work, rwork, iwork, ifail)
       return
     end subroutine zhediag
 
@@ -365,9 +383,9 @@ module m_linalg
       integer, optional, intent( in) :: irange(2)
       real(8), optional, intent( in) :: erange(2)
 
-      integer :: m, n, i, j, il, iu, info, lwork
+      integer :: m, n, i, il, iu, info, lwork
       character :: rv, rr
-      real(8) :: phase, vl, vu
+      real(8) :: vl, vu
       integer, allocatable :: iwork(:), ifail(:)
       complex(8), allocatable :: cpy1(:,:), cpy2(:,:), work(:)
       real(8), allocatable :: rwork(:)
@@ -1056,7 +1074,7 @@ module m_linalg
       end do
       call dgesv( m, m, d, m, ipiv, expm, m, i)
       do i = 1, s
-        call dgemm( 'n', 'n', m, m, m, 1.d0, expm, m, expm, 0.d0, tmp, m)
+        call dgemm( 'n', 'n', m, m, m, 1.d0, expm, m, expm, m, 0.d0, tmp, m)
         expm = tmp
       end do
       deallocate( d, cpy, tmp, tmp2, ipiv)

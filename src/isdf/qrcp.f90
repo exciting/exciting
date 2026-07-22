@@ -2,7 +2,7 @@ module qrcp_utils
   use precision, only: dp
   use constants, only: zzero 
   use xfftw, only: fft_type, FFTW_FORWARD
-  use asserts, only: assert
+#include "asserts.fpp"
   use multi_index_conversion, only: composite_index_to_indices, indices_to_composite_index
   use xlapack, only: outer_product, qr_column_pivot
   use modmpi, only: mpiinfo
@@ -21,7 +21,7 @@ module qrcp_utils
   contains
 
   subroutine qrcp_samek(mpi_env, n_interpolation_points, n_sub, u_1, u_2, interpolation_point_indices)
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     integer, intent(in) :: n_sub, n_interpolation_points
     complex(dp), contiguous, intent(in) :: u_1(:, :, :), u_2(:, :, :)
     integer, allocatable, intent(out) :: interpolation_point_indices(:)
@@ -30,22 +30,16 @@ module qrcp_utils
     complex(dp), allocatable :: M(:, :)
     integer, allocatable :: r_work(:)
 
-    call assert(size(u_1, 1) == size(u_2, 1), &
-            'u_1 and u_2 are not given on the same r-grid: size(u_1, 1) /= size(u_2, 1).')
+    CALL_ASSERT(size(u_1, 1) == size(u_2, 1),  'u_1 and u_2 are not given on the same r-grid: size(u_1, 1) /= size(u_2, 1).')
 
-    call assert(size(u_1, 3) == size(u_2, 3), &
-            'u_1 and u_2 are not given on the same k-grid: size(u_1, 3) /= size(u_2, 3).')
+    CALL_ASSERT(size(u_1, 3) == size(u_2, 3),  'u_1 and u_2 are not given on the same k-grid: size(u_1, 3) /= size(u_2, 3).')
 
     n_r = size(u_1, 1)
     n_combinations = size(u_1, 2) * size(u_2, 2) * size(u_1, 3)
 
-    call assert(n_r >= n_interpolation_points, &
-            'The given number of interpolation points is larger than the number of r-points: &
-                    n_r < n_interpolation_points.')
+    CALL_ASSERT(n_r >= n_interpolation_points,  'The given number of interpolation points is larger than the number of r-points:  n_r < n_interpolation_points.')
 
-    call assert(n_combinations >= n_sub, &
-            'The number of subsampling rows is larger than the number of possible combination between u_1 and u_2 with the same k-point: &
-                    n_combinations < n_sub.')
+    CALL_ASSERT(n_combinations >= n_sub,  'The number of subsampling rows is larger than the number of possible combination between u_1 and u_2 with the same k-point:  n_combinations < n_sub.')
 
     call setup_subsampling_matrix_samek(mpi_env, n_sub, u_1, u_2, M)
 
@@ -58,7 +52,7 @@ module qrcp_utils
 
 
   subroutine qrcp_kkp(mpi_env, n_interpolation_points, n_sub, u, interpolation_point_indices)
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     integer, intent(in) :: n_sub, n_interpolation_points
     complex(dp), contiguous, intent(in) :: u(:, :, :)
     integer, allocatable, intent(out) :: interpolation_point_indices(:)
@@ -70,13 +64,9 @@ module qrcp_utils
     n_r = size(u, 1)
     n_combinations = size(u, 2) * size(u, 3) ! n_bands * n_k
 
-    call assert(n_r >= n_interpolation_points, &
-            'The given number of interpolation points is larger than the number of r-points: &
-                    n_r < n_interpolation_points.')
+    CALL_ASSERT(n_r >= n_interpolation_points,  'The given number of interpolation points is larger than the number of r-points:  n_r < n_interpolation_points.')
 
-    call assert(n_combinations >= n_sub, &
-            'The number of subsampling rows is larger than the number of possible combination between u and itself: &
-                    n_combinations < n_sub.')
+    CALL_ASSERT(n_combinations >= n_sub,  'The number of subsampling rows is larger than the number of possible combination between u and itself:  n_combinations < n_sub.')
 
     call setup_subsampling_matrix_kkp(mpi_env, n_sub, u, M)
 
@@ -89,7 +79,7 @@ module qrcp_utils
 
 
   subroutine setup_subsampling_matrix_samek(mpi_env, n_sub, u_1, u_2, M)
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     integer, intent(in) :: n_sub
     complex(dp), intent(in) :: u_1(:, :, :), u_2(:, :, :)
     complex(dp), allocatable, intent(out) :: M(:, :)
@@ -140,7 +130,7 @@ module qrcp_utils
   end subroutine setup_subsampling_matrix_samek
 
   subroutine setup_subsampling_matrix_kkp(mpi_env, n_sub, u, M)
-    type(mpiinfo), intent(inout) :: mpi_env
+    type(mpiinfo), intent(in) :: mpi_env
     integer, intent(in) :: n_sub
     complex(dp), intent(in) :: u(:, :, :)
     complex(dp), intent(out), allocatable :: M(:, :)

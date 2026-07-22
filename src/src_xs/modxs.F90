@@ -398,8 +398,7 @@ Module modxs
   ! file unit for output
       Integer :: unitout
   ! file units to be connected at the same time
-      Integer :: unit1, unit2, unit3, unit4, unit5, unit6, unit7, &
-     & unit8, unit9
+      Integer :: unit1
   ! filename for output
       Character (256) :: xsfileout
   ! weights for Brillouin zone integration
@@ -455,8 +454,6 @@ Module modxs
   !------------------------------!
   !     parallel environment     !
   !------------------------------!
-  ! maximum number of processors allowed to use
-      Integer, Parameter :: maxproc = 1000
   ! parallelization type (values are 'q', 'k', 'w')
       Character (1) :: partype
   ! current initial q-point index

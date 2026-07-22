@@ -6,16 +6,17 @@ subroutine bsegenspec()
   use modmpi
   use modinput
   use m_readoscillator
-  use modbse, only: nk_bse
-  use m_makespectrum
+  use modbse, only: nk_bse, setup_bse_type_list
+  use m_makespectrum, only: makespectrum
   use constants, only: zzero
   use unit_conversion, only: hartree_to_ev
   use mod_kpoint, only: nkptnr
   use mod_lattice, only: omega
   use m_genwgrid
+  use modxs, only: unitout
 ! !DESCRIPTION:
 !   Collects BSE results from files EXCITON*.OUT and computes
-!   spectra anew.
+!   spectra.
 !
 ! !REVISION HISTORY:
 !   Created March, 2017, BA
@@ -31,9 +32,13 @@ subroutine bsegenspec()
   complex(8), allocatable :: oscir(:)
   complex(8), allocatable :: oscirmat(:,:,:)
   complex(8), allocatable, dimension(:,:,:) :: symspectr
+  integer :: bse_type_index
+  character(len=256), allocatable :: bsetypelist(:) 
 
   character(*), parameter :: thisname = "bsegenspec"
 
+  ! only root will do the work, parallelization not necessary
+  ! omit a warning as this could confuse the BSE user
   if(mpiglobal%rank == 0) then 
 
     ! General init
@@ -70,81 +75,91 @@ subroutine bsegenspec()
     ! Use offdiagonal elements
     foff = input%xs%dfoffdiag
 
-    do iqmt = iqmti+iq1-1, iqmti+iq2-1
+    call setup_bse_type_list(input, bsetypelist)
+    do bse_type_index = 1, size(bsetypelist)
+      input%xs%bse%bsetype = trim(adjustl(bsetypelist(bse_type_index)))
 
-      ! Read in exciton energies and oscillator strengths
+      write(unitout, '("Info(",a,"):", a, a)') trim(thisname),&
+        & " BSE type: ", trim(adjustl(input%xs%bse%bsetype))
+      call printline(unitout, "+")
 
-      if(iqmt == 1) then 
-        no = 3
-        do io1=1, no
-          if (foff) then
-            do io2=1, no
-              call readoscillator(iqmt, io1, io2, evals, bindevals, oscir)
+      do iqmt = iqmti+iq1-1, iqmti+iq2-1
+
+        ! Read in exciton energies and oscillator strengths
+
+        if(iqmt == 1) then 
+          no = 3
+          do io1=1, no
+            if (foff) then
+              do io2=1, no
+                call readoscillator(iqmt, io1, io2, evals, bindevals, oscir)
+                if(.not. allocated(oscirmat)) then 
+                  allocate(oscirmat(size(oscir), 3, 3))
+                end if
+                oscirmat(:,io1,io2)=oscir 
+              end do
+            else
+              call readoscillator(iqmt, io1, io1, evals, bindevals, oscir)
               if(.not. allocated(oscirmat)) then 
                 allocate(oscirmat(size(oscir), 3, 3))
               end if
-              oscirmat(:,io1,io2)=oscir 
-            end do
-          else
-            call readoscillator(iqmt, io1, io1, evals, bindevals, oscir)
-            if(.not. allocated(oscirmat)) then 
-              allocate(oscirmat(size(oscir), 3, 3))
+              oscirmat(:,io1,io1)=oscir 
             end if
-            oscirmat(:,io1,io1)=oscir 
+          end do
+        else
+          no = 1
+          call readoscillator(iqmt, no, no, evals, bindevals, oscir)
+          if(.not. allocated(oscirmat)) then 
+            allocate(oscirmat(size(oscir), 3, 3))
           end if
-        end do
-      else
-        no = 1
-        call readoscillator(iqmt, no, no, evals, bindevals, oscir)
-        if(.not. allocated(oscirmat)) then 
-          allocate(oscirmat(size(oscir), 3, 3))
+          oscirmat(:,no,no)=oscir 
         end if
-        oscirmat(:,no,no)=oscir 
-      end if
 
-      if(allocated(oscir)) deallocate(oscir)
+        if(allocated(oscir)) deallocate(oscir)
 
-      !! Make the spectrum
+        !! Make the spectrum
 
-      nexc = size(evals)
-      nk = nkptnr
-      
-      nk_bse = nkptnr
+        nexc = size(evals)
+        nk = nkptnr
+        
+        nk_bse = nkptnr
 
-      write(*,*) "nexc=", nexc
-      write(*,*) "nk", nk
-      write(*,*) "omega", omega
+        write(unitout,'("Info(",a,"): Number of excitons: ", i8)') trim(thisname), nexc
+        write(unitout,'("Info(",a,"): Number of k-points: ", i8)') trim(thisname), nk
+        if(input%xs%BSE%outputlevelnumber == 1) then
+          write(unitout,'("Info(",a,"): Unit cell volume: ", f12.6)') trim(thisname), omega
+        end if
 
-      if(input%xs%tevout) then 
-        evals = evals/hartree_to_ev
-      end if
+        if(input%xs%tevout) then 
+          evals = evals/hartree_to_ev
+        end if
 
-      ! Calculate lattice symmetrized spectrum.
-      call redospectrum(iqmt, nexc, nk, evals, oscirmat, symspectr)
-      !call makespectrum(iqmt, nexc, nk, evals, oscirmat, symspectr)
+        ! Calculate lattice symmetrized spectrum.
+        call makespectrum(iqmt, nexc, nk, evals, oscirmat, symspectr)
 
-      ! Generate an evenly spaced frequency grid 
-      nw = input%xs%energywindow%points
-      allocate(w(nw))
-      call genwgrid(nw, input%xs%energywindow%intv,&
-        & input%xs%tddft%acont, 0.d0, w_real=w)
-      ! Generate and write derived optical quantities
-      call writederived(iqmt, symspectr, nw, w)
-      deallocate(w)
+        ! Generate an evenly spaced frequency grid 
+        nw = input%xs%energywindow%points
+        allocate(w(nw))
+        call genwgrid(nw, input%xs%energywindow%intv,&
+          & input%xs%tddft%acont, 0.d0, w_real=w)
+        ! Generate and write derived optical quantities
+        call writederived(iqmt, symspectr, nw, w)
+        deallocate(w)
 
-      ! Some cleaning up
-      deallocate(symspectr)
-      if(allocated(oscirmat)) deallocate(oscirmat)
-      if(allocated(evals)) deallocate(evals)
+        ! Some cleaning up
+        deallocate(symspectr)
+        if(allocated(oscirmat)) deallocate(oscirmat)
+        if(allocated(evals)) deallocate(evals)
 
-    ! iqmt
+      ! iqmt
+      end do
+
+    ! bse types
     end do
 
     call barrier(callername=trim(thisname))
 
   else
-
-    write(*,'("Info(",a,"): Rank ", i4," is waiting...")') trim(thisname), mpiglobal%rank
 
     call barrier(callername=trim(thisname))
 

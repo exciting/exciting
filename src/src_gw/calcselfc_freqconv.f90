@@ -55,7 +55,7 @@ subroutine calcselfc_freqconv(ikp,iq,mdim)
             icg = ie2-nstse
             is = corind(icg,1)
             ia = corind(icg,2)
-            ic = corind(icg,3)
+            ic = corind(icg,6)
             ias = idxas(ia,is)
             enk = evalcr(ic,ias) - efermi
             xnm(1:freq%nomeg) = mwm(ie1,ie2,1:freq%nomeg)

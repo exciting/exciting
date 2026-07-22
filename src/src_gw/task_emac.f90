@@ -10,7 +10,6 @@ subroutine task_emac()
     use modxs, only: symt2
     use mod_mpi_gw
     use modmpi, only: rank, mpiglobal
-    use m_getunit
     use mod_bands, only: numin, nstdf
 
     implicit none
@@ -91,8 +90,7 @@ subroutine task_emac()
     if (allocated(barc)) deallocate(barc)
 
     if (rank==0) then
-      call getunit(fid)
-      open(fid, File='EPSMACRO.OUT', Form='Formatted', Action='Write', Status='Replace')
+      open(newunit=fid, File='EPSMACRO.OUT', Form='Formatted', Action='Write', Status='Replace')
       write(fid,'(a)')'# frequency       eps_{00} (diag)            eps_{00}+LFE (diag)            <eps_{00}^{-1}>'
       do iom = 1, freq%nomeg
         e0 = eps00(1,1,iom)     ! isotropic average without LFE

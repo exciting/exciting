@@ -4,6 +4,8 @@
 !
 Subroutine writelambda (wq, gq)
       use constants, only: pi
+      use mod_getoccsv, only: getoccsv
+      use modinput, only: input
       Use modmain
       Implicit None
 ! arguments
@@ -18,7 +20,7 @@ Subroutine writelambda (wq, gq)
          Call getoccsv (vkl(:, ik), occsv(:, ik))
       End Do
 ! compute the density of states at the Fermi energy
-      Call occupy
+      Call occupy(input%groundstate%epsocc)
       Open (50, File='LAMBDAQ.OUT', Action='WRITE', Form='FORMATTED')
       Write (50,*)
       Write (50, '(I4, " : total number of atoms")') natmtot

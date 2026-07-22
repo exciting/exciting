@@ -22,11 +22,8 @@ def input_xml_mock(tmp_path) -> MockFile:
           <species speciesfile="Si.xml" rmt="2.1">
              <atom coord="0.00  0.00  0.00"></atom>
              <atom coord="0.25  0.25  0.25"></atom>
-             <dfthalfparam 
-                cut="3.90" 
-                ampl="1" 
-                exponent="8">
-                <shell number="0" ionization="0.25" />
+             <dfthalfparam>
+                <shell cut="3.90" ampl="1" exponent="8" number="0" ionization="0.25" />
              </dfthalfparam>
           </species>
        </structure>
@@ -67,4 +64,5 @@ def test_setup_dft_05(input_xml_mock, tmp_path):
 
     assert strain_values == [0, 1, 2, 3]
 
-    assert parsed_input_rundir_4.structure.species_properties[species].dfthalfparam.cut == strain_values[3]
+    shell = parsed_input_rundir_4.structure.species_properties[species].dfthalfparam.shell[0]
+    assert shell.cut == strain_values[3]

@@ -6,7 +6,7 @@ All functions in this module could benefit from refactoring.
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 
@@ -14,6 +14,52 @@ from excitingtools.parser_utils.erroneous_file_error import ErroneousFileError
 from excitingtools.parser_utils.parser_decorators import set_return_values, xml_root
 
 path_type = Union[Path, str]
+
+
+def _parse_final_groundstate_forces(lines: List[str]) -> dict:
+    """Parse the final force summary written after a plain ground-state run."""
+    if any("Structure-optimization module started" in line for line in lines):
+        return {}
+
+    force_header = "Total atomic forces including IBS (cartesian)"
+    start = None
+    end = None
+
+    for i in range(len(lines) - 1, -1, -1):
+        line = lines[i]
+        if force_header in line:
+            start = i + 1
+            break
+
+    if start is None:
+        return {}
+
+    for i in range(start, len(lines)):
+        if "Atomic force components including IBS (cartesian)" in lines[i]:
+            end = i
+            break
+
+    if end is None:
+        end = len(lines)
+
+    forces = {}
+    for line in lines[start:end]:
+        if "atom" not in line or ":" not in line:
+            continue
+        atom_id, values = re.split(":", line, maxsplit=1)
+        atom_match = re.search(r"atom\s+(\d+)", atom_id)
+        if atom_match is None:
+            continue
+        vector = values.split()[:3]
+        if len(vector) != 3:
+            continue
+        forces[f"atom {atom_match.group(1)}"] = vector
+
+    if not forces:
+        return {}
+
+    max_force = max(np.linalg.norm(np.asarray(vector, dtype=float)) for vector in forces.values())
+    return {"Total atomic forces": forces, "Maximum force": max_force}
 
 
 @set_return_values
@@ -109,6 +155,10 @@ def parse_info_out(name: path_type) -> dict:  # noqa: PLR0912, PLR0915
                 if " " in ini[k][1]:
                     ini[k][1] = ini[k][1].split()
 
+            # read total number of atoms
+            if ini[k][0] == "Total number of atoms per unit cell":
+                inits.update({ini[k][0]: ini[k][1]})
+
             # initialize species subdict if key Species is found:
             if ini[k][0] == "Species":
                 speci = ini[k][1][0]
@@ -143,18 +193,24 @@ def parse_info_out(name: path_type) -> dict:  # noqa: PLR0912, PLR0915
     # loops through all scl's
     for j in range(len(nscl) - 1):
         scls = {}
-        scl = []
-        k = 0
         # loops through all lines of the scl
         for i in range(nscl[j], nscl[j + 1]):
             # stores the lines, which have the format "variable : value" into a list
             match = re.match(r"\s*(\w.+?\S)\s*(?:\(target\))?\s*:\s*(-?\d+\.\d+(?:E-?\d+)?)", lines[i])
+            band_match = re.match(
+                r"\s*(\w+-band (?:maximum|minimum)) at \s*(\d+)\s*(\d+\.\d+)\s*\s*(\d+\.\d+)\s*\s*(\d+\.\d+)\s*",
+                lines[i],
+            )
             if match:
-                scl.append([match.group(1), match.group(2)])
                 # stores variable-value pairs in a dictionary
-                scls.update({scl[k][0]: scl[k][1]})
-                k = k + 1
+                scls.update({match.group(1): match.group(2)})
+            elif band_match:
+                scls.update({band_match.group(1): list(band_match.groups()[1:])})
         INFO["scl"][str(j + 1)] = scls
+
+    groundstate_forces = _parse_final_groundstate_forces(lines)
+    if groundstate_forces:
+        INFO["groundstate"] = groundstate_forces
 
     if is_already_converged is not None:
         INFO["str_opt"] = {}
@@ -310,13 +366,11 @@ def parse_info_xml(file: path_type) -> dict:
                 "mommttot": node.find("moments").find("interstitial").attrib,
             }
             excitingRun[i]["moments"] = moments
-            atom_nr = 0
             atomic_moment = []
             species = []
-            for atoms in node.find("moments").iter("atom"):
+            for atom_nr, atoms in enumerate(node.find("moments").iter("atom")):
                 if atom_nr == 0:
                     species_old = atoms.get("species")
-                atom_nr += 1
                 if atoms.get("species") == species_old:
                     species.append(atoms.find("mommt").attrib)
                 else:
@@ -558,3 +612,72 @@ def parse_lo_recommendation(name: path_type) -> dict:
         lo_recommendation[species].update({l: np.loadtxt(blocks[offset + 2 : offset + n_nodes + 2]).tolist()})
 
     return lo_recommendation
+
+
+@set_return_values
+def parse_vs(name: path_type) -> dict:
+    """
+    Parser for: VS_??.OUT
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file
+    """
+    with open(file=name) as fid:
+        lines = fid.readlines()
+
+    species_number = lines[0].split(":")[1]
+    n_shells = int(lines[1].split()[0])
+    dft_half_parameters_list = []
+    labels = lines[2].split()
+    offset = 3
+    for i in range(n_shells):
+        data = lines[offset + i].split()
+        assert len(data) == len(labels), "Data length does not match labels length"
+        dft_half_parameters_list.append({label: number for label, number in zip(labels, data)})
+    offset += n_shells
+    n_radial_points = lines[offset].split(":")[1].strip()
+    offset += 2
+    r, Vatom, Vion, VS = np.loadtxt(lines[offset : offset + int(n_radial_points)], unpack=True)
+    return {
+        "species_number": species_number,
+        "n_shells_ionize": n_shells,
+        "dft_half_parameters_list": dft_half_parameters_list,
+        "r": r.tolist(),
+        "Vatom": Vatom.tolist(),
+        "Vion": Vion.tolist(),
+        "VS": VS.tolist(),
+    }
+
+
+@set_return_values
+def parse_dft_half_nscf(name: path_type) -> dict:
+    """
+    Parser for: DFT_HALF_NSCF.OUT
+
+    :param name: path of the file to parse
+    :returns: dictionary containing parsed file
+    """
+    with open(file=name) as fid:
+        lines = fid.readlines()
+    n_kpoints = int(lines[0].split(":")[0])
+    n_states = int(lines[1].split(":")[0])
+    kpoints = []
+    current_line = 2
+    for _ in range(n_kpoints):
+        data = lines[current_line].split()
+        current_line += 2  # Skip line with header
+        states = []
+        for _ in range(n_states):
+            state_values = lines[current_line].split()
+            state = {
+                "state": state_values[0],
+                "eigenvalue": state_values[1],
+                "occupancy": state_values[2],
+                "Salpha": state_values[3],
+            }
+            states.append(state)
+            current_line += 1
+        kpoints.append({"ik": data[0], "kpoint": data[1:4], "states": states})
+        current_line += 1  # Skip empty line between k-points
+
+    return {"n_kpoints": n_kpoints, "n_states": n_states, "kpoints": kpoints}
