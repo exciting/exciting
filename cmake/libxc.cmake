@@ -1,13 +1,18 @@
 # Find and define build libXC.
 #
-# Look for version 7.0.0. If not found, build the packaged version with ExternalProject_Add
+# Look for version 7.0.0 on the system. If it is not found, or if the user asks
+# for it, download and build Libxc 7.0.0 from https://gitlab.com/libxc/libxc/
 #
 
 # Set the root directory for the libXC installation, allowing for non-standard locations.
 # If the user has a custom location for libxc, they can set LIBXC_ROOT.
 set(LIBXC_ROOT "None" CACHE STRING "Root directory for non-standard locations for the libxc installation")
 
-option(USE_INTERNAL_LIBXC "Use internal version of libXC" ON)
+# Version, repository and tag used when Libxc is built by exciting
+set(LIBXC_DOWNLOAD_VERSION "7.0.0" CACHE STRING "Version of libXC downloaded and built by exciting")
+set(LIBXC_DOWNLOAD_REPOSITORY "https://gitlab.com/libxc/libxc.git" CACHE STRING "Git repository the libXC sources are fetched from")
+
+option(USE_INTERNAL_LIBXC "Download and build libXC instead of using a system installation" ON)
 
 if (NOT USE_INTERNAL_LIBXC)
   find_library(LIBXC_LIB NAMES xc HINTS ${LIBXC_ROOT}/lib/)
@@ -15,12 +20,12 @@ if (NOT USE_INTERNAL_LIBXC)
 endif()
 
 if (USE_INTERNAL_LIBXC)
-  message("-- LibXC not found on the system. Falling back to prepackaged LibXC 7.0.0")
+  message("-- LibXC ${LIBXC_DOWNLOAD_VERSION} will be fetched from ${LIBXC_DOWNLOAD_REPOSITORY}")
 
   # Make an installation directory
   set(libXCInstallDir "${CMAKE_BINARY_DIR}/INTERNAL_libXC_install")
   file(MAKE_DIRECTORY ${libXCInstallDir})
-  message("-- LibXC 7.0.0 will be installed to ${libXCInstallDir}")
+  message("-- LibXC ${LIBXC_DOWNLOAD_VERSION} will be installed to ${libXCInstallDir}")
 
   if (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     set(FORTRAN_FLAGS_XC "-O0 -ef -g -e Z -dC -s real64 -s integer32 -fPIC -h flex_mp=strict")
@@ -28,11 +33,23 @@ if (USE_INTERNAL_LIBXC)
     set(FORTRAN_FLAGS_XC "-cpp ")
   endif()
 
-  # Build version packaged with exciting
+  # Libxc 7.0.0 requests a CMake policy version below the floor supported by
+  # CMake 4, which refuses to configure it unless the minimum is set explicitly
+  if (CMAKE_VERSION VERSION_GREATER_EQUAL 4.0)
+    set(LIBXC_POLICY_ARGS -DCMAKE_POLICY_VERSION_MINIMUM=3.5)
+  endif()
+
+  # Download and build libXC
   include(ExternalProject)
   ExternalProject_Add(INTERNAL_LIBXC
-    # Location of prepackaged libXC
-    SOURCE_DIR    "${CMAKE_SOURCE_DIR}/external/libXC/"
+    # Upstream location of libXC
+    GIT_REPOSITORY ${LIBXC_DOWNLOAD_REPOSITORY}
+    GIT_TAG        ${LIBXC_DOWNLOAD_VERSION}
+    GIT_SHALLOW    TRUE
+    GIT_PROGRESS   TRUE
+    # Do not contact the server again once the sources have been fetched
+    UPDATE_COMMAND ""
+    SOURCE_DIR    "${CMAKE_BINARY_DIR}/INTERNAL_libXC_source"
     BUILD_ALWAYS   ${RECOMPILE_EXT}
     BINARY_DIR    "${CMAKE_BINARY_DIR}/INTERNAL_libXC_build"
     CONFIGURE_COMMAND FC=${CMAKE_Fortran_COMPILER} CC=${CMAKE_C_COMPILER}
@@ -40,6 +57,7 @@ if (USE_INTERNAL_LIBXC)
                       ${CMAKE_COMMAND} -H<SOURCE_DIR> -B<BINARY_DIR>
                       -DCMAKE_INSTALL_PREFIX=${libXCInstallDir}
                       -DBUILD_TESTING=OFF
+                      ${LIBXC_POLICY_ARGS}
 		      -DCMAKE_INSTALL_LIBDIR=lib
                       -DENABLE_FORTRAN=ON
 		      -DCMAKE_Fortran_FLAGS=${FORTRAN_FLAGS_XC}

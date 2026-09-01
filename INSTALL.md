@@ -31,11 +31,11 @@ exciting requires `xsltproc` to preprocess its XML schema into code.
 Additionally, the code requires the installation of FFTW3 (such as oneMKL, AOCL-FFTW, FFTW3, Cray-FFTW, etc.) and a BLAS/LAPACK implementation (such as oneMKL, BLIS+libFLAME, OpenBLAS, LibSci, etc.) to compile. Make sure that you are using a multithreading-aware (thread-safe) BLAS/LAPACK library when enabling OpenMP.
 **PLEASE** ensure you have these libraries and binaries installed before proceeding.
 
-exciting comes with the following external libraries required to compile the code:
+exciting requires the following external libraries, which are either shipped with the code or downloaded during the build:
 
 * [FoX XML](https://github.com/andreww/fox) library for parsing the input (2012 version).
 		
-* [LIBXC V7](https://libxc.gitlab.io/) library of DFT exchange and correlation functionals. It is also possible to link against an external Libxc installation, provided it is version 5.0.0 or newer.
+* [LIBXC V7](https://libxc.gitlab.io/) library of DFT exchange and correlation functionals. Version 7.0.0 is downloaded from https://gitlab.com/libxc/libxc/ and built during compilation, so an internet connection is needed unless you link against an external Libxc installation, which has to be version 5.0.0 or newer.
 	
 * [BSPLINE-FORTRAN](https://github.com/jacobwilliams/bspline-fortran) Multidimensional B-Spline interpolation of data on a regular grid.
 
@@ -179,7 +179,9 @@ CMake installation can be customized using the following options (**Notice that 
 - **_FFTW3_ROOT_**: For non-standard compilation, provide the install directory of FFTW3 (default: None).
 - **_SCALAPACK_**: Enables ScaLAPACK support (default: OFF).
 - **_SCALAPACK_ROOT_**: For non-standard compilation, provide the install directory of ScaLAPACK (default: None).
-- **_USE_INTERNAL_LIBXC_**: Uses the bundled libXC version (default: ON).
+- **_USE_INTERNAL_LIBXC_**: Downloads and builds libXC 7.0.0 from https://gitlab.com/libxc/libxc/ (default: ON).
+- **_LIBXC_DOWNLOAD_VERSION_**: Git tag of libXC to download and build (default: 7.0.0).
+- **_LIBXC_DOWNLOAD_REPOSITORY_**: Git repository the libXC sources are fetched from (default: https://gitlab.com/libxc/libxc.git).
 - **_LIBXC_ROOT_**: For non-standard compilation, provide the install directory of libXC (default: None).
 - **_SIRIUS_**: Compiles EXCITING with SIRIUS (default: OFF).
 - **_NVIDIA_**: Enables GPU support for NVIDIA GPUs (default: OFF).

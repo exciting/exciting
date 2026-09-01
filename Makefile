@@ -142,9 +142,6 @@ clean:
 	rm -f docs/spacegroup/*
 	cd test/src/utilities; python clean_tests.py
 
-libxcclean:
-	cd external/libXC && make clean
-
 tgz:
 	tar --exclude-from=".gitignore"  --transform 's,^,exciting/,' -c -v -f ./exciting.tar *
 	gzip  -f --best ./exciting.tar

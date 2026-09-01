@@ -43,10 +43,10 @@ Additionally, the code depends on the installation of:
 
 > **Note:** For performant compilation, the choice of these libraries is essential.
 
-The **exciting** package includes the following external libraries which are necessary for compilation:
+The **exciting** package requires the following external libraries, which are either included or downloaded during compilation:
 
 - [FoX XML](https://github.com/andreww/fox) — Library for parsing input (2012 version).
-- [LIBXC V7](https://libxc.gitlab.io/) — Library of DFT exchange and correlation functionals. External libXC versions 5.0.0 or higher are also supported.
+- [LIBXC V7](https://libxc.gitlab.io/) — Library of DFT exchange and correlation functionals. Version 7.0.0 is downloaded from https://gitlab.com/libxc/libxc/ during the build; external libXC versions 5.0.0 or higher are also supported.
 - [BSPLINE-FORTRAN](https://github.com/jacobwilliams/bspline-fortran) — Multidimensional B-spline interpolation on a regular grid.
 
 > **Note:** For performant compilations supporting fully parallel execution, an MPI library is required, such as Open MPI, MPICH, or Intel MPI. Optionally, a version of ScaLAPACK can be used.
